@@ -1,20 +1,14 @@
 "use client"
 
-import { Crown, Loader2, Sparkles, Star } from "lucide-react"
+import { Crown, Sparkles, Star } from "lucide-react"
 import { useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { Link } from "@/i18n/navigation"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
+
+import { PaywallDialog } from "@/components/ui/paywall-dialog"
 import { useStars } from "@/contexts/stars-context"
+import { toLocalIsoDate } from "@/lib/calendar-helper"
 import type { CalendarPlanTier } from "@/lib/calendar/access-window"
 import { purchaseCalendarUnlock } from "@/lib/calendar/unlocks-client"
-import { toLocalIsoDate } from "@/lib/calendar-helper"
 import {
     formatCurrency,
     type CurrencyCode,
@@ -45,6 +39,7 @@ export function LockedPaywallDialog({
     const targetTier = planTier === "basic" ? "pro" : "basic"
     const subscribeHash =
         targetTier === "basic" ? "subscribe-basic" : "subscribe-pro"
+    const upgradeHref = `/${locale}/stars#${subscribeHash}`
     const bodyKey =
         planTier === "basic" ? "locked.bodyBasic" : "locked.bodyFree"
     const ctaKey = planTier === "basic" ? "locked.ctaBasic" : "locked.ctaFree"
@@ -71,11 +66,6 @@ export function LockedPaywallDialog({
         }
         setPurchasing(true)
         setPurchaseError(null)
-
-        // The unlock endpoint is the source of truth: it deducts the star
-        // and inserts the calendar_unlocks row atomically. After it returns
-        // we broadcast so the navbar star pill (and any other listener)
-        // refreshes from the server.
         try {
             const iso = toLocalIsoDate(lockedDate)
             const result = await purchaseCalendarUnlock(userId, iso)
@@ -99,84 +89,63 @@ export function LockedPaywallDialog({
         }
     }
 
+    const showStarAction = Boolean(userId)
+    const starButtonDisabled = !canAffordStarUnlock || purchasing
+    const footerMessage = purchaseError
+        ? purchaseError
+        : showStarAction && starsInitialized && !canAffordStarUnlock
+            ? t("starUnlock.insufficient")
+            : null
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className='max-w-md w-[92vw] overflow-hidden border border-amber-300/30 bg-gradient-to-br from-[#0b0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(252,211,77,0.35)]'>
-                <div className='pointer-events-none absolute -top-24 -right-16 h-56 w-56 rounded-full bg-amber-300/25 blur-3xl' />
-                <div className='pointer-events-none absolute -bottom-24 -left-12 h-56 w-56 rounded-full bg-violet-500/20 blur-3xl' />
-
-                <DialogHeader className='relative space-y-2 text-left'>
-                    <div className='flex items-center gap-3'>
-                        <span className='inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-300/15 text-amber-200 ring-1 ring-amber-300/40 shadow-[0_0_24px_-6px_rgba(252,211,77,0.5)]'>
-                            <Crown className='h-5 w-5' />
-                        </span>
-                        <DialogTitle className='font-serif italic text-xl text-white leading-tight'>
-                            {t("locked.title")}
-                        </DialogTitle>
-                    </div>
-                    {formattedDate ? (
-                        <div className='text-[11px] uppercase tracking-[0.22em] text-amber-200/80'>
-                            {formattedDate}
-                        </div>
-                    ) : null}
-                    <DialogDescription className='text-sm text-white/75 leading-relaxed'>
-                        {t(bodyKey, { price: priceLabel })}
-                    </DialogDescription>
-                </DialogHeader>
-
-                {planTier === "free" ? (
-                    <p className='relative text-xs text-white/55 leading-relaxed'>
-                        {t("locked.noteFree")}
+        <PaywallDialog
+            open={open}
+            onOpenChange={onOpenChange}
+            tone='premium'
+            icon={<Crown className='h-3.5 w-3.5' />}
+            eyebrow={formattedDate ?? undefined}
+            title={t("locked.title")}
+            body={t(bodyKey, { price: priceLabel })}
+            note={planTier === "free" ? t("locked.noteFree") : undefined}
+            actions={[
+                {
+                    key: "upgrade",
+                    label: t(ctaKey),
+                    href: upgradeHref,
+                    icon: <Sparkles className='h-3.5 w-3.5' />,
+                    onClick: () => onOpenChange(false),
+                },
+                ...(showStarAction
+                    ? [
+                          {
+                              key: "star",
+                              label: t("starUnlock.cta", { cost: STAR_COST }),
+                              onClick: () => void handleStarUnlock(),
+                              icon: (
+                                  <Star
+                                      className='h-3.5 w-3.5 text-yellow-300'
+                                      fill='currentColor'
+                                  />
+                              ),
+                              disabled: starButtonDisabled,
+                              loading: purchasing,
+                          },
+                      ]
+                    : []),
+            ]}
+            footer={
+                footerMessage ? (
+                    <p
+                        className={
+                            purchaseError
+                                ? "text-[11px] text-red-300/90"
+                                : "text-[11px] text-white/55"
+                        }
+                    >
+                        {footerMessage}
                     </p>
-                ) : null}
-
-                {userId ? (
-                    <div className='relative space-y-2 rounded-2xl border border-yellow-300/30 bg-yellow-300/[0.06] p-3'>
-                        <div className='flex items-start gap-2 text-xs text-white/80 leading-relaxed'>
-                            <Star
-                                className='mt-0.5 h-3.5 w-3.5 shrink-0 text-yellow-300'
-                                fill='currentColor'
-                            />
-                            <span>{t("starUnlock.description")}</span>
-                        </div>
-                        <button
-                            type='button'
-                            onClick={handleStarUnlock}
-                            disabled={!canAffordStarUnlock || purchasing}
-                            className='relative inline-flex w-full items-center justify-center gap-2 rounded-xl border border-yellow-300/40 bg-yellow-300/15 px-4 py-2.5 text-sm font-medium text-yellow-100 transition-colors hover:bg-yellow-300/25 disabled:opacity-50 disabled:cursor-not-allowed'
-                        >
-                            {purchasing ? (
-                                <Loader2 className='h-4 w-4 animate-spin' />
-                            ) : (
-                                <Star
-                                    className='h-4 w-4 text-yellow-300'
-                                    fill='currentColor'
-                                />
-                            )}
-                            {t("starUnlock.cta", { cost: STAR_COST })}
-                        </button>
-                        {!canAffordStarUnlock && starsInitialized ? (
-                            <p className='text-[11px] text-white/55'>
-                                {t("starUnlock.insufficient")}
-                            </p>
-                        ) : null}
-                        {purchaseError ? (
-                            <p className='text-[11px] text-red-300/90'>
-                                {purchaseError}
-                            </p>
-                        ) : null}
-                    </div>
-                ) : null}
-
-                <Link
-                    href={`/stars#${subscribeHash}`}
-                    onClick={() => onOpenChange(false)}
-                    className='relative inline-flex w-full items-center justify-center gap-2 rounded-xl bg-amber-300 px-4 py-2.5 text-sm font-medium text-black hover:bg-amber-200 transition-colors shadow-[0_8px_24px_-8px_rgba(252,211,77,0.6)]'
-                >
-                    <Sparkles className='h-4 w-4' />
-                    {t(ctaKey)}
-                </Link>
-            </DialogContent>
-        </Dialog>
+                ) : null
+            }
+        />
     )
 }
