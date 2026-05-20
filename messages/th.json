@@ -1472,7 +1472,13 @@
       "pentacles": "เหรียญ",
       "manualSelected": "{selected} จาก {total} ที่เลือกแล้ว",
       "upright": "หน้าตั้ง",
-      "reversedTab": "กลับหัว"
+      "reversedTab": "กลับหัว",
+      "freeTierMaxCardsHint": "แพ็กเกจฟรีจั่วได้สูงสุด {max} ใบ อัปเกรดเพื่อจั่วได้มากขึ้น",
+      "manualPickPaywallTitle": "การเลือกไพ่ด้วยตนเองเป็นฟีเจอร์ของ Pro",
+      "manualPickPaywallDesc": "เลือกไพ่ใบใดก็ได้จากสำรับเต็ม อัปเกรดเป็น Pro เพื่อปลดล็อก — ชำระเงินผ่าน Stripe ในหน้าต่อไป",
+      "manualPickPaywallFeature": "เลือกไพ่ด้วยตนเองจากสำรับเต็ม",
+      "manualPickPaywallInsufficient": "ไม่รวมในแพ็กเกจ Basic",
+      "manualPickPaywallNote": "เลือกแพ็กเกจเพื่อไปยังหน้าชำระเงิน Stripe ที่ปลอดภัย"
     },
     "editQuestion": {
       "title": "แก้ไขคำถามของคุณ",

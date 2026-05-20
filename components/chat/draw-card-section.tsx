@@ -9,16 +9,24 @@ import {
     Minus,
     Plus,
     Sparkles,
+    Lock,
 } from "lucide-react"
 import type { RefObject } from "react"
 import { useTranslations } from "next-intl"
 import { LinearCardSpread } from "@/components/tarot/card-selection/linear-card-spread"
 import { ManualCardSelectionDialog } from "@/components/tarot/card-selection/manual-card-selection-dialog"
+import { ManualPickPaywallDialog } from "@/components/tarot/card-selection/manual-pick-paywall-dialog"
 import {
     Popover,
     PopoverTrigger,
     PopoverContent,
 } from "@/components/ui/popover"
+import type { SubscriptionPlanTier } from "@/lib/payments/subscription-plans"
+import {
+    PAID_TIER_MAX_CARDS,
+    getMaxCardsForTier,
+    canUseManualCardPick,
+} from "@/lib/payments/plan-limits"
 import type { CardUiText } from "./types"
 
 type DrawCardSectionProps = {
@@ -36,6 +44,7 @@ type DrawCardSectionProps = {
     onProvideSelectByIndices: (fn: (indices: number[]) => void) => void
     selectionResetSignal: number
     containerRef?: RefObject<HTMLDivElement | null>
+    planTier?: SubscriptionPlanTier | "free" | null
 }
 
 export default function DrawCardSection({
@@ -53,10 +62,17 @@ export default function DrawCardSection({
     onProvideSelectByIndices,
     selectionResetSignal,
     containerRef,
+    planTier,
 }: DrawCardSectionProps) {
     const t = useTranslations("ReadingPage.chooseCards")
     const [manualDialogOpen, setManualDialogOpen] = useState(false)
+    const [paywallDialogOpen, setPaywallDialogOpen] = useState(false)
     const [popoverOpen, setPopoverOpen] = useState(false)
+    const maxCards = getMaxCardsForTier(planTier)
+    const manualPickUnlocked = canUseManualCardPick(planTier)
+    const atMaxLimit = cardsToSelect >= maxCards
+    const upgradeForMoreCards =
+        atMaxLimit && maxCards < PAID_TIER_MAX_CARDS
 
     return (
         <div
@@ -115,11 +131,20 @@ export default function DrawCardSection({
                                 className='flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-colors text-left'
                                 onClick={() => {
                                     setPopoverOpen(false)
-                                    setManualDialogOpen(true)
+                                    if (manualPickUnlocked) {
+                                        setManualDialogOpen(true)
+                                    } else {
+                                        setPaywallDialogOpen(true)
+                                    }
                                 }}
                             >
                                 <Hand className='w-4 h-4 text-purple-300' />
-                                {t("manualSelect")}
+                                <span className='flex-1'>
+                                    {t("manualSelect")}
+                                </span>
+                                {!manualPickUnlocked && (
+                                    <Lock className='w-3.5 h-3.5 text-white/40' />
+                                )}
                             </button>
                             <div className='mt-1 border-t border-white/10 px-3 py-2'>
                                 <p className='text-xs text-white/60'>
@@ -145,17 +170,38 @@ export default function DrawCardSection({
                                     <button
                                         type='button'
                                         className='flex h-8 w-8 items-center justify-center rounded-full border border-white/10 text-white/80 transition-colors hover:border-white/30 hover:text-white disabled:opacity-40'
-                                        onClick={() =>
+                                        onClick={() => {
+                                            if (upgradeForMoreCards) {
+                                                setPopoverOpen(false)
+                                                setPaywallDialogOpen(true)
+                                                return
+                                            }
                                             onCardsToSelectChange(
-                                                Math.min(10, cardsToSelect + 1),
+                                                Math.min(
+                                                    maxCards,
+                                                    cardsToSelect + 1,
+                                                ),
                                             )
+                                        }}
+                                        disabled={
+                                            cardsToSelect >= PAID_TIER_MAX_CARDS
                                         }
-                                        disabled={cardsToSelect >= 10}
                                         aria-label={cardUi.increaseCardCount}
                                     >
-                                        <Plus className='w-4 h-4' />
+                                        {upgradeForMoreCards ? (
+                                            <Lock className='w-3.5 h-3.5' />
+                                        ) : (
+                                            <Plus className='w-4 h-4' />
+                                        )}
                                     </button>
                                 </div>
+                                {upgradeForMoreCards && (
+                                    <p className='mt-2 text-[10px] text-purple-200/70 leading-snug'>
+                                        {t("freeTierMaxCardsHint", {
+                                            max: maxCards,
+                                        })}
+                                    </p>
+                                )}
                             </div>
                         </PopoverContent>
                     </Popover>
@@ -178,6 +224,12 @@ export default function DrawCardSection({
                 onOpenChange={setManualDialogOpen}
                 cardsToSelect={cardsToSelect}
                 onCardsSelected={onCardsSelected}
+            />
+
+            <ManualPickPaywallDialog
+                open={paywallDialogOpen}
+                onOpenChange={setPaywallDialogOpen}
+                currentTier={planTier ?? "free"}
             />
         </div>
     )
