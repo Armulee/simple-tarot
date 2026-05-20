@@ -106,6 +106,13 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     // Track previous user ID to detect login/logout and reset state
     const prevUserIdRef = useRef<string | undefined>(user?.id)
 
+    // Tracks the most recent spendStars server commit so that addStars (used
+    // for refunds) can serialize after it. Without this, /api/stars/add can
+    // read the pre-spend balance (e.g. daily already at cap), clamp the
+    // refund to a no-op, and then /api/stars/spend lands on top — leaving
+    // the user at the spent balance even though the UI flashed the refund.
+    const pendingSpendCommitRef = useRef<Promise<void> | null>(null)
+
     // Compute next Bangkok midnight (UTC+7) as an absolute timestamp in ms
     const getNextBangkokMidnightMs = useCallback((baseMs?: number): number => {
         const nowMs = Number.isFinite(baseMs as number)
@@ -377,6 +384,15 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                 Math.max(0, (prev ?? 0) + amount),
             )
             ;(async () => {
+                // Wait for any in-flight spend to commit first so refunds
+                // don't race the spend at /api/stars/add (which reads-then-
+                // writes and would clamp the refund to a no-op).
+                const pendingSpend = pendingSpendCommitRef.current
+                if (pendingSpend) {
+                    try {
+                        await pendingSpend
+                    } catch {}
+                }
                 try {
                     void refreshSubscription()
                     const state = await starAdd(user ?? null, amount)
@@ -536,8 +552,10 @@ export function StarsProvider({ children }: { children: ReactNode }) {
             }
             if (!success)
                 return false
-                // Commit in background; reconcile with server state
-            ;(async () => {
+                // Commit in background; reconcile with server state.
+                // Capture the promise so refunds (addStars after spendStars)
+                // can serialize after the spend has hit the database.
+            const commitPromise = (async () => {
                 try {
                     void refreshSubscription()
                     const { ok, state } = await starSpend(user ?? null, amount)
@@ -583,6 +601,12 @@ export function StarsProvider({ children }: { children: ReactNode }) {
                     } catch {}
                 }
             })()
+            pendingSpendCommitRef.current = commitPromise
+            void commitPromise.finally(() => {
+                if (pendingSpendCommitRef.current === commitPromise) {
+                    pendingSpendCommitRef.current = null
+                }
+            })
             return true
         },
         [
