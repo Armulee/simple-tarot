@@ -85,6 +85,12 @@ export const dailyVerdictSchema = z.object({
         .describe(
             "Timing-mode only. The single best date or short date window when the user's chances peak for the outcome they asked about. Rendered in the hero crest as e.g. '1–16 AUG'. Omit entirely for daily / natal verdicts.",
         ),
+    targetDateIso: z
+        .string()
+        .optional()
+        .describe(
+            "Technical-mode ephemeris answers only. ISO date (YYYY-MM-DD) for the future event the headline refers to (e.g. the day Jupiter ingresses into Cancer). MUST exactly match a row in <next_sign_ingresses> when one was used, otherwise the cycle-math projection rounded to the first of the month. Omit for influence-flavor technical questions ('How does Saturn affect me?') and for non-technical verdicts.",
+        ),
     relevantPlanets: z
         .array(
             z.object({
@@ -136,6 +142,7 @@ export const streamingDailyVerdictSchema = z.object({
             endDateIso: z.string().optional(),
         })
         .optional(),
+    targetDateIso: z.string().optional(),
     relevantPlanets: z
         .array(
             z.object({

@@ -688,6 +688,9 @@ export default function VerdictHero({
                         <div className='w-full animate-fade-in'>
                             <TransitOrbitVisual
                                 chartData={transitSourceMessage.chartData}
+                                highlightPlanets={relevantPlanets.map(
+                                    (rp) => rp.planet,
+                                )}
                             />
                         </div>
                     ) : showNatalHeroCrest ? (

@@ -398,6 +398,7 @@ function normalizeDailyVerdict(
                   startDateIso?: string | null
                   endDateIso?: string | null
               } | null
+              targetDateIso?: string | null
           }
         | null
         | undefined,
@@ -484,6 +485,11 @@ function normalizeDailyVerdict(
                   : relevantPlanets && relevantPlanets.length > 0
                     ? "natal"
                     : "daily"
+    const targetDateIso =
+        typeof verdict.targetDateIso === "string" &&
+        isoPattern.test(verdict.targetDateIso)
+            ? verdict.targetDateIso
+            : undefined
     return {
         mood,
         headline,
@@ -500,6 +506,7 @@ function normalizeDailyVerdict(
                 ? relevantPlanets
                 : undefined,
         timingWindow: mode === "timing" ? timingWindow : undefined,
+        targetDateIso: mode === "technical" ? targetDateIso : undefined,
     }
 }
 
@@ -560,6 +567,7 @@ function areDailyVerdictsEqual(
         (b.timingWindow?.endDateIso ?? "")
     )
         return false
+    if ((a.targetDateIso ?? "") !== (b.targetDateIso ?? "")) return false
     return true
 }
 

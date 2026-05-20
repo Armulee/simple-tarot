@@ -963,6 +963,8 @@ Required fields (every user-facing string in ${lang}):
   - planet: MUST be one of the keys listed in <allowed_planet_keys>. Pick the planet(s) the question is about.
   - reason: ONE short sentence (in ${lang}) describing the planet's CURRENT state in a way that supports the answer (e.g. "Currently in late Gemini, moving direct, about to enter Cancer where it is strong"). Plain language with astrology terms allowed because this is a technical question.
   Sort the array from most to least relevant. Do NOT invent planet keys not present in <allowed_planet_keys>.
+
+- targetDateIso (optional, EPHEMERIS flavor only): ISO date string "YYYY-MM-DD" for the future event the headline refers to (sign ingress, retrograde station, exaltation entry, conjunction). When you sourced the date from <next_sign_ingresses>, echo that row's dateIso EXACTLY here. When you projected the date from cycle math (no matching ingress row), use the first day of the month/year you estimated (e.g. project "May 2026" as "2026-05-01"). MUST be strictly AFTER the current date shown in <system_context>. OMIT this field entirely for influence-flavor questions ("How does Saturn affect me?", "What does Jupiter bless?") or whenever the answer does not anchor on a specific future calendar date.
 </verdict_rules>
 
 <critical_rules>

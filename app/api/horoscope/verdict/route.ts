@@ -734,10 +734,57 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
         timingWindow: undefined,
     }
 
+    // Ephemeris-flavor technical answers ("when does Jupiter ingress into
+    // Cancer?") name a specific future date. Rebuild the transit chart for
+    // that date so the orbit visual draws the planet positions the user is
+    // asking about — falling back to today's chart for influence-flavor
+    // answers that omit the date.
+    const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/
+    const todayIso = toIsoDate(todayUtc)
+    const targetIso =
+        typeof verdict.targetDateIso === "string" &&
+        isoDatePattern.test(verdict.targetDateIso) &&
+        verdict.targetDateIso > todayIso
+            ? verdict.targetDateIso
+            : null
+
+    let finalChartData = chartDataResult
+    if (targetIso) {
+        const [yyyy, mm, dd] = targetIso.split("-").map(Number)
+        const targetUtc = new Date(Date.UTC(yyyy, mm - 1, dd, 12, 0, 0))
+        if (!Number.isNaN(targetUtc.getTime())) {
+            const targetQuestionRange = {
+                startDate: targetUtc,
+                endDate: targetUtc,
+                startDateIso: targetIso,
+                endDateIso: targetIso,
+                durationDays: 1,
+                source: "ai_inferred" as const,
+                granularity: "daily" as const,
+            }
+            try {
+                finalChartData = await buildChartData(
+                    {
+                        birth: body.birth,
+                        system: body.system,
+                        questionRange: targetQuestionRange,
+                    },
+                    chartLocale,
+                )
+            } catch (error) {
+                console.warn(
+                    "[horoscope/verdict] technical targetDateIso chart rebuild failed; falling back to today's chart",
+                    error,
+                )
+            }
+        }
+    }
+
     return Response.json(
         {
             ...verdict,
-            chartData: chartDataResult,
+            targetDateIso: targetIso ?? undefined,
+            chartData: finalChartData,
             personalizedTransitAspects: null,
         },
         { status: 200 },

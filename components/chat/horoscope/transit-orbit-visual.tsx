@@ -236,14 +236,28 @@ const WHEEL_RY_MID = 386
 
 export default function TransitOrbitVisual({
     chartData,
+    highlightPlanets,
 }: {
     chartData: TransitChartData | Record<string, unknown> | null | undefined
+    /**
+     * Canonical English planet keys to render at full opacity. Every other
+     * planet (including its label + degree text) is faded down. Pass undefined
+     * or an empty array to render every planet at full opacity (default).
+     */
+    highlightPlanets?: ReadonlyArray<string>
 }) {
     const tAstro = useTranslations("BirthChart")
     const formatter = useFormatter()
 
     const data = (chartData ?? null) as TransitChartData
     const rawPlanets = data?.transit?.charts?.[0]?.planets ?? null
+    const highlightSet = useMemo(
+        () =>
+            highlightPlanets && highlightPlanets.length > 0
+                ? new Set(highlightPlanets)
+                : null,
+        [highlightPlanets],
+    )
 
     const dateLabel = useMemo(() => {
         const d = data?.transit?.date
@@ -501,6 +515,7 @@ export default function TransitOrbitVisual({
                     const planetName = tAstro(`planets.${name}`, {
                         defaultValue: name,
                     })
+                    const isFaded = highlightSet ? !highlightSet.has(name) : false
                     return (
                         <PlanetMark
                             key={name}
@@ -512,6 +527,7 @@ export default function TransitOrbitVisual({
                             retrograde={Boolean(point.retrograde)}
                             mirrorKetu={false}
                             labelBelow={y < CY + 50}
+                            faded={isFaded}
                         />
                     )
                 })}
@@ -543,6 +559,7 @@ function PlanetMark({
     retrograde,
     mirrorKetu,
     labelBelow,
+    faded = false,
 }: {
     x: number
     y: number
@@ -552,15 +569,18 @@ function PlanetMark({
     retrograde: boolean
     mirrorKetu: boolean
     labelBelow: boolean
+    /** When true, dim the planet image + label + degree (asked-planet highlight). */
+    faded?: boolean
 }) {
     const half = vis.size / 2
     // Stack the label group either below or above the planet image.
     const baseY = labelBelow ? y + half + 22 : y - half - 16 - 50
     const nameY = baseY
     const degreeY = baseY + 28
+    const groupOpacity = faded ? 0.22 : 1
 
     return (
-        <g>
+        <g opacity={groupOpacity}>
             {vis.glow && (
                 <>
                     <circle
