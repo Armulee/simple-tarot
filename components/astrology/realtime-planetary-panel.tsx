@@ -1,15 +1,8 @@
 "use client"
 
-import { type ReactNode, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
-import {
-    ChevronDown,
-    ChevronUp,
-    Eye,
-    Flame,
-    Sparkles,
-    Star,
-} from "lucide-react"
+import { Eye, Flame, Sparkles, Star } from "lucide-react"
 import { AspectIcon } from "@/components/astrology/aspect-icon"
 import { useLocale, useTranslations } from "next-intl"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
@@ -363,56 +356,6 @@ function getPersonalizedAspectEvents(
         .slice(0, Math.max(6, exactEvents.length + rangeEvents.length))
 }
 
-type ToggleItem = {
-    key: string
-    isOpen: boolean
-    button: ReactNode
-    content?: ReactNode
-}
-
-function ToggleButtonGroup({
-    items,
-}: {
-    items: Array<ToggleItem | null | undefined>
-}) {
-    const visible = items.filter(Boolean) as ToggleItem[]
-    if (visible.length === 0) return null
-
-    const firstOpenIdx = visible.findIndex(
-        (item) => item.isOpen && item.content,
-    )
-
-    if (firstOpenIdx === -1) {
-        return (
-            <div className='flex flex-wrap items-center gap-2'>
-                {visible.map((item) => (
-                    <div key={item.key}>{item.button}</div>
-                ))}
-            </div>
-        )
-    }
-
-    const before = visible.slice(0, firstOpenIdx + 1)
-    const openItem = visible[firstOpenIdx]
-    const after = visible.slice(firstOpenIdx + 1)
-
-    return (
-        <div className='space-y-2'>
-            {before.some((item) => item.button) && (
-                <div className='flex flex-wrap items-center gap-2'>
-                    {before.map((item) =>
-                        item.button ? (
-                            <div key={item.key}>{item.button}</div>
-                        ) : null,
-                    )}
-                </div>
-            )}
-            {openItem.content}
-            {after.length > 0 && <ToggleButtonGroup items={after} />}
-        </div>
-    )
-}
-
 /**
  * Visualises where the current moment sits within an aspect's window.
  *
@@ -591,6 +534,9 @@ function AspectTimeline({
     )
 }
 
+const INITIAL_VISIBLE_EVENTS = 4
+const SHOW_MORE_STEP = 4
+
 export default function RealtimePlanetaryPanel({
     chartData,
     personalizedTransitAspects,
@@ -598,12 +544,6 @@ export default function RealtimePlanetaryPanel({
     aspectInsights,
     onAskAspectDetail,
     askedAspectKeys,
-    showBirthDetails,
-    showTransitDetails,
-    onToggleBirthDetails,
-    onToggleTransitDetails,
-    birthDetailsContent,
-    transitDetailsContent,
 }: {
     chartData?: Record<string, unknown> | null
     personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
@@ -615,12 +555,6 @@ export default function RealtimePlanetaryPanel({
         event: SourceAspectEvent,
     ) => void
     askedAspectKeys?: Record<string, string>
-    showBirthDetails?: boolean
-    showTransitDetails?: boolean
-    onToggleBirthDetails?: () => void
-    onToggleTransitDetails?: () => void
-    birthDetailsContent?: ReactNode
-    transitDetailsContent?: ReactNode
 }) {
     const locale = useLocale()
     const t = useTranslations("PlanetaryPanel")
@@ -628,14 +562,10 @@ export default function RealtimePlanetaryPanel({
     const [hiddenImages, setHiddenImages] = useState<Record<string, boolean>>(
         {},
     )
-    const [visibleRelatedCount, setVisibleRelatedCount] = useState(3)
-    const [visibleRemainingCount, setVisibleRemainingCount] = useState(3)
+    const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_EVENTS)
     const [expandedTechnical, setExpandedTechnical] = useState<
         Record<string, boolean>
     >({})
-    const [localShowBirthDetails, setLocalShowBirthDetails] = useState(false)
-    const [localShowTransitDetails, setLocalShowTransitDetails] =
-        useState(false)
     const fallbackAspects = chartData?.personalizedTransitAspects as
         | PersonalizedTransitAspectsResult
         | undefined
@@ -684,43 +614,36 @@ export default function RealtimePlanetaryPanel({
         ? allAspectEvents.filter((event) => !mergedKeys.has(event.aspectKey))
         : []
 
-    const highEvents = discussedEvents.filter((e) => e.intensity === "high")
-    const mediumEvents = discussedEvents.filter((e) => e.intensity === "medium")
-    const lowEvents = discussedEvents.filter(
-        (e) => !e.intensity || e.intensity === "low",
-    )
-    const featuredEvents =
-        highEvents.length > 0
-            ? highEvents
-            : mediumEvents.length > 0
-              ? mediumEvents
-              : lowEvents
-    const featuredKeys = new Set(featuredEvents.map((e) => e.aspectKey))
-    const relatedEvents = discussedEvents.filter(
-        (e) => !featuredKeys.has(e.aspectKey) && (e.impact || e.intensity),
-    )
-    const allRemainingEvents = [
-        ...discussedEvents.filter(
-            (e) => !featuredKeys.has(e.aspectKey) && !e.impact && !e.intensity,
-        ),
-        ...undiscussedEvents,
+    // Flatten every aspect event into a single priority-ordered list so the
+    // panel can cap initial display at 4 cards and reveal more on demand.
+    // Order (highest priority first):
+    //   1. discussed + high intensity
+    //   2. discussed + medium intensity
+    //   3. discussed + low intensity
+    //   4. discussed without intensity but with impact
+    //   5. discussed without impact/intensity
+    //   6. undiscussed
+    // Within each tier we keep the upstream array order, which is already
+    // sorted by tier=main first, then orb.
+    const tierBuckets: PanelAspectEvent[][] = [
+        discussedEvents.filter((e) => e.intensity === "high"),
+        discussedEvents.filter((e) => e.intensity === "medium"),
+        discussedEvents.filter((e) => e.intensity === "low"),
+        discussedEvents.filter((e) => !e.intensity && e.impact),
+        discussedEvents.filter((e) => !e.intensity && !e.impact),
+        undiscussedEvents,
     ]
-    const hasBirthDetails = Boolean(
-        (chartData as { charts?: unknown[] } | null)?.charts?.length,
-    )
-    const hasTransitDetails = Boolean(
-        (chartData as { transit?: { charts?: unknown[] } } | null)?.transit
-            ?.charts?.length,
-    )
-    const resolvedShowBirthDetails = showBirthDetails ?? localShowBirthDetails
-    const resolvedShowTransitDetails =
-        showTransitDetails ?? localShowTransitDetails
-    const handleToggleBirthDetails =
-        onToggleBirthDetails ??
-        (() => setLocalShowBirthDetails((prev) => !prev))
-    const handleToggleTransitDetails =
-        onToggleTransitDetails ??
-        (() => setLocalShowTransitDetails((prev) => !prev))
+    const orderedEvents: PanelAspectEvent[] = []
+    const seenKeys = new Set<string>()
+    for (const bucket of tierBuckets) {
+        for (const ev of bucket) {
+            if (seenKeys.has(ev.aspectKey)) continue
+            seenKeys.add(ev.aspectKey)
+            orderedEvents.push(ev)
+        }
+    }
+    const visibleEvents = orderedEvents.slice(0, visibleCount)
+    const hasMoreEvents = visibleCount < orderedEvents.length
 
     function PlanetAvatar({ planet }: { planet: string }) {
         const key = planet.toLowerCase()
@@ -995,132 +918,32 @@ export default function RealtimePlanetaryPanel({
 
     return (
         <div className='space-y-5'>
-            {featuredEvents.length > 0 && (
+            {visibleEvents.length > 0 && (
                 <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                    {featuredEvents.map((event) => (
+                    {visibleEvents.map((event) => (
                         <EventCard key={event.aspectKey} event={event} />
                     ))}
                 </div>
             )}
 
-            <ToggleButtonGroup
-                items={[
-                    relatedEvents.length > 0
-                        ? {
-                              key: "related",
-                              isOpen: true,
-                              button:
-                                  visibleRelatedCount < relatedEvents.length ? (
-                                      <button
-                                          type='button'
-                                          onClick={() =>
-                                              setVisibleRelatedCount((count) =>
-                                                  Math.min(
-                                                      count + 3,
-                                                      relatedEvents.length,
-                                                  ),
-                                              )
-                                          }
-                                          className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                      >
-                                          + {t("showMore")}
-                                      </button>
-                                  ) : null,
-                              content: (
-                                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                                      {relatedEvents
-                                          .slice(0, visibleRelatedCount)
-                                          .map((event) => (
-                                              <EventCard
-                                                  key={event.aspectKey}
-                                                  event={event}
-                                              />
-                                          ))}
-                                  </div>
-                              ),
-                          }
-                        : null,
-                    allRemainingEvents.length > 0
-                        ? {
-                              key: "all",
-                              isOpen: true,
-                              button:
-                                  visibleRemainingCount <
-                                  allRemainingEvents.length ? (
-                                      <button
-                                          type='button'
-                                          onClick={() =>
-                                              setVisibleRemainingCount(
-                                                  (count) =>
-                                                      Math.min(
-                                                          count + 3,
-                                                          allRemainingEvents.length,
-                                                      ),
-                                              )
-                                          }
-                                          className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                      >
-                                          + {t("showMore")}
-                                      </button>
-                                  ) : null,
-                              content: (
-                                  <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                                      {allRemainingEvents
-                                          .slice(0, visibleRemainingCount)
-                                          .map((event) => (
-                                              <EventCard
-                                                  key={event.aspectKey}
-                                                  event={event}
-                                              />
-                                          ))}
-                                  </div>
-                              ),
-                          }
-                        : null,
-                    hasBirthDetails
-                        ? {
-                              key: "birth",
-                              isOpen: resolvedShowBirthDetails,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={handleToggleBirthDetails}
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {resolvedShowBirthDetails ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showBirthDetails")}
-                                  </button>
-                              ),
-                              content: birthDetailsContent,
-                          }
-                        : null,
-                    hasTransitDetails
-                        ? {
-                              key: "transit",
-                              isOpen: resolvedShowTransitDetails,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={handleToggleTransitDetails}
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {resolvedShowTransitDetails ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showTransitDetails")}
-                                  </button>
-                              ),
-                              content: transitDetailsContent,
-                          }
-                        : null,
-                ]}
-            />
+            {hasMoreEvents && (
+                <div className='flex justify-center'>
+                    <button
+                        type='button'
+                        onClick={() =>
+                            setVisibleCount((count) =>
+                                Math.min(
+                                    count + SHOW_MORE_STEP,
+                                    orderedEvents.length,
+                                ),
+                            )
+                        }
+                        className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                    >
+                        + {t("showMore")}
+                    </button>
+                </div>
+            )}
         </div>
     )
 }
