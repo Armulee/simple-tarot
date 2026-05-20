@@ -535,6 +535,10 @@ export default function OrbitVisual({
                     const isHighlighted = highlightSet
                         ? highlightSet.has(name)
                         : false
+                    // When a highlight set is active, dim every non-asked
+                    // planet to half opacity so the asked one visually leads
+                    // without making the others disappear.
+                    const dimmed = !!highlightSet && !isHighlighted
                     return (
                         <PlanetMark
                             key={name}
@@ -546,6 +550,7 @@ export default function OrbitVisual({
                             retrograde={Boolean(point.retrograde)}
                             labelBelow={y < CY + 50}
                             highlighted={isHighlighted}
+                            dimmed={dimmed}
                         />
                     )
                 })}
@@ -577,6 +582,7 @@ function PlanetMark({
     retrograde,
     labelBelow,
     highlighted = false,
+    dimmed = false,
 }: {
     x: number
     y: number
@@ -586,6 +592,8 @@ function PlanetMark({
     retrograde: boolean
     labelBelow: boolean
     highlighted?: boolean
+    /** When true, dim the planet (image + label + degree) to half opacity. */
+    dimmed?: boolean
 }) {
     const half = vis.size / 2
     const baseY = labelBelow ? y + half + 22 : y - half - 16 - 50
@@ -594,7 +602,7 @@ function PlanetMark({
     const auraRadius = vis.size * 1.6
 
     return (
-        <g>
+        <g opacity={dimmed ? 0.5 : 1}>
             {highlighted && (
                 <circle
                     cx={x}
