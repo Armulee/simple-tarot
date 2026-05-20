@@ -89,7 +89,11 @@ export default function BirthChartDisplay({
                     />
                     <div className='relative p-4 sm:p-6 lg:p-8 space-y-8'>
                         <SectionEyebrow label={t("planetaryPositions")} />
-                        <BirthChartOrbitVisual planets={birthChart.planets} />
+                        <div className='mx-auto w-full lg:max-w-2xl'>
+                            <BirthChartOrbitVisual
+                                planets={birthChart.planets}
+                            />
+                        </div>
                     </div>
                 </section>
 

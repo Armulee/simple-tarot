@@ -11,6 +11,7 @@ import {
     profileToHoroscopeBirthData,
 } from "@/lib/horoscope-profile-birth"
 import type { HoroscopeBirthData } from "@/types/horoscope"
+import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import {
     type DayData,
     type DayDataWire,
@@ -27,7 +28,12 @@ import {
 } from "@/lib/calendar/access-window"
 import { buildCalendarDayOriginContext } from "@/lib/chat/origin-context"
 import PageContextComposer from "@/components/chat/page-context-composer"
-import type { DaysMap, MonthFetchState, MonthKey } from "./types"
+import type {
+    DaysMap,
+    MonthFetchState,
+    MonthKey,
+    TransitDayFetchState,
+} from "./types"
 import { monthKey } from "./utils"
 import {
     AuthGateCard,
@@ -57,8 +63,12 @@ export default function CalendarClient() {
     const [monthsCache, setMonthsCache] = useState<
         Record<MonthKey, MonthFetchState>
     >({})
+    const [transitCache, setTransitCache] = useState<
+        Record<string, TransitDayFetchState>
+    >({})
 
     const inFlightRef = useRef<AbortController | null>(null)
+    const transitInFlightRef = useRef<Map<string, AbortController>>(new Map())
 
     useEffect(() => {
         const now = new Date()
@@ -74,6 +84,7 @@ export default function CalendarClient() {
     // (Numeric scores no longer depend on locale.)
     useEffect(() => {
         setMonthsCache({})
+        setTransitCache({})
     }, [locale])
 
     const birthData = useMemo<HoroscopeBirthData | null>(
@@ -183,6 +194,113 @@ export default function CalendarClient() {
         if (!hasBirth) return
         void fetchMonth(viewMonth.year, viewMonth.month)
     }, [viewMonth, hasBirth, fetchMonth])
+
+    // Per-date transit chart fetch. Mirrors the chart-data shape the
+    // technical-tab transit UI consumes so we can drop OrbitVisual +
+    // TransitFeed straight into the calendar's detail panel for the
+    // selected day.
+    const fetchTransitForDate = useCallback(
+        async (iso: string) => {
+            if (!birthData || !hasBirth) return
+            if (transitCache[iso]?.status === "loading") return
+            if (transitCache[iso]?.status === "ok") return
+
+            transitInFlightRef.current.get(iso)?.abort()
+            const controller = new AbortController()
+            transitInFlightRef.current.set(iso, controller)
+
+            setTransitCache((prev) => ({
+                ...prev,
+                [iso]: { status: "loading" },
+            }))
+
+            try {
+                const payloadBirth =
+                    applyEphemerisLocationTimeDefaults(birthData)
+                const [yyyy, mm, dd] = iso.split("-").map(Number)
+                const res = await fetch("/api/horoscope/chart-data", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    signal: controller.signal,
+                    body: JSON.stringify({
+                        // Placeholder question — chart-data ignores the
+                        // wording for daily-window requests and only uses
+                        // it for natal-mode detection (which we skip by
+                        // passing a single-day questionRange explicitly).
+                        question: iso,
+                        locale,
+                        birth: {
+                            day: payloadBirth.day,
+                            month: payloadBirth.month,
+                            year: payloadBirth.year,
+                            hour: payloadBirth.hour,
+                            minute: payloadBirth.minute,
+                            timeHint: payloadBirth.timeHint,
+                            timezone: payloadBirth.timezone,
+                            lat: payloadBirth.lat,
+                            lng: payloadBirth.lng,
+                            country: payloadBirth.country,
+                            state: payloadBirth.state,
+                        },
+                        questionRange: {
+                            startDateIso: iso,
+                            endDateIso: iso,
+                            durationDays: 1,
+                            source: "explicit",
+                            granularity: "daily",
+                        },
+                        transit: {
+                            day: dd,
+                            month: mm,
+                            year: yyyy,
+                            hour: 12,
+                            minute: 0,
+                            timezone: payloadBirth.timezone,
+                            lat: payloadBirth.lat,
+                            lng: payloadBirth.lng,
+                            country: payloadBirth.country,
+                            state: payloadBirth.state,
+                        },
+                    }),
+                })
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`)
+                }
+                const json = (await res.json()) as Record<string, unknown>
+                const aspects =
+                    (json.personalizedTransitAspects as
+                        | PersonalizedTransitAspectsResult
+                        | null
+                        | undefined) ?? null
+                setTransitCache((prev) => ({
+                    ...prev,
+                    [iso]: {
+                        status: "ok",
+                        chartData: json,
+                        personalizedTransitAspects: aspects,
+                    },
+                }))
+            } catch (err) {
+                if ((err as Error).name === "AbortError") return
+                setTransitCache((prev) => ({
+                    ...prev,
+                    [iso]: {
+                        status: "error",
+                        message: (err as Error).message ?? "FETCH_FAILED",
+                    },
+                }))
+            } finally {
+                transitInFlightRef.current.delete(iso)
+            }
+        },
+        [birthData, hasBirth, locale, transitCache],
+    )
+
+    useEffect(() => {
+        if (!selectedDate || !hasBirth) return
+        const iso = toLocalIsoDate(selectedDate)
+        void fetchTransitForDate(iso)
+    }, [selectedDate, hasBirth, fetchTransitForDate])
 
     const monthMatrix = useMemo(() => {
         if (!viewMonth) return null
@@ -299,6 +417,18 @@ export default function CalendarClient() {
                                 birthData={birthData}
                                 locale={locale}
                                 today={today}
+                                selectedIso={
+                                    selectedDate
+                                        ? toLocalIsoDate(selectedDate)
+                                        : null
+                                }
+                                transitState={
+                                    selectedDate
+                                        ? (transitCache[
+                                              toLocalIsoDate(selectedDate)
+                                          ] ?? null)
+                                        : null
+                                }
                             />
                         </div>
 

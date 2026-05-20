@@ -1988,6 +1988,8 @@
       "selectPrompt": "Select a day from the calendar to view details.",
       "scoreCaption": "Daily score from the real planetary positions of that date",
       "highlightsWarnings": "Highlights & Warnings",
+      "selectedTransitTitle": "Transit For This Day",
+      "selectedTransitError": "Couldn't load transit details for this day. Try again in a moment.",
       "vitality": "How You Feel Right Now",
       "eventSignals": "Best For",
       "lucky": "Lucky Details"

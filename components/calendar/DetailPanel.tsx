@@ -14,10 +14,11 @@ import type { HoroscopeBirthData } from "@/types/horoscope"
 import { AskCalendarAI } from "./AskCalendarAI"
 import { DetailHeaderCard } from "./DetailHeaderCard"
 import { EventSignalsCard } from "./EventSignalsCard"
-import { HighlightsWarningsCard } from "./HighlightsWarningsCard"
 import { LuckyCard } from "./LuckyCard"
 import { PremiumUpsellCard } from "./PremiumUpsellCard"
+import { SelectedTransitCard } from "./SelectedTransitCard"
 import { VitalityCard } from "./VitalityCard"
+import type { TransitDayFetchState } from "./types"
 
 export function DetailPanel({
     data,
@@ -28,6 +29,8 @@ export function DetailPanel({
     birthData,
     locale,
     today,
+    selectedIso,
+    transitState,
 }: {
     data: DayData | null
     isSelectedDateLoaded: boolean
@@ -37,6 +40,8 @@ export function DetailPanel({
     birthData: HoroscopeBirthData | null
     locale: string
     today: Date | null
+    selectedIso: string | null
+    transitState: TransitDayFetchState | null
 }) {
     const t = useTranslations("Calendar")
 
@@ -47,7 +52,28 @@ export function DetailPanel({
             ) : data ? (
                 <>
                     <DetailHeaderCard data={data} />
-                    <HighlightsWarningsCard data={data} />
+                    <SelectedTransitCard
+                        isoDate={selectedIso}
+                        chartData={
+                            transitState?.status === "ok"
+                                ? transitState.chartData
+                                : null
+                        }
+                        personalizedTransitAspects={
+                            transitState?.status === "ok"
+                                ? transitState.personalizedTransitAspects
+                                : null
+                        }
+                        status={
+                            transitState?.status === "ok"
+                                ? "ready"
+                                : transitState?.status === "error"
+                                  ? "error"
+                                  : transitState?.status === "loading"
+                                    ? "loading"
+                                    : "idle"
+                        }
+                    />
                     <VitalityCard data={data} />
                     <EventSignalsCard data={data} />
                     <LuckyCard data={data} />
