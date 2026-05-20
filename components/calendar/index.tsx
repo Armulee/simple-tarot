@@ -42,6 +42,7 @@ import {
     CalendarGrid,
     DetailPanel,
     Header,
+    LockedPaywallDialog,
     MonthOverview,
 } from "./ui"
 
@@ -66,6 +67,9 @@ export default function CalendarClient() {
     const [transitCache, setTransitCache] = useState<
         Record<string, TransitDayFetchState>
     >({})
+    const [lockedPaywallDate, setLockedPaywallDate] = useState<Date | null>(
+        null,
+    )
 
     const inFlightRef = useRef<AbortController | null>(null)
     const transitInFlightRef = useRef<Map<string, AbortController>>(new Map())
@@ -387,7 +391,20 @@ export default function CalendarClient() {
                                 matrix={monthMatrix}
                                 today={today}
                                 selectedDate={selectedDate}
-                                onSelect={(d) => setSelectedDate(d)}
+                                onSelect={(d) => {
+                                    if (
+                                        today &&
+                                        !isDateWithinWindow(
+                                            d,
+                                            today,
+                                            windowDays,
+                                        )
+                                    ) {
+                                        setLockedPaywallDate(d)
+                                        return
+                                    }
+                                    setSelectedDate(d)
+                                }}
                                 daysMap={daysMap}
                                 windowDays={windowDays}
                                 loading={
@@ -442,6 +459,14 @@ export default function CalendarClient() {
                     placeholder={tCalendar("composerPlaceholder")}
                 />
             ) : null}
+            <LockedPaywallDialog
+                open={lockedPaywallDate !== null}
+                onOpenChange={(open) => {
+                    if (!open) setLockedPaywallDate(null)
+                }}
+                planTier={planTier}
+                lockedDate={lockedPaywallDate}
+            />
         </div>
     )
 }
