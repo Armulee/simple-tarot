@@ -1,15 +1,14 @@
 "use client"
 
-import { Hand, Loader2, Star } from "lucide-react"
+import { Crown, Loader2, Star } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 
-import { SubscriptionPaywallDialog } from "@/components/subscription/subscription-paywall-dialog"
+import { PaywallDialog } from "@/components/subscription/paywall-dialog"
 import { useStars } from "@/contexts/stars-context"
 import { toLocalIsoDate } from "@/lib/calendar-helper"
 import type { CalendarPlanTier } from "@/lib/calendar/access-window"
 import { purchaseCalendarUnlock } from "@/lib/calendar/unlocks-client"
-import { formatFullDate } from "./utils"
 
 const STAR_COST = 1
 
@@ -29,13 +28,6 @@ export function LockedPaywallDialog({
     onUnlocked?: (date: Date) => void
 }) {
     const t = useTranslations("Calendar")
-    const locale = useLocale()
-    // The paywall dialog shows both Basic and Pro plans, so the body text
-    // is plan-agnostic; planTier is kept on the public API for future use
-    // (e.g. hiding the user's current tier from the plan grid).
-    void planTier
-
-    const formattedDate = lockedDate ? formatFullDate(locale, lockedDate) : null
 
     const { stars, initialized: starsInitialized } = useStars()
     const canAffordStarUnlock =
@@ -126,13 +118,17 @@ export function LockedPaywallDialog({
     ) : null
 
     return (
-        <SubscriptionPaywallDialog
+        <PaywallDialog
             open={open}
             onOpenChange={onOpenChange}
-            icon={<Hand className='h-5 w-5' />}
-            eyebrow={formattedDate ?? undefined}
-            title={t("locked.title")}
-            description={t("locked.dialogBody")}
+            requiredTier='basic'
+            currentTier={planTier}
+            title={t("locked.paywallTitle")}
+            description={t("locked.paywallDesc")}
+            feature={t("locked.paywallFeature")}
+            footnote={t("locked.paywallNote")}
+            insufficientLabel={t("locked.paywallInsufficient")}
+            icon={<Crown className='h-6 w-6 text-indigo-300' />}
             secondary={secondary}
         />
     )

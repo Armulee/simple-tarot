@@ -2060,6 +2060,11 @@
     },
     "locked": {
       "title": "Unlock this day",
+      "paywallTitle": "Unlocking dates is a subscriber feature",
+      "paywallDesc": "See planetary insights for any date in the year. Upgrade to Basic or Pro to unlock — checkout is powered by Stripe on the next page.",
+      "paywallFeature": "Calendar access beyond your free ±30-day window",
+      "paywallInsufficient": "Upgrade required",
+      "paywallNote": "Selecting a plan takes you to secure Stripe checkout.",
       "dialogBody": "See planetary insights for any date. Subscribe to Basic or Pro to unlock — checkout is powered by Stripe on the next page.",
       "bodyFree": "This date is outside your free window (±30 days). Subscribe to Basic to unlock immediately — about {price}/month for ±1 year of calendar access. Checkout is powered by Stripe on the next page.",
       "bodyBasic": "This date is outside your Basic window (±1 year). Upgrade to Pro for unlimited calendar access — from {price}/month. Checkout is powered by Stripe on the next page.",
