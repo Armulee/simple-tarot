@@ -76,7 +76,7 @@ export default function SideWheel({
     title,
     subtitle,
 }: SideWheelProps) {
-    const processedPlanets = useMemo<ProcessedPlanet[]>(() => {
+    const processedPlanets = useMemo(() => {
         if (!planets) return []
         return DEFAULT_PLANETS.map((pName) => {
             const val = planets[pName] ?? planets[pName.toLowerCase()]
@@ -102,7 +102,7 @@ export default function SideWheel({
         }).filter(Boolean) as ProcessedPlanet[]
     }, [planets])
 
-    const houseLines = useMemo<HouseLine[]>(() => {
+    const houseLines = useMemo(() => {
         if (!houses) return []
         return Object.entries(houses)
             .map(([key, data]) => {
