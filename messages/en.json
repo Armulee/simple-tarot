@@ -2111,6 +2111,12 @@
         "major_purchase": "Best day for a big purchase"
       }
     },
+    "suggestions": {
+      "focusToday": "What should I focus on this day?",
+      "goodDecisionDay": "Is this a good day for a big decision?",
+      "activitiesForToday": "What activities suit this day's energy?",
+      "warnings": "Anything I should watch out for?"
+    },
     "cta": {
       "title": "What would you like to ask next?",
       "body": "Let AskingFate help interpret your specific situation.",

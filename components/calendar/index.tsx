@@ -39,7 +39,6 @@ import { monthKey } from "./utils"
 import {
     AuthGateCard,
     BirthGateCard,
-    BottomCTA,
     CalendarGrid,
     DetailPanel,
     Header,
@@ -427,6 +426,16 @@ export default function CalendarClient() {
         )
     }, [showAuthGate, showBirthGate, selectedDate, selectedDayData, locale])
 
+    const calendarSuggestions = useMemo(
+        () => [
+            tCalendar("suggestions.focusToday"),
+            tCalendar("suggestions.goodDecisionDay"),
+            tCalendar("suggestions.activitiesForToday"),
+            tCalendar("suggestions.warnings"),
+        ],
+        [tCalendar],
+    )
+
     return (
         <div className='relative isolate min-h-[calc(100dvh-64px)] overflow-x-hidden pb-[220px]'>
             <div className='relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8'>
@@ -482,9 +491,6 @@ export default function CalendarClient() {
                                 )}
                                 isPlanLocked={selectedDayIsLocked}
                                 planTier={planTier}
-                                birthData={birthData}
-                                locale={locale}
-                                today={today}
                                 selectedIso={
                                     selectedDate
                                         ? toLocalIsoDate(selectedDate)
@@ -499,8 +505,6 @@ export default function CalendarClient() {
                                 }
                             />
                         </div>
-
-                        <BottomCTA />
                     </>
                 )}
             </div>
@@ -508,6 +512,7 @@ export default function CalendarClient() {
                 <PageContextComposer
                     originContext={calendarOriginContext}
                     placeholder={tCalendar("composerPlaceholder")}
+                    suggestions={calendarSuggestions}
                 />
             ) : null}
             <LockedPaywallDialog

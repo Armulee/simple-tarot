@@ -1,10 +1,8 @@
 "use client"
 
 export { AuthGateCard } from "./AuthGateCard"
-export { AskCalendarAI } from "./AskCalendarAI"
 export { Backdrop } from "./Backdrop"
 export { BirthGateCard } from "./BirthGateCard"
-export { BottomCTA } from "./BottomCTA"
 export { CalendarCell } from "./CalendarCell"
 export { CalendarGrid } from "./CalendarGrid"
 export { CompassDial } from "./CompassDial"

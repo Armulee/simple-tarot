@@ -54,6 +54,12 @@ type PageContextComposerProps = {
      * the shared translation `PageContextComposer.hint`.
      */
     hint?: string
+    /**
+     * Optional fixed suggestion prompts rendered as quick-reply chips below
+     * the context chip. Tapping a suggestion submits the chat with that
+     * text as the question.
+     */
+    suggestions?: string[]
 }
 
 function createPendingSessionId() {
@@ -69,6 +75,7 @@ export default function PageContextComposer({
     disclaimerText,
     eyebrow,
     hint,
+    suggestions,
 }: PageContextComposerProps) {
     const t = useTranslations("PageContextComposer")
     const locale = useLocale()
@@ -230,6 +237,24 @@ export default function PageContextComposer({
                     — {hint ?? t("hint")}
                 </span>
             </div>
+            {suggestions && suggestions.length > 0 ? (
+                <div className='flex flex-wrap gap-1.5 pt-0.5'>
+                    {suggestions.map((suggestion) => (
+                        <button
+                            key={suggestion}
+                            type='button'
+                            onClick={() => {
+                                setQuestion(suggestion)
+                                void createSessionAndRedirect(suggestion)
+                            }}
+                            disabled={isLinking}
+                            className='inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] text-white/75 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                        >
+                            {suggestion}
+                        </button>
+                    ))}
+                </div>
+            ) : null}
         </div>
     )
 
