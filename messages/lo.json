@@ -2896,6 +2896,8 @@
       "debilitated": "ຕ່ຳສຸດ",
       "retrograde": "ຖອຍຫຼັງ"
     },
+    "orbLabel": "ອອບ (ມື້ນີ້)",
+    "peakLabel": "ຈຸດສູງສຸດ",
     "showBirthDetails": "ສະແດງຂໍ້ມູນກຳເນີດ",
     "showTransitDetails": "ສະແດງຂໍ້ມູນຈອນ",
     "birthDetails": "ຂໍ້ມູນກຳເນີດ",

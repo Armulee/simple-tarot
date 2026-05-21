@@ -2900,6 +2900,8 @@
       "debilitated": "นิจ",
       "retrograde": "ถอยหลัง"
     },
+    "orbLabel": "ออบ (วันนี้)",
+    "peakLabel": "จุดพีก",
     "showBirthDetails": "แสดงข้อมูลกำเนิด",
     "showTransitDetails": "แสดงข้อมูลจร",
     "birthDetails": "ข้อมูลกำเนิด",

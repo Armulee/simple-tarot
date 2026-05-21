@@ -258,6 +258,39 @@ function parseSignFromPositionText(
     return sign || null
 }
 
+/** Smallest separation between two longitudes, in degrees (0..180). */
+function angularSeparation(
+    aLongitude: number | undefined | null,
+    bLongitude: number | undefined | null,
+): number | null {
+    if (
+        typeof aLongitude !== "number" ||
+        typeof bLongitude !== "number" ||
+        !Number.isFinite(aLongitude) ||
+        !Number.isFinite(bLongitude)
+    ) {
+        return null
+    }
+    const raw = Math.abs(aLongitude - bLongitude) % 360
+    return raw > 180 ? 360 - raw : raw
+}
+
+/**
+ * Orb against a target aspect angle (0 / 60 / 90 / 120 / 180), using the
+ * shorter of the two possible arcs around the circle. Falls back to `null`
+ * when either longitude is missing so the caller can render the upstream
+ * peak orb instead.
+ */
+function computeCurrentOrb(
+    transitLongitude: number | undefined | null,
+    natalLongitude: number | undefined | null,
+    aspectAngle: number,
+): number | null {
+    const separation = angularSeparation(transitLongitude, natalLongitude)
+    if (separation === null) return null
+    return Math.abs(separation - aspectAngle)
+}
+
 function formatDateIsoForLocale(dateIso: string, locale: string) {
     const parsed = new Date(`${dateIso}T00:00:00.000Z`)
     if (Number.isNaN(parsed.getTime())) return dateIso
@@ -810,37 +843,65 @@ export default function RealtimePlanetaryPanel({
             event.natalPlanet,
         )
 
-        // The aspect's positions are recorded at its peak date (where the orb
-        // is minimized — see transit-aspects.ts). We must show those so the
-        // sign/degree pair actually satisfies the displayed orb. The
-        // chartData (today's transit) is only a fallback for events that
-        // came in without their own position text.
+        // Show today's transit position (chartData), not the peak-time
+        // position the aspect calc snapshots, so the sign/degree matches the
+        // planet's *actual* current location. The orb shown alongside is
+        // recomputed for today's positions just below so the two never
+        // contradict each other; the peak orb / peak date are rendered
+        // separately (timeline above + peak row in the technical drawer).
         const transitPosition =
+            localizePositionText(transitChartPosition, t) ||
             localizePositionText(event.transitPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.transitAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(transitChartPosition, t) ||
             noChartPositionLabel
         const natalPosition =
+            localizePositionText(natalChartPosition, t) ||
             localizePositionText(event.natalPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.natalAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(natalChartPosition, t) ||
             noChartPositionLabel
         const resolvedTransitAbsoluteLongitude =
+            toFiniteNumber(transitPoint?.longitude) ??
+            parseAbsoluteFromPositionText(transitChartPosition) ??
             toFiniteNumber(event.transitAbsoluteLongitude) ??
-            parseAbsoluteFromPositionText(event.transitPositionText) ??
-            parseAbsoluteFromPositionText(transitPosition) ??
-            toFiniteNumber(transitPoint?.longitude)
+            parseAbsoluteFromPositionText(event.transitPositionText)
         const resolvedNatalAbsoluteLongitude =
+            toFiniteNumber(natalPoint?.longitude) ??
+            parseAbsoluteFromPositionText(natalChartPosition) ??
             toFiniteNumber(event.natalAbsoluteLongitude) ??
-            parseAbsoluteFromPositionText(event.natalPositionText) ??
-            parseAbsoluteFromPositionText(natalPosition) ??
-            toFiniteNumber(natalPoint?.longitude)
+            parseAbsoluteFromPositionText(event.natalPositionText)
+        // Recompute orb against today's positions so the technical drawer's
+        // ORB row matches the sign/degree above it. Fall back to the
+        // upstream peak orb only when we couldn't resolve a current
+        // transit / natal longitude.
+        const currentOrb = computeCurrentOrb(
+            resolvedTransitAbsoluteLongitude,
+            resolvedNatalAbsoluteLongitude,
+            event.aspectAngle,
+        )
+        const orbForDisplay = currentOrb ?? event.orb
+        const peakTransitAbsolute =
+            toFiniteNumber(event.transitAbsoluteLongitude) ??
+            parseAbsoluteFromPositionText(event.transitPositionText)
+        const peakTransitPosition =
+            localizePositionText(event.transitPositionText, t) ||
+            formatPositionFromAbsoluteLocalized(peakTransitAbsolute, t)
+        const peakOrbText = `${event.orb.toFixed(1)}°`
+        const showPeakRow = (() => {
+            if (peakTransitAbsolute == null) return false
+            if (resolvedTransitAbsoluteLongitude == null) return false
+            return (
+                Math.abs(
+                    peakTransitAbsolute -
+                        resolvedTransitAbsoluteLongitude,
+                ) > 0.05
+            )
+        })()
 
         // Dignity is derived from the sign we're actually showing, so the
         // "Debilitated / Own sign / …" chip never disagrees with the sign
@@ -861,22 +922,10 @@ export default function RealtimePlanetaryPanel({
         const natalDignity = natalDisplaySign
             ? getPlanetDignity(event.natalPlanet, natalDisplaySign)
             : { isExalted: false, isDebilitated: false, isOwnSign: false }
-        // Retrograde state in chartData is only valid for today. Only mark
-        // the transit planet as retrograde when today actually falls inside
-        // the aspect window (or matches the exact date), otherwise the badge
-        // would be applied to a position that isn't "today".
-        const today = todayUtcEpoch()
-        const exactMs = parseIsoDay(event.dateIso)
-        const startMs = parseIsoDay(event.startDateIso)
-        const endMs = parseIsoDay(event.endDateIso)
-        const todayInWindow =
-            exactMs !== null
-                ? today === exactMs
-                : startMs !== null && endMs !== null
-                  ? today >= startMs && today <= endMs
-                  : false
-        const transitRetrograde =
-            todayInWindow && Boolean(transitPoint?.retrograde)
+        // chartData.transit.retrograde describes today's state, which now
+        // matches the position we're rendering, so the badge is always
+        // applied to "today's" transit.
+        const transitRetrograde = Boolean(transitPoint?.retrograde)
         const natalRetrograde = Boolean(natalPoint?.retrograde)
         const transitBadges = buildDignityBadges({
             isExalted: transitDignity.isExalted,
@@ -1093,9 +1142,22 @@ export default function RealtimePlanetaryPanel({
                             </span>
                         </dd>
                         <dt className='uppercase tracking-[0.18em] text-white/35'>
-                            Orb
+                            {t("orbLabel")}
                         </dt>
-                        <dd className='text-white/65'>{`${event.orb.toFixed(1)}°`}</dd>
+                        <dd className='text-white/65'>{`${orbForDisplay.toFixed(1)}°`}</dd>
+                        {showPeakRow && peakTransitPosition ? (
+                            <>
+                                <dt className='uppercase tracking-[0.18em] text-white/35'>
+                                    {t("peakLabel")}
+                                </dt>
+                                <dd className='text-white/65'>
+                                    <span>{peakTransitPosition}</span>
+                                    <span className='ml-1.5 text-white/30'>
+                                        ({peakOrbText})
+                                    </span>
+                                </dd>
+                            </>
+                        ) : null}
                     </dl>
                 )}
             </div>

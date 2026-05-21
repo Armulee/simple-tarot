@@ -2899,6 +2899,8 @@
       "debilitated": "Debilitated",
       "retrograde": "Retrograde"
     },
+    "orbLabel": "Orb (today)",
+    "peakLabel": "Peak",
     "showBirthDetails": "Show Birth Details",
     "showTransitDetails": "Show Transit Details",
     "birthDetails": "Birth Details",
