@@ -1,19 +1,14 @@
 "use client"
 
-import { Crown, Sparkles, Star } from "lucide-react"
-import { useState } from "react"
+import { Hand, Loader2, Star } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 
-import { PaywallDialog } from "@/components/ui/paywall-dialog"
+import { SubscriptionPaywallDialog } from "@/components/subscription/subscription-paywall-dialog"
 import { useStars } from "@/contexts/stars-context"
 import { toLocalIsoDate } from "@/lib/calendar-helper"
 import type { CalendarPlanTier } from "@/lib/calendar/access-window"
 import { purchaseCalendarUnlock } from "@/lib/calendar/unlocks-client"
-import {
-    formatCurrency,
-    type CurrencyCode,
-} from "@/lib/payments/currency-utils"
-import { getPlanPrice } from "@/lib/payments/subscription-plans"
 import { formatFullDate } from "./utils"
 
 const STAR_COST = 1
@@ -35,19 +30,10 @@ export function LockedPaywallDialog({
 }) {
     const t = useTranslations("Calendar")
     const locale = useLocale()
-    const currency: CurrencyCode = locale === "th" ? "THB" : "USD"
-    const targetTier = planTier === "basic" ? "pro" : "basic"
-    const subscribeHash =
-        targetTier === "basic" ? "subscribe-basic" : "subscribe-pro"
-    const upgradeHref = `/${locale}/stars#${subscribeHash}`
-    const bodyKey =
-        planTier === "basic" ? "locked.bodyBasic" : "locked.bodyFree"
-    const ctaKey = planTier === "basic" ? "locked.ctaBasic" : "locked.ctaFree"
-    const priceAmount = getPlanPrice(targetTier, "monthly", currency)
-    const priceLabel = formatCurrency(priceAmount, currency, locale).replace(
-        /^US(?=\$)/,
-        "",
-    )
+    // The paywall dialog shows both Basic and Pro plans, so the body text
+    // is plan-agnostic; planTier is kept on the public API for future use
+    // (e.g. hiding the user's current tier from the plan grid).
+    void planTier
 
     const formattedDate = lockedDate ? formatFullDate(locale, lockedDate) : null
 
@@ -57,6 +43,13 @@ export function LockedPaywallDialog({
 
     const [purchasing, setPurchasing] = useState(false)
     const [purchaseError, setPurchaseError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (!open) {
+            setPurchasing(false)
+            setPurchaseError(null)
+        }
+    }, [open])
 
     const handleStarUnlock = async () => {
         if (!userId || !lockedDate) return
@@ -97,55 +90,50 @@ export function LockedPaywallDialog({
             ? t("starUnlock.insufficient")
             : null
 
+    const secondary = showStarAction ? (
+        <div className='space-y-2 text-center'>
+            <p className='text-xs text-white/70 leading-relaxed'>
+                {t("starUnlock.description")}
+            </p>
+            <button
+                type='button'
+                onClick={() => void handleStarUnlock()}
+                disabled={starButtonDisabled}
+                className='inline-flex w-full items-center justify-center gap-2 rounded-full border border-yellow-300/40 bg-yellow-300/15 px-4 py-2 text-sm font-semibold text-yellow-100 transition hover:bg-yellow-300/25 disabled:opacity-50 disabled:cursor-not-allowed'
+            >
+                {purchasing ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                ) : (
+                    <Star
+                        className='h-4 w-4 text-yellow-300'
+                        fill='currentColor'
+                    />
+                )}
+                {t("starUnlock.cta", { cost: STAR_COST })}
+            </button>
+            {footerMessage ? (
+                <p
+                    className={
+                        purchaseError
+                            ? "text-[11px] text-red-300/90"
+                            : "text-[11px] text-white/55"
+                    }
+                >
+                    {footerMessage}
+                </p>
+            ) : null}
+        </div>
+    ) : null
+
     return (
-        <PaywallDialog
+        <SubscriptionPaywallDialog
             open={open}
             onOpenChange={onOpenChange}
-            tone='premium'
-            icon={<Crown className='h-3.5 w-3.5' />}
+            icon={<Hand className='h-5 w-5' />}
             eyebrow={formattedDate ?? undefined}
             title={t("locked.title")}
-            body={t(bodyKey, { price: priceLabel })}
-            note={planTier === "free" ? t("locked.noteFree") : undefined}
-            actions={[
-                {
-                    key: "upgrade",
-                    label: t(ctaKey),
-                    href: upgradeHref,
-                    icon: <Sparkles className='h-3.5 w-3.5' />,
-                    onClick: () => onOpenChange(false),
-                },
-                ...(showStarAction
-                    ? [
-                          {
-                              key: "star",
-                              label: t("starUnlock.cta", { cost: STAR_COST }),
-                              onClick: () => void handleStarUnlock(),
-                              icon: (
-                                  <Star
-                                      className='h-3.5 w-3.5 text-yellow-300'
-                                      fill='currentColor'
-                                  />
-                              ),
-                              disabled: starButtonDisabled,
-                              loading: purchasing,
-                          },
-                      ]
-                    : []),
-            ]}
-            footer={
-                footerMessage ? (
-                    <p
-                        className={
-                            purchaseError
-                                ? "text-[11px] text-red-300/90"
-                                : "text-[11px] text-white/55"
-                        }
-                    >
-                        {footerMessage}
-                    </p>
-                ) : null
-            }
+            description={t("locked.dialogBody")}
+            secondary={secondary}
         />
     )
 }
