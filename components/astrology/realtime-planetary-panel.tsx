@@ -162,7 +162,7 @@ function localizePositionText(
     return `${translateZodiacSign(signRaw, t)} · ${degreeRaw}`
 }
 
-function parseAbsoluteFromPositionText(positionText: string | undefined) {
+function parseAbsoluteFromPositionText(positionText: string | null | undefined) {
     const normalizedPositionText = normalizePositionText(positionText)
     if (!normalizedPositionText) return undefined
     const parts = normalizedPositionText.split("·").map((part) => part.trim())
