@@ -80,8 +80,8 @@ export function PaywallDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className='!max-w-2xl bg-gradient-to-b from-[#0a0a1a] to-[#1a0b2e] border-purple-500/20 text-white p-0 overflow-hidden'>
-                <DialogHeader className='px-6 pt-6 pb-2'>
+            <DialogContent className='!max-w-2xl !max-h-[90vh] bg-gradient-to-b from-[#0a0a1a] to-[#1a0b2e] border-purple-500/20 text-white p-0 overflow-hidden flex flex-col'>
+                <DialogHeader className='px-6 pt-6 pb-2 flex-shrink-0'>
                     <div className='flex items-center justify-center mb-2'>
                         <span className='inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/25'>
                             {icon ?? (
@@ -97,7 +97,7 @@ export function PaywallDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className='px-6 pb-6 space-y-4'>
+                <div className='flex-1 overflow-y-auto px-6 pb-6 space-y-4 scrollbar-thin'>
                     <div className='flex items-center justify-center'>
                         <div className='inline-flex rounded-full bg-white/5 border border-white/10 p-0.5'>
                             {(["monthly", "annual"] as BillingCycle[]).map(
