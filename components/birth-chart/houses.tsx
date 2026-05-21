@@ -48,8 +48,7 @@ const SIGN_RULER: Record<string, string> = {
 export default function BirthChartHouses({
     houses,
     planets,
-    selectedHouse,
-}: BirthChartHousesProps & { selectedHouse?: number | null }) {
+}: BirthChartHousesProps) {
     const t = useTranslations("BirthChart")
 
     if (!houses) return null
@@ -174,9 +173,6 @@ export default function BirthChartHouses({
                                 }
                                 ruler={ruler}
                                 rulerLabel={t("houseRuler")}
-                                isHighlighted={
-                                    selectedHouse === Number(houseNum)
-                                }
                             />
                         )
                     })}
@@ -199,7 +195,6 @@ function HouseCard({
     meaningFor,
     ruler,
     rulerLabel,
-    isHighlighted,
 }: {
     houseNum: string
     suffix: string
@@ -215,19 +210,15 @@ function HouseCard({
     ruler: string | null
     /** Translated "House Ruler" eyebrow label. */
     rulerLabel: string
-    isHighlighted?: boolean
 }) {
     const hasPlanets = planetsInHouse.length > 0
     return (
         <article
-            id={`bc-house-${houseNum}`}
             className={cn(
-                "group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-5 transition-colors duration-300 scroll-mt-24",
+                "group relative overflow-hidden rounded-2xl border bg-gradient-to-b from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-5 transition-colors duration-300",
                 hasPlanets
                     ? "border-amber-300/25 hover:border-amber-300/45"
                     : "border-white/10 hover:border-white/20",
-                isHighlighted &&
-                    "ring-2 ring-amber-300/70 ring-offset-2 ring-offset-[#04060f] shadow-[0_0_30px_-6px_rgba(252,211,77,0.55)]",
             )}
         >
             {hasPlanets && (

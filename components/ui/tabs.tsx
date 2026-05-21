@@ -10,30 +10,14 @@ type TabsContextType = {
 const TabsContext = createContext<TabsContextType | null>(null)
 
 type TabsProps = {
-  /** Required for uncontrolled mode. Ignored when `value` is provided. */
-  defaultValue?: string
-  /** Controlled value. When set, pair with `onValueChange`. */
-  value?: string
-  onValueChange?: (value: string) => void
+  defaultValue: string
   className?: string
   children: React.ReactNode
 }
 
-export function Tabs({
-  defaultValue,
-  value: controlledValue,
-  onValueChange,
-  className,
-  children,
-}: TabsProps) {
-  const [uncontrolled, setUncontrolled] = useState(defaultValue ?? "")
-  const isControlled = controlledValue !== undefined
-  const value = isControlled ? controlledValue : uncontrolled
-  const setValue = (v: string) => {
-    if (!isControlled) setUncontrolled(v)
-    onValueChange?.(v)
-  }
-  const ctx = useMemo(() => ({ value, setValue }), [value, isControlled, onValueChange])
+export function Tabs({ defaultValue, className, children }: TabsProps) {
+  const [value, setValue] = useState(defaultValue)
+  const ctx = useMemo(() => ({ value, setValue }), [value])
   return (
     <TabsContext.Provider value={ctx}>
       <div className={className}>{children}</div>
