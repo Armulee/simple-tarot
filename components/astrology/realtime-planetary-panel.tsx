@@ -11,6 +11,16 @@ import type {
     SourceAspectEvent,
 } from "@/components/chat/types"
 import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
+import {
+    ACTIVE_ORB_DEGREES,
+    canonicalSignName,
+    computeOrbAgainstAngle,
+    getNatalLongitude,
+    getTodayTransitLongitude,
+    readNatalPlanetPoint,
+    readTransitPlanetPoint,
+    transitPlanetPriority,
+} from "@/lib/astrology/aspect-display"
 import { getPlanetDignity } from "@/lib/birth-chart-utils"
 
 type PanelAspectEvent = {
@@ -54,24 +64,6 @@ const MAIN_EVENT_PLANETS = new Set([
     "Neptune",
     "Pluto",
 ])
-
-const OUTER_GENERATIONAL_PLANETS = new Set(["Uranus", "Neptune", "Pluto"])
-const BIG_FAST_PLANETS = new Set(["Jupiter", "Saturn"])
-
-/**
- * Display priority for the transit-aspect list in this panel. Lower numbers
- * sort to the top. Within each group, ties keep the upstream order (intensity
- * → orb), so the panel reads as "headline aspects first, generational ones
- * last".
- *   0 — Big planets except U/N/P (Jupiter, Saturn)
- *   1 — Everyone else (Sun/Moon/Mercury/Venus/Mars + nodes/Chiron)
- *   2 — Outer generational planets (Uranus, Neptune, Pluto)
- */
-function transitPlanetPriority(planet: string): number {
-    if (BIG_FAST_PLANETS.has(planet)) return 0
-    if (OUTER_GENERATIONAL_PLANETS.has(planet)) return 2
-    return 1
-}
 
 const ZODIAC_SIGNS_EN = [
     "Aries",
@@ -178,37 +170,6 @@ function parseAbsoluteFromPositionText(positionText: string | null | undefined) 
     return ((absolute % 360) + 360) % 360
 }
 
-type ChartPlanetPoint = {
-    sign?: unknown
-    degree?: unknown
-    longitude?: unknown
-    retrograde?: unknown
-}
-
-function readTransitPlanetPoint(
-    chartData: Record<string, unknown> | null | undefined,
-    planet: string,
-): ChartPlanetPoint | null {
-    if (!chartData) return null
-    const transit = chartData.transit as
-        | { charts?: Array<{ planets?: Record<string, ChartPlanetPoint> }> }
-        | undefined
-    const point = transit?.charts?.[0]?.planets?.[planet]
-    return point && typeof point === "object" ? point : null
-}
-
-function readNatalPlanetPoint(
-    chartData: Record<string, unknown> | null | undefined,
-    planet: string,
-): ChartPlanetPoint | null {
-    if (!chartData) return null
-    const charts = chartData.charts as
-        | Array<{ planets?: Record<string, ChartPlanetPoint> }>
-        | undefined
-    const point = charts?.[0]?.planets?.[planet]
-    return point && typeof point === "object" ? point : null
-}
-
 function getPlanetPositionFromChartData(
     chartData: Record<string, unknown> | null | undefined,
     planet: string,
@@ -233,16 +194,6 @@ function getNatalPlanetPositionFromChartData(
     return [sign, degree].filter(Boolean).join(" · ")
 }
 
-/** Map common aliases (Thai/Lao/abbrev) back to canonical English so dignity
- *  lookups in `getPlanetDignity` (which keys on English signs) resolve. */
-function canonicalSignName(sign: string | null | undefined): string | null {
-    if (!sign) return null
-    if (ZODIAC_SIGNS_EN.includes(sign)) return sign
-    const idx = ZODIAC_SIGN_INDEX[sign]
-    if (typeof idx === "number") return ZODIAC_SIGNS_EN[idx] ?? sign
-    return sign
-}
-
 function extractSignFromAbsolute(longitude: number | undefined): string | null {
     if (typeof longitude !== "number" || !Number.isFinite(longitude)) return null
     const normalized = ((longitude % 360) + 360) % 360
@@ -258,89 +209,6 @@ function parseSignFromPositionText(
     return sign || null
 }
 
-/** Smallest separation between two longitudes, in degrees (0..180). */
-function angularSeparation(
-    aLongitude: number | undefined | null,
-    bLongitude: number | undefined | null,
-): number | null {
-    if (
-        typeof aLongitude !== "number" ||
-        typeof bLongitude !== "number" ||
-        !Number.isFinite(aLongitude) ||
-        !Number.isFinite(bLongitude)
-    ) {
-        return null
-    }
-    const raw = Math.abs(aLongitude - bLongitude) % 360
-    return raw > 180 ? 360 - raw : raw
-}
-
-/**
- * Orb against a target aspect angle (0 / 60 / 90 / 120 / 180), using the
- * shorter of the two possible arcs around the circle. Falls back to `null`
- * when either longitude is missing so the caller can render the upstream
- * peak orb instead.
- */
-function computeCurrentOrb(
-    transitLongitude: number | undefined | null,
-    natalLongitude: number | undefined | null,
-    aspectAngle: number,
-): number | null {
-    const separation = angularSeparation(transitLongitude, natalLongitude)
-    if (separation === null) return null
-    return Math.abs(separation - aspectAngle)
-}
-
-/**
- * Standard "in-orb" thresholds the panel uses to decide whether an aspect
- * is currently active. Aspect events from the upstream calc can stretch
- * across a multi-month window, but for the realtime panel we only want
- * to show aspects whose orb *today* is tight enough to actually matter.
- */
-const ACTIVE_ORB_DEGREES = 5
-
-/** Today's transit longitude for `planet` from chartData, or null. */
-function getTodayTransitLongitude(
-    chartData: Record<string, unknown> | null | undefined,
-    planet: string,
-): number | null {
-    const point = readTransitPlanetPoint(chartData, planet)
-    if (!point) return null
-    const long = toFiniteNumber(point.longitude)
-    if (typeof long === "number") return long
-    // Fall back to sign + degree if longitude is absent.
-    const signRaw = typeof point.sign === "string" ? point.sign : null
-    const sign = canonicalSignName(signRaw)
-    const degree = toFiniteNumber(point.degree)
-    if (!sign || typeof degree !== "number") return null
-    const idx = ZODIAC_SIGN_INDEX[sign]
-    if (typeof idx !== "number") return null
-    return idx * 30 + degree
-}
-
-/** Natal longitude for `planet`, preferring chartData over the event payload. */
-function getNatalLongitude(
-    chartData: Record<string, unknown> | null | undefined,
-    planet: string,
-    fallback: number | undefined,
-): number | null {
-    const point = readNatalPlanetPoint(chartData, planet)
-    if (point) {
-        const long = toFiniteNumber(point.longitude)
-        if (typeof long === "number") return long
-        const signRaw = typeof point.sign === "string" ? point.sign : null
-        const sign = canonicalSignName(signRaw)
-        const degree = toFiniteNumber(point.degree)
-        if (sign && typeof degree === "number") {
-            const idx = ZODIAC_SIGN_INDEX[sign]
-            if (typeof idx === "number") return idx * 30 + degree
-        }
-    }
-    return typeof fallback === "number" && Number.isFinite(fallback)
-        ? fallback
-        : null
-}
-
 /**
  * Returns today's orb for an aspect event in degrees, or null if either
  * longitude can't be resolved.
@@ -349,13 +217,15 @@ function computeTodayOrbForEvent(
     event: PanelAspectEvent,
     chartData: Record<string, unknown> | null | undefined,
 ): number | null {
-    const transitLng = getTodayTransitLongitude(chartData, event.transitPlanet)
-    const natalLng = getNatalLongitude(
-        chartData,
-        event.natalPlanet,
-        event.natalAbsoluteLongitude,
+    return computeOrbAgainstAngle(
+        getTodayTransitLongitude(chartData, event.transitPlanet),
+        getNatalLongitude(
+            chartData,
+            event.natalPlanet,
+            event.natalAbsoluteLongitude,
+        ),
+        event.aspectAngle,
     )
-    return computeCurrentOrb(transitLng, natalLng, event.aspectAngle)
 }
 
 function formatDateIsoForLocale(dateIso: string, locale: string) {
@@ -959,7 +829,7 @@ export default function RealtimePlanetaryPanel({
         // ORB row matches the sign/degree above it. Fall back to the
         // upstream peak orb only when we couldn't resolve a current
         // transit / natal longitude.
-        const currentOrb = computeCurrentOrb(
+        const currentOrb = computeOrbAgainstAngle(
             resolvedTransitAbsoluteLongitude,
             resolvedNatalAbsoluteLongitude,
             event.aspectAngle,
