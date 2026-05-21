@@ -14,7 +14,6 @@ import {
     ArrowDown,
     Star,
     ShieldCheck,
-    type LucideIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
@@ -23,7 +22,7 @@ interface BirthChartStatsProps {
     planets?: Record<string, unknown> | null
 }
 
-const STAT_ICONS: Record<PlanetStatType, LucideIcon> = {
+const STAT_ICONS: Record<PlanetStatType, React.ElementType> = {
     Sun: Crown,
     Moon: Heart,
     Mars: Sword,
