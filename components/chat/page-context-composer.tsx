@@ -8,10 +8,14 @@ import {
 } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { Sparkles } from "lucide-react"
+import { CornerDownRight, Sparkles } from "lucide-react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { FreeMode, Mousewheel } from "swiper/modules"
+import "swiper/css"
+import "swiper/css/free-mode"
 
 import { useAuth } from "@/hooks/use-auth"
-import QuestionInput from "@/components/question-input"
+import QuestionInput, { followUpChipClass } from "@/components/question-input"
 import { CARD_UI_TEXT, normalizeLocale } from "@/components/chat/card-ui"
 import {
     detectInputLanguage,
@@ -238,22 +242,48 @@ export default function PageContextComposer({
                 </span>
             </div>
             {suggestions && suggestions.length > 0 ? (
-                <div className='flex flex-wrap gap-1.5 pt-0.5'>
-                    {suggestions.map((suggestion) => (
-                        <button
-                            key={suggestion}
-                            type='button'
-                            onClick={() => {
-                                setQuestion(suggestion)
-                                void createSessionAndRedirect(suggestion)
-                            }}
-                            disabled={isLinking}
-                            className='inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] text-white/75 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                <Swiper
+                    modules={[FreeMode, Mousewheel]}
+                    noSwiping
+                    freeMode={{
+                        enabled: true,
+                        momentum: true,
+                        sticky: false,
+                    }}
+                    mousewheel={{
+                        forceToAxis: true,
+                        releaseOnEdges: true,
+                        sensitivity: 1,
+                    }}
+                    slidesPerView='auto'
+                    spaceBetween={8}
+                    className='composer-follow-up-swiper w-full !overflow-visible'
+                >
+                    {suggestions.map((suggestion, idx) => (
+                        <SwiperSlide
+                            key={`page-suggestion-${idx}`}
+                            className='!w-auto !flex-shrink-0 min-w-0'
                         >
-                            {suggestion}
-                        </button>
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    setQuestion(suggestion)
+                                    void createSessionAndRedirect(suggestion)
+                                }}
+                                disabled={isLinking}
+                                className={`${followUpChipClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                                <CornerDownRight
+                                    aria-hidden
+                                    className='mr-1.5 size-3.5 shrink-0 text-white/55'
+                                />
+                                <span className='block max-w-[min(92vw,20rem)] truncate'>
+                                    {suggestion}
+                                </span>
+                            </button>
+                        </SwiperSlide>
                     ))}
-                </div>
+                </Swiper>
             ) : null}
         </div>
     )
