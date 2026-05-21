@@ -291,6 +291,73 @@ function computeCurrentOrb(
     return Math.abs(separation - aspectAngle)
 }
 
+/**
+ * Standard "in-orb" thresholds the panel uses to decide whether an aspect
+ * is currently active. Aspect events from the upstream calc can stretch
+ * across a multi-month window, but for the realtime panel we only want
+ * to show aspects whose orb *today* is tight enough to actually matter.
+ */
+const ACTIVE_ORB_DEGREES = 5
+
+/** Today's transit longitude for `planet` from chartData, or null. */
+function getTodayTransitLongitude(
+    chartData: Record<string, unknown> | null | undefined,
+    planet: string,
+): number | null {
+    const point = readTransitPlanetPoint(chartData, planet)
+    if (!point) return null
+    const long = toFiniteNumber(point.longitude)
+    if (typeof long === "number") return long
+    // Fall back to sign + degree if longitude is absent.
+    const signRaw = typeof point.sign === "string" ? point.sign : null
+    const sign = canonicalSignName(signRaw)
+    const degree = toFiniteNumber(point.degree)
+    if (!sign || typeof degree !== "number") return null
+    const idx = ZODIAC_SIGN_INDEX[sign]
+    if (typeof idx !== "number") return null
+    return idx * 30 + degree
+}
+
+/** Natal longitude for `planet`, preferring chartData over the event payload. */
+function getNatalLongitude(
+    chartData: Record<string, unknown> | null | undefined,
+    planet: string,
+    fallback: number | undefined,
+): number | null {
+    const point = readNatalPlanetPoint(chartData, planet)
+    if (point) {
+        const long = toFiniteNumber(point.longitude)
+        if (typeof long === "number") return long
+        const signRaw = typeof point.sign === "string" ? point.sign : null
+        const sign = canonicalSignName(signRaw)
+        const degree = toFiniteNumber(point.degree)
+        if (sign && typeof degree === "number") {
+            const idx = ZODIAC_SIGN_INDEX[sign]
+            if (typeof idx === "number") return idx * 30 + degree
+        }
+    }
+    return typeof fallback === "number" && Number.isFinite(fallback)
+        ? fallback
+        : null
+}
+
+/**
+ * Returns today's orb for an aspect event in degrees, or null if either
+ * longitude can't be resolved.
+ */
+function computeTodayOrbForEvent(
+    event: PanelAspectEvent,
+    chartData: Record<string, unknown> | null | undefined,
+): number | null {
+    const transitLng = getTodayTransitLongitude(chartData, event.transitPlanet)
+    const natalLng = getNatalLongitude(
+        chartData,
+        event.natalPlanet,
+        event.natalAbsoluteLongitude,
+    )
+    return computeCurrentOrb(transitLng, natalLng, event.aspectAngle)
+}
+
 function formatDateIsoForLocale(dateIso: string, locale: string) {
     const parsed = new Date(`${dateIso}T00:00:00.000Z`)
     if (Number.isNaN(parsed.getTime())) return dateIso
@@ -781,8 +848,21 @@ export default function RealtimePlanetaryPanel({
             transitPlanetPriority(a.transitPlanet) -
             transitPlanetPriority(b.transitPlanet),
     )
-    const visibleEvents = orderedEvents.slice(0, visibleCount)
-    const hasMoreEvents = visibleCount < orderedEvents.length
+    // Drop events whose orb *today* is outside the standard +-5 degree
+    // window. The upstream calc emits aspects with multi-month windows
+    // anchored on the peak date, so an aspect can be "in range" by date but
+    // still 20-30 degrees off orb today — those are not real active
+    // aspects and shouldn't crowd out the ones that actually are. When we
+    // can't compute today's orb (missing chartData longitude), keep the
+    // event so we don't accidentally erase the whole panel.
+    const activeEvents = orderedEvents.filter((event) => {
+        const orbToday = computeTodayOrbForEvent(event, chartData)
+        if (orbToday === null) return true
+        return orbToday <= ACTIVE_ORB_DEGREES
+    })
+    if (activeEvents.length === 0) return null
+    const visibleEvents = activeEvents.slice(0, visibleCount)
+    const hasMoreEvents = visibleCount < activeEvents.length
 
     function DignityBadges({ badges }: { badges: DignityBadge[] }) {
         if (badges.length === 0) return null
@@ -1182,7 +1262,7 @@ export default function RealtimePlanetaryPanel({
                             setVisibleCount((count) =>
                                 Math.min(
                                     count + SHOW_MORE_STEP,
-                                    orderedEvents.length,
+                                    activeEvents.length,
                                 ),
                             )
                         }
