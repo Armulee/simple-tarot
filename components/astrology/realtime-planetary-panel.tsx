@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import Image from "next/image"
 import { Eye, Flame, Sparkles, Star } from "lucide-react"
 import { AspectIcon } from "@/components/astrology/aspect-icon"
@@ -1114,12 +1114,27 @@ export default function RealtimePlanetaryPanel({
         )
     }
 
+    // Index of the first U/N/P card in the slice — where the divider
+    // should appear. -1 when none of the visible cards is generational.
+    const generationalStartIndex = visibleEvents.findIndex(
+        (event) => transitPlanetPriority(event.transitPlanet) === 2,
+    )
+
     return (
         <div className='space-y-5'>
             {visibleEvents.length > 0 && (
                 <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                    {visibleEvents.map((event) => (
-                        <EventCard key={event.aspectKey} event={event} />
+                    {visibleEvents.map((event, idx) => (
+                        <Fragment key={event.aspectKey}>
+                            {idx === generationalStartIndex ? (
+                                <div className='col-span-full flex items-center gap-3 pt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45'>
+                                    <span className='h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-white/15' />
+                                    <span>{t("longTermSectionLabel")}</span>
+                                    <span className='h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-white/15' />
+                                </div>
+                            ) : null}
+                            <EventCard event={event} />
+                        </Fragment>
                     ))}
                 </div>
             )}

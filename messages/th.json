@@ -2902,6 +2902,7 @@
     },
     "orbLabel": "ออบ (วันนี้)",
     "peakLabel": "จุดพีก",
+    "longTermSectionLabel": "อิทธิพลระยะยาว",
     "showBirthDetails": "แสดงข้อมูลกำเนิด",
     "showTransitDetails": "แสดงข้อมูลจร",
     "birthDetails": "ข้อมูลกำเนิด",

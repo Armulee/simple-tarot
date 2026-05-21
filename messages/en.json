@@ -2901,6 +2901,7 @@
     },
     "orbLabel": "Orb (today)",
     "peakLabel": "Peak",
+    "longTermSectionLabel": "Long-term influences",
     "showBirthDetails": "Show Birth Details",
     "showTransitDetails": "Show Transit Details",
     "birthDetails": "Birth Details",
