@@ -243,6 +243,21 @@ function canonicalSignName(sign: string | null | undefined): string | null {
     return sign
 }
 
+function extractSignFromAbsolute(longitude: number | undefined): string | null {
+    if (typeof longitude !== "number" || !Number.isFinite(longitude)) return null
+    const normalized = ((longitude % 360) + 360) % 360
+    return ZODIAC_SIGNS_EN[Math.floor(normalized / 30)] ?? null
+}
+
+function parseSignFromPositionText(
+    positionText: string | null | undefined,
+): string | null {
+    const normalized = normalizePositionText(positionText)
+    if (!normalized) return null
+    const sign = normalized.split("·")[0]?.trim()
+    return sign || null
+}
+
 function formatDateIsoForLocale(dateIso: string, locale: string) {
     const parsed = new Date(`${dateIso}T00:00:00.000Z`)
     if (Number.isNaN(parsed.getTime())) return dateIso
@@ -795,48 +810,73 @@ export default function RealtimePlanetaryPanel({
             event.natalPlanet,
         )
 
-        // Prefer today's chartData over the aspect-event's peak-time position
-        // so the sign / degree shown here matches TransitPlanetGrid exactly.
+        // The aspect's positions are recorded at its peak date (where the orb
+        // is minimized — see transit-aspects.ts). We must show those so the
+        // sign/degree pair actually satisfies the displayed orb. The
+        // chartData (today's transit) is only a fallback for events that
+        // came in without their own position text.
         const transitPosition =
-            localizePositionText(transitChartPosition, t) ||
             localizePositionText(event.transitPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.transitAbsoluteLongitude,
                 t,
             ) ||
+            localizePositionText(transitChartPosition, t) ||
             noChartPositionLabel
         const natalPosition =
-            localizePositionText(natalChartPosition, t) ||
             localizePositionText(event.natalPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.natalAbsoluteLongitude,
                 t,
             ) ||
+            localizePositionText(natalChartPosition, t) ||
             noChartPositionLabel
         const resolvedTransitAbsoluteLongitude =
-            toFiniteNumber(transitPoint?.longitude) ??
             toFiniteNumber(event.transitAbsoluteLongitude) ??
             parseAbsoluteFromPositionText(event.transitPositionText) ??
-            parseAbsoluteFromPositionText(transitPosition)
+            parseAbsoluteFromPositionText(transitPosition) ??
+            toFiniteNumber(transitPoint?.longitude)
         const resolvedNatalAbsoluteLongitude =
-            toFiniteNumber(natalPoint?.longitude) ??
             toFiniteNumber(event.natalAbsoluteLongitude) ??
             parseAbsoluteFromPositionText(event.natalPositionText) ??
-            parseAbsoluteFromPositionText(natalPosition)
+            parseAbsoluteFromPositionText(natalPosition) ??
+            toFiniteNumber(natalPoint?.longitude)
 
-        const transitSignCanonical = canonicalSignName(
-            typeof transitPoint?.sign === "string" ? transitPoint.sign : null,
+        // Dignity is derived from the sign we're actually showing, so the
+        // "Debilitated / Own sign / …" chip never disagrees with the sign
+        // label above it.
+        const transitDisplaySign = canonicalSignName(
+            extractSignFromAbsolute(resolvedTransitAbsoluteLongitude) ??
+                parseSignFromPositionText(event.transitPositionText) ??
+                parseSignFromPositionText(transitChartPosition),
         )
-        const natalSignCanonical = canonicalSignName(
-            typeof natalPoint?.sign === "string" ? natalPoint.sign : null,
+        const natalDisplaySign = canonicalSignName(
+            extractSignFromAbsolute(resolvedNatalAbsoluteLongitude) ??
+                parseSignFromPositionText(event.natalPositionText) ??
+                parseSignFromPositionText(natalChartPosition),
         )
-        const transitDignity = transitSignCanonical
-            ? getPlanetDignity(event.transitPlanet, transitSignCanonical)
+        const transitDignity = transitDisplaySign
+            ? getPlanetDignity(event.transitPlanet, transitDisplaySign)
             : { isExalted: false, isDebilitated: false, isOwnSign: false }
-        const natalDignity = natalSignCanonical
-            ? getPlanetDignity(event.natalPlanet, natalSignCanonical)
+        const natalDignity = natalDisplaySign
+            ? getPlanetDignity(event.natalPlanet, natalDisplaySign)
             : { isExalted: false, isDebilitated: false, isOwnSign: false }
-        const transitRetrograde = Boolean(transitPoint?.retrograde)
+        // Retrograde state in chartData is only valid for today. Only mark
+        // the transit planet as retrograde when today actually falls inside
+        // the aspect window (or matches the exact date), otherwise the badge
+        // would be applied to a position that isn't "today".
+        const today = todayUtcEpoch()
+        const exactMs = parseIsoDay(event.dateIso)
+        const startMs = parseIsoDay(event.startDateIso)
+        const endMs = parseIsoDay(event.endDateIso)
+        const todayInWindow =
+            exactMs !== null
+                ? today === exactMs
+                : startMs !== null && endMs !== null
+                  ? today >= startMs && today <= endMs
+                  : false
+        const transitRetrograde =
+            todayInWindow && Boolean(transitPoint?.retrograde)
         const natalRetrograde = Boolean(natalPoint?.retrograde)
         const transitBadges = buildDignityBadges({
             isExalted: transitDignity.isExalted,
