@@ -1,7 +1,11 @@
 "use client"
 
-import { useLocale, useTranslations } from "next-intl"
+import { useState } from "react"
+import { HeartHandshake } from "lucide-react"
+import { useTranslations } from "next-intl"
+
 import type { PaywallNotice } from "@/components/chat/types"
+import { PaywallDialog } from "@/components/subscription/paywall-dialog"
 import { PaywallBody } from "@/components/ui/paywall-dialog"
 
 type PaywallBlockProps = {
@@ -10,8 +14,7 @@ type PaywallBlockProps = {
 
 export default function PaywallBlock({ data }: PaywallBlockProps) {
     const t = useTranslations("HoroscopeChat")
-    const locale = useLocale()
-    const upgradeHref = `/${locale}/billing`
+    const [open, setOpen] = useState(false)
 
     const title =
         data.reason === "other_person"
@@ -23,17 +26,30 @@ export default function PaywallBlock({ data }: PaywallBlockProps) {
             : t("paywallOtherPersonBody")
 
     return (
-        <PaywallBody
-            tone='danger'
-            title={title}
-            body={body}
-            actions={[
-                {
-                    key: "upgrade",
-                    label: t("paywallUpgradeCta"),
-                    href: upgradeHref,
-                },
-            ]}
-        />
+        <>
+            <PaywallBody
+                tone='danger'
+                title={title}
+                body={body}
+                actions={[
+                    {
+                        key: "upgrade",
+                        label: t("paywallUpgradeCta"),
+                        onClick: () => setOpen(true),
+                    },
+                ]}
+            />
+            <PaywallDialog
+                open={open}
+                onOpenChange={setOpen}
+                requiredTier={data.requiredTier}
+                title={t("paywallOtherPersonPaywallTitle")}
+                description={t("paywallOtherPersonPaywallDesc")}
+                feature={t("paywallOtherPersonPaywallFeature")}
+                insufficientLabel={t("paywallOtherPersonPaywallInsufficient")}
+                footnote={t("paywallOtherPersonPaywallNote")}
+                icon={<HeartHandshake className='h-6 w-6 text-indigo-300' />}
+            />
+        </>
     )
 }
