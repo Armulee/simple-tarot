@@ -798,7 +798,12 @@ export default function MessageList({
                                 ) : message.variant === "paywall" &&
                                   message.paywall ? (
                                     /* Free-tier user asked about someone else's chart */
-                                    <PaywallBlock data={message.paywall} />
+                                    <PaywallBlock
+                                        data={message.paywall}
+                                        onCardsSelected={
+                                            onHoroscopeAuthGateCardsSelected
+                                        }
+                                    />
                                 ) : (
                                     /* Plain variant: simple assistant text (chat decision, bridge message) */
                                     <>
