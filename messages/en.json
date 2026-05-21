@@ -2863,6 +2863,10 @@
       "large": "Large"
     }
   },
+  "TransitOrbit": {
+    "toggle2D": "2D",
+    "toggle3D": "3D"
+  },
   "PlanetaryPanel": {
     "transitSuffix": " Transit",
     "natalSuffix": " Natal",

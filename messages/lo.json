@@ -2860,6 +2860,10 @@
       "large": "ໃຫຍ່"
     }
   },
+  "TransitOrbit": {
+    "toggle2D": "2D",
+    "toggle3D": "3D"
+  },
   "PlanetaryPanel": {
     "transitSuffix": "ຈອນມາ",
     "natalSuffix": "ກຳເນີດ",
