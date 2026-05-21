@@ -2864,10 +2864,6 @@
       "large": "ใหญ่"
     }
   },
-  "TransitOrbit": {
-    "toggle2D": "2D",
-    "toggle3D": "3D"
-  },
   "PlanetaryPanel": {
     "transitSuffix": "จรมา",
     "natalSuffix": "กำเนิด",
