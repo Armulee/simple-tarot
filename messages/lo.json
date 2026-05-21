@@ -2890,6 +2890,12 @@
       "medium": "ປານກາງ",
       "high": "ສູງ"
     },
+    "dignity": {
+      "exalted": "ສູງສຸດ",
+      "ownSign": "ເຮືອນຕົນ",
+      "debilitated": "ຕ່ຳສຸດ",
+      "retrograde": "ຖອຍຫຼັງ"
+    },
     "showBirthDetails": "ສະແດງຂໍ້ມູນກຳເນີດ",
     "showTransitDetails": "ສະແດງຂໍ້ມູນຈອນ",
     "birthDetails": "ຂໍ້ມູນກຳເນີດ",

@@ -11,6 +11,7 @@ import type {
     SourceAspectEvent,
 } from "@/components/chat/types"
 import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
+import { getPlanetDignity } from "@/lib/birth-chart-utils"
 
 type PanelAspectEvent = {
     aspectKey: string
@@ -53,6 +54,24 @@ const MAIN_EVENT_PLANETS = new Set([
     "Neptune",
     "Pluto",
 ])
+
+const OUTER_GENERATIONAL_PLANETS = new Set(["Uranus", "Neptune", "Pluto"])
+const BIG_FAST_PLANETS = new Set(["Jupiter", "Saturn"])
+
+/**
+ * Display priority for the transit-aspect list in this panel. Lower numbers
+ * sort to the top. Within each group, ties keep the upstream order (intensity
+ * → orb), so the panel reads as "headline aspects first, generational ones
+ * last".
+ *   0 — Big planets except U/N/P (Jupiter, Saturn)
+ *   1 — Everyone else (Sun/Moon/Mercury/Venus/Mars + nodes/Chiron)
+ *   2 — Outer generational planets (Uranus, Neptune, Pluto)
+ */
+function transitPlanetPriority(planet: string): number {
+    if (BIG_FAST_PLANETS.has(planet)) return 0
+    if (OUTER_GENERATIONAL_PLANETS.has(planet)) return 2
+    return 1
+}
 
 const ZODIAC_SIGNS_EN = [
     "Aries",
@@ -159,20 +178,43 @@ function parseAbsoluteFromPositionText(positionText: string | undefined) {
     return ((absolute % 360) + 360) % 360
 }
 
+type ChartPlanetPoint = {
+    sign?: unknown
+    degree?: unknown
+    longitude?: unknown
+    retrograde?: unknown
+}
+
+function readTransitPlanetPoint(
+    chartData: Record<string, unknown> | null | undefined,
+    planet: string,
+): ChartPlanetPoint | null {
+    if (!chartData) return null
+    const transit = chartData.transit as
+        | { charts?: Array<{ planets?: Record<string, ChartPlanetPoint> }> }
+        | undefined
+    const point = transit?.charts?.[0]?.planets?.[planet]
+    return point && typeof point === "object" ? point : null
+}
+
+function readNatalPlanetPoint(
+    chartData: Record<string, unknown> | null | undefined,
+    planet: string,
+): ChartPlanetPoint | null {
+    if (!chartData) return null
+    const charts = chartData.charts as
+        | Array<{ planets?: Record<string, ChartPlanetPoint> }>
+        | undefined
+    const point = charts?.[0]?.planets?.[planet]
+    return point && typeof point === "object" ? point : null
+}
+
 function getPlanetPositionFromChartData(
     chartData: Record<string, unknown> | null | undefined,
     planet: string,
 ) {
-    if (!chartData) return null
-    const transit = chartData.transit as
-        | {
-              charts?: Array<{
-                  planets?: Record<string, { sign?: unknown; degree?: unknown }>
-              }>
-          }
-        | undefined
-    const point = transit?.charts?.[0]?.planets?.[planet]
-    if (!point || typeof point !== "object") return null
+    const point = readTransitPlanetPoint(chartData, planet)
+    if (!point) return null
     const sign = typeof point.sign === "string" ? point.sign : null
     const degree = formatPlanetDegree(point.degree)
     if (!sign && !degree) return null
@@ -183,18 +225,22 @@ function getNatalPlanetPositionFromChartData(
     chartData: Record<string, unknown> | null | undefined,
     planet: string,
 ) {
-    if (!chartData) return null
-    const charts = chartData.charts as
-        | Array<{
-              planets?: Record<string, { sign?: unknown; degree?: unknown }>
-          }>
-        | undefined
-    const point = charts?.[0]?.planets?.[planet]
-    if (!point || typeof point !== "object") return null
+    const point = readNatalPlanetPoint(chartData, planet)
+    if (!point) return null
     const sign = typeof point.sign === "string" ? point.sign : null
     const degree = formatPlanetDegree(point.degree)
     if (!sign && !degree) return null
     return [sign, degree].filter(Boolean).join(" · ")
+}
+
+/** Map common aliases (Thai/Lao/abbrev) back to canonical English so dignity
+ *  lookups in `getPlanetDignity` (which keys on English signs) resolve. */
+function canonicalSignName(sign: string | null | undefined): string | null {
+    if (!sign) return null
+    if (ZODIAC_SIGNS_EN.includes(sign)) return sign
+    const idx = ZODIAC_SIGN_INDEX[sign]
+    if (typeof idx === "number") return ZODIAC_SIGNS_EN[idx] ?? sign
+    return sign
 }
 
 function formatDateIsoForLocale(dateIso: string, locale: string) {
@@ -537,6 +583,43 @@ function AspectTimeline({
 const INITIAL_VISIBLE_EVENTS = 4
 const SHOW_MORE_STEP = 4
 
+type DignityBadgeKey = "exalted" | "ownSign" | "debilitated" | "retrograde"
+
+type DignityBadge = {
+    key: DignityBadgeKey
+    label: string
+}
+
+const DIGNITY_BADGE_STYLE: Record<DignityBadgeKey, string> = {
+    exalted: "border-amber-300/40 bg-amber-400/12 text-amber-100",
+    ownSign: "border-sky-300/40 bg-sky-400/12 text-sky-100",
+    debilitated: "border-red-300/40 bg-red-400/12 text-red-100",
+    retrograde: "border-white/15 bg-white/[0.06] text-white/70",
+}
+
+function buildDignityBadges({
+    isExalted,
+    isDebilitated,
+    isOwnSign,
+    isRetrograde,
+    t,
+}: {
+    isExalted: boolean
+    isDebilitated: boolean
+    isOwnSign: boolean
+    isRetrograde: boolean
+    t: (key: string, values?: Record<string, string | number>) => string
+}): DignityBadge[] {
+    const badges: DignityBadge[] = []
+    if (isExalted) badges.push({ key: "exalted", label: t("dignity.exalted") })
+    if (isDebilitated)
+        badges.push({ key: "debilitated", label: t("dignity.debilitated") })
+    if (isOwnSign) badges.push({ key: "ownSign", label: t("dignity.ownSign") })
+    if (isRetrograde)
+        badges.push({ key: "retrograde", label: t("dignity.retrograde") })
+    return badges
+}
+
 export default function RealtimePlanetaryPanel({
     chartData,
     personalizedTransitAspects,
@@ -642,8 +725,32 @@ export default function RealtimePlanetaryPanel({
             orderedEvents.push(ev)
         }
     }
+    // Final pass: push Uranus/Neptune/Pluto aspects to the bottom, Jupiter /
+    // Saturn to the top, everything else in between. Array.sort is stable so
+    // the intensity-bucket order above is preserved within each group.
+    orderedEvents.sort(
+        (a, b) =>
+            transitPlanetPriority(a.transitPlanet) -
+            transitPlanetPriority(b.transitPlanet),
+    )
     const visibleEvents = orderedEvents.slice(0, visibleCount)
     const hasMoreEvents = visibleCount < orderedEvents.length
+
+    function DignityBadges({ badges }: { badges: DignityBadge[] }) {
+        if (badges.length === 0) return null
+        return (
+            <div className='mt-1.5 flex flex-wrap justify-center gap-1'>
+                {badges.map((badge) => (
+                    <span
+                        key={badge.key}
+                        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-medium tracking-wide ${DIGNITY_BADGE_STYLE[badge.key]}`}
+                    >
+                        {badge.label}
+                    </span>
+                ))}
+            </div>
+        )
+    }
 
     function PlanetAvatar({ planet }: { planet: string }) {
         const key = planet.toLowerCase()
@@ -673,41 +780,78 @@ export default function RealtimePlanetaryPanel({
     }
 
     function EventCard({ event }: { event: PanelAspectEvent }) {
-        const info = getPlanetPositionFromChartData(
+        const transitPoint = readTransitPlanetPoint(
             chartData,
             event.transitPlanet,
         )
+        const natalPoint = readNatalPlanetPoint(chartData, event.natalPlanet)
 
+        const transitChartPosition = getPlanetPositionFromChartData(
+            chartData,
+            event.transitPlanet,
+        )
+        const natalChartPosition = getNatalPlanetPositionFromChartData(
+            chartData,
+            event.natalPlanet,
+        )
+
+        // Prefer today's chartData over the aspect-event's peak-time position
+        // so the sign / degree shown here matches TransitPlanetGrid exactly.
         const transitPosition =
+            localizePositionText(transitChartPosition, t) ||
             localizePositionText(event.transitPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.transitAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(info, t) ||
             noChartPositionLabel
         const natalPosition =
+            localizePositionText(natalChartPosition, t) ||
             localizePositionText(event.natalPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.natalAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(
-                getNatalPlanetPositionFromChartData(
-                    chartData,
-                    event.natalPlanet,
-                ),
-                t,
-            ) ||
             noChartPositionLabel
         const resolvedTransitAbsoluteLongitude =
+            toFiniteNumber(transitPoint?.longitude) ??
             toFiniteNumber(event.transitAbsoluteLongitude) ??
             parseAbsoluteFromPositionText(event.transitPositionText) ??
             parseAbsoluteFromPositionText(transitPosition)
         const resolvedNatalAbsoluteLongitude =
+            toFiniteNumber(natalPoint?.longitude) ??
             toFiniteNumber(event.natalAbsoluteLongitude) ??
             parseAbsoluteFromPositionText(event.natalPositionText) ??
             parseAbsoluteFromPositionText(natalPosition)
+
+        const transitSignCanonical = canonicalSignName(
+            typeof transitPoint?.sign === "string" ? transitPoint.sign : null,
+        )
+        const natalSignCanonical = canonicalSignName(
+            typeof natalPoint?.sign === "string" ? natalPoint.sign : null,
+        )
+        const transitDignity = transitSignCanonical
+            ? getPlanetDignity(event.transitPlanet, transitSignCanonical)
+            : { isExalted: false, isDebilitated: false, isOwnSign: false }
+        const natalDignity = natalSignCanonical
+            ? getPlanetDignity(event.natalPlanet, natalSignCanonical)
+            : { isExalted: false, isDebilitated: false, isOwnSign: false }
+        const transitRetrograde = Boolean(transitPoint?.retrograde)
+        const natalRetrograde = Boolean(natalPoint?.retrograde)
+        const transitBadges = buildDignityBadges({
+            isExalted: transitDignity.isExalted,
+            isDebilitated: transitDignity.isDebilitated,
+            isOwnSign: transitDignity.isOwnSign,
+            isRetrograde: transitRetrograde,
+            t,
+        })
+        const natalBadges = buildDignityBadges({
+            isExalted: natalDignity.isExalted,
+            isDebilitated: natalDignity.isDebilitated,
+            isOwnSign: natalDignity.isOwnSign,
+            isRetrograde: natalRetrograde,
+            t,
+        })
         const transitAbsoluteText = formatAbsoluteLongitudeBreakdown(
             resolvedTransitAbsoluteLongitude,
         )
@@ -760,7 +904,7 @@ export default function RealtimePlanetaryPanel({
                     </span>
                 </div>
 
-                <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
+                <div className='grid grid-cols-[1fr_auto_1fr] items-start gap-3'>
                     <div className='min-w-0 text-center'>
                         <div className='mx-auto mb-2 inline-flex'>
                             <span className='relative inline-flex h-[44px] w-[44px] items-center justify-center rounded-full ring-1 ring-white/10'>
@@ -773,8 +917,9 @@ export default function RealtimePlanetaryPanel({
                         <p className='text-[10px] tracking-wide text-white/35'>
                             {t("transitSuffix")}
                         </p>
+                        <DignityBadges badges={transitBadges} />
                     </div>
-                    <div className='flex flex-col items-center gap-1 text-cyan-200/85'>
+                    <div className='flex flex-col items-center gap-1 pt-3 text-cyan-200/85'>
                         <AspectIcon aspectType={event.aspectType} />
                         <span className='text-[10px] font-medium uppercase tracking-[0.18em]'>
                             {t(`aspects.${event.aspectType}`) ??
@@ -793,6 +938,7 @@ export default function RealtimePlanetaryPanel({
                         <p className='text-[10px] tracking-wide text-white/35'>
                             {t("natalSuffix")}
                         </p>
+                        <DignityBadges badges={natalBadges} />
                     </div>
                 </div>
 

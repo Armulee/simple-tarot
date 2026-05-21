@@ -2894,6 +2894,12 @@
       "medium": "ปานกลาง",
       "high": "สูง"
     },
+    "dignity": {
+      "exalted": "อุจ",
+      "ownSign": "เกษตร",
+      "debilitated": "นิจ",
+      "retrograde": "ถอยหลัง"
+    },
     "showBirthDetails": "แสดงข้อมูลกำเนิด",
     "showTransitDetails": "แสดงข้อมูลจร",
     "birthDetails": "ข้อมูลกำเนิด",

@@ -2893,6 +2893,12 @@
       "medium": "Medium",
       "high": "High"
     },
+    "dignity": {
+      "exalted": "Exalted",
+      "ownSign": "Own sign",
+      "debilitated": "Debilitated",
+      "retrograde": "Retrograde"
+    },
     "showBirthDetails": "Show Birth Details",
     "showTransitDetails": "Show Transit Details",
     "birthDetails": "Birth Details",
