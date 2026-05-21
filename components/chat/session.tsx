@@ -93,6 +93,10 @@ import type {
 import { parseQuestionDomain } from "@/lib/chat/situation-schema"
 
 import { getTarotCardCount } from "@/lib/chat/decision-schema"
+import {
+    clampCardCountToTier,
+    getMaxCardsForTier,
+} from "@/lib/payments/plan-limits"
 import { buildSupportBlockFromDecision } from "@/lib/chat/support-block"
 import { useAuth } from "@/hooks/use-auth"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
@@ -2325,13 +2329,18 @@ export default function ChatSession({
     const hasAssistantResponse = messages.some(
         (message) => message.role === "assistant",
     )
+    const planTier = subscription?.tier ?? "free"
     const defaultCardsToSelect = useMemo(
-        () => decision?.cardCount ?? 0,
-        [decision],
+        () => clampCardCountToTier(decision?.cardCount ?? 0, planTier),
+        [decision, planTier],
     )
     const cardsToSelect = useMemo(
-        () => cardCountOverride ?? defaultCardsToSelect,
-        [cardCountOverride, defaultCardsToSelect],
+        () =>
+            clampCardCountToTier(
+                cardCountOverride ?? defaultCardsToSelect,
+                planTier,
+            ),
+        [cardCountOverride, defaultCardsToSelect, planTier],
     )
     const isChatLoading = consulting || isInterpreting
 
@@ -2779,23 +2788,38 @@ export default function ChatSession({
         [interpretationMode, user],
     )
 
-    const normalizeDrawDecision = useCallback((decision: ChatDecision) => {
-        if (decision.type !== "draw") {
+    const normalizeDrawDecision = useCallback(
+        (decision: ChatDecision) => {
+            if (decision.type !== "draw") {
+                return {
+                    ...decision,
+                    spreadType: undefined,
+                    cardCount: undefined,
+                    spreadReason: undefined,
+                }
+            }
+
+            const rawSpreadType = decision.spreadType ?? "simple"
+            const rawCount = getTarotCardCount(rawSpreadType)
+            const tierMax = getMaxCardsForTier(planTier)
+            if (rawCount <= tierMax) {
+                return {
+                    ...decision,
+                    spreadType: rawSpreadType,
+                    cardCount: rawCount,
+                }
+            }
+            // Free tier hit: collapse to the largest spread that fits.
+            // Allowed spread types (in ascending card count): simple(1), general(3).
+            const downgradedSpread = tierMax >= 3 ? "general" : "simple"
             return {
                 ...decision,
-                spreadType: undefined,
-                cardCount: undefined,
-                spreadReason: undefined,
+                spreadType: downgradedSpread,
+                cardCount: getTarotCardCount(downgradedSpread),
             }
-        }
-
-        const spreadType = decision.spreadType ?? "simple"
-        return {
-            ...decision,
-            spreadType,
-            cardCount: getTarotCardCount(spreadType),
-        }
-    }, [])
+        },
+        [planTier],
+    )
 
     const getDefaultSystemByLocale = useCallback(() => {
         return getDefaultAstrologySystem(
@@ -3768,6 +3792,7 @@ export default function ChatSession({
                     hasStoredBirthChart: Boolean(storedBirthChart),
                     interpretationMode: modeForApi,
                     contextSummary: contextSummary || undefined,
+                    planTier,
                 }),
                 signal: abortControllerRef.current.signal,
             })
@@ -3804,6 +3829,7 @@ export default function ChatSession({
             storedBirthChart,
             user,
             originContext,
+            planTier,
         ],
     )
 
@@ -5107,9 +5133,10 @@ export default function ChatSession({
 
     const handleCardsToSelectChange = useCallback(
         (nextCount: number) => {
+            const tierMax = getMaxCardsForTier(planTier)
             const boundedCount = Math.max(
                 1,
-                Math.min(10, Math.floor(nextCount)),
+                Math.min(tierMax, Math.floor(nextCount)),
             )
             setCardCountOverride(
                 boundedCount === defaultCardsToSelect ? null : boundedCount,
@@ -5119,7 +5146,7 @@ export default function ChatSession({
                 setCardSelectionResetSignal((prev) => prev + 1)
             }
         },
-        [defaultCardsToSelect, selectedCount],
+        [defaultCardsToSelect, selectedCount, planTier],
     )
 
     const cardDrawSection = canShowCardDrawSection ? (
@@ -5138,6 +5165,7 @@ export default function ChatSession({
             onProvideRandomPick={(fn) => setPickFn(() => fn)}
             onProvideSelectByIndices={(fn) => setSelectByIndicesFn(() => fn)}
             selectionResetSignal={cardSelectionResetSignal}
+            planTier={planTier}
         />
     ) : null
 
