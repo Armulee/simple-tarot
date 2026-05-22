@@ -20,6 +20,11 @@ import {
     type HoroscopeInterpretation,
 } from "@/lib/astrology/schema"
 import {
+    streamingGeneralReplySchema,
+    type GeneralReply,
+    type StreamingGeneralReply,
+} from "@/lib/chat/general-reply-schema"
+import {
     mergeAspectKeywordsIntoAspects,
     type AspectKeywordItem,
 } from "@/lib/astrology/transit-aspects"
@@ -597,6 +602,67 @@ type NormalizedTimelineSlot = NonNullable<
 
 const horoscopeVerdictStreamSchema = streamingDailyVerdictSchema.passthrough()
 
+/**
+ * Merges a streamed partial general reply onto whatever reply data the
+ * message already has. Keeps previously-arrived fields when the stream emits a
+ * later chunk that drops keys it had already filled, and skips no-op updates
+ * so the message list does not thrash during streaming.
+ */
+function mergeGeneralReplyForMessage(
+    previous: GeneralReply | null | undefined,
+    incoming: StreamingGeneralReply | null | undefined,
+): GeneralReply | null {
+    if (!incoming) return previous ?? null
+    const base: Partial<GeneralReply> = previous ? { ...previous } : {}
+    if (incoming.innerEnergy) base.innerEnergy = incoming.innerEnergy
+    if (typeof incoming.heroTitle === "string") base.heroTitle = incoming.heroTitle
+    if (typeof incoming.innerDirection === "string")
+        base.innerDirection = incoming.innerDirection
+    if (typeof incoming.reflection === "string")
+        base.reflection = incoming.reflection
+    if (Array.isArray(incoming.currents)) {
+        base.currents = incoming.currents
+            .map((c) => ({
+                label: typeof c?.label === "string" ? c.label : "",
+                text: typeof c?.text === "string" ? c.text : "",
+            }))
+            .filter((c) => c.label.length > 0 || c.text.length > 0)
+    }
+    if (typeof incoming.whisper === "string") base.whisper = incoming.whisper
+    if (Array.isArray(incoming.suggestions))
+        base.suggestions = incoming.suggestions.filter(
+            (s): s is string => typeof s === "string",
+        )
+    return base as GeneralReply
+}
+
+function areGeneralRepliesEqual(
+    a: GeneralReply | null | undefined,
+    b: GeneralReply | null | undefined,
+) {
+    if (a === b) return true
+    if (!a || !b) return !a && !b
+    if (a.innerEnergy !== b.innerEnergy) return false
+    if (a.heroTitle !== b.heroTitle) return false
+    if (a.innerDirection !== b.innerDirection) return false
+    if (a.reflection !== b.reflection) return false
+    if (a.whisper !== b.whisper) return false
+    const aCurrents = a.currents ?? []
+    const bCurrents = b.currents ?? []
+    if (aCurrents.length !== bCurrents.length) return false
+    for (let i = 0; i < aCurrents.length; i++) {
+        if (aCurrents[i].label !== bCurrents[i].label) return false
+        if (aCurrents[i].text !== bCurrents[i].text) return false
+    }
+    const aSugg = a.suggestions ?? []
+    const bSugg = b.suggestions ?? []
+    if (aSugg.length !== bSugg.length) return false
+    for (let i = 0; i < aSugg.length; i++) {
+        if (aSugg[i] !== bSugg[i]) return false
+    }
+    return true
+}
+
 function normalizePredictionTimeline(
     timeline: RawPredictionTimeline | null | undefined,
 ): ChatMessage["timeline"] | undefined {
@@ -890,6 +956,7 @@ export default function ChatSession({
     const interpretationLoadingIdRef = useRef<string | null>(null)
     const horoscopeTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeVerdictTargetMessageIdRef = useRef<string | null>(null)
+    const generalReplyTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeIsRefetchRef = useRef(false)
     const horoscopeRefetchSystemRef = useRef<
         "western_tropical" | "vedic_sidereal" | null
@@ -1016,6 +1083,71 @@ export default function ChatSession({
         },
         onError: () => {
             horoscopeVerdictTargetMessageIdRef.current = null
+        },
+    })
+
+    const {
+        submit: submitGeneralReply,
+        object: generalReplyObject,
+        stop: stopGeneralReply,
+    } = useObject({
+        api: "/api/chat/general",
+        schema: streamingGeneralReplySchema,
+        onFinish: ({ object }: { object: StreamingGeneralReply | undefined }) => {
+            const targetId = generalReplyTargetMessageIdRef.current
+            if (!targetId) return
+            if (object) {
+                const finalReply = mergeGeneralReplyForMessage(null, object)
+                setMessages((prev) =>
+                    prev.map((m) => {
+                        if (m.id !== targetId) return m
+                        const followUpSuggestions =
+                            object.suggestions
+                                ?.map((s) =>
+                                    typeof s === "string" ? s.trim() : "",
+                                )
+                                .filter(Boolean)
+                                .slice(0, 4) ?? m.followUpSuggestions
+                        return {
+                            ...m,
+                            generalReply: finalReply,
+                            followUpSuggestions,
+                            isLoading: false,
+                            streamStopped: false,
+                            text:
+                                finalReply?.reflection?.trim() ||
+                                finalReply?.heroTitle ||
+                                m.text,
+                        }
+                    }),
+                )
+            }
+            generalReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+        onError: (e: Error) => {
+            console.error("[chat/general] stream error:", e)
+            const targetId = generalReplyTargetMessageIdRef.current
+            if (targetId && e?.name !== "AbortError") {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === targetId
+                            ? {
+                                  ...m,
+                                  text:
+                                      m.text ||
+                                      "Sorry, something went wrong. Please try again.",
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            generalReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
         },
     })
 
@@ -2108,6 +2240,28 @@ export default function ChatSession({
         )
     }, [horoscopeVerdictObject])
 
+    useEffect(() => {
+        const targetId = generalReplyTargetMessageIdRef.current
+        if (!targetId || !generalReplyObject) return
+        setMessages((prev) => {
+            const m = prev.find((x) => x.id === targetId)
+            if (!m) return prev
+            const next = mergeGeneralReplyForMessage(
+                m.generalReply,
+                generalReplyObject as StreamingGeneralReply,
+            )
+            if (areGeneralRepliesEqual(next, m.generalReply)) return prev
+            return prev.map((mm) =>
+                mm.id === targetId
+                    ? {
+                          ...m,
+                          generalReply: next,
+                      }
+                    : mm,
+            )
+        })
+    }, [generalReplyObject])
+
     const freezeStoppedPlainMessage = useCallback((targetId: string) => {
         setMessages((prev) => {
             const target = prev.find((m) => m.id === targetId)
@@ -2272,6 +2426,46 @@ export default function ChatSession({
         return true
     }, [horoscopeObject, stopHoroscope, stopHoroscopeVerdict])
 
+    const finalizeGeneralReplyStream = useCallback(() => {
+        const targetId = generalReplyTargetMessageIdRef.current
+        if (!targetId) return false
+
+        setMessages((prev) =>
+            prev.map((m) => {
+                if (m.id !== targetId) return m
+                const merged = mergeGeneralReplyForMessage(
+                    m.generalReply,
+                    generalReplyObject as StreamingGeneralReply | undefined,
+                )
+                const followUpSuggestions =
+                    (generalReplyObject as StreamingGeneralReply | undefined)
+                        ?.suggestions?.map((s) =>
+                            typeof s === "string" ? s.trim() : "",
+                        )
+                        .filter(Boolean)
+                        .slice(0, 4) ?? m.followUpSuggestions
+                return {
+                    ...m,
+                    generalReply: merged,
+                    followUpSuggestions,
+                    text:
+                        merged?.reflection?.trim() ||
+                        merged?.heroTitle ||
+                        m.text ||
+                        "",
+                    isLoading: false,
+                    streamStopped: true,
+                }
+            }),
+        )
+
+        generalReplyTargetMessageIdRef.current = null
+        consultingLoadingIdRef.current = null
+        setConsulting(false)
+        stopGeneralReply()
+        return true
+    }, [generalReplyObject, stopGeneralReply])
+
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
@@ -2280,8 +2474,9 @@ export default function ChatSession({
             stopInterpretation()
             stopHoroscope()
             stopHoroscopeVerdict()
+            stopGeneralReply()
         }
-    }, [stopInterpretation, stopHoroscope, stopHoroscopeVerdict])
+    }, [stopInterpretation, stopHoroscope, stopHoroscopeVerdict, stopGeneralReply])
 
     useEffect(() => {
         return () => {
@@ -3833,6 +4028,60 @@ export default function ChatSession({
         ],
     )
 
+    /**
+     * Kicks off the structured general (chat) reply via /api/chat/general.
+     * The assistant message is then progressively populated by the streaming
+     * `useObject` effect that watches `generalReplyObject`. Returns the
+     * loadingId the caller already pushed so it can clear local refs in its
+     * own finalization step.
+     */
+    const startGeneralReplyStream = useCallback(
+        ({
+            question,
+            assistantLoadingId,
+            isFollowUp,
+            historyOverride,
+        }: {
+            question: string
+            assistantLoadingId: string
+            isFollowUp?: boolean
+            historyOverride?: { role: string; text: string }[]
+        }) => {
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                originContext,
+                buildSessionContextSummary(messages),
+            )
+
+            generalReplyTargetMessageIdRef.current = assistantLoadingId
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              generalReply: null,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            submitGeneralReply({
+                question,
+                isFollowUp,
+                history,
+                contextSummary: contextSummary || undefined,
+                locale,
+            })
+        },
+        [locale, messages, originContext, submitGeneralReply],
+    )
+
     const streamAssistantResponse = useCallback(
         async ({
             question,
@@ -3908,6 +4157,11 @@ export default function ChatSession({
     )
 
     const handleStopStreaming = useCallback(() => {
+        if (generalReplyTargetMessageIdRef.current) {
+            finalizeGeneralReplyStream()
+            return
+        }
+
         if (consultingLoadingIdRef.current) {
             finalizeConsultingStream()
             return
@@ -3931,6 +4185,7 @@ export default function ChatSession({
         setIsInterpreting(false)
     }, [
         finalizeConsultingStream,
+        finalizeGeneralReplyStream,
         finalizeHoroscopeStream,
         finalizeTarotInterpretationStream,
     ])
@@ -4304,41 +4559,59 @@ export default function ChatSession({
                     nextDecision,
                     trimmed,
                 )
-                const assistantText = await streamAssistantResponse({
-                    question: trimmed,
-                    type: nextDecision.type,
-                    isFollowUp: nextDecision.isFollowUp,
-                    supportTopic: supportBlock?.topic ?? null,
-                    historyOverride: history,
-                    savedBirthInfo,
-                    onChunk: (partial) => {
-                        setMessages((prev) =>
-                            prev.map((m) =>
-                                m.id === assistantLoadingId
-                                    ? { ...m, text: partial }
-                                    : m,
-                            ),
-                        )
-                    },
-                })
-                setConsulting(false)
 
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === assistantLoadingId
-                            ? {
-                                  ...m,
-                                  text: assistantText || m.text,
-                                  isLoading: false,
-                                  streamStopped: false,
-                                  supportTopic:
-                                      supportBlock?.topic ?? undefined,
-                                  supportBlock: supportBlock ?? undefined,
-                              }
-                            : m,
-                    ),
-                )
-                consultingLoadingIdRef.current = null
+                // General/chat answers go through /api/chat/general for a
+                // structured "inner energy reflection" rendered by
+                // InnerEnergyHero. Bridge replies (draw / horoscope) and
+                // support acknowledgments keep the lightweight text stream
+                // from /api/chat/respond.
+                const useGeneralReplyStream =
+                    nextDecision.type === "chat" && !supportBlock
+
+                if (useGeneralReplyStream) {
+                    startGeneralReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else {
+                    const assistantText = await streamAssistantResponse({
+                        question: trimmed,
+                        type: nextDecision.type,
+                        isFollowUp: nextDecision.isFollowUp,
+                        supportTopic: supportBlock?.topic ?? null,
+                        historyOverride: history,
+                        savedBirthInfo,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: assistantText || m.text,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      supportTopic:
+                                          supportBlock?.topic ?? undefined,
+                                      supportBlock: supportBlock ?? undefined,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                }
 
                 if (nextDecision.type === "draw") {
                     setShowCardDraw(true)
@@ -4390,6 +4663,7 @@ export default function ChatSession({
             hasBirthDate,
             isInterpreting,
             normalizeDrawDecision,
+            startGeneralReplyStream,
             streamAssistantResponse,
         ],
     )
@@ -4691,41 +4965,56 @@ export default function ChatSession({
                     nextDecision,
                     trimmed,
                 )
-                const assistantText = await streamAssistantResponse({
-                    question: trimmed,
-                    type: nextDecision.type,
-                    isFollowUp: nextDecision.isFollowUp,
-                    supportTopic: supportBlock?.topic ?? null,
-                    historyOverride: history,
-                    savedBirthInfo,
-                    onChunk: (partial) => {
-                        setMessages((prev) =>
-                            prev.map((m) =>
-                                m.id === assistantLoadingId
-                                    ? { ...m, text: partial }
-                                    : m,
-                            ),
-                        )
-                    },
-                })
-                setConsulting(false)
 
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === assistantLoadingId
-                            ? {
-                                  ...m,
-                                  text: assistantText || m.text,
-                                  isLoading: false,
-                                  streamStopped: false,
-                                  supportTopic:
-                                      supportBlock?.topic ?? undefined,
-                                  supportBlock: supportBlock ?? undefined,
-                              }
-                            : m,
-                    ),
-                )
-                consultingLoadingIdRef.current = null
+                // See runDecisionFlowFromMessages — same branching:
+                // structured inner-energy reflection vs. plain text bridge.
+                const useGeneralReplyStream =
+                    nextDecision.type === "chat" && !supportBlock
+
+                if (useGeneralReplyStream) {
+                    startGeneralReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else {
+                    const assistantText = await streamAssistantResponse({
+                        question: trimmed,
+                        type: nextDecision.type,
+                        isFollowUp: nextDecision.isFollowUp,
+                        supportTopic: supportBlock?.topic ?? null,
+                        historyOverride: history,
+                        savedBirthInfo,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: assistantText || m.text,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      supportTopic:
+                                          supportBlock?.topic ?? undefined,
+                                      supportBlock: supportBlock ?? undefined,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                }
 
                 if (nextDecision.type === "draw") {
                     setShowCardDraw(true)
@@ -4776,6 +5065,7 @@ export default function ChatSession({
             hasBirthDate,
             messages,
             normalizeDrawDecision,
+            startGeneralReplyStream,
             streamAssistantResponse,
         ],
     )
