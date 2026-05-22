@@ -798,7 +798,14 @@ export default function MessageList({
                                 ) : message.variant === "paywall" &&
                                   message.paywall ? (
                                     /* Free-tier user asked about someone else's chart */
-                                    <PaywallBlock data={message.paywall} />
+                                    <div className='w-full md:max-w-[85%] space-y-3'>
+                                        {message.text?.trim() ? (
+                                            <p className='text-[13px] leading-relaxed text-white/85 whitespace-pre-wrap'>
+                                                {message.text}
+                                            </p>
+                                        ) : null}
+                                        <PaywallBlock data={message.paywall} />
+                                    </div>
                                 ) : (
                                     /* Plain variant: simple assistant text (chat decision, bridge message) */
                                     <>

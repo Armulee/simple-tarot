@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { HeartHandshake } from "lucide-react"
+import { HeartHandshake, Lock } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type { PaywallNotice } from "@/components/chat/types"
@@ -28,7 +28,8 @@ export default function PaywallBlock({ data }: PaywallBlockProps) {
     return (
         <>
             <PaywallBody
-                tone='danger'
+                tone='premium'
+                icon={<Lock className='h-3.5 w-3.5' />}
                 title={title}
                 body={body}
                 actions={[

@@ -146,7 +146,7 @@ export function PaywallBody({
                     {actions.map((action, index) => {
                         const isPrimary = index === 0
                         const buttonClassName = cn(
-                            "inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-[11px] font-semibold uppercase tracking-[0.18em] transition disabled:opacity-50 disabled:cursor-not-allowed",
+                            "inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full px-5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] transition disabled:opacity-50 disabled:cursor-not-allowed",
                             isPrimary
                                 ? styles.primaryButton
                                 : styles.secondaryButton,
