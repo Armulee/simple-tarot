@@ -5307,6 +5307,65 @@ export default function ChatSession({
         question,
     ])
 
+    /**
+     * Triggered from the rejection paywall block (free-tier user asking
+     * about another person's chart). Same draw-card flow as
+     * `handleChooseCardInstead` but only nudges the interpretation mode
+     * back to "auto" when the user is currently in "horoscope" — so the
+     * mode preference isn't clobbered to "tarot" if they actively chose
+     * something else.
+     */
+    const handlePaywallDrawCardInstead = useCallback(async () => {
+        const tarotQuestion =
+            horoscopeQuestion || lastQuestion || question.trim()
+        if (!tarotQuestion) return
+        clearHoroscopeIntakeMessages()
+        setHoroscopeQuestion(null)
+        setHoroscopeBirth(null)
+        setHoroscopeTransit(null)
+        if (interpretationMode === "horoscope") {
+            setInterpretationMode("auto")
+            saveInterpretationModeToStorage("auto")
+        }
+        try {
+            const savedBirth = loadBirthFromStorage()
+            const savedBirthInfo = hasBirthDate(savedBirth)
+                ? "saved_profile_in_action_trigger"
+                : null
+            const aiDecision = await fetchDecision(
+                tarotQuestion,
+                undefined,
+                savedBirthInfo,
+            )
+            setDecision({
+                ...normalizeDrawDecision({
+                    ...aiDecision,
+                    type: "draw",
+                }),
+                assistantText: "",
+            })
+        } catch {
+            setDecision({
+                type: "draw",
+                assistantText: "",
+                spreadType: "simple",
+                cardCount: getTarotCardCount("simple"),
+            })
+        }
+        setShowCardDraw(true)
+        setLastQuestion(tarotQuestion)
+        setQuestion("")
+    }, [
+        clearHoroscopeIntakeMessages,
+        fetchDecision,
+        hasBirthDate,
+        horoscopeQuestion,
+        interpretationMode,
+        lastQuestion,
+        normalizeDrawDecision,
+        question,
+    ])
+
     const inputSection = (
         <>
             <Dialog
@@ -5618,6 +5677,7 @@ export default function ChatSession({
                 onAskAspectDetail={handleAskAspectDetail}
                 onPickTransitDate={handlePickTransitDate}
                 onHoroscopeAuthGateCardsSelected={handleCardsSelected}
+                onPaywallDrawCardInstead={handlePaywallDrawCardInstead}
                 onCancelHoroscopeLoading={handleCancelHoroscopeLoading}
                 onRegenerateHoroscope={regenerateHoroscopeAt}
                 onRegenerateTarot={regenerateTarotAt}

@@ -253,6 +253,14 @@ type MessageListProps = {
     onHoroscopeAuthGateCardsSelected: (
         cards: { name: string; isReversed: boolean }[],
     ) => void
+    /**
+     * Triggered when the user clicks the "Draw a card instead" CTA on the
+     * rejection paywall block (free-tier user asking about another
+     * person's chart). The session flips interpretationMode horoscope→auto
+     * and kicks off the regular tarot draw flow with the rejected
+     * question.
+     */
+    onPaywallDrawCardInstead?: () => void
     onCancelHoroscopeLoading: () => void
     onRegenerateHoroscope?: (messageId: string) => void
     onRegenerateTarot?: (messageId: string) => void
@@ -320,6 +328,7 @@ export default function MessageList({
     onAskAspectDetail,
     onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
+    onPaywallDrawCardInstead,
     onCancelHoroscopeLoading,
     onRegenerateHoroscope,
     onRegenerateTarot,
@@ -804,7 +813,12 @@ export default function MessageList({
                                                 {message.text}
                                             </p>
                                         ) : null}
-                                        <PaywallBlock data={message.paywall} />
+                                        <PaywallBlock
+                                            data={message.paywall}
+                                            onDrawCardInstead={
+                                                onPaywallDrawCardInstead
+                                            }
+                                        />
                                     </div>
                                 ) : (
                                     /* Plain variant: simple assistant text (chat decision, bridge message) */
