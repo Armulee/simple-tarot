@@ -10,8 +10,6 @@ import {
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
 import { getPlanPrice } from "@/lib/payments/subscription-plans"
-import type { HoroscopeBirthData } from "@/types/horoscope"
-import { AskCalendarAI } from "./AskCalendarAI"
 import { DetailHeaderCard } from "./DetailHeaderCard"
 import { EventSignalsCard } from "./EventSignalsCard"
 import { LuckyCard } from "./LuckyCard"
@@ -26,9 +24,6 @@ export function DetailPanel({
     isMissingCodex,
     isPlanLocked,
     planTier,
-    birthData,
-    locale,
-    today,
     selectedIso,
     transitState,
 }: {
@@ -37,9 +32,6 @@ export function DetailPanel({
     isMissingCodex: boolean
     isPlanLocked: boolean
     planTier: CalendarPlanTier
-    birthData: HoroscopeBirthData | null
-    locale: string
-    today: Date | null
     selectedIso: string | null
     transitState: TransitDayFetchState | null
 }) {
@@ -98,15 +90,6 @@ export function DetailPanel({
                     {t("detail.selectPrompt")}
                 </div>
             )}
-
-            {birthData ? (
-                <AskCalendarAI
-                    birthData={birthData}
-                    planTier={planTier}
-                    locale={locale}
-                    today={today}
-                />
-            ) : null}
         </div>
     )
 }

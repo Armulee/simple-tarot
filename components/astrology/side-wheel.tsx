@@ -4,7 +4,7 @@ import React, { useMemo } from "react"
 import { ZODIAC_SIGNS } from "@/lib/birth-chart-utils"
 import { PLANET_ICONS, PLANET_COLORS } from "./summary-icon"
 import { cn } from "@/lib/utils"
-import { Sparkles, User, Activity } from "lucide-react"
+import { Sparkles, User, Activity, type LucideIcon } from "lucide-react"
 
 interface SideWheelProps {
     side: "left" | "right"
@@ -60,7 +60,7 @@ interface ProcessedPlanet {
     sign: string
     deg: number
     zodiacDeg: number
-    icon: React.ElementType
+    icon: LucideIcon
     color: string
 }
 
@@ -76,7 +76,7 @@ export default function SideWheel({
     title,
     subtitle,
 }: SideWheelProps) {
-    const processedPlanets = useMemo(() => {
+    const processedPlanets = useMemo<ProcessedPlanet[]>(() => {
         if (!planets) return []
         return DEFAULT_PLANETS.map((pName) => {
             const val = planets[pName] ?? planets[pName.toLowerCase()]
@@ -102,7 +102,7 @@ export default function SideWheel({
         }).filter(Boolean) as ProcessedPlanet[]
     }, [planets])
 
-    const houseLines = useMemo(() => {
+    const houseLines = useMemo<HouseLine[]>(() => {
         if (!houses) return []
         return Object.entries(houses)
             .map(([key, data]) => {

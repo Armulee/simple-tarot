@@ -26,6 +26,7 @@ import {
     isDateWithinWindow,
     isMonthFullyOutsideWindow,
 } from "@/lib/calendar/access-window"
+import { fetchCalendarUnlocks } from "@/lib/calendar/unlocks-client"
 import { buildCalendarDayOriginContext } from "@/lib/chat/origin-context"
 import PageContextComposer from "@/components/chat/page-context-composer"
 import type {
@@ -38,10 +39,10 @@ import { monthKey } from "./utils"
 import {
     AuthGateCard,
     BirthGateCard,
-    BottomCTA,
     CalendarGrid,
     DetailPanel,
     Header,
+    LockedPaywallDialog,
     MonthOverview,
 } from "./ui"
 
@@ -66,6 +67,47 @@ export default function CalendarClient() {
     const [transitCache, setTransitCache] = useState<
         Record<string, TransitDayFetchState>
     >({})
+    const [lockedPaywallDate, setLockedPaywallDate] = useState<Date | null>(
+        null,
+    )
+    const [unlockedDates, setUnlockedDates] = useState<Set<string>>(
+        () => new Set(),
+    )
+
+    const refreshUnlockedDates = useCallback(
+        async (signal?: AbortSignal) => {
+            if (!user?.id) {
+                setUnlockedDates(new Set())
+                return
+            }
+            try {
+                const list = await fetchCalendarUnlocks(user.id, signal)
+                setUnlockedDates(new Set(list.map((u) => u.date)))
+            } catch (err) {
+                if ((err as Error).name === "AbortError") return
+            }
+        },
+        [user?.id],
+    )
+
+    useEffect(() => {
+        if (!user?.id) {
+            setUnlockedDates(new Set())
+            return
+        }
+        const controller = new AbortController()
+        void refreshUnlockedDates(controller.signal)
+        return () => controller.abort()
+    }, [user?.id, refreshUnlockedDates])
+
+    const isDateAccessible = useCallback(
+        (cell: Date) => {
+            if (!today) return false
+            if (isDateWithinWindow(cell, today, windowDays)) return true
+            return unlockedDates.has(toLocalIsoDate(cell))
+        },
+        [today, windowDays, unlockedDates],
+    )
 
     const inFlightRef = useRef<AbortController | null>(null)
     const transitInFlightRef = useRef<Map<string, AbortController>>(new Map())
@@ -106,9 +148,19 @@ export default function CalendarClient() {
                 return
             }
 
+            const monthHasUnlockedDate = (() => {
+                if (unlockedDates.size === 0) return false
+                const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`
+                for (const iso of unlockedDates) {
+                    if (iso.startsWith(prefix)) return true
+                }
+                return false
+            })()
+
             if (
                 today &&
-                isMonthFullyOutsideWindow(year, month, today, windowDays)
+                isMonthFullyOutsideWindow(year, month, today, windowDays) &&
+                !monthHasUnlockedDate
             ) {
                 setMonthsCache((prev) => ({
                     ...prev,
@@ -186,7 +238,15 @@ export default function CalendarClient() {
                 }))
             }
         },
-        [birthData, hasBirth, locale, monthsCache, today, windowDays],
+        [
+            birthData,
+            hasBirth,
+            locale,
+            monthsCache,
+            today,
+            windowDays,
+            unlockedDates,
+        ],
     )
 
     useEffect(() => {
@@ -333,8 +393,8 @@ export default function CalendarClient() {
 
     const selectedDayIsLocked = useMemo(() => {
         if (!selectedDate || !today) return false
-        return !isDateWithinWindow(selectedDate, today, windowDays)
-    }, [selectedDate, today, windowDays])
+        return !isDateAccessible(selectedDate)
+    }, [selectedDate, today, isDateAccessible])
 
     const goPrevMonth = () => {
         setViewMonth((prev) => {
@@ -366,6 +426,16 @@ export default function CalendarClient() {
         )
     }, [showAuthGate, showBirthGate, selectedDate, selectedDayData, locale])
 
+    const calendarSuggestions = useMemo(
+        () => [
+            tCalendar("suggestions.focusToday"),
+            tCalendar("suggestions.goodDecisionDay"),
+            tCalendar("suggestions.activitiesForToday"),
+            tCalendar("suggestions.warnings"),
+        ],
+        [tCalendar],
+    )
+
     return (
         <div className='relative isolate min-h-[calc(100dvh-64px)] overflow-x-hidden pb-[220px]'>
             <div className='relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8'>
@@ -387,7 +457,14 @@ export default function CalendarClient() {
                                 matrix={monthMatrix}
                                 today={today}
                                 selectedDate={selectedDate}
-                                onSelect={(d) => setSelectedDate(d)}
+                                onSelect={(d) => {
+                                    if (today && !isDateAccessible(d)) {
+                                        setLockedPaywallDate(d)
+                                        return
+                                    }
+                                    setSelectedDate(d)
+                                }}
+                                unlockedDates={unlockedDates}
                                 daysMap={daysMap}
                                 windowDays={windowDays}
                                 loading={
@@ -414,9 +491,6 @@ export default function CalendarClient() {
                                 )}
                                 isPlanLocked={selectedDayIsLocked}
                                 planTier={planTier}
-                                birthData={birthData}
-                                locale={locale}
-                                today={today}
                                 selectedIso={
                                     selectedDate
                                         ? toLocalIsoDate(selectedDate)
@@ -431,8 +505,6 @@ export default function CalendarClient() {
                                 }
                             />
                         </div>
-
-                        <BottomCTA />
                     </>
                 )}
             </div>
@@ -440,8 +512,41 @@ export default function CalendarClient() {
                 <PageContextComposer
                     originContext={calendarOriginContext}
                     placeholder={tCalendar("composerPlaceholder")}
+                    suggestions={calendarSuggestions}
                 />
             ) : null}
+            <LockedPaywallDialog
+                open={lockedPaywallDate !== null}
+                onOpenChange={(open) => {
+                    if (!open) setLockedPaywallDate(null)
+                }}
+                planTier={planTier}
+                lockedDate={lockedPaywallDate}
+                userId={user?.id ?? null}
+                onUnlocked={(unlocked) => {
+                    const iso = toLocalIsoDate(unlocked)
+                    setUnlockedDates((prev) => {
+                        if (prev.has(iso)) return prev
+                        const next = new Set(prev)
+                        next.add(iso)
+                        return next
+                    })
+                    // Drop the cached month so it refetches with the newly
+                    // accessible day included.
+                    setMonthsCache((prev) => {
+                        const key = monthKey(
+                            unlocked.getFullYear(),
+                            unlocked.getMonth(),
+                        )
+                        if (!prev[key]) return prev
+                        const next = { ...prev }
+                        delete next[key]
+                        return next
+                    })
+                    setSelectedDate(unlocked)
+                    setLockedPaywallDate(null)
+                }}
+            />
         </div>
     )
 }

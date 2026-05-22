@@ -2066,6 +2066,12 @@
     },
     "locked": {
       "title": "Unlock this day",
+      "paywallTitle": "Unlocking dates is a subscriber feature",
+      "paywallDesc": "See planetary insights for any date in the year. Upgrade to Basic or Pro to unlock — checkout is powered by Stripe on the next page.",
+      "paywallFeature": "Calendar access beyond your free ±30-day window",
+      "paywallInsufficient": "Upgrade required",
+      "paywallNote": "Selecting a plan takes you to secure Stripe checkout.",
+      "dialogBody": "See planetary insights for any date. Subscribe to Basic or Pro to unlock — checkout is powered by Stripe on the next page.",
       "bodyFree": "This date is outside your free window (±30 days). Subscribe to Basic to unlock immediately — about {price}/month for ±1 year of calendar access. Checkout is powered by Stripe on the next page.",
       "bodyBasic": "This date is outside your Basic window (±1 year). Upgrade to Pro for unlimited calendar access — from {price}/month. Checkout is powered by Stripe on the next page.",
       "noteFree": "Basic includes a monthly star allowance for chat readings; the calendar unlock is not billed per day.",
@@ -2073,6 +2079,12 @@
       "ctaBasic": "Go to Pro checkout (Stripe)",
       "cta": "Upgrade",
       "cellHint": "Available on Basic"
+    },
+    "starUnlock": {
+      "description": "Or spend a star to uncover just this date. The unlock is saved to your account and stays available forever.",
+      "cta": "Unlock with {cost} Star",
+      "insufficient": "You don't have enough stars to unlock this date.",
+      "error": "Couldn't unlock this date. Please try again."
     },
     "ai": {
       "title": "Ask your calendar",
@@ -2098,6 +2110,12 @@
         "travel_long": "Best day to travel",
         "major_purchase": "Best day for a big purchase"
       }
+    },
+    "suggestions": {
+      "focusToday": "What should I focus on this day?",
+      "goodDecisionDay": "Is this a good day for a big decision?",
+      "activitiesForToday": "What activities suit this day's energy?",
+      "warnings": "Anything I should watch out for?"
     },
     "cta": {
       "title": "What would you like to ask next?",
@@ -2701,8 +2719,14 @@
     "askBirthPlace": "Please share your birth place (city/country). If unknown, I can use your current location but the reading may be less accurate.",
     "usingLocationFallback": "Using your current location as fallback. This can reduce precision for houses and ascendant.",
     "processFailed": "Sorry, I couldn't process horoscope details right now.",
+    "paywallOtherPersonAssistantText": "Reading another person's chart isn't on the free plan — you can <drawPill>draw a card instead</drawPill> and I'll read that for you.",
     "paywallOtherPersonTitle": "Reading another person needs a paid plan",
     "paywallOtherPersonBody": "Free accounts can only see their own chart. Upgrade to Basic or Pro to read for friends, family, or partners.",
+    "paywallOtherPersonPaywallTitle": "Reading other people is a subscriber feature",
+    "paywallOtherPersonPaywallDesc": "Use your stars to read for friends, family, or partners. Upgrade to Basic or Pro to unlock — checkout is powered by Stripe on the next page.",
+    "paywallOtherPersonPaywallFeature": "Read another person's chart from their birth details",
+    "paywallOtherPersonPaywallInsufficient": "Upgrade required",
+    "paywallOtherPersonPaywallNote": "Selecting a plan takes you to secure Stripe checkout.",
     "paywallUpgradeCta": "Upgrade plan",
     "transitDateLabel": "Transit date",
     "birthFormTitle": "Fill your birth details",
@@ -2870,6 +2894,15 @@
       "medium": "Medium",
       "high": "High"
     },
+    "dignity": {
+      "exalted": "Exalted",
+      "ownSign": "Own sign",
+      "debilitated": "Debilitated",
+      "retrograde": "Retrograde"
+    },
+    "orbLabel": "Orb (today)",
+    "peakLabel": "Peak",
+    "longTermSectionLabel": "Long-term influences",
     "showBirthDetails": "Show Birth Details",
     "showTransitDetails": "Show Transit Details",
     "birthDetails": "Birth Details",

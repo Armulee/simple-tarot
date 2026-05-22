@@ -52,6 +52,7 @@ import {
     ThumbsUp,
     Triangle,
     Minus,
+    MousePointerClick,
     X,
 } from "lucide-react"
 
@@ -253,6 +254,14 @@ type MessageListProps = {
     onHoroscopeAuthGateCardsSelected: (
         cards: { name: string; isReversed: boolean }[],
     ) => void
+    /**
+     * Triggered when the user clicks the "Draw a card instead" CTA on the
+     * rejection paywall block (free-tier user asking about another
+     * person's chart). The session flips interpretationMode horoscope→auto
+     * and kicks off the regular tarot draw flow with the rejected
+     * question.
+     */
+    onPaywallDrawCardInstead?: () => void
     onCancelHoroscopeLoading: () => void
     onRegenerateHoroscope?: (messageId: string) => void
     onRegenerateTarot?: (messageId: string) => void
@@ -320,6 +329,7 @@ export default function MessageList({
     onAskAspectDetail,
     onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
+    onPaywallDrawCardInstead,
     onCancelHoroscopeLoading,
     onRegenerateHoroscope,
     onRegenerateTarot,
@@ -340,6 +350,7 @@ export default function MessageList({
 }: MessageListProps) {
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
+    const tHoroscope = useTranslations("HoroscopeChat")
     const consultingBase = t("consulting")
 
     const askedAspectKeys = useMemo(() => {
@@ -798,7 +809,34 @@ export default function MessageList({
                                 ) : message.variant === "paywall" &&
                                   message.paywall ? (
                                     /* Free-tier user asked about someone else's chart */
-                                    <PaywallBlock data={message.paywall} />
+                                    <div className='w-full md:max-w-[85%] space-y-3'>
+                                        <p className='text-[13px] leading-[1.75] text-white/85'>
+                                            {tHoroscope.rich(
+                                                "paywallOtherPersonAssistantText",
+                                                {
+                                                    drawPill: (chunks) => (
+                                                        <button
+                                                            type='button'
+                                                            onClick={
+                                                                onPaywallDrawCardInstead
+                                                            }
+                                                            disabled={
+                                                                !onPaywallDrawCardInstead
+                                                            }
+                                                            className='mx-0.5 inline-flex items-center gap-1.5 align-middle rounded-full border border-amber-300/45 bg-gradient-to-r from-amber-400/25 via-amber-300/15 to-orange-400/15 px-2.5 py-0.5 text-[11px] font-semibold text-amber-50 shadow-[0_6px_24px_-8px_rgba(251,191,36,0.4)] transition hover:scale-[1.02] hover:border-amber-200/55 hover:from-amber-400/35 hover:shadow-[0_10px_32px_-8px_rgba(251,191,36,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0a14] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:text-xs'
+                                                        >
+                                                            <MousePointerClick
+                                                                aria-hidden
+                                                                className='size-3 shrink-0 opacity-95'
+                                                            />
+                                                            {chunks}
+                                                        </button>
+                                                    ),
+                                                },
+                                            )}
+                                        </p>
+                                        <PaywallBlock data={message.paywall} />
+                                    </div>
                                 ) : (
                                     /* Plain variant: simple assistant text (chat decision, bridge message) */
                                     <>

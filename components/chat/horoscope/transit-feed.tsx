@@ -12,6 +12,13 @@ import type {
     PersonalizedTransitAspectWindow,
     PersonalizedTransitAspectsResult,
 } from "@/lib/astrology/transit-aspects"
+import {
+    ACTIVE_ORB_DEGREES,
+    computeOrbAgainstAngle,
+    getNatalLongitude,
+    getTodayTransitLongitude,
+    transitPlanetPriority,
+} from "@/lib/astrology/aspect-display"
 import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 
@@ -23,6 +30,7 @@ type FeedEvent = {
     transitPlanet: string
     natalPlanet: string
     aspectType: string
+    aspectAngle: number
     sentiment: "good" | "bad" | "neutral"
     primaryDateIso: string
     secondaryDateIso?: string
@@ -32,6 +40,7 @@ type FeedEvent = {
     intensity?: "low" | "medium" | "high"
     transitPositionText?: string
     natalPositionText?: string
+    natalAbsoluteLongitude?: number
 }
 
 function buildEvents(
@@ -49,6 +58,7 @@ function buildEvents(
             transitPlanet: e.transitPlanet,
             natalPlanet: e.natalPlanet,
             aspectType: e.aspectType,
+            aspectAngle: e.aspectAngle,
             sentiment: ai?.sentiment ?? e.sentiment ?? "neutral",
             primaryDateIso: e.dateIso,
             isWindow: false,
@@ -57,6 +67,10 @@ function buildEvents(
             intensity: ai?.intensity,
             transitPositionText: e.transitPositionText,
             natalPositionText: e.natalPositionText,
+            natalAbsoluteLongitude:
+                typeof e.natalAbsoluteLongitude === "number"
+                    ? e.natalAbsoluteLongitude
+                    : undefined,
         })
     }
     const windowEvents: PersonalizedTransitAspectWindow[] =
@@ -68,6 +82,7 @@ function buildEvents(
             transitPlanet: e.transitPlanet,
             natalPlanet: e.natalPlanet,
             aspectType: e.aspectType,
+            aspectAngle: e.aspectAngle,
             sentiment: ai?.sentiment ?? e.sentiment ?? "neutral",
             primaryDateIso: e.peakDateIso,
             secondaryDateIso: e.endDateIso,
@@ -77,6 +92,10 @@ function buildEvents(
             intensity: ai?.intensity,
             transitPositionText: e.transitPositionText,
             natalPositionText: e.natalPositionText,
+            natalAbsoluteLongitude:
+                typeof e.natalAbsoluteLongitude === "number"
+                    ? e.natalAbsoluteLongitude
+                    : undefined,
         })
     }
     return events.sort((a, b) => {
@@ -312,14 +331,51 @@ export default function TransitFeed({
             dateRange?.startDateIso,
             dateRange?.endDateIso,
         )
-        return filterFeedEventsByTransitPlanets(
+        const filteredByPlanet = filterFeedEventsByTransitPlanets(
             inRange,
             transitPlanetFilter,
         )
+        // When the caller didn't pin a future window (i.e. this isn't a
+        // timing-mode answer), drop aspects whose orb *today* falls
+        // outside the standard +-5deg active window. Upstream events can
+        // span multi-month windows anchored on the peak date, so without
+        // this filter the feed surfaces aspects that are nowhere near
+        // in orb right now. When chartData is missing a longitude the
+        // event is kept (we'd rather show extra than wipe the feed).
+        const filteredByOrb = dateRange
+            ? filteredByPlanet
+            : filteredByPlanet.filter((e) => {
+                  const transitLng = getTodayTransitLongitude(
+                      message.chartData,
+                      e.transitPlanet,
+                  )
+                  const natalLng = getNatalLongitude(
+                      message.chartData,
+                      e.natalPlanet,
+                      e.natalAbsoluteLongitude,
+                  )
+                  const orbToday = computeOrbAgainstAngle(
+                      transitLng,
+                      natalLng,
+                      e.aspectAngle,
+                  )
+                  if (orbToday === null) return true
+                  return orbToday <= ACTIVE_ORB_DEGREES
+              })
+        // Final pass: Jupiter/Saturn first, U/N/P last. Array.sort is
+        // stable so the intensity-by-date order from buildEvents is
+        // preserved within each priority bucket.
+        return [...filteredByOrb].sort(
+            (a, b) =>
+                transitPlanetPriority(a.transitPlanet) -
+                transitPlanetPriority(b.transitPlanet),
+        )
     }, [
+        dateRange,
         dateRange?.endDateIso,
         dateRange?.startDateIso,
         insightsByKey,
+        message.chartData,
         message.personalizedTransitAspects,
         message.personalizedTransitAspectsMerged,
         transitPlanetFilter,

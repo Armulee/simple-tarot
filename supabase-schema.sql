@@ -771,3 +771,26 @@ create policy "Users can delete their own avatar" on storage.objects
 drop policy if exists "Avatar images are publicly accessible" on storage.objects;
 create policy "Avatar images are publicly accessible" on storage.objects
   for select using (bucket_id = 'avatars');
+
+-- Per-date paid unlocks for the calendar (1 star per day). One row per
+-- (user_id, unlocked_date); the unique index makes the unlock endpoint
+-- idempotent so re-clicking a paid date never deducts a second star.
+create table if not exists public.calendar_unlocks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  unlocked_date date not null,
+  stars_spent integer not null default 1 check (stars_spent >= 0),
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists calendar_unlocks_user_date
+  on public.calendar_unlocks(user_id, unlocked_date);
+
+create index if not exists calendar_unlocks_user
+  on public.calendar_unlocks(user_id);
+
+alter table public.calendar_unlocks enable row level security;
+
+drop policy if exists "Users can view own calendar unlocks" on public.calendar_unlocks;
+create policy "Users can view own calendar unlocks" on public.calendar_unlocks
+  for select using (auth.uid() = user_id);

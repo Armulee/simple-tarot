@@ -16,6 +16,7 @@ export function CalendarCell({
     data,
     windowDays,
     loading,
+    isUnlocked = false,
 }: {
     cell: Date | null
     today: Date | null
@@ -24,6 +25,7 @@ export function CalendarCell({
     data: DayData | null
     windowDays: number
     loading: boolean
+    isUnlocked?: boolean
 }) {
     const locale = useLocale()
 
@@ -34,7 +36,9 @@ export function CalendarCell({
     const isToday = today != null && sameYMD(cell, today)
     const isSelected = selectedDate != null && sameYMD(cell, selectedDate)
     const isPlanLocked =
-        today != null && !isDateWithinWindow(cell, today, windowDays)
+        today != null &&
+        !isDateWithinWindow(cell, today, windowDays) &&
+        !isUnlocked
     const isLocked = isPlanLocked
     const isMissingData = !loading && !data && !isPlanLocked
 

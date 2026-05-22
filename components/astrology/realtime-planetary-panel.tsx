@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import Image from "next/image"
 import { Eye, Flame, Sparkles, Star } from "lucide-react"
 import { AspectIcon } from "@/components/astrology/aspect-icon"
@@ -11,6 +11,17 @@ import type {
     SourceAspectEvent,
 } from "@/components/chat/types"
 import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
+import {
+    ACTIVE_ORB_DEGREES,
+    canonicalSignName,
+    computeOrbAgainstAngle,
+    getNatalLongitude,
+    getTodayTransitLongitude,
+    readNatalPlanetPoint,
+    readTransitPlanetPoint,
+    transitPlanetPriority,
+} from "@/lib/astrology/aspect-display"
+import { getPlanetDignity } from "@/lib/birth-chart-utils"
 
 type PanelAspectEvent = {
     aspectKey: string
@@ -143,7 +154,7 @@ function localizePositionText(
     return `${translateZodiacSign(signRaw, t)} · ${degreeRaw}`
 }
 
-function parseAbsoluteFromPositionText(positionText: string | undefined) {
+function parseAbsoluteFromPositionText(positionText: string | null | undefined) {
     const normalizedPositionText = normalizePositionText(positionText)
     if (!normalizedPositionText) return undefined
     const parts = normalizedPositionText.split("·").map((part) => part.trim())
@@ -163,16 +174,8 @@ function getPlanetPositionFromChartData(
     chartData: Record<string, unknown> | null | undefined,
     planet: string,
 ) {
-    if (!chartData) return null
-    const transit = chartData.transit as
-        | {
-              charts?: Array<{
-                  planets?: Record<string, { sign?: unknown; degree?: unknown }>
-              }>
-          }
-        | undefined
-    const point = transit?.charts?.[0]?.planets?.[planet]
-    if (!point || typeof point !== "object") return null
+    const point = readTransitPlanetPoint(chartData, planet)
+    if (!point) return null
     const sign = typeof point.sign === "string" ? point.sign : null
     const degree = formatPlanetDegree(point.degree)
     if (!sign && !degree) return null
@@ -183,18 +186,46 @@ function getNatalPlanetPositionFromChartData(
     chartData: Record<string, unknown> | null | undefined,
     planet: string,
 ) {
-    if (!chartData) return null
-    const charts = chartData.charts as
-        | Array<{
-              planets?: Record<string, { sign?: unknown; degree?: unknown }>
-          }>
-        | undefined
-    const point = charts?.[0]?.planets?.[planet]
-    if (!point || typeof point !== "object") return null
+    const point = readNatalPlanetPoint(chartData, planet)
+    if (!point) return null
     const sign = typeof point.sign === "string" ? point.sign : null
     const degree = formatPlanetDegree(point.degree)
     if (!sign && !degree) return null
     return [sign, degree].filter(Boolean).join(" · ")
+}
+
+function extractSignFromAbsolute(longitude: number | undefined): string | null {
+    if (typeof longitude !== "number" || !Number.isFinite(longitude)) return null
+    const normalized = ((longitude % 360) + 360) % 360
+    return ZODIAC_SIGNS_EN[Math.floor(normalized / 30)] ?? null
+}
+
+function parseSignFromPositionText(
+    positionText: string | null | undefined,
+): string | null {
+    const normalized = normalizePositionText(positionText)
+    if (!normalized) return null
+    const sign = normalized.split("·")[0]?.trim()
+    return sign || null
+}
+
+/**
+ * Returns today's orb for an aspect event in degrees, or null if either
+ * longitude can't be resolved.
+ */
+function computeTodayOrbForEvent(
+    event: PanelAspectEvent,
+    chartData: Record<string, unknown> | null | undefined,
+): number | null {
+    return computeOrbAgainstAngle(
+        getTodayTransitLongitude(chartData, event.transitPlanet),
+        getNatalLongitude(
+            chartData,
+            event.natalPlanet,
+            event.natalAbsoluteLongitude,
+        ),
+        event.aspectAngle,
+    )
 }
 
 function formatDateIsoForLocale(dateIso: string, locale: string) {
@@ -537,6 +568,43 @@ function AspectTimeline({
 const INITIAL_VISIBLE_EVENTS = 4
 const SHOW_MORE_STEP = 4
 
+type DignityBadgeKey = "exalted" | "ownSign" | "debilitated" | "retrograde"
+
+type DignityBadge = {
+    key: DignityBadgeKey
+    label: string
+}
+
+const DIGNITY_BADGE_STYLE: Record<DignityBadgeKey, string> = {
+    exalted: "border-amber-300/40 bg-amber-400/12 text-amber-100",
+    ownSign: "border-sky-300/40 bg-sky-400/12 text-sky-100",
+    debilitated: "border-red-300/40 bg-red-400/12 text-red-100",
+    retrograde: "border-white/15 bg-white/[0.06] text-white/70",
+}
+
+function buildDignityBadges({
+    isExalted,
+    isDebilitated,
+    isOwnSign,
+    isRetrograde,
+    t,
+}: {
+    isExalted: boolean
+    isDebilitated: boolean
+    isOwnSign: boolean
+    isRetrograde: boolean
+    t: (key: string, values?: Record<string, string | number>) => string
+}): DignityBadge[] {
+    const badges: DignityBadge[] = []
+    if (isExalted) badges.push({ key: "exalted", label: t("dignity.exalted") })
+    if (isDebilitated)
+        badges.push({ key: "debilitated", label: t("dignity.debilitated") })
+    if (isOwnSign) badges.push({ key: "ownSign", label: t("dignity.ownSign") })
+    if (isRetrograde)
+        badges.push({ key: "retrograde", label: t("dignity.retrograde") })
+    return badges
+}
+
 export default function RealtimePlanetaryPanel({
     chartData,
     personalizedTransitAspects,
@@ -642,8 +710,45 @@ export default function RealtimePlanetaryPanel({
             orderedEvents.push(ev)
         }
     }
-    const visibleEvents = orderedEvents.slice(0, visibleCount)
-    const hasMoreEvents = visibleCount < orderedEvents.length
+    // Final pass: push Uranus/Neptune/Pluto aspects to the bottom, Jupiter /
+    // Saturn to the top, everything else in between. Array.sort is stable so
+    // the intensity-bucket order above is preserved within each group.
+    orderedEvents.sort(
+        (a, b) =>
+            transitPlanetPriority(a.transitPlanet) -
+            transitPlanetPriority(b.transitPlanet),
+    )
+    // Drop events whose orb *today* is outside the standard +-5 degree
+    // window. The upstream calc emits aspects with multi-month windows
+    // anchored on the peak date, so an aspect can be "in range" by date but
+    // still 20-30 degrees off orb today — those are not real active
+    // aspects and shouldn't crowd out the ones that actually are. When we
+    // can't compute today's orb (missing chartData longitude), keep the
+    // event so we don't accidentally erase the whole panel.
+    const activeEvents = orderedEvents.filter((event) => {
+        const orbToday = computeTodayOrbForEvent(event, chartData)
+        if (orbToday === null) return true
+        return orbToday <= ACTIVE_ORB_DEGREES
+    })
+    if (activeEvents.length === 0) return null
+    const visibleEvents = activeEvents.slice(0, visibleCount)
+    const hasMoreEvents = visibleCount < activeEvents.length
+
+    function DignityBadges({ badges }: { badges: DignityBadge[] }) {
+        if (badges.length === 0) return null
+        return (
+            <div className='mt-1.5 flex flex-wrap justify-center gap-1'>
+                {badges.map((badge) => (
+                    <span
+                        key={badge.key}
+                        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-medium tracking-wide ${DIGNITY_BADGE_STYLE[badge.key]}`}
+                    >
+                        {badge.label}
+                    </span>
+                ))}
+            </div>
+        )
+    }
 
     function PlanetAvatar({ planet }: { planet: string }) {
         const key = planet.toLowerCase()
@@ -673,41 +778,119 @@ export default function RealtimePlanetaryPanel({
     }
 
     function EventCard({ event }: { event: PanelAspectEvent }) {
-        const info = getPlanetPositionFromChartData(
+        const transitPoint = readTransitPlanetPoint(
             chartData,
             event.transitPlanet,
         )
+        const natalPoint = readNatalPlanetPoint(chartData, event.natalPlanet)
 
+        const transitChartPosition = getPlanetPositionFromChartData(
+            chartData,
+            event.transitPlanet,
+        )
+        const natalChartPosition = getNatalPlanetPositionFromChartData(
+            chartData,
+            event.natalPlanet,
+        )
+
+        // Show today's transit position (chartData), not the peak-time
+        // position the aspect calc snapshots, so the sign/degree matches the
+        // planet's *actual* current location. The orb shown alongside is
+        // recomputed for today's positions just below so the two never
+        // contradict each other; the peak orb / peak date are rendered
+        // separately (timeline above + peak row in the technical drawer).
         const transitPosition =
+            localizePositionText(transitChartPosition, t) ||
             localizePositionText(event.transitPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.transitAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(info, t) ||
             noChartPositionLabel
         const natalPosition =
+            localizePositionText(natalChartPosition, t) ||
             localizePositionText(event.natalPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.natalAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(
-                getNatalPlanetPositionFromChartData(
-                    chartData,
-                    event.natalPlanet,
-                ),
-                t,
-            ) ||
             noChartPositionLabel
         const resolvedTransitAbsoluteLongitude =
+            toFiniteNumber(transitPoint?.longitude) ??
+            parseAbsoluteFromPositionText(transitChartPosition) ??
             toFiniteNumber(event.transitAbsoluteLongitude) ??
-            parseAbsoluteFromPositionText(event.transitPositionText) ??
-            parseAbsoluteFromPositionText(transitPosition)
+            parseAbsoluteFromPositionText(event.transitPositionText)
         const resolvedNatalAbsoluteLongitude =
+            toFiniteNumber(natalPoint?.longitude) ??
+            parseAbsoluteFromPositionText(natalChartPosition) ??
             toFiniteNumber(event.natalAbsoluteLongitude) ??
-            parseAbsoluteFromPositionText(event.natalPositionText) ??
-            parseAbsoluteFromPositionText(natalPosition)
+            parseAbsoluteFromPositionText(event.natalPositionText)
+        // Recompute orb against today's positions so the technical drawer's
+        // ORB row matches the sign/degree above it. Fall back to the
+        // upstream peak orb only when we couldn't resolve a current
+        // transit / natal longitude.
+        const currentOrb = computeOrbAgainstAngle(
+            resolvedTransitAbsoluteLongitude,
+            resolvedNatalAbsoluteLongitude,
+            event.aspectAngle,
+        )
+        const orbForDisplay = currentOrb ?? event.orb
+        const peakTransitAbsolute =
+            toFiniteNumber(event.transitAbsoluteLongitude) ??
+            parseAbsoluteFromPositionText(event.transitPositionText)
+        const peakTransitPosition =
+            localizePositionText(event.transitPositionText, t) ||
+            formatPositionFromAbsoluteLocalized(peakTransitAbsolute, t)
+        const peakOrbText = `${event.orb.toFixed(1)}°`
+        const showPeakRow = (() => {
+            if (peakTransitAbsolute == null) return false
+            if (resolvedTransitAbsoluteLongitude == null) return false
+            return (
+                Math.abs(
+                    peakTransitAbsolute -
+                        resolvedTransitAbsoluteLongitude,
+                ) > 0.05
+            )
+        })()
+
+        // Dignity is derived from the sign we're actually showing, so the
+        // "Debilitated / Own sign / …" chip never disagrees with the sign
+        // label above it.
+        const transitDisplaySign = canonicalSignName(
+            extractSignFromAbsolute(resolvedTransitAbsoluteLongitude) ??
+                parseSignFromPositionText(event.transitPositionText) ??
+                parseSignFromPositionText(transitChartPosition),
+        )
+        const natalDisplaySign = canonicalSignName(
+            extractSignFromAbsolute(resolvedNatalAbsoluteLongitude) ??
+                parseSignFromPositionText(event.natalPositionText) ??
+                parseSignFromPositionText(natalChartPosition),
+        )
+        const transitDignity = transitDisplaySign
+            ? getPlanetDignity(event.transitPlanet, transitDisplaySign)
+            : { isExalted: false, isDebilitated: false, isOwnSign: false }
+        const natalDignity = natalDisplaySign
+            ? getPlanetDignity(event.natalPlanet, natalDisplaySign)
+            : { isExalted: false, isDebilitated: false, isOwnSign: false }
+        // chartData.transit.retrograde describes today's state, which now
+        // matches the position we're rendering, so the badge is always
+        // applied to "today's" transit.
+        const transitRetrograde = Boolean(transitPoint?.retrograde)
+        const natalRetrograde = Boolean(natalPoint?.retrograde)
+        const transitBadges = buildDignityBadges({
+            isExalted: transitDignity.isExalted,
+            isDebilitated: transitDignity.isDebilitated,
+            isOwnSign: transitDignity.isOwnSign,
+            isRetrograde: transitRetrograde,
+            t,
+        })
+        const natalBadges = buildDignityBadges({
+            isExalted: natalDignity.isExalted,
+            isDebilitated: natalDignity.isDebilitated,
+            isOwnSign: natalDignity.isOwnSign,
+            isRetrograde: natalRetrograde,
+            t,
+        })
         const transitAbsoluteText = formatAbsoluteLongitudeBreakdown(
             resolvedTransitAbsoluteLongitude,
         )
@@ -760,7 +943,7 @@ export default function RealtimePlanetaryPanel({
                     </span>
                 </div>
 
-                <div className='grid grid-cols-[1fr_auto_1fr] items-center gap-3'>
+                <div className='grid grid-cols-[1fr_auto_1fr] items-start gap-3'>
                     <div className='min-w-0 text-center'>
                         <div className='mx-auto mb-2 inline-flex'>
                             <span className='relative inline-flex h-[44px] w-[44px] items-center justify-center rounded-full ring-1 ring-white/10'>
@@ -773,8 +956,9 @@ export default function RealtimePlanetaryPanel({
                         <p className='text-[10px] tracking-wide text-white/35'>
                             {t("transitSuffix")}
                         </p>
+                        <DignityBadges badges={transitBadges} />
                     </div>
-                    <div className='flex flex-col items-center gap-1 text-cyan-200/85'>
+                    <div className='flex flex-col items-center gap-1 pt-3 text-cyan-200/85'>
                         <AspectIcon aspectType={event.aspectType} />
                         <span className='text-[10px] font-medium uppercase tracking-[0.18em]'>
                             {t(`aspects.${event.aspectType}`) ??
@@ -793,6 +977,7 @@ export default function RealtimePlanetaryPanel({
                         <p className='text-[10px] tracking-wide text-white/35'>
                             {t("natalSuffix")}
                         </p>
+                        <DignityBadges badges={natalBadges} />
                     </div>
                 </div>
 
@@ -907,21 +1092,49 @@ export default function RealtimePlanetaryPanel({
                             </span>
                         </dd>
                         <dt className='uppercase tracking-[0.18em] text-white/35'>
-                            Orb
+                            {t("orbLabel")}
                         </dt>
-                        <dd className='text-white/65'>{`${event.orb.toFixed(1)}°`}</dd>
+                        <dd className='text-white/65'>{`${orbForDisplay.toFixed(1)}°`}</dd>
+                        {showPeakRow && peakTransitPosition ? (
+                            <>
+                                <dt className='uppercase tracking-[0.18em] text-white/35'>
+                                    {t("peakLabel")}
+                                </dt>
+                                <dd className='text-white/65'>
+                                    <span>{peakTransitPosition}</span>
+                                    <span className='ml-1.5 text-white/30'>
+                                        ({peakOrbText})
+                                    </span>
+                                </dd>
+                            </>
+                        ) : null}
                     </dl>
                 )}
             </div>
         )
     }
 
+    // Index of the first U/N/P card in the slice — where the divider
+    // should appear. -1 when none of the visible cards is generational.
+    const generationalStartIndex = visibleEvents.findIndex(
+        (event) => transitPlanetPriority(event.transitPlanet) === 2,
+    )
+
     return (
         <div className='space-y-5'>
             {visibleEvents.length > 0 && (
                 <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                    {visibleEvents.map((event) => (
-                        <EventCard key={event.aspectKey} event={event} />
+                    {visibleEvents.map((event, idx) => (
+                        <Fragment key={event.aspectKey}>
+                            {idx === generationalStartIndex ? (
+                                <div className='col-span-full flex items-center gap-3 pt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45'>
+                                    <span className='h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-white/15' />
+                                    <span>{t("longTermSectionLabel")}</span>
+                                    <span className='h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-white/15' />
+                                </div>
+                            ) : null}
+                            <EventCard event={event} />
+                        </Fragment>
                     ))}
                 </div>
             )}
@@ -934,7 +1147,7 @@ export default function RealtimePlanetaryPanel({
                             setVisibleCount((count) =>
                                 Math.min(
                                     count + SHOW_MORE_STEP,
-                                    orderedEvents.length,
+                                    activeEvents.length,
                                 ),
                             )
                         }
