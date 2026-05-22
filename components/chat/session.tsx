@@ -1091,7 +1091,7 @@ export default function ChatSession({
         object: generalReplyObject,
         stop: stopGeneralReply,
     } = useObject({
-        api: "/api/chat/general",
+        api: "/api/chat/question",
         schema: streamingGeneralReplySchema,
         onFinish: ({ object }: { object: StreamingGeneralReply | undefined }) => {
             const targetId = generalReplyTargetMessageIdRef.current
@@ -1127,7 +1127,7 @@ export default function ChatSession({
             setConsulting(false)
         },
         onError: (e: Error) => {
-            console.error("[chat/general] stream error:", e)
+            console.error("[chat/question] stream error:", e)
             const targetId = generalReplyTargetMessageIdRef.current
             if (targetId && e?.name !== "AbortError") {
                 setMessages((prev) =>
@@ -4029,7 +4029,7 @@ export default function ChatSession({
     )
 
     /**
-     * Kicks off the structured general (chat) reply via /api/chat/general.
+     * Kicks off the structured general (chat) reply via /api/chat/question.
      * The assistant message is then progressively populated by the streaming
      * `useObject` effect that watches `generalReplyObject`. Returns the
      * loadingId the caller already pushed so it can clear local refs in its
@@ -4560,7 +4560,7 @@ export default function ChatSession({
                     trimmed,
                 )
 
-                // General/chat answers go through /api/chat/general for a
+                // General/chat answers go through /api/chat/question for a
                 // structured "inner energy reflection" rendered by
                 // InnerEnergyHero. Bridge replies (draw / horoscope) and
                 // support acknowledgments keep the lightweight text stream

@@ -109,7 +109,7 @@ export async function POST(req: Request) {
                     body.question,
                 )
                 console.log(
-                    "[chat/general] inner-energy reflection finished",
+                    "[chat/question] inner-energy reflection finished",
                     {
                         innerEnergy: object?.innerEnergy,
                         promptPlaceholderStats: incoming,
