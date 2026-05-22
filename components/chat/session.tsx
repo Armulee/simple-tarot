@@ -3612,7 +3612,7 @@ export default function ChatSession({
                         {
                             id: `assistant-paywall-${Date.now()}`,
                             role: "assistant",
-                            text: tHoroscope("paywallOtherPersonAssistantText"),
+                            text: "",
                             variant: "paywall",
                             paywall:
                                 extracted.paywall ?? {
