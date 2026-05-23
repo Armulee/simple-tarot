@@ -128,11 +128,11 @@ function buildPromptBlock(
     if (!natal.length && !transit.length && !activities.length) return ""
     return [
         "<astrology_context>",
-        "The reflection MUST be grounded in this real astrology data for the person who is asking. Read it as the energetic backdrop of their inner state — never quote it literally, never name planets/signs/aspects in your output.",
+        "The reflection MUST be grounded in this real astrology data for the person who is asking, and MUST answer their question from it. Do not quote the raw data. You MAY name the planets of ONE activity as a light 'why' (e.g. transit planet pressing/easing their natal planet), then translate it to feeling — but no degrees, no zodiac sign names, no technical aspect names.",
         `birth_chart (natal placements): ${JSON.stringify(natal)}`,
         `transit_chart (current sky placements): ${JSON.stringify(transit)}`,
         `astrology_activities (current transits touching their natal chart — the live inner pressures): ${JSON.stringify(activities)}`,
-        "Interpretation guidance: natal placements describe who they are at the core; transit placements describe the present sky; activities describe what is actively pressing on or stirring their natal chart right now. Let the activities (especially their sentiment) shape the inner-energy shape, hero title, and currents.",
+        "Interpretation guidance: natal placements describe who they are at the core; transit placements describe the present sky; activities describe what is actively pressing on or stirring their natal chart right now. Pick the single most relevant activity (weigh its sentiment) to base the answer and the one astrological reference on; let it shape the inner-energy shape and hero title.",
         "</astrology_context>",
     ].join("\n")
 }

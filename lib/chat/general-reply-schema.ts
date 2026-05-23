@@ -43,7 +43,7 @@ export const generalReplySchema = z.object({
     reflection: z
         .string()
         .describe(
-            "A short decorated HTML reflection that interprets the user's inner state. 1-3 paragraphs. Focus on EMOTIONAL interpretation, invisible pressure, transition energy, and inner shifts — NOT factual predictions, not horoscope-style 'today you will…' phrasing, not advice lists. Speak TO the user directly. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class=\"highlight-gold\">. NO headings. Use <span class=\"highlight-gold\">…</span> to highlight 1-3 key phrases. SAME language as the user's message.",
+            "A short decorated HTML reflection (1-3 short paragraphs) that ANSWERS the user's question, grounded in the supplied astrology_activities (the live transit-to-natal aspects). Lead with emotional interpretation — invisible pressure, transition energy, inner shifts — but DO give the user a felt answer to what they actually asked. Weave in EXACTLY ONE short, real astrological reference as the 'why': name the transiting planet and the natal planet it touches plus the gist of the contact in plain words (e.g. 'Mars pressing your Moon is stirring this'), then translate it straight into feeling. ONE reference only — no degrees, no house numbers, no zodiac sign names, no technical aspect names (conjunction/trine/square), no chart-jargon dumps. NOT horoscope-style 'today you will…' phrasing, not advice lists. Speak TO the user directly. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class=\"highlight-gold\">. NO headings. Use <span class=\"highlight-gold\">…</span> to highlight 1-3 key phrases. SAME language as the user's message.",
         ),
     currents: z
         .array(
