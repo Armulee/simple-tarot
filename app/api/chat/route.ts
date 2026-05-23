@@ -25,16 +25,13 @@ chat
 - general greetings (hi, hello)
 - technical definitions of astrology/tarot ("what is a trine?", "what is the 7th house?")
 - "Who are you?" or "What can you do?" (only if not asking for a feature; otherwise use support)
-- EMOTIONAL STATEMENTS, VENTING, OR EXPRESSIONS OF AN INNER STATE that do NOT ask a question or request guidance — e.g. "I'm tired", "กุเหนื่อย", "I feel lost", "เหนื่อยจัง", "I'm so done", "I can't anymore", "ไม่ไหวแล้ว", "I'm anxious", "เบื่อ", "เศร้า". These are reflections on how the user feels right now. Route them to "chat" — the app answers with an emotionally attuned "inner energy reflection" grounded in their chart.
-- vague personal expressions with no explicit ask ("I don't know what I'm doing", "everything feels heavy")
-- (DO NOT use chat for an EXPLICIT request for advice, a decision, a prediction, or problem-solving; use 'draw' for those)
+- (DO NOT use chat for advice, strategy, or problem-solving; use 'draw' for those)
 
 draw
-- EXPLICIT questions seeking guidance, advice, a decision, or a prediction about the user's life, projects, or business
-- career, money, "how to grow my business/app", decisions ("should I…", "ควร…ไหม")
+- questions about the user's life situation, projects, or business
+- career, money, "how to grow my business/app", decisions
 - "what will happen", "is this good", "how will this go"
-- goals, obstacles, and a clear request for guidance or solutions
-- A bare feeling with NO question is NOT a draw — that is "chat". Only choose "draw" when the user is actually asking something or seeking direction.
+- goals, obstacles, and seeking guidance or solutions
 
 horoscope
 - timing questions
@@ -94,11 +91,8 @@ celtic
 
 Important rule:
 
-If the user is ASKING how something will go, seeking a decision, or requesting
-guidance about their own situation, choose "draw" even if the question is vague.
-BUT if the user is only EXPRESSING a feeling or inner state without asking
-anything (e.g. "กุเหนื่อย", "I'm tired", "I feel lost"), choose "chat" — do NOT
-force it into "draw". A statement of emotion is not a request for a reading.
+If the user is talking about their own situation or asking how something will go,
+choose "draw" even if the question is vague.
 
 FOLLOW-UP DETECTION (read "Session context" carefully):
 
