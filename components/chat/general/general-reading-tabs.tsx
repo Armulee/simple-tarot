@@ -164,7 +164,7 @@ export default function GeneralReadingTabs({
                 <div
                     role='tablist'
                     aria-label='Inner energy reading sections'
-                    className='relative flex gap-2 overflow-x-auto pb-1'
+                    className='relative z-10 flex gap-2 overflow-x-auto pb-1'
                 >
                     {tabs.map((tab) => {
                         const isActive = activeTab === tab.id

@@ -55,10 +55,13 @@ export default function InnerEnergyHero({
     const showShare = !isLoading && reflectionHtml.length > 0
 
     return (
-        <section className='relative overflow-hidden rounded-[28px] transition'>
+        <section className='relative rounded-[28px] transition'>
+            {/* Soft aura centered behind the orb. Kept contained (no
+                overflow-hidden clip) so it fades naturally instead of being
+                sliced into a hard line where the hero meets the tabs bar. */}
             <div
                 aria-hidden
-                className='pointer-events-none absolute inset-x-0 top-0 mx-auto h-64 w-[36rem] max-w-full -translate-y-12 rounded-full bg-[radial-gradient(60%_60%_at_50%_50%,rgba(129,140,248,0.16),transparent_70%)] blur-3xl'
+                className='pointer-events-none absolute left-1/2 top-[96px] h-48 w-[32rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(60%_60%_at_50%_50%,rgba(129,140,248,0.16),transparent_70%)] blur-3xl'
             />
 
             <div className='relative z-[1] flex flex-col gap-6 py-6 md:px-8 md:pt-10'>
