@@ -7,7 +7,10 @@ import type {
     ChatMessage,
     SourceAspectEvent,
 } from "@/components/chat/types"
-import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
+import {
+    unmaskTextWithAliases,
+    type PromptAliasEntry,
+} from "@/lib/privacy/prompt-redaction"
 import InnerEnergyHero from "@/components/chat/general/inner-energy-hero"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
 import TransitPlanetGrid from "@/components/chat/horoscope/transit-planet-grid"
@@ -129,6 +132,19 @@ export default function GeneralReadingTabs({
     const activeTab: GeneralTab = explicitTab ?? "overview"
     const aliases = privacyAliases ?? []
 
+    // Unmasked question + reflection passed to the hero's share section.
+    const shareQuestion = unmaskTextWithAliases(
+        message.displayQuestion ?? message.question ?? "",
+        aliases,
+    )
+    const shareInterpretation = unmaskTextWithAliases(
+        (message.generalReply?.reflection || message.text || "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim(),
+        aliases,
+    )
+
     // No astrology tabs to show — render the bare hero, no tab strip.
     if (tabs.length === 1) {
         return (
@@ -136,6 +152,8 @@ export default function GeneralReadingTabs({
                 reply={message.generalReply}
                 privacyAliases={aliases}
                 isLoading={Boolean(message.isLoading)}
+                shareQuestion={shareQuestion}
+                shareInterpretation={shareInterpretation}
             />
         )
     }
@@ -188,6 +206,8 @@ export default function GeneralReadingTabs({
                         reply={message.generalReply}
                         privacyAliases={aliases}
                         isLoading={Boolean(message.isLoading)}
+                        shareQuestion={shareQuestion}
+                        shareInterpretation={shareInterpretation}
                     />
                 )}
 

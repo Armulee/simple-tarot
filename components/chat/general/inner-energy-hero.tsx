@@ -1,12 +1,10 @@
 "use client"
 
-import { Sparkles } from "lucide-react"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PrivacyDetailedHtml } from "@/components/chat/privacy/privacy-detailed-html"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
-import InnerEnergyOrb, {
-    SHAPE_STYLES,
-} from "@/components/chat/general/inner-energy-orb"
+import ShareSection from "@/components/tarot/interpretation/share"
+import InnerEnergyOrb from "@/components/chat/general/inner-energy-orb"
 import type {
     GeneralReply,
     InnerEnergyShape,
@@ -17,6 +15,9 @@ type InnerEnergyHeroProps = {
     reply: Partial<GeneralReply> | null | undefined
     privacyAliases?: PromptAliasEntry[]
     isLoading?: boolean
+    /** Unmasked question + reflection text passed to the share section. */
+    shareQuestion?: string
+    shareInterpretation?: string
 }
 
 const DEFAULT_SHAPE: InnerEnergyShape = "fog"
@@ -33,30 +34,25 @@ export default function InnerEnergyHero({
     reply,
     privacyAliases,
     isLoading = false,
+    shareQuestion,
+    shareInterpretation,
 }: InnerEnergyHeroProps) {
     const aliases = privacyAliases ?? []
     const shape = (reply?.innerEnergy as InnerEnergyShape | undefined) ?? DEFAULT_SHAPE
-    const style = SHAPE_STYLES[shape] ?? SHAPE_STYLES[DEFAULT_SHAPE]
 
     const heroTitle = (reply?.heroTitle ?? "").trim()
     const innerDirection = (reply?.innerDirection ?? "").trim()
     const reflectionHtml = (reply?.reflection ?? "").trim()
-    const currents = (reply?.currents ?? [])
-        .map((c) => ({
-            label: (c?.label ?? "").trim(),
-            text: (c?.text ?? "").trim(),
-        }))
-        .filter((c) => c.label.length > 0 || c.text.length > 0)
-    const whisper = (reply?.whisper ?? "").trim()
 
     const hasContent =
         heroTitle.length > 0 ||
         innerDirection.length > 0 ||
-        reflectionHtml.length > 0 ||
-        currents.length > 0 ||
-        whisper.length > 0
+        reflectionHtml.length > 0
 
     const showLoadingShimmer = isLoading && !hasContent
+    // The share section takes the slot the inner currents + whisper used to
+    // occupy, once the reflection has streamed in.
+    const showShare = !isLoading && reflectionHtml.length > 0
 
     return (
         <section className='relative overflow-hidden rounded-[28px] transition'>
@@ -120,77 +116,13 @@ export default function InnerEnergyHero({
                         </div>
                     ) : null}
 
-                    {currents.length > 0 && (
-                        <ul
-                            className={`grid gap-3 list-none p-0 m-0 animate-fade-in ${
-                                currents.length === 1
-                                    ? "grid-cols-1"
-                                    : currents.length === 2
-                                      ? "grid-cols-1 sm:grid-cols-2"
-                                      : "grid-cols-1 sm:grid-cols-3"
-                            }`}
-                        >
-                            {currents.map((current, index) => (
-                                <li
-                                    key={`${current.label}-${index}`}
-                                    className={`relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${style.glow.replace(
-                                        /\/(\d+)/g,
-                                        (_match, num) => {
-                                            const n = Math.max(
-                                                4,
-                                                Math.round(Number(num) / 3),
-                                            )
-                                            return `/${n}`
-                                        },
-                                    )} px-4 py-3.5 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.6)]`}
-                                >
-                                    <span
-                                        aria-hidden
-                                        className='pointer-events-none absolute -top-6 -right-6 h-16 w-16 rounded-full bg-white/[0.05] blur-2xl'
-                                    />
-                                    <div className='relative flex items-center gap-1.5'>
-                                        <Sparkles
-                                            aria-hidden
-                                            className='h-3 w-3 text-amber-200/75'
-                                        />
-                                        <p className='text-[10px] font-medium uppercase tracking-[0.22em] text-amber-200/85'>
-                                            <PrivacyHighlightedText
-                                                text={current.label}
-                                                aliases={aliases}
-                                                supportMarkdown
-                                            />
-                                        </p>
-                                    </div>
-                                    <p className='relative mt-2 text-[13px] leading-[1.65] text-white/85'>
-                                        <PrivacyHighlightedText
-                                            text={current.text}
-                                            aliases={aliases}
-                                            supportMarkdown
-                                        />
-                                    </p>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-
-                    {whisper.length > 0 && (
-                        <div className='relative flex flex-col items-center gap-2 pt-1 animate-fade-in'>
-                            <div className='inline-flex items-center justify-center gap-3'>
-                                <span className='h-px w-10 bg-gradient-to-r from-transparent to-white/30' />
-                                <span className='text-[10px] font-medium uppercase tracking-[0.32em] text-white/45'>
-                                    whisper
-                                </span>
-                                <span className='h-px w-10 bg-gradient-to-l from-transparent to-white/30' />
-                            </div>
-                            <p
-                                className={`max-w-[36ch] text-balance text-center font-serif text-[15px] italic leading-relaxed text-white/85 ${style.shadow}`}
-                            >
-                                <PrivacyHighlightedText
-                                    text={whisper}
-                                    aliases={aliases}
-                                    supportMarkdown
-                                />
-                            </p>
+                    {showShare && (
+                        <div className='animate-fade-in'>
+                            <ShareSection
+                                variant='embedded'
+                                question={shareQuestion}
+                                interpretation={shareInterpretation}
+                            />
                         </div>
                     )}
                 </div>

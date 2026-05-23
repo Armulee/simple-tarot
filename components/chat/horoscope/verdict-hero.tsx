@@ -16,8 +16,8 @@ import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
 import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
 import { getPlanetDignity } from "@/lib/birth-chart-utils"
-import TransitFeed from "@/components/chat/horoscope/transit-feed"
-import NatalPlanetSpotlight from "@/components/chat/horoscope/natal-planet-spotlight"
+import { unmaskTextWithAliases } from "@/lib/privacy/prompt-redaction"
+import ShareSection from "@/components/tarot/interpretation/share"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
 
 type NatalPlacementForHero = {
@@ -624,19 +624,12 @@ export default function VerdictHero({
         () => classifyQuestionTopic(questionText),
         [questionText],
     )
-    const transitPlanetFilter =
-        questionTopic.topic !== "general"
-            ? questionTopic.relevantPlanets
-            : undefined
-    const timingDateRange =
-        isTimingMode && verdict.timingWindow ? verdict.timingWindow : undefined
     const showFocusAreaPill =
         !!verdict.focusArea?.trim() && questionTopic.topic === "general"
     const relevantPlanets = useMemo<NatalRelevantPlanet[]>(
         () => (isSpotlightMode ? verdict.relevantPlanets ?? [] : []),
         [isSpotlightMode, verdict.relevantPlanets],
     )
-    const hasRelevantPlanets = relevantPlanets.length > 0
     const heroPlacements = useMemo(
         () =>
             isSpotlightMode
@@ -664,18 +657,13 @@ export default function VerdictHero({
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0
     const showLoadingState = isLoading && !overviewReady && !hasVerdictText
-    // Daily / timing verdicts hang their visual under the detailed HTML (the
-    // transit feed). Natal verdicts use the planet spotlight there. Technical
-    // verdicts already render the orbit visual at the top of the hero, so the
-    // below-verdict slot stays empty for them.
-    const showTransitFeed = overviewReady && !isLoading && !isSpotlightMode
-    const showNatalSpotlight =
-        overviewReady && !isLoading && isNatalMode && hasRelevantPlanets
+    // Below the detailed HTML we surface the share section (the transit feed /
+    // natal spotlight detail now lives in the Technical / Aspect tabs).
+    const showShare = overviewReady && !isLoading && hasVerdictText
     const showReplyBubble =
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0 ||
-        showTransitFeed ||
-        showNatalSpotlight ||
+        showShare ||
         showLoadingState
 
     return (
@@ -779,9 +767,7 @@ export default function VerdictHero({
                         )}
 
                         {!showLoadingState &&
-                            (detailedHtml.length > 0 ||
-                                showTransitFeed ||
-                                showNatalSpotlight) && (
+                            (detailedHtml.length > 0 || showShare) && (
                             <div className='rounded-2xl shadow-lg animate-fade-in text-white/90 leading-relaxed'>
                                 {detailedHtml.length > 0 && (
                                     <PrivacyDetailedHtml
@@ -791,7 +777,7 @@ export default function VerdictHero({
                                     />
                                 )}
 
-                                {showTransitFeed && (
+                                {showShare && (
                                     <div
                                         className={
                                             detailedHtml.length > 0
@@ -799,36 +785,22 @@ export default function VerdictHero({
                                                 : ""
                                         }
                                     >
-                                        <TransitFeed
-                                            message={transitSourceMessage}
-                                            privacyAliases={aliases}
-                                            transitPlanetFilter={
-                                                transitPlanetFilter
-                                            }
-                                            dateRange={timingDateRange}
-                                            compact={
-                                                isTimingMode ||
-                                                !!transitPlanetFilter
-                                            }
-                                            maxVisible={3}
-                                        />
-                                    </div>
-                                )}
-
-                                {showNatalSpotlight && (
-                                    <div
-                                        className={
-                                            detailedHtml.length > 0
-                                                ? "mt-5"
-                                                : ""
-                                        }
-                                    >
-                                        <NatalPlanetSpotlight
-                                            chartData={
-                                                transitSourceMessage.chartData
-                                            }
-                                            relevantPlanets={relevantPlanets}
-                                            privacyAliases={aliases}
+                                        <ShareSection
+                                            variant='embedded'
+                                            question={unmaskTextWithAliases(
+                                                questionText,
+                                                aliases,
+                                            )}
+                                            interpretation={unmaskTextWithAliases(
+                                                (
+                                                    transitSourceMessage.text ||
+                                                    detailedHtml
+                                                )
+                                                    .replace(/<[^>]+>/g, " ")
+                                                    .replace(/\s+/g, " ")
+                                                    .trim(),
+                                                aliases,
+                                            )}
                                         />
                                     </div>
                                 )}
