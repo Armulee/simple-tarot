@@ -40,7 +40,49 @@ const requestSchema = z.object({
         })
         .nullable()
         .optional(),
+    transit: z
+        .object({
+            day: z.number().int().min(1).max(31).nullable().optional(),
+            month: z.number().int().min(1).max(12).nullable().optional(),
+            year: z.number().int().min(1900).max(2100).nullable().optional(),
+            hour: z.number().int().min(0).max(23).nullable().optional(),
+            minute: z.number().int().min(0).max(59).nullable().optional(),
+            timezone: z.number().nullable().optional(),
+            lat: z.number().nullable().optional(),
+            lng: z.number().nullable().optional(),
+            country: z.string().nullable().optional(),
+            state: z.string().nullable().optional(),
+        })
+        .nullable()
+        .optional(),
+    questionRange: z
+        .object({
+            startDateIso: z.string(),
+            endDateIso: z.string(),
+            durationDays: z.number().int().positive(),
+            source: z.enum(["explicit", "relative", "default_30d", "ai_inferred"]),
+            granularity: z.enum(["hourly", "daily"]),
+        })
+        .nullable()
+        .optional(),
 })
+
+function resolveTargetDateIso(
+    body: z.infer<typeof requestSchema>,
+): string | null {
+    if (
+        body.transit?.day != null &&
+        body.transit?.month != null &&
+        body.transit?.year != null
+    ) {
+        const { year, month, day } = body.transit
+        return `${String(year).padStart(4, "0")}-${String(month).padStart(
+            2,
+            "0",
+        )}-${String(day).padStart(2, "0")}`
+    }
+    return body.questionRange?.startDateIso ?? null
+}
 
 const GENERAL_REPLY_SYSTEM_PROMPT = `
 You are Astra, an oracle for AskingFate.
@@ -136,6 +178,7 @@ export async function POST(req: Request) {
                   birth: body.birth,
                   system: body.system,
                   locale: body.locale,
+                  targetDateIso: resolveTargetDateIso(body),
               })
             : null
 

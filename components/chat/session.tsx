@@ -24,6 +24,7 @@ import {
     type GeneralReply,
     type StreamingGeneralReply,
 } from "@/lib/chat/general-reply-schema"
+import { resolveDeterministicTransitDate } from "@/lib/astrology/transit-date-extract"
 import {
     mergeAspectKeywordsIntoAspects,
     type AspectKeywordItem,
@@ -1093,6 +1094,71 @@ export default function ChatSession({
     } = useObject({
         api: "/api/chat/question",
         schema: streamingGeneralReplySchema,
+        // In parallel with the streamed reflection, fetch the full chart data
+        // (birth chart + transit chart for the target date + personalized
+        // transit aspects) so the Technical / Impacting-Aspects tabs of the
+        // general hero can render. The body already carries birth + transit +
+        // questionRange resolved by startGeneralReplyStream.
+        fetch: async (url, options) => {
+            const res = await fetch(url, options)
+            const targetId = generalReplyTargetMessageIdRef.current
+            if (targetId && options?.body) {
+                try {
+                    const bodyPayload =
+                        typeof options.body === "string"
+                            ? (JSON.parse(options.body) as Record<
+                                  string,
+                                  unknown
+                              >)
+                            : null
+                    const birth = bodyPayload?.birth
+                    if (bodyPayload && birth) {
+                        fetch("/api/horoscope/chart-data", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                question: bodyPayload.question,
+                                birth,
+                                transit: bodyPayload.transit ?? null,
+                                system: bodyPayload.system,
+                                locale: bodyPayload.locale,
+                                ...(bodyPayload.questionRange
+                                    ? {
+                                          questionRange:
+                                              bodyPayload.questionRange,
+                                      }
+                                    : {}),
+                            }),
+                        })
+                            .then((r) => r.json())
+                            .then((chartData: Record<string, unknown>) => {
+                                if (chartData.error) return
+                                const fullAspects =
+                                    (chartData.personalizedTransitAspects as ChatMessage["personalizedTransitAspects"]) ??
+                                    null
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === targetId
+                                            ? {
+                                                  ...m,
+                                                  chartData,
+                                                  personalizedTransitAspects:
+                                                      fullAspects,
+                                              }
+                                            : m,
+                                    ),
+                                )
+                            })
+                            .catch(() => {
+                                /* chart-data failed; tabs simply won't render */
+                            })
+                    }
+                } catch {
+                    /* body parse failed; skip the parallel chart-data fetch */
+                }
+            }
+            return res
+        },
         onFinish: ({ object }: { object: StreamingGeneralReply | undefined }) => {
             const targetId = generalReplyTargetMessageIdRef.current
             if (!targetId) return
@@ -4091,6 +4157,48 @@ export default function ChatSession({
                       }
                     : undefined
 
+            // Resolve the "target date" the Technical / Aspect tabs anchor
+            // on: a date explicitly mentioned in the question, otherwise
+            // today. We send it as both an explicit transit (so the transit
+            // chart is built for that day) and a single-day questionRange (so
+            // the personalized aspects resolve exactly on that day).
+            const targetDate =
+                resolveDeterministicTransitDate(question) ??
+                (() => {
+                    const now = new Date()
+                    return {
+                        day: now.getUTCDate(),
+                        month: now.getUTCMonth() + 1,
+                        year: now.getUTCFullYear(),
+                    }
+                })()
+            const targetIso = `${String(targetDate.year).padStart(4, "0")}-${String(
+                targetDate.month,
+            ).padStart(2, "0")}-${String(targetDate.day).padStart(2, "0")}`
+            const transitPayload = birthPayload
+                ? {
+                      day: targetDate.day,
+                      month: targetDate.month,
+                      year: targetDate.year,
+                      hour: 12,
+                      minute: 0,
+                      timezone: birthPayload.timezone,
+                      lat: birthPayload.lat,
+                      lng: birthPayload.lng,
+                      country: birthPayload.country,
+                      state: birthPayload.state,
+                  }
+                : undefined
+            const questionRangePayload = birthPayload
+                ? {
+                      startDateIso: targetIso,
+                      endDateIso: targetIso,
+                      durationDays: 1,
+                      source: "explicit" as const,
+                      granularity: "daily" as const,
+                  }
+                : undefined
+
             generalReplyTargetMessageIdRef.current = assistantLoadingId
             setMessages((prev) =>
                 prev.map((m) =>
@@ -4112,6 +4220,8 @@ export default function ChatSession({
                 locale,
                 system: getDefaultSystemByLocale(),
                 birth: birthPayload,
+                transit: transitPayload,
+                questionRange: questionRangePayload,
             })
         },
         [

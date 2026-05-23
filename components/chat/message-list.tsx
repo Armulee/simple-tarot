@@ -23,7 +23,7 @@ import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpreta
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import PaywallBlock from "@/components/chat/paywall-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
-import InnerEnergyHero from "@/components/chat/general/inner-energy-hero"
+import GeneralReadingTabs from "@/components/chat/general/general-reading-tabs"
 import {
     PrivacyHighlightedText,
     PrivacyHighlightedUserText,
@@ -853,12 +853,15 @@ export default function MessageList({
                                             </div>
                                         )}
                                         <div className='w-full md:max-w-[85%]'>
-                                            <InnerEnergyHero
-                                                reply={message.generalReply}
+                                            <GeneralReadingTabs
+                                                message={message}
                                                 privacyAliases={privacyAliases}
-                                                isLoading={Boolean(
-                                                    message.isLoading,
-                                                )}
+                                                onAskAspectDetail={
+                                                    onAskAspectDetail
+                                                }
+                                                askedAspectKeys={
+                                                    askedAspectKeys
+                                                }
                                             />
                                         </div>
                                     </>

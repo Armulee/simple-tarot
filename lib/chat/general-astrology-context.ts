@@ -149,25 +149,38 @@ export async function buildGeneralAstrologyContext({
     birth,
     system,
     locale = "en",
+    targetDateIso,
 }: {
     birth: GeneralAstrologyBirth
     system?: "western_tropical" | "vedic_sidereal" | "both"
     locale?: string
+    /**
+     * The date the reflection anchors on — extracted from the user's question,
+     * or today when none was mentioned. Drives the transit chart and the
+     * aspect window. Defaults to today when omitted/invalid.
+     */
+    targetDateIso?: string | null
 }): Promise<GeneralAstrologyContext | null> {
     try {
-        const today = new Date()
-        const todayUtc = new Date(
+        const parsedTarget = targetDateIso
+            ? new Date(`${targetDateIso}T00:00:00Z`)
+            : null
+        const anchor =
+            parsedTarget && !Number.isNaN(parsedTarget.getTime())
+                ? parsedTarget
+                : new Date()
+        const anchorUtc = new Date(
             Date.UTC(
-                today.getUTCFullYear(),
-                today.getUTCMonth(),
-                today.getUTCDate(),
+                anchor.getUTCFullYear(),
+                anchor.getUTCMonth(),
+                anchor.getUTCDate(),
             ),
         )
-        const endUtc = addUtcDays(todayUtc, ACTIVITY_WINDOW_DAYS)
+        const endUtc = addUtcDays(anchorUtc, ACTIVITY_WINDOW_DAYS)
         const questionRange: QuestionTimeRange = {
-            startDate: todayUtc,
+            startDate: anchorUtc,
             endDate: endUtc,
-            startDateIso: toIsoDate(todayUtc),
+            startDateIso: toIsoDate(anchorUtc),
             endDateIso: toIsoDate(endUtc),
             durationDays: ACTIVITY_WINDOW_DAYS,
             source: "default_30d",
@@ -175,9 +188,9 @@ export async function buildGeneralAstrologyContext({
         }
         const aspectRange: QuestionTimeRange = {
             ...questionRange,
-            startDate: addUtcDays(todayUtc, -ASPECT_PADDING_DAYS),
+            startDate: addUtcDays(anchorUtc, -ASPECT_PADDING_DAYS),
             endDate: addUtcDays(endUtc, ASPECT_PADDING_DAYS),
-            startDateIso: toIsoDate(addUtcDays(todayUtc, -ASPECT_PADDING_DAYS)),
+            startDateIso: toIsoDate(addUtcDays(anchorUtc, -ASPECT_PADDING_DAYS)),
             endDateIso: toIsoDate(addUtcDays(endUtc, ASPECT_PADDING_DAYS)),
             durationDays:
                 ACTIVITY_WINDOW_DAYS + ASPECT_PADDING_DAYS * 2,
@@ -191,12 +204,12 @@ export async function buildGeneralAstrologyContext({
             {
                 birth,
                 system,
-                // Anchor the transit chart on today's sky so the reflection
-                // reflects the present moment, not the birth moment.
+                // Anchor the transit chart on the target date's sky so the
+                // reflection reflects that moment, not the birth moment.
                 transit: {
-                    day: todayUtc.getUTCDate(),
-                    month: todayUtc.getUTCMonth() + 1,
-                    year: todayUtc.getUTCFullYear(),
+                    day: anchorUtc.getUTCDate(),
+                    month: anchorUtc.getUTCMonth() + 1,
+                    year: anchorUtc.getUTCFullYear(),
                     hour: 12,
                     minute: 0,
                     timezone: birth.timezone,
