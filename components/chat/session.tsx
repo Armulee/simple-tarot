@@ -3107,6 +3107,150 @@ export default function ChatSession({
         return Boolean(data?.day && data?.month && data?.year)
     }, [])
 
+    /**
+     * Kicks off the structured general (chat) reply via /api/chat/question.
+     * The assistant message is then progressively populated by the streaming
+     * `useObject` effect that watches `generalReplyObject`. Returns the
+     * loadingId the caller already pushed so it can clear local refs in its
+     * own finalization step.
+     */
+    const startGeneralReplyStream = useCallback(
+        ({
+            question,
+            assistantLoadingId,
+            isFollowUp,
+            historyOverride,
+        }: {
+            question: string
+            assistantLoadingId: string
+            isFollowUp?: boolean
+            historyOverride?: { role: string; text: string }[]
+        }) => {
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                originContext,
+                buildSessionContextSummary(messages),
+            )
+
+            // Ground the inner-energy reflection in the asker's real
+            // astrology when we have their birth data: prefer the signed-in
+            // profile, fall back to the locally saved birth. The server
+            // builds the birth chart, today's transit chart, and the live
+            // transit activities from this. When no birth data exists the
+            // reflection stays purely intuitive.
+            const profileBirth = profileToHoroscopeBirthData(
+                user ? profile : null,
+            )
+            const resolvedBirth = ensureBirthTimeDefaults(
+                profileBirth
+                    ? applyEphemerisLocationTimeDefaults(profileBirth)
+                    : loadBirthFromStorage(),
+            )
+            const birthPayload =
+                resolvedBirth && hasBirthDate(resolvedBirth)
+                    ? {
+                          day: resolvedBirth.day as number,
+                          month: resolvedBirth.month as number,
+                          year: resolvedBirth.year as number,
+                          hour: resolvedBirth.hour,
+                          minute: resolvedBirth.minute,
+                          timeHint: resolvedBirth.timeHint,
+                          timezone: resolvedBirth.timezone ?? 0,
+                          lat: resolvedBirth.lat ?? 0,
+                          lng: resolvedBirth.lng ?? 0,
+                          country: resolvedBirth.country,
+                          state: resolvedBirth.state,
+                          usedLocationFallback:
+                              resolvedBirth.usedLocationFallback,
+                      }
+                    : undefined
+
+            // Resolve the "target date" the Technical / Aspect tabs anchor
+            // on: a date explicitly mentioned in the question, otherwise
+            // today. We send it as both an explicit transit (so the transit
+            // chart is built for that day) and a single-day questionRange (so
+            // the personalized aspects resolve exactly on that day).
+            const targetDate =
+                resolveDeterministicTransitDate(question) ??
+                (() => {
+                    const now = new Date()
+                    return {
+                        day: now.getUTCDate(),
+                        month: now.getUTCMonth() + 1,
+                        year: now.getUTCFullYear(),
+                    }
+                })()
+            const targetIso = `${String(targetDate.year).padStart(4, "0")}-${String(
+                targetDate.month,
+            ).padStart(2, "0")}-${String(targetDate.day).padStart(2, "0")}`
+            const transitPayload = birthPayload
+                ? {
+                      day: targetDate.day,
+                      month: targetDate.month,
+                      year: targetDate.year,
+                      hour: 12,
+                      minute: 0,
+                      timezone: birthPayload.timezone,
+                      lat: birthPayload.lat,
+                      lng: birthPayload.lng,
+                      country: birthPayload.country,
+                      state: birthPayload.state,
+                  }
+                : undefined
+            const questionRangePayload = birthPayload
+                ? {
+                      startDateIso: targetIso,
+                      endDateIso: targetIso,
+                      durationDays: 1,
+                      source: "explicit" as const,
+                      granularity: "daily" as const,
+                  }
+                : undefined
+
+            generalReplyTargetMessageIdRef.current = assistantLoadingId
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              variant: "plain" as const,
+                              generalReply: null,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            submitGeneralReply({
+                question,
+                isFollowUp,
+                history,
+                contextSummary: contextSummary || undefined,
+                locale,
+                system: getDefaultSystemByLocale(),
+                birth: birthPayload,
+                transit: transitPayload,
+                questionRange: questionRangePayload,
+            })
+        },
+        [
+            ensureBirthTimeDefaults,
+            getDefaultSystemByLocale,
+            hasBirthDate,
+            locale,
+            messages,
+            originContext,
+            profile,
+            submitGeneralReply,
+            user,
+        ],
+    )
+
     const runHoroscopeReading = useCallback(
         async (
             birth: HoroscopeBirthData,
@@ -3252,44 +3396,19 @@ export default function ChatSession({
                 return
             }
 
-            // general / unknown classification → long-form /question stream.
-            submitHoroscope({
+            // General / unknown classification: the question doesn't fit a
+            // specific astrology lens (daily / timing / natal / technical /
+            // timeline). Instead of streaming the long-form horoscope answer
+            // (which renders as a bare key-message block), fall back to the
+            // general "inner energy reflection" hero — still grounded in the
+            // user's birth chart, transit chart, and live aspects via
+            // /api/chat/question. We reuse the existing loading message,
+            // converting it from a horoscope reading into a general reply.
+            horoscopeTargetMessageIdRef.current = null
+            setIsInterpreting(false)
+            startGeneralReplyStream({
                 question: questionText,
-                conversationContext:
-                    buildHoroscopeConversationContext(questionText),
-                locale,
-                system: horoscopeSystem,
-                birth: {
-                    day: normalizedBirth.day,
-                    month: normalizedBirth.month,
-                    year: normalizedBirth.year,
-                    hour: normalizedBirth.hour,
-                    minute: normalizedBirth.minute,
-                    timeHint: normalizedBirth.timeHint,
-                    timezone: normalizedBirth.timezone,
-                    lat: normalizedBirth.lat,
-                    lng: normalizedBirth.lng,
-                    country: normalizedBirth.country,
-                    state: normalizedBirth.state,
-                    usedLocationFallback: normalizedBirth.usedLocationFallback,
-                },
-                transit: transit
-                    ? {
-                          day: transit.day,
-                          month: transit.month,
-                          year: transit.year,
-                          hour: transit.hour,
-                          minute: transit.minute,
-                          timezone: transit.timezone,
-                          lat: transit.lat,
-                          lng: transit.lng,
-                          country: transit.country,
-                          state: transit.state,
-                      }
-                    : null,
-                storedBirthChart: storedBirthChartPayload,
-                ...(classification ? { classification } : {}),
-                ...(questionRange ? { questionRange } : {}),
+                assistantLoadingId: loadingId,
             })
             finishHandled()
         },
@@ -3298,8 +3417,7 @@ export default function ChatSession({
             ensureBirthTimeDefaults,
             horoscopeSystem,
             locale,
-            storedBirthChartPayload,
-            submitHoroscope,
+            startGeneralReplyStream,
             tHoroscope,
             tryCompleteHoroscopeVerdictFirst,
             tryCompleteTimelineFirst,
@@ -4091,149 +4209,6 @@ export default function ChatSession({
             user,
             originContext,
             planTier,
-        ],
-    )
-
-    /**
-     * Kicks off the structured general (chat) reply via /api/chat/question.
-     * The assistant message is then progressively populated by the streaming
-     * `useObject` effect that watches `generalReplyObject`. Returns the
-     * loadingId the caller already pushed so it can clear local refs in its
-     * own finalization step.
-     */
-    const startGeneralReplyStream = useCallback(
-        ({
-            question,
-            assistantLoadingId,
-            isFollowUp,
-            historyOverride,
-        }: {
-            question: string
-            assistantLoadingId: string
-            isFollowUp?: boolean
-            historyOverride?: { role: string; text: string }[]
-        }) => {
-            const history =
-                historyOverride ??
-                messages.map((m) => ({
-                    role: m.role,
-                    text: m.text,
-                }))
-            const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
-                buildSessionContextSummary(messages),
-            )
-
-            // Ground the inner-energy reflection in the asker's real
-            // astrology when we have their birth data: prefer the signed-in
-            // profile, fall back to the locally saved birth. The server
-            // builds the birth chart, today's transit chart, and the live
-            // transit activities from this. When no birth data exists the
-            // reflection stays purely intuitive.
-            const profileBirth = profileToHoroscopeBirthData(
-                user ? profile : null,
-            )
-            const resolvedBirth = ensureBirthTimeDefaults(
-                profileBirth
-                    ? applyEphemerisLocationTimeDefaults(profileBirth)
-                    : loadBirthFromStorage(),
-            )
-            const birthPayload =
-                resolvedBirth && hasBirthDate(resolvedBirth)
-                    ? {
-                          day: resolvedBirth.day as number,
-                          month: resolvedBirth.month as number,
-                          year: resolvedBirth.year as number,
-                          hour: resolvedBirth.hour,
-                          minute: resolvedBirth.minute,
-                          timeHint: resolvedBirth.timeHint,
-                          timezone: resolvedBirth.timezone ?? 0,
-                          lat: resolvedBirth.lat ?? 0,
-                          lng: resolvedBirth.lng ?? 0,
-                          country: resolvedBirth.country,
-                          state: resolvedBirth.state,
-                          usedLocationFallback:
-                              resolvedBirth.usedLocationFallback,
-                      }
-                    : undefined
-
-            // Resolve the "target date" the Technical / Aspect tabs anchor
-            // on: a date explicitly mentioned in the question, otherwise
-            // today. We send it as both an explicit transit (so the transit
-            // chart is built for that day) and a single-day questionRange (so
-            // the personalized aspects resolve exactly on that day).
-            const targetDate =
-                resolveDeterministicTransitDate(question) ??
-                (() => {
-                    const now = new Date()
-                    return {
-                        day: now.getUTCDate(),
-                        month: now.getUTCMonth() + 1,
-                        year: now.getUTCFullYear(),
-                    }
-                })()
-            const targetIso = `${String(targetDate.year).padStart(4, "0")}-${String(
-                targetDate.month,
-            ).padStart(2, "0")}-${String(targetDate.day).padStart(2, "0")}`
-            const transitPayload = birthPayload
-                ? {
-                      day: targetDate.day,
-                      month: targetDate.month,
-                      year: targetDate.year,
-                      hour: 12,
-                      minute: 0,
-                      timezone: birthPayload.timezone,
-                      lat: birthPayload.lat,
-                      lng: birthPayload.lng,
-                      country: birthPayload.country,
-                      state: birthPayload.state,
-                  }
-                : undefined
-            const questionRangePayload = birthPayload
-                ? {
-                      startDateIso: targetIso,
-                      endDateIso: targetIso,
-                      durationDays: 1,
-                      source: "explicit" as const,
-                      granularity: "daily" as const,
-                  }
-                : undefined
-
-            generalReplyTargetMessageIdRef.current = assistantLoadingId
-            setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === assistantLoadingId
-                        ? {
-                              ...m,
-                              generalReply: null,
-                              isLoading: true,
-                              streamStopped: false,
-                          }
-                        : m,
-                ),
-            )
-            submitGeneralReply({
-                question,
-                isFollowUp,
-                history,
-                contextSummary: contextSummary || undefined,
-                locale,
-                system: getDefaultSystemByLocale(),
-                birth: birthPayload,
-                transit: transitPayload,
-                questionRange: questionRangePayload,
-            })
-        },
-        [
-            ensureBirthTimeDefaults,
-            getDefaultSystemByLocale,
-            hasBirthDate,
-            locale,
-            messages,
-            originContext,
-            profile,
-            submitGeneralReply,
-            user,
         ],
     )
 
