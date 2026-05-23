@@ -12,6 +12,7 @@ import type {
     SupportBlockKind,
     SupportTopic,
 } from "@/lib/chat/support-topics"
+import type { GeneralReply } from "@/lib/chat/general-reply-schema"
 
 export type AspectInsightItem = {
     aspectKey: string
@@ -243,6 +244,14 @@ export type ChatMessage = {
      * renders a red error badge instead of running the interpretation.
      */
     paywall?: PaywallNotice | null
+    /**
+     * Structured "inner energy reflection" payload streamed from
+     * /api/chat/general for general (chat) replies. When set, the message is
+     * rendered with the symbolic InnerEnergyHero instead of a plain text bubble
+     * so the general strategy feels emotionally immersive instead of a weak
+     * fallback. Null/undefined for bridge messages (draw / horoscope / support).
+     */
+    generalReply?: GeneralReply | null
 }
 
 export type PaywallNotice = {
