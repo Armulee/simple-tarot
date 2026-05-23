@@ -4058,6 +4058,39 @@ export default function ChatSession({
                 buildSessionContextSummary(messages),
             )
 
+            // Ground the inner-energy reflection in the asker's real
+            // astrology when we have their birth data: prefer the signed-in
+            // profile, fall back to the locally saved birth. The server
+            // builds the birth chart, today's transit chart, and the live
+            // transit activities from this. When no birth data exists the
+            // reflection stays purely intuitive.
+            const profileBirth = profileToHoroscopeBirthData(
+                user ? profile : null,
+            )
+            const resolvedBirth = ensureBirthTimeDefaults(
+                profileBirth
+                    ? applyEphemerisLocationTimeDefaults(profileBirth)
+                    : loadBirthFromStorage(),
+            )
+            const birthPayload =
+                resolvedBirth && hasBirthDate(resolvedBirth)
+                    ? {
+                          day: resolvedBirth.day as number,
+                          month: resolvedBirth.month as number,
+                          year: resolvedBirth.year as number,
+                          hour: resolvedBirth.hour,
+                          minute: resolvedBirth.minute,
+                          timeHint: resolvedBirth.timeHint,
+                          timezone: resolvedBirth.timezone ?? 0,
+                          lat: resolvedBirth.lat ?? 0,
+                          lng: resolvedBirth.lng ?? 0,
+                          country: resolvedBirth.country,
+                          state: resolvedBirth.state,
+                          usedLocationFallback:
+                              resolvedBirth.usedLocationFallback,
+                      }
+                    : undefined
+
             generalReplyTargetMessageIdRef.current = assistantLoadingId
             setMessages((prev) =>
                 prev.map((m) =>
@@ -4077,9 +4110,21 @@ export default function ChatSession({
                 history,
                 contextSummary: contextSummary || undefined,
                 locale,
+                system: getDefaultSystemByLocale(),
+                birth: birthPayload,
             })
         },
-        [locale, messages, originContext, submitGeneralReply],
+        [
+            ensureBirthTimeDefaults,
+            getDefaultSystemByLocale,
+            hasBirthDate,
+            locale,
+            messages,
+            originContext,
+            profile,
+            submitGeneralReply,
+            user,
+        ],
     )
 
     const streamAssistantResponse = useCallback(
