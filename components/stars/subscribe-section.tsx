@@ -6,49 +6,35 @@ import { Checkout } from "@/components/checkout"
 import OneTapTopUp from "@/components/stars/one-tap-top-up"
 import { PlanChangeDialog } from "@/components/subscription/plan-change-dialog"
 import { useTranslations, useLocale } from "next-intl"
-import { usePreferredCurrency } from "@/hooks/use-preferred-currency"
 import { useAuth } from "@/hooks/use-auth"
 import { useStars } from "@/contexts/stars-context"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import CurrencySelector from "@/components/pricing/currency-selector"
-import {
-    convertUsdToCurrency,
-    formatCurrency,
-    type CurrencyCode,
-} from "@/lib/payments/currency-utils"
+import { formatCurrency, type CurrencyCode } from "@/lib/payments/currency-utils"
 import {
     SUBSCRIPTION_PLANS,
-    getPlanPriceUsd,
+    getPlanPrice,
     getPlanStars,
     parseSubscriptionPlanKey,
+    resolvePlanBillingPrice,
+    resolvePlanPriceId,
     type BillingCycle,
     type SubscriptionPlanTier,
 } from "@/lib/payments/subscription-plans"
-
-type SubscribeSectionProps = {
-    defaultCurrency?: CurrencyCode
-}
 
 type PlanChangePrompt = {
     priceId: string
     action: "upgrade" | "downgrade"
     targetTier: SubscriptionPlanTier
     targetCycle: BillingCycle
-    targetPriceUsd: number
+    targetPrice: number
     targetStars: number
 }
 
-export default function SubscribeSection({
-    defaultCurrency = "USD",
-}: SubscribeSectionProps) {
+export default function SubscribeSection() {
     const t = useTranslations("StarsPage")
     const locale = useLocale()
-    const localeDefaultCurrency = locale === "th" ? "THB" : "USD"
-    const preferredCurrency = usePreferredCurrency(
-        defaultCurrency ?? localeDefaultCurrency
-    )
-    const [currency, setCurrency] = useState(preferredCurrency)
+    const currency: CurrencyCode = locale === "th" ? "THB" : "USD"
     const { user } = useAuth()
     const { stars, subscription } = useStars()
     const [billingCycle, setBillingCycle] =
@@ -65,14 +51,25 @@ export default function SubscribeSection({
     const proBaselineAnnualStars = 7188
 
     useEffect(() => {
-        setCurrency(preferredCurrency)
-    }, [preferredCurrency])
-
-    useEffect(() => {
         if (activePlan) {
             setBillingCycle(activePlan.cycle)
         }
     }, [activePlan])
+
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        const id = window.location.hash.replace(/^#/, "")
+        if (id !== "subscribe-basic" && id !== "subscribe-pro") return
+        const scrollToPlan = () => {
+            document.getElementById(id)?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+            })
+        }
+        scrollToPlan()
+        const t = window.setTimeout(scrollToPlan, 400)
+        return () => window.clearTimeout(t)
+    }, [])
 
     useEffect(() => {
         const fetchActivePlan = async () => {
@@ -100,7 +97,7 @@ export default function SubscribeSection({
     }, [user])
 
     const currentPlanPrice = activePlan
-        ? getPlanPriceUsd(activePlan.tier, activePlan.cycle)
+        ? getPlanPrice(activePlan.tier, activePlan.cycle, currency)
         : null
 
     const getPlanAction = (
@@ -112,7 +109,7 @@ export default function SubscribeSection({
             return "current"
         }
         if (currentPlanPrice == null) return "upgrade"
-        const targetPrice = getPlanPriceUsd(tier, cycle)
+        const targetPrice = getPlanPrice(tier, cycle, currency)
         return targetPrice >= currentPlanPrice ? "upgrade" : "downgrade"
     }
 
@@ -175,12 +172,8 @@ export default function SubscribeSection({
         await handlePlanChange(priceId, action)
     }
 
-    const formatUsdAmount = (amount: number) =>
-        formatCurrency(
-            convertUsdToCurrency(amount, currency),
-            currency,
-            locale
-        ).replace(/^US(?=\$)/, "")
+    const formatNativeAmount = (amount: number) =>
+        formatCurrency(amount, currency, locale).replace(/^US(?=\$)/, "")
     const formatRefillDate = (timestamp?: number | null) => {
         if (!timestamp) return "-"
         return new Intl.DateTimeFormat("en-US", {
@@ -208,17 +201,17 @@ export default function SubscribeSection({
           }`
         : "-"
     const currentPlanPriceLabel = activePlan
-        ? formatUsdAmount(
-              getPlanPriceUsd(activePlan.tier, activePlan.cycle)
+        ? formatNativeAmount(
+              getPlanPrice(activePlan.tier, activePlan.cycle, currency)
           )
         : "-"
     const targetPlanPriceLabel = pendingChange
-        ? formatUsdAmount(pendingChange.targetPriceUsd)
+        ? formatNativeAmount(pendingChange.targetPrice)
         : "-"
-    const differenceUsd = pendingChange
-        ? Math.max(0, pendingChange.targetPriceUsd - (currentPlanPrice ?? 0))
+    const priceDifference = pendingChange
+        ? Math.max(0, pendingChange.targetPrice - (currentPlanPrice ?? 0))
         : 0
-    const differenceLabel = formatUsdAmount(differenceUsd)
+    const differenceLabel = formatNativeAmount(priceDifference)
     const refillDateLabel = formatRefillDate(subscription?.currentPeriodEnd)
     const currentStarsValue = typeof stars === "number" ? stars : 0
     const projectedStarsValue = pendingChange
@@ -252,12 +245,6 @@ export default function SubscribeSection({
                         </button>
                     ))}
                 </div>
-                <CurrencySelector
-                    locale={locale}
-                    defaultCurrency={preferredCurrency}
-                    currency={currency}
-                    onCurrencyChange={setCurrency}
-                />
             </div>
 
             <div className='grid md:grid-cols-2 gap-4 mb-6'>
@@ -270,12 +257,25 @@ export default function SubscribeSection({
                         )
                 ).map((plan) => {
                             const billing = plan.billing?.[billingCycle]
-                            const priceId = plan.priceIds?.[billingCycle] ?? ""
-                            const monthlyPrice = plan.billing?.monthly?.priceUsd
+                            const priceId = resolvePlanPriceId(
+                                plan,
+                                billingCycle,
+                                currency
+                            )
+                            const monthlyPrice = resolvePlanBillingPrice(
+                                plan,
+                                "monthly",
+                                currency
+                            )
+                            const cyclePrice = resolvePlanBillingPrice(
+                                plan,
+                                billingCycle,
+                                currency
+                            )
                             const annualMonthlyPrice =
                                 billingCycle === "annual" &&
-                                typeof billing?.priceUsd === "number"
-                                    ? billing.priceUsd / 12
+                                typeof cyclePrice === "number"
+                                    ? cyclePrice / 12
                                     : null
                             const discountPercent =
                                 billingCycle === "annual" &&
@@ -319,16 +319,24 @@ export default function SubscribeSection({
                                 plan.id as SubscriptionPlanTier,
                                 billingCycle
                             )
-                            const targetPriceUsd = getPlanPriceUsd(
+                            const targetPrice = getPlanPrice(
                                 plan.id as SubscriptionPlanTier,
-                                billingCycle
+                                billingCycle,
+                                currency
                             )
                             const isDowngrade = action === "downgrade"
 
                             return (
                                 <div
                                     key={plan.id}
-                                    className='rounded-2xl border border-white/10 bg-black/40 p-6 flex items-center justify-between gap-4'
+                                    id={
+                                        plan.id === "basic"
+                                            ? "subscribe-basic"
+                                            : plan.id === "pro"
+                                              ? "subscribe-pro"
+                                              : undefined
+                                    }
+                                    className='rounded-2xl border border-white/10 bg-black/40 p-6 flex items-center justify-between gap-4 scroll-mt-24'
                                 >
                                     <div className='flex-1'>
                                         <div className='flex flex-wrap items-center gap-2 mb-1'>
@@ -398,9 +406,10 @@ export default function SubscribeSection({
                                             {billing ? (
                                                 <div className='inline-flex items-end gap-2 rounded-xl border border-yellow-400/25 bg-gradient-to-r from-yellow-500/12 to-amber-500/8 px-3 py-2'>
                                                     <span className='text-2xl font-black tracking-tight text-yellow-100'>
-                                                        {formatUsdAmount(
+                                                        {formatNativeAmount(
                                                             annualMonthlyPrice ??
-                                                                billing.priceUsd
+                                                                cyclePrice ??
+                                                                0
                                                         )}
                                                     </span>
                                                     <span className='text-[11px] uppercase tracking-widest text-yellow-200/75'>
@@ -432,7 +441,7 @@ export default function SubscribeSection({
                                                     targetTier:
                                                         plan.id as SubscriptionPlanTier,
                                                     targetCycle: billingCycle,
-                                                    targetPriceUsd,
+                                                    targetPrice,
                                                     targetStars:
                                                         billing?.stars ?? 0,
                                                 })

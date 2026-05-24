@@ -372,8 +372,9 @@ export default function TermsPage() {
                                 that AskingFate will not be liable for any
                                 injury, loss, damage, or harm to you or any
                                 third party arising from or related to your
-                                reliance on or use of AI-generated interpretations,
-                                tarot readings, or other content from the Service.
+                                reliance on or use of AI-generated
+                                interpretations, tarot readings, or other
+                                content from the Service.
                             </p>
 
                             <h3 className='font-serif font-semibold text-xl text-foreground'>
@@ -424,12 +425,11 @@ export default function TermsPage() {
                             </h2>
                             <p className='text-muted-foreground leading-relaxed'>
                                 You agree to defend, indemnify, and hold
-                                harmless AskingFate and its officers,
-                                directors, employees, and agents from and
-                                against any claims, damages, obligations,
-                                losses, liabilities, costs, or debt, and
-                                expenses (including attorney&apos;s fees)
-                                arising from:
+                                harmless AskingFate and its officers, directors,
+                                employees, and agents from and against any
+                                claims, damages, obligations, losses,
+                                liabilities, costs, or debt, and expenses
+                                (including attorney&apos;s fees) arising from:
                             </p>
                             <ul className='space-y-2 text-muted-foreground ml-4'>
                                 <li>• Your use of the Service</li>

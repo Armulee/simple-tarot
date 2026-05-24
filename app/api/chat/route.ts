@@ -1,8 +1,13 @@
 import { streamObject } from "ai"
 
 import { chatDecisionSchema } from "@/lib/chat/decision-schema"
+import {
+    PRIVACY_REDACTION_PROMPT_RULE,
+    summarizePrivacyPlaceholdersInText,
+} from "@/lib/privacy/prompt-redaction"
+import { supabaseAdmin } from "@/lib/supabase"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-flash"
 
 const CHAT_DECISION_SYSTEM_PROMPT = `
 You are Astra, an oracle for AskingFate.
@@ -12,13 +17,14 @@ Classify the user's message into ONE type:
 chat
 draw
 horoscope
+support
 
 Definitions:
 
 chat
 - general greetings (hi, hello)
-- technical definitions of astrology/tarot
-- "Who are you?" or "What can you do?"
+- technical definitions of astrology/tarot ("what is a trine?", "what is the 7th house?")
+- "Who are you?" or "What can you do?" (only if not asking for a feature; otherwise use support)
 - (DO NOT use chat for advice, strategy, or problem-solving; use 'draw' for those)
 
 draw
@@ -31,6 +37,57 @@ horoscope
 - timing questions
 - today / tomorrow / this month / this year
 - astrology timing
+
+support
+- ANY question about the AskingFate WEBSITE / PRODUCT itself
+- pricing, plans, subscriptions, refunds, billing → supportTopic: "pricing"
+- buying / refilling / running out of stars, star packs → supportTopic: "star-packs"
+- "I want to contact support", "is there a human?", reporting a bug, complaints → supportTopic: "contact"
+- general help / troubleshooting → supportTopic: "help"
+- frequently asked questions → supportTopic: "faq"
+- "how do I use this?", "how does it work?", tutorial, getting started → supportTopic: "how-to-play"
+- account, delete account, change email, sign-out → supportTopic: "account"
+- settings, preferences, language → supportTopic: "settings"
+- privacy / PII redaction notice in chat → supportTopic: "privacy-redaction"
+- privacy policy / data → supportTopic: "privacy-policy"
+- terms of service → supportTopic: "terms-of-service"
+- referrals, inviting friends → supportTopic: "refer-a-friend"
+- sharing a reading link → supportTopic: "share-reading"
+- creating content about AskingFate for stars → supportTopic: "create-content"
+- about the company / our team → supportTopic: "about"
+- sign-in / log in → supportTopic: "sign-in"
+- sign-up / register → supportTopic: "sign-up"
+- a specific tarot card "what does the seven of cups mean?", "the fool meaning" → supportTopic: "tarot-card" and set supportCardSlug to the canonical kebab-case slug (e.g. "seven-of-cups", "the-fool", "queen-of-pentacles")
+- "show me all tarot cards", "the deck" → supportTopic: "tarot-cards-index"
+- our birth chart feature → supportTopic: "birth-chart"
+- our horoscope feature (asking ABOUT the feature, not requesting a horoscope) → supportTopic: "horoscope"
+- browsing articles or guides → supportTopic: "articles"
+
+When the message is BOTH a feature question AND a fortune-telling question, prefer "support" only if it is clearly about the product. Otherwise stick with draw/horoscope. For a real fortune question that incidentally mentions stars / pricing, still use draw.
+
+If type is "support", you MUST set supportTopic. Set supportCardSlug only for tarot-card.
+
+If type is "draw", you MUST also choose ONE tarot spread:
+
+simple
+- 1 card
+- best for quick yes/no, a single focus, or a very narrow question
+
+general
+- 3 cards
+- best for a normal situation reading with a little context, tension, and direction
+
+detailed
+- 5 cards
+- best for multi-layered questions that need obstacles, hidden factors, advice, and outcome
+
+expanded
+- 7 cards
+- best for relationship dynamics, multiple forces, strengths/weaknesses, or a broader situation map
+
+celtic
+- 10 cards
+- only choose this if the user clearly wants a deep, comprehensive, or "tell me everything" style reading
 
 Important rule:
 
@@ -50,57 +107,41 @@ Use it to detect follow-up questions:
 Return JSON only:
 
 {
-"type":"chat"|"draw"|"horoscope",
-"assistantText":"response to the user",
-"isFollowUp":true|false
+"type":"chat"|"draw"|"horoscope"|"support",
+"isFollowUp":true|false,
+"spreadType":"simple"|"general"|"detailed"|"expanded"|"celtic",
+"spreadReason":"short reason",
+"supportTopic":"pricing"|"contact"|"...",
+"supportCardSlug":"seven-of-cups"
 }
 
-assistantText rules:
-
-Personality: warm, encouraging, like a caring friend who genuinely wants to help.
-Tone: positive and supportive, acknowledge the user's feelings or situation before inviting the action.
-
-If draw:
-- Empathize or reflect on what the user asked about (1-2 sentences).
-- Build anticipation for the tarot reading (1-2 sentences).
-- Invite them to draw their cards (1 sentence).
-- If this is a follow-up, reference what was revealed before and express excitement about diving deeper.
-
-If horoscope:
-- Acknowledge the user's curiosity about timing (1-2 sentences).
-- Build anticipation for the astrological reading (1-2 sentences).
-- Invite them to start the horoscope reading (1 sentence).
-
-If chat:
-- Answer naturally and warmly. 2-4 sentences.
-
-Write 4-6 sentences for draw and horoscope.
+If type is NOT "draw", omit spreadType and spreadReason.
+If type is NOT "support", omit supportTopic and supportCardSlug.
 
 CRITICAL LANGUAGE RULE:
-You MUST reply in the SAME language the user wrote in.
-If the user writes in English, reply in English. If Thai, reply in Thai. Never mix.
-Write like a native speaker of that language. Avoid formal, robotic, or translated-sounding phrasing.
-Write the way a real person would text a friend.
+Use the user's language to help classification accuracy.
 
-Examples (English draw):
-- User: "will I get the job?" → "That's such an exciting crossroads to be at! It's clear this opportunity means a lot to you. The tarot cards can give us some real insight into the energy around this. Let's draw some cards and see what they reveal!"
-- User: "Tomorrow what will I be?" → "Ooh curious about what tomorrow has in store? I love that you're thinking ahead! The cards are great at picking up on the energy that's heading your way. Let's draw and see what they have to say!"
+${PRIVACY_REDACTION_PROMPT_RULE}
 
-Examples (English follow-up draw):
-- Session context says tarot reading with 2 of Cups about partnership. User: "is it a girl?" → type "draw", isFollowUp true. "Ooh you want to know more about who this partnership energy is pointing to! The cards can definitely give us more detail on that. Let's draw again and see what comes up!"
-
-Examples (English horoscope):
-- User: "what does this month look like for me?" → "Great question! The stars can tell us a lot about the energy and opportunities coming your way this month. Let's take a look at your horoscope and see what's in store!"
-
-Examples (Thai draw):
-- User: "พรุ่งนี้กูจะเป็นยังไงบ้าง" → "อยากรู้เรื่องพรุ่งนี้เลยใช่มั้ย? เป็นเรื่องดีนะที่อยากเตรียมตัวรับมือกับสิ่งที่จะเกิดขึ้น ไพ่ทาโรต์ช่วยให้เห็นภาพรวมของพลังงานในวันพรุ่งนี้ได้ดีมากเลย มาจั่วไพ่กันเลยดีกว่า แล้วไพ่จะบอกเราเอง!"
-- User: "เขารักเราจริงมั้ย" → "เรื่องความรักมันเป็นเรื่องที่ทำให้คิดมากได้จริงๆ นะ เข้าใจเลยว่าอยากรู้ว่าอีกฝ่ายรู้สึกยังไง ไพ่ทาโรต์ช่วยให้เราเห็นมุมที่ซ่อนอยู่ได้นะ มาลองจั่วไพ่ดูกันเลย!"
-
-Examples (Thai horoscope):
-- User: "เดือนนี้จะเป็นยังไง" → "อยากรู้ภาพรวมของเดือนนี้เลยใช่มั้ย? ดวงดาวช่วยบอกจังหวะพลังงานและโอกาสที่กำลังจะเข้ามาได้ดีมากเลย มาดูดวงกันเลยนะ!"
 `
 
+async function getUserFromBearer(req: Request) {
+    if (!supabaseAdmin) return null
+    const authHeader =
+        req.headers.get("authorization") ?? req.headers.get("Authorization")
+    if (!authHeader?.startsWith("Bearer ")) return null
+    const token = authHeader.slice(7).trim()
+    if (!token) return null
+    const {
+        data: { user },
+        error,
+    } = await supabaseAdmin.auth.getUser(token)
+    if (error || !user) return null
+    return user
+}
+
 function detectQuestionLanguage(text: string): string {
+    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
     if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
     if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
     if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
@@ -108,10 +149,18 @@ function detectQuestionLanguage(text: string): string {
     return "English"
 }
 
-const MODE_TO_TYPE: Record<string, string> = {
+/**
+ * Maps the user-facing interpretation mode (set in the composer menu) to the
+ * decision `type` (or list of allowed types). The "chat" mode is special: it
+ * is the merged chat+support mode, so we let the classifier pick either
+ * `chat` (plain text knowledge reply) or `support` (inline tool block for
+ * product topics) instead of pinning a single type.
+ */
+const MODE_TO_TYPE: Record<string, string | string[]> = {
     tarot: "draw",
     horoscope: "horoscope",
-    chat: "chat",
+    chat: ["chat", "support"],
+    support: "support",
 }
 
 function getChatDecisionPrompt({
@@ -119,11 +168,19 @@ function getChatDecisionPrompt({
     history,
     interpretationMode,
     contextSummary,
+    savedBirthInfo,
+    hasStoredBirthChart,
+    isAuthenticated,
+    planTier,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
     interpretationMode?: string | null
     contextSummary?: string | null
+    savedBirthInfo?: string | null
+    hasStoredBirthChart?: boolean
+    isAuthenticated: boolean
+    planTier?: "free" | "basic" | "pro"
 }) {
     const historyText =
         history && history.length
@@ -143,11 +200,32 @@ function getChatDecisionPrompt({
             ? MODE_TO_TYPE[interpretationMode]
             : null
 
-    const modeInstruction = forcedType
-        ? `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}" and write assistantText matching that type.\n`
-        : ""
+    let modeInstruction = ""
+    if (Array.isArray(forcedType)) {
+        const list = forcedType.map((t) => `"${t}"`).join(" or ")
+        modeInstruction = `\nThe user has locked the mode to "${interpretationMode}". You MUST set type to ${list}. If the message is about the AskingFate website or product (pricing, contact, a specific tarot card, an article, account/settings, sign-in, etc.), choose "support" and set supportTopic (and supportCardSlug when relevant). Otherwise choose "chat" and answer as plain knowledge. Never choose "draw" or "horoscope" while this mode is active.\n`
+    } else if (forcedType) {
+        modeInstruction = `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}". If the forced type is "draw", you must still choose the best spreadType and spreadReason. If the forced type is "support", you MUST set supportTopic (and supportCardSlug when the user is asking about a specific tarot card).\n`
+    }
 
     const detectedLang = detectQuestionLanguage(question)
+    const savedBirthBlock = savedBirthInfo
+        ? `Saved birth profile: available (${savedBirthInfo}).`
+        : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
+
+    const storedChartBlock = hasStoredBirthChart
+        ? "\nSaved birth chart: available. The user has a previously computed natal chart stored on their account. Questions like \"what does my Saturn mean?\", \"what is my rising sign?\", or any reference to \"my chart / my placements\" should be classified as \"horoscope\" and the app will pass the stored chart to the horoscope reader so it can answer with real placements."
+        : "\nSaved birth chart: not available."
+
+    const anonymousHoroscopeRule = !isAuthenticated
+        ? `\nNote: The user is NOT signed in. Horoscope readings ultimately require an account, but you should STILL classify timing/astrology questions as "horoscope" so the app can show a sign-in prompt. Do not pretend the topic is "chat" just to avoid the auth requirement — the client handles the sign-in gate separately.\n`
+        : ""
+
+    const effectivePlanTier = planTier ?? "free"
+    const planTierRule =
+        effectivePlanTier === "free"
+            ? `\nUser plan: FREE tier. The free tier is LIMITED TO A MAXIMUM OF 3 CARDS per draw. If type is "draw", you MUST choose only "simple" (1 card) or "general" (3 cards). Do NOT choose "detailed" (5), "expanded" (7), or "celtic" (10) for free-tier users — the client will downgrade them anyway.\n`
+            : `\nUser plan: ${effectivePlanTier.toUpperCase()} tier. The user has access to all spread sizes (up to 10 cards).\n`
 
     return `
 ${contextBlock}Recent conversation:
@@ -156,7 +234,8 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
-DETECTED LANGUAGE: The user's message is in ${detectedLang}. You MUST write assistantText entirely in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
+${savedBirthBlock}${storedChartBlock}${anonymousHoroscopeRule}${planTierRule}
+DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
 Classify the intent and return JSON.
 `
@@ -192,8 +271,10 @@ export async function POST(req: Request) {
             question?: string
             history?: unknown
             savedBirthInfo?: string | null
+            hasStoredBirthChart?: boolean
             interpretationMode?: string | null
             contextSummary?: string | null
+            planTier?: "free" | "basic" | "pro"
         }
         try {
             body = await req.json()
@@ -202,8 +283,28 @@ export async function POST(req: Request) {
                 status: 400,
             })
         }
-        const { question, history, interpretationMode, contextSummary } =
-            body ?? {}
+        const {
+            question,
+            history,
+            interpretationMode: rawInterpretationMode,
+            contextSummary,
+            savedBirthInfo,
+            hasStoredBirthChart,
+            planTier: rawPlanTier,
+        } = body ?? {}
+        const planTier =
+            rawPlanTier === "basic" || rawPlanTier === "pro"
+                ? rawPlanTier
+                : "free"
+
+        const user = await getUserFromBearer(req)
+        const isAuthenticated = Boolean(user)
+
+        let interpretationMode = rawInterpretationMode ?? null
+        if (!isAuthenticated && interpretationMode === "horoscope") {
+            interpretationMode = null
+        }
+
         const normalizedHistory = normalizeHistory(history)
 
         if (!question) {
@@ -219,17 +320,28 @@ export async function POST(req: Request) {
                 history: normalizedHistory,
                 interpretationMode,
                 contextSummary,
+                savedBirthInfo,
+                hasStoredBirthChart: Boolean(hasStoredBirthChart),
+                isAuthenticated,
+                planTier,
             }),
         })
 
-        result.object.then((obj) => {
-            console.log(
-                "[chat/decision] type:",
-                obj.type,
-                "isFollowUp:",
-                obj.isFollowUp ?? false,
-            )
-        })
+        result.object
+            .then((obj) => {
+                const incoming = summarizePrivacyPlaceholdersInText(question)
+                console.log("[chat/decision] route → decision + incoming question token summary", {
+                    type: obj.type,
+                    isFollowUp: obj.isFollowUp ?? false,
+                    spreadType: obj.spreadType,
+                    spreadReason: obj.spreadReason,
+                    /** If the client sent `[Person_0]`-style tokens, they show up here (not the real names). */
+                    incomingQuestionPlaceholderStats: incoming,
+                })
+            })
+            .catch((e) => {
+                console.error("[chat/decision] final object error:", e)
+            })
 
         return result.toTextStreamResponse()
     } catch (error) {

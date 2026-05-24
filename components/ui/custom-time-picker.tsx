@@ -1,15 +1,12 @@
 "use client"
 
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
     Popover,
+    PopoverAnchor,
     PopoverContent,
-    PopoverTrigger,
 } from "@/components/ui/popover"
-import { Input } from "@/components/ui/input"
-import { ChevronDown } from "lucide-react"
 
 interface CustomTimePickerProps {
     value: string
@@ -31,270 +28,248 @@ export function CustomTimePicker({
     className,
 }: CustomTimePickerProps) {
     const [isOpen, setIsOpen] = useState(false)
-    const [isDragging, setIsDragging] = useState(false)
-    const [dragStartY, setDragStartY] = useState(0)
-    const [dragStartValue, setDragStartValue] = useState(0)
-    const [isTyping, setIsTyping] = useState(false)
-    const [inputValue, setInputValue] = useState("")
-    const containerRef = useRef<HTMLDivElement>(null)
+    const [isFocused, setIsFocused] = useState(false)
+    const [localInput, setLocalInput] = useState(value || "")
     const listRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+    const anchorRef = useRef<HTMLDivElement>(null)
 
-    const currentValue = parseInt(value) || min
-    const displayValue = value
-        ? value.padStart(placeholder.length, "0")
-        : placeholder
+    const numericValue = Number.parseInt(value, 10)
+    const currentValue = Number.isFinite(numericValue) ? numericValue : min
+    const hasValue = Boolean(value)
 
-    // Generate array of numbers from min to max
     const numbers = Array.from({ length: max - min + 1 }, (_, i) => min + i)
 
-    const handleClick = () => {
-        if (!isTyping) {
-            setIsOpen(!isOpen)
-        }
-    }
-
-    const handleDoubleClick = () => {
-        setIsTyping(true)
-        setInputValue(value || "")
-        setTimeout(() => {
-            inputRef.current?.focus()
-            inputRef.current?.select()
-        }, 0)
-    }
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value
-        setInputValue(newValue)
-
-        // Only allow numbers
-        if (/^\d*$/.test(newValue)) {
-            const numValue = parseInt(newValue)
-            if (!isNaN(numValue) && numValue >= min && numValue <= max) {
-                onChange(newValue)
-            }
-        }
-    }
-
-    const handleInputBlur = () => {
-        setIsTyping(false)
-        const numValue = parseInt(inputValue)
-        if (isNaN(numValue) || numValue < min || numValue > max) {
-            // Reset to current value if invalid
-            setInputValue(value || "")
-        } else {
-            onChange(inputValue.padStart(placeholder.length, "0"))
-        }
-    }
-
-    const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            handleInputBlur()
-        } else if (e.key === "Escape") {
-            setIsTyping(false)
-            setInputValue(value || "")
-        }
-    }
-
-    const handleNumberClick = (num: number) => {
-        onChange(num.toString())
-        setIsOpen(false)
-    }
-
-    const handleMouseDown = (e: React.MouseEvent) => {
-        e.preventDefault()
-        setIsDragging(true)
-        setDragStartY(e.clientY)
-        setDragStartValue(currentValue)
-    }
-
-    const handleMouseMove = useCallback(
-        (e: MouseEvent) => {
-            if (!isDragging) return
-
-            const deltaY = dragStartY - e.clientY
-            const sensitivity = 3
-            const deltaValue = Math.round(deltaY / sensitivity)
-            const newValue = Math.max(
-                min,
-                Math.min(max, dragStartValue + deltaValue)
-            )
-
-            onChange(newValue.toString())
-        },
-        [dragStartValue, dragStartY, isDragging, min, max, onChange]
+    const clamp = useCallback(
+        (n: number) => Math.max(min, Math.min(max, n)),
+        [min, max],
     )
 
-    const handleMouseUp = useCallback(() => {
-        setIsDragging(false)
-    }, [])
+    useEffect(() => {
+        if (!isFocused) setLocalInput(value || "")
+    }, [value, isFocused])
+
+    useEffect(() => {
+        if (!isOpen || !listRef.current) return
+        const id = requestAnimationFrame(() => {
+            const el = listRef.current?.querySelector(
+                `[data-value="${currentValue}"]`,
+            )
+            if (el instanceof HTMLElement) {
+                el.scrollIntoView({ block: "center", behavior: "auto" })
+            }
+        })
+        return () => cancelAnimationFrame(id)
+    }, [isOpen, currentValue])
+
+    const displayedValue = isFocused
+        ? localInput
+        : hasValue
+            ? value.padStart(placeholder.length, "0")
+            : ""
 
     const handleWheel = (e: React.WheelEvent) => {
         e.preventDefault()
-        e.stopPropagation()
         const delta = e.deltaY > 0 ? -1 : 1
-        const newValue = Math.max(min, Math.min(max, currentValue + delta))
-        onChange(newValue.toString())
+        const next = clamp(currentValue + delta).toString()
+        onChange(next)
+        setLocalInput(next)
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "ArrowUp") {
             e.preventDefault()
-            const newValue = Math.max(min, Math.min(max, currentValue + 1))
-            onChange(newValue.toString())
+            const next = clamp(currentValue + 1).toString()
+            onChange(next)
+            setLocalInput(next)
+            if (!isOpen) setIsOpen(true)
         } else if (e.key === "ArrowDown") {
             e.preventDefault()
-            const newValue = Math.max(min, Math.min(max, currentValue - 1))
-            onChange(newValue.toString())
-        } else if (e.key === "Enter" || e.key === " ") {
+            const next = clamp(currentValue - 1).toString()
+            onChange(next)
+            setLocalInput(next)
+            if (!isOpen) setIsOpen(true)
+        } else if (e.key === "Enter") {
             e.preventDefault()
-            setIsOpen(!isOpen)
-        } else if (e.key === "Escape") {
+            commitInput()
             setIsOpen(false)
+            inputRef.current?.blur()
+        } else if (e.key === "Escape") {
+            setLocalInput(value || "")
+            setIsFocused(false)
+            setIsOpen(false)
+            inputRef.current?.blur()
         }
     }
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target as Node)
-            ) {
-                setIsOpen(false)
-            }
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const v = e.target.value
+        if (!/^\d*$/.test(v)) return
+        setLocalInput(v)
+        if (!isOpen) setIsOpen(true)
+        if (v === "") {
+            onChange("")
+            return
         }
+        const parsed = Number.parseInt(v, 10)
+        if (!Number.isFinite(parsed)) return
+        if (parsed >= min && parsed <= max) {
+            onChange(parsed.toString())
+        }
+    }
 
-        if (isOpen) {
-            document.addEventListener("mousedown", handleClickOutside)
-            return () => {
-                document.removeEventListener("mousedown", handleClickOutside)
-            }
+    const commitInput = () => {
+        setIsFocused(false)
+        if (localInput === "") {
+            return
         }
-    }, [isOpen])
-
-    useEffect(() => {
-        if (isDragging) {
-            document.addEventListener("mousemove", handleMouseMove)
-            document.addEventListener("mouseup", handleMouseUp)
-            return () => {
-                document.removeEventListener("mousemove", handleMouseMove)
-                document.removeEventListener("mouseup", handleMouseUp)
-            }
+        const parsed = Number.parseInt(localInput, 10)
+        if (!Number.isFinite(parsed)) {
+            setLocalInput(value || "")
+            return
         }
-    }, [
-        isDragging,
-        dragStartY,
-        dragStartValue,
-        min,
-        max,
-        handleMouseMove,
-        handleMouseUp,
-    ])
-
-    // Scroll to current value when dropdown opens
-    useEffect(() => {
-        if (isOpen && listRef.current) {
-            const selectedElement = listRef.current.querySelector(
-                `[data-value="${currentValue}"]`
-            )
-            if (selectedElement) {
-                selectedElement.scrollIntoView({
-                    block: "center",
-                    behavior: "smooth",
-                })
-            }
-        }
-    }, [isOpen, currentValue])
+        const clamped = clamp(parsed)
+        onChange(clamped.toString())
+        setLocalInput(clamped.toString())
+    }
 
     return (
-        <div className={cn("space-y-2", className)}>
-            {/* <Label className='text-white/80 text-sm font-medium'>{label}</Label> */}
-            <div className='relative' ref={containerRef}>
-                <Popover open={isOpen} onOpenChange={setIsOpen}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant='outline'
-                            role='combobox'
-                            aria-expanded={isOpen}
-                            className={cn(
-                                "w-full justify-between text-white backdrop-blur-md",
-                                "bg-white/5 border-2 border-white/10 hover:border-white/20",
-                                "hover:bg-white/10 transition-all duration-300 rounded-xl",
-                                "shadow-sm hover:shadow-cosmic-purple/20 focus-visible:ring-2 focus-visible:ring-cosmic-purple/30",
-                                "min-h-[84px] py-5 px-4",
-                                isDragging &&
-                                    "border-cosmic-purple/60 ring-2 ring-cosmic-purple/30 bg-white/10 scale-[1.02]",
-                                isOpen &&
-                                    "border-cosmic-purple/60 ring-2 ring-cosmic-purple/30 bg-white/10"
-                            )}
-                            onClick={handleClick}
-                            onDoubleClick={handleDoubleClick}
-                            onMouseDown={handleMouseDown}
-                            onWheel={handleWheel}
-                            onKeyDown={handleKeyDown}
-                        >
-                            <div className='text-center flex-1'>
-                                {isTyping ? (
-                                    <Input
-                                        ref={inputRef}
-                                        type='text'
-                                        value={inputValue}
-                                        onChange={handleInputChange}
-                                        onBlur={handleInputBlur}
-                                        onKeyDown={handleInputKeyDown}
-                                        className='text-3xl font-bold text-white bg-transparent border-none outline-none text-center w-full h-auto p-0 tracking-wider'
-                                        maxLength={placeholder.length}
-                                    />
-                                ) : (
-                                    <div className='text-3xl font-bold text-white tracking-wider'>
-                                        {displayValue}
-                                    </div>
-                                )}
-                                <div className='text-xs text-white/50 uppercase tracking-wider'>
-                                    {label}
-                                </div>
-                            </div>
-                            <ChevronDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                        className='w-72 p-0 bg-black/80 backdrop-blur-xl border-white/10 rounded-xl shadow-2xl ring-1 ring-white/10'
-                        align='start'
+        <div className={cn("relative w-full", className)}>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+                <PopoverAnchor asChild>
+                    <div
+                        ref={anchorRef}
+                        className={cn(
+                            "group relative flex min-h-[78px] w-full flex-col items-center justify-center gap-1",
+                            "rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.22)] bg-[rgba(255,255,255,0.02)]",
+                            "px-3 py-3 transition-all duration-200",
+                            "hover:border-[rgba(200,180,140,0.44)] hover:bg-[rgba(200,180,140,0.04)]",
+                            isFocused &&
+                                "border-[rgba(200,180,140,0.6)] bg-[rgba(200,180,140,0.06)] shadow-[inset_0_0_20px_-10px_rgba(200,180,140,0.3)]",
+                            isOpen &&
+                                !isFocused &&
+                                "border-[rgba(200,180,140,0.55)] bg-[rgba(200,180,140,0.06)] shadow-[inset_0_0_20px_-10px_rgba(200,180,140,0.25)]",
+                        )}
+                        onClick={() => inputRef.current?.focus()}
                     >
-                        <div className='max-h-56 overflow-y-auto' ref={listRef}>
-                            {numbers.map((num) => (
-                                <Button
+                        <label
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                inputRef.current?.focus()
+                            }}
+                            className='cursor-text text-[9px] font-normal uppercase tracking-[0.28em] text-[rgba(200,180,140,0.58)]'
+                        >
+                            {label}
+                        </label>
+                        <input
+                            ref={inputRef}
+                            type='text'
+                            inputMode='numeric'
+                            autoComplete='off'
+                            value={displayedValue}
+                            placeholder={placeholder}
+                            maxLength={placeholder.length}
+                            onFocus={(e) => {
+                                setIsFocused(true)
+                                setLocalInput(value || "")
+                                setIsOpen(true)
+                                requestAnimationFrame(() => e.target.select())
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setIsOpen(true)
+                            }}
+                            onBlur={commitInput}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
+                            onWheel={handleWheel}
+                            aria-label={label}
+                            className={cn(
+                                "w-full border-none bg-transparent text-center font-serif text-[26px] leading-none tracking-[0.18em] outline-none",
+                                "placeholder:text-[rgba(232,224,208,0.3)]",
+                                hasValue || isFocused
+                                    ? "text-[rgba(245,239,227,0.95)]"
+                                    : "text-[rgba(232,224,208,0.3)]",
+                            )}
+                        />
+                    </div>
+                </PopoverAnchor>
+                <PopoverContent
+                    align='center'
+                    sideOffset={6}
+                    collisionPadding={12}
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                    onCloseAutoFocus={(e) => e.preventDefault()}
+                    onPointerDownOutside={(e) => {
+                        const target = e.target as Node | null
+                        if (
+                            target &&
+                            anchorRef.current?.contains(target)
+                        ) {
+                            e.preventDefault()
+                        }
+                    }}
+                    onFocusOutside={(e) => {
+                        const target = e.target as Node | null
+                        if (
+                            target &&
+                            anchorRef.current?.contains(target)
+                        ) {
+                            e.preventDefault()
+                        }
+                    }}
+                    className={cn(
+                        "min-w-[140px] overflow-hidden p-0",
+                        "rounded-[3px] border-[0.5px] border-[rgba(200,180,140,0.28)]",
+                        "bg-[#171522]/95 backdrop-blur-xl",
+                        "shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8),0_0_0_1px_rgba(200,180,140,0.08)]",
+                    )}
+                    style={{
+                        width: "var(--radix-popover-trigger-width)",
+                    }}
+                >
+                    <div className='pointer-events-none absolute inset-x-0 top-0 z-10 h-6 bg-gradient-to-b from-[#171522] via-[#171522]/80 to-transparent' />
+                    <div className='pointer-events-none absolute inset-x-0 bottom-0 z-10 h-6 bg-gradient-to-t from-[#171522] via-[#171522]/80 to-transparent' />
+                    <div
+                        ref={listRef}
+                        onWheel={(e) => {
+                            const el = listRef.current
+                            if (!el) return
+                            e.stopPropagation()
+                            el.scrollTop += e.deltaY
+                        }}
+                        onTouchMove={(e) => e.stopPropagation()}
+                        className='consent-scrollbar relative max-h-[220px] overflow-y-auto overscroll-contain py-1'
+                    >
+                        {numbers.map((num) => {
+                            const isSelected = num === currentValue
+                            return (
+                                <button
+                                    type='button'
                                     key={num}
-                                    variant='ghost'
                                     data-value={num}
-                                    onClick={() => handleNumberClick(num)}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => {
+                                        onChange(num.toString())
+                                        setLocalInput(num.toString())
+                                        setIsOpen(false)
+                                    }}
                                     className={cn(
-                                        "w-full justify-center text-white/90 hover:text-white",
-                                        "hover:bg-white/10 rounded-none",
-                                        num === currentValue &&
-                                            "bg-cosmic-purple/20 text-cosmic-purple font-semibold"
+                                        "block w-full px-3 py-1.5 text-center font-serif text-[15px] tracking-[0.14em] transition-colors duration-150",
+                                        isSelected
+                                            ? "bg-[rgba(200,180,140,0.14)] text-[rgba(245,239,227,0.96)]"
+                                            : "text-[rgba(232,224,208,0.68)] hover:bg-[rgba(200,180,140,0.08)] hover:text-[rgba(245,239,227,0.92)]",
                                     )}
                                 >
                                     {num
                                         .toString()
                                         .padStart(placeholder.length, "0")}
-                                </Button>
-                            ))}
-                        </div>
-                    </PopoverContent>
-                </Popover>
-
-                {/* Drag indicator */}
-                <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
-                    <div
-                        className={cn(
-                            "w-6 h-0.5 bg-gradient-to-r from-cosmic-purple to-cosmic-blue rounded-full opacity-0 transition-opacity",
-                            isDragging && "opacity-100"
-                        )}
-                    />
-                </div>
-            </div>
+                                </button>
+                            )
+                        })}
+                    </div>
+                </PopoverContent>
+            </Popover>
         </div>
     )
 }

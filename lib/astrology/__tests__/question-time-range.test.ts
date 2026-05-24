@@ -9,6 +9,43 @@ test("uses explicit date from question as range start", () => {
     assert.equal(range.startDateIso, "2027-03-12")
     assert.equal(range.source, "explicit")
     assert.equal(range.durationDays, 1)
+    assert.equal(range.granularity, "hourly")
+})
+
+test("single-day relative question (tomorrow) resolves to hourly granularity", () => {
+    const range = resolveQuestionTimeRange("What will happen tomorrow?", {
+        now: new Date("2026-02-21T00:00:00.000Z"),
+    })
+    assert.equal(range.source, "relative")
+    assert.equal(range.durationDays, 1)
+    assert.equal(range.granularity, "hourly")
+})
+
+test("multi-day relative range resolves to daily granularity", () => {
+    const range = resolveQuestionTimeRange(
+        "What will happen within 7 days?",
+        { now: new Date("2026-02-21T00:00:00.000Z") },
+    )
+    assert.equal(range.source, "relative")
+    assert.equal(range.durationDays, 7)
+    assert.equal(range.granularity, "daily")
+})
+
+test("explicit hourly intent flips granularity to hourly when range is one day", () => {
+    const range = resolveQuestionTimeRange(
+        "Show me hour by hour for today",
+        { now: new Date("2026-02-21T00:00:00.000Z") },
+    )
+    assert.equal(range.durationDays, 1)
+    assert.equal(range.granularity, "hourly")
+})
+
+test("default 30-day fallback uses daily granularity", () => {
+    const range = resolveQuestionTimeRange("Tell me about my career", {
+        now: new Date("2026-02-21T00:00:00.000Z"),
+    })
+    assert.equal(range.source, "default_30d")
+    assert.equal(range.granularity, "daily")
 })
 
 test("uses relative duration when question asks within N months", () => {
@@ -43,6 +80,17 @@ test("async: skips AI when regex resolves a relative range", async () => {
     })
     assert.equal(range.source, "relative")
     assert.equal(range.durationDays, 90)
+})
+
+test("Thai 'this month' timing question ends on last day of current month", () => {
+    const range = resolveQuestionTimeRange(
+        "วันไหนกูการงานเด่นสุดในรอบเดือนนี้",
+        { now: new Date("2026-05-19T12:00:00.000Z") },
+    )
+    assert.equal(range.source, "relative")
+    assert.equal(range.startDateIso, "2026-05-19")
+    assert.equal(range.endDateIso, "2026-05-31")
+    assert.equal(range.granularity, "daily")
 })
 
 test("async: returns default_30d when regex has no match and AI returns 30", async () => {

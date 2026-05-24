@@ -1,10 +1,9 @@
 "use client"
 
-import { Card } from "@/components/ui/card"
 import { Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import BirthChartStats from "./stats"
-import BirthChartWheel from "./wheel"
+import BirthChartOrbitVisual from "./orbit-visual"
 import BirthChartShareSection from "./share-section"
 import BirthChartQuestion from "./question"
 import BirthChartDebugSection from "./debug-section"
@@ -29,74 +28,104 @@ interface BirthChartDisplayProps {
         planets?: Record<string, unknown> | null
         created_at: string
     }
+    mode?: "shared" | "personal"
+    onChartUpdated?: () => void | Promise<void>
 }
 
 export default function BirthChartDisplay({
     birthChart,
+    mode = "shared",
+    onChartUpdated,
 }: BirthChartDisplayProps) {
     const t = useTranslations("BirthChart")
 
     return (
-        <div className='space-y-12 px-4 max-w-6xl mx-auto h-full py-12'>
-            {/* Header */}
-            <Card className='px-8 pt-12 pb-8 border-0 relative overflow-hidden bg-transparent shadow-2xl'>
-                {/* Animated background elements */}
-                <div className='absolute inset-0 overflow-hidden'>
-                    <div className='absolute -top-40 -right-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse' />
-                    <div className='absolute -bottom-40 -left-40 w-80 h-80 bg-transparent rounded-full blur-3xl animate-pulse delay-1000' />
-                </div>
-                <div className='text-center space-y-6 relative z-10'>
-                    <div className='flex items-center justify-center space-x-3 relative'>
-                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
-                        <h1 className='font-serif font-bold text-3xl sm:text-4xl text-white'>
+        <div className='relative isolate'>
+            <div className='relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-10 lg:space-y-14'>
+                {/* Hero */}
+                <section className='relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-transparent backdrop-blur-xl shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)]'>
+                    <div
+                        aria-hidden
+                        className='pointer-events-none absolute -top-24 left-1/2 h-56 w-[28rem] -translate-x-1/2 rounded-full bg-violet-500/20 blur-[110px]'
+                    />
+                    <div
+                        aria-hidden
+                        className='pointer-events-none absolute -bottom-24 -right-16 h-48 w-48 rounded-full bg-amber-400/20 blur-3xl'
+                    />
+                    <div
+                        aria-hidden
+                        className='pointer-events-none absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-indigo-500/15 blur-3xl'
+                    />
+
+                    <div className='relative px-6 sm:px-10 py-10 sm:py-14 space-y-7 text-center'>
+                        <div className='inline-flex items-center justify-center gap-3'>
+                            <span className='h-px w-8 bg-gradient-to-r from-transparent to-amber-300/80' />
+                            <p className='text-[11px] font-medium uppercase tracking-[0.32em] text-amber-200/80'>
+                                {t("subtitle")}
+                            </p>
+                            <Sparkles className='h-3.5 w-3.5 text-amber-200/70' />
+                            <span className='h-px w-8 bg-gradient-to-l from-transparent to-amber-300/80' />
+                        </div>
+
+                        <h1 className='font-serif italic text-3xl sm:text-5xl text-white leading-tight'>
                             {t("pageTitle")}
                         </h1>
-                        <Sparkles className='w-7 h-7 text-accent animate-pulse' />
+
+                        <div className='mx-auto max-w-2xl'>
+                            <BirthChartInfoCard
+                                birthChart={birthChart}
+                                mode={mode}
+                                onChartUpdated={onChartUpdated}
+                            />
+                        </div>
                     </div>
+                </section>
 
-                    {/* Birth Information */}
-                    <BirthChartInfoCard birthChart={birthChart} />
-                </div>
-            </Card>
-
-            {/* Stats Section */}
-            <div className='space-y-6'>
-                <BirthChartStats planets={birthChart.planets} />
-            </div>
-
-            {/* Wheel */}
-            <div className='flex justify-center py-12 relative'>
-                {/* Enhanced Background Glow */}
-                <div className='absolute inset-0 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 blur-3xl rounded-full pointer-events-none animate-pulse' />
-                <div className='absolute inset-0 bg-primary/5.blur-2xl rounded-full pointer-events-none' />
-                <div className='relative z-10 transform hover:scale-105 transition-transform duration-500'>
-                    <BirthChartWheel
-                        houses={birthChart.houses}
-                        planets={birthChart.planets}
+                {/* Orbit + Stats */}
+                <section className='relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.04] to-white/[0.01] backdrop-blur-xl shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)]'>
+                    <div
+                        aria-hidden
+                        className='pointer-events-none absolute -top-32 left-1/2 h-64 w-[28rem] -translate-x-1/2 rounded-full bg-violet-500/10 blur-3xl'
                     />
-                </div>
+                    <div className='relative p-4 sm:p-6 lg:p-8 space-y-8'>
+                        <SectionEyebrow label={t("planetaryPositions")} />
+                        <div className='mx-auto w-full lg:max-w-2xl'>
+                            <BirthChartOrbitVisual
+                                planets={birthChart.planets}
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <BirthChartStats planets={birthChart.planets} />
+
+                {/* Houses Detail */}
+                <BirthChartHouses
+                    houses={birthChart.houses}
+                    planets={birthChart.planets}
+                />
+
+                {/* Planets Detail */}
+                <BirthChartPlanets planets={birthChart.planets} />
+
+                {/* Share Section (shared link pages only) */}
+                {mode === "shared" && (
+                    <BirthChartShareSection id={birthChart.id} />
+                )}
             </div>
+        </div>
+    )
+}
 
-            {/* Houses Detail */}
-            <BirthChartHouses
-                houses={birthChart.houses}
-                planets={birthChart.planets}
-            />
-
-            {/* Planets Detail */}
-            <BirthChartPlanets planets={birthChart.planets} />
-
-            {/* Share Section */}
-            <BirthChartShareSection id={birthChart.id} />
-
-            {/* Question Section */}
-            <BirthChartQuestion
-                houses={birthChart.houses}
-                planets={birthChart.planets}
-            />
-
-            {/* Debug Section */}
-            <BirthChartDebugSection data={birthChart} />
+function SectionEyebrow({ label }: { label: string }) {
+    return (
+        <div className='flex items-center gap-3'>
+            <span className='h-px w-8 bg-gradient-to-r from-amber-300/80 to-transparent' />
+            <p className='text-[11px] font-medium uppercase tracking-[0.32em] text-amber-200/80'>
+                {label}
+            </p>
+            <Sparkles className='h-3.5 w-3.5 text-amber-200/70' />
+            <span className='h-px flex-1 bg-gradient-to-r from-amber-300/30 to-transparent' />
         </div>
     )
 }

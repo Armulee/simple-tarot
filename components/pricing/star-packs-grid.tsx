@@ -11,27 +11,20 @@ import { useTranslations } from "next-intl"
 import {
     STAR_PACKS,
     getPackPrice,
+    getPackPriceId,
 } from "@/lib/payments/star-products"
 import {
     formatCurrency,
     type CurrencyCode,
 } from "@/lib/payments/currency-utils"
-import CurrencySelector from "./currency-selector"
 import { Badge } from "@/components/ui/badge"
 
 type StarPacksGridProps = {
     locale: string
     currency: CurrencyCode
-    defaultCurrency: string
-    onCurrencyChange: (currency: CurrencyCode) => void
 }
 
-export default function StarPacksGrid({
-    locale,
-    currency,
-    defaultCurrency,
-    onCurrencyChange,
-}: StarPacksGridProps) {
+export default function StarPacksGrid({ locale, currency }: StarPacksGridProps) {
     const t = useTranslations("Pricing")
 
     const formatAmount = (amount?: number | null) =>
@@ -114,20 +107,14 @@ export default function StarPacksGrid({
 
                             {/* Pricing Area */}
                             <div className='space-y-4 pt-4 mt-auto'>
-                                <div className='flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5 group-hover:border-white/10 transition-colors'>
+                                <div className='flex items-center p-4 rounded-2xl bg-black/40 border border-white/5 group-hover:border-white/10 transition-colors'>
                                     <div className='text-2xl font-bold text-white tracking-tight'>
                                         {formatAmount(
                                             p.id
-                                                ? getPackPrice(p.id, currency)
+                                                ? getPackPrice(p, currency)
                                                 : null
                                         )}
                                     </div>
-                                    <CurrencySelector
-                                        locale={locale}
-                                        defaultCurrency={defaultCurrency}
-                                        currency={currency}
-                                        onCurrencyChange={onCurrencyChange}
-                                    />
                                 </div>
 
                                 <ul className='space-y-3 px-1'>
@@ -143,7 +130,7 @@ export default function StarPacksGrid({
 
                                 <Checkout
                                     mode='addon'
-                                    packId={p.id}
+                                    packId={getPackPriceId(p, currency)}
                                     currency={currency}
                                     className='w-full'
                                 />

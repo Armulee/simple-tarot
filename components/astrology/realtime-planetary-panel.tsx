@@ -1,43 +1,27 @@
 "use client"
 
-import { type ReactNode, useState } from "react"
+import { Fragment, useState } from "react"
 import Image from "next/image"
-import {
-    ChevronDown,
-    ChevronUp,
-    Flame,
-    Layers,
-    Minus,
-    MoveHorizontal,
-    Sparkles,
-    Square,
-    Star,
-    Triangle,
-    TrendingDown,
-    TrendingUp,
-} from "lucide-react"
-import { Calendar, Eye } from "lucide-react"
+import { Eye, Flame, Sparkles, Star } from "lucide-react"
+import { AspectIcon } from "@/components/astrology/aspect-icon"
 import { useLocale, useTranslations } from "next-intl"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import type {
     AspectInsightItem,
     SourceAspectEvent,
 } from "@/components/chat/types"
-
-const PLANET_IMAGE_KEYS = new Set([
-    "sun",
-    "moon",
-    "mercury",
-    "venus",
-    "mars",
-    "jupiter",
-    "saturn",
-    "uranus",
-    "neptune",
-    "pluto",
-    "rahu",
-    "ketu",
-])
+import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
+import {
+    ACTIVE_ORB_DEGREES,
+    canonicalSignName,
+    computeOrbAgainstAngle,
+    getNatalLongitude,
+    getTodayTransitLongitude,
+    readNatalPlanetPoint,
+    readTransitPlanetPoint,
+    transitPlanetPriority,
+} from "@/lib/astrology/aspect-display"
+import { getPlanetDignity } from "@/lib/birth-chart-utils"
 
 type PanelAspectEvent = {
     aspectKey: string
@@ -54,6 +38,16 @@ type PanelAspectEvent = {
     dateText: string
     peakText?: string
     endText?: string
+    /**
+     * Raw ISO date strings preserved from the upstream aspect calc. Exact
+     * events fill `dateIso`; range events fill the start/peak/end trio. Kept
+     * so the EventCard timeline can compute "today's position" inside the
+     * window instead of hardcoding it to the midpoint.
+     */
+    dateIso?: string
+    startDateIso?: string
+    peakDateIso?: string
+    endDateIso?: string
     tier: "main" | "minor"
     zodiacSign: string
     transitPositionText?: string
@@ -160,7 +154,7 @@ function localizePositionText(
     return `${translateZodiacSign(signRaw, t)} · ${degreeRaw}`
 }
 
-function parseAbsoluteFromPositionText(positionText: string | undefined) {
+function parseAbsoluteFromPositionText(positionText: string | null | undefined) {
     const normalizedPositionText = normalizePositionText(positionText)
     if (!normalizedPositionText) return undefined
     const parts = normalizedPositionText.split("·").map((part) => part.trim())
@@ -180,16 +174,8 @@ function getPlanetPositionFromChartData(
     chartData: Record<string, unknown> | null | undefined,
     planet: string,
 ) {
-    if (!chartData) return null
-    const transit = chartData.transit as
-        | {
-              charts?: Array<{
-                  planets?: Record<string, { sign?: unknown; degree?: unknown }>
-              }>
-          }
-        | undefined
-    const point = transit?.charts?.[0]?.planets?.[planet]
-    if (!point || typeof point !== "object") return null
+    const point = readTransitPlanetPoint(chartData, planet)
+    if (!point) return null
     const sign = typeof point.sign === "string" ? point.sign : null
     const degree = formatPlanetDegree(point.degree)
     if (!sign && !degree) return null
@@ -200,18 +186,46 @@ function getNatalPlanetPositionFromChartData(
     chartData: Record<string, unknown> | null | undefined,
     planet: string,
 ) {
-    if (!chartData) return null
-    const charts = chartData.charts as
-        | Array<{
-              planets?: Record<string, { sign?: unknown; degree?: unknown }>
-          }>
-        | undefined
-    const point = charts?.[0]?.planets?.[planet]
-    if (!point || typeof point !== "object") return null
+    const point = readNatalPlanetPoint(chartData, planet)
+    if (!point) return null
     const sign = typeof point.sign === "string" ? point.sign : null
     const degree = formatPlanetDegree(point.degree)
     if (!sign && !degree) return null
     return [sign, degree].filter(Boolean).join(" · ")
+}
+
+function extractSignFromAbsolute(longitude: number | undefined): string | null {
+    if (typeof longitude !== "number" || !Number.isFinite(longitude)) return null
+    const normalized = ((longitude % 360) + 360) % 360
+    return ZODIAC_SIGNS_EN[Math.floor(normalized / 30)] ?? null
+}
+
+function parseSignFromPositionText(
+    positionText: string | null | undefined,
+): string | null {
+    const normalized = normalizePositionText(positionText)
+    if (!normalized) return null
+    const sign = normalized.split("·")[0]?.trim()
+    return sign || null
+}
+
+/**
+ * Returns today's orb for an aspect event in degrees, or null if either
+ * longitude can't be resolved.
+ */
+function computeTodayOrbForEvent(
+    event: PanelAspectEvent,
+    chartData: Record<string, unknown> | null | undefined,
+): number | null {
+    return computeOrbAgainstAngle(
+        getTodayTransitLongitude(chartData, event.transitPlanet),
+        getNatalLongitude(
+            chartData,
+            event.natalPlanet,
+            event.natalAbsoluteLongitude,
+        ),
+        event.aspectAngle,
+    )
 }
 
 function formatDateIsoForLocale(dateIso: string, locale: string) {
@@ -223,6 +237,33 @@ function formatDateIsoForLocale(dateIso: string, locale: string) {
         year: "numeric",
         timeZone: "UTC",
     })
+}
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+/** UTC midnight epoch for a YYYY-MM-DD ISO date, or `null` if unparseable. */
+function parseIsoDay(iso: string | undefined | null): number | null {
+    if (typeof iso !== "string" || !iso) return null
+    const parsed = Date.parse(`${iso}T00:00:00.000Z`)
+    return Number.isFinite(parsed) ? parsed : null
+}
+
+/** UTC midnight epoch for "today" in the user's clock; collapsed to UTC day. */
+function todayUtcEpoch(): number {
+    const now = new Date()
+    return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
+}
+
+function clamp01(n: number): number {
+    if (!Number.isFinite(n)) return 0
+    if (n < 0) return 0
+    if (n > 1) return 1
+    return n
+}
+
+/** Signed integer day difference between two UTC midnight epochs. */
+function daysBetween(a: number, b: number): number {
+    return Math.round((b - a) / MS_PER_DAY)
 }
 
 function formatPositionFromAbsolute(longitude: unknown) {
@@ -287,6 +328,7 @@ function getPersonalizedAspectEvents(
             natalAbsoluteLongitude: toFiniteNumber(
                 event.natalAbsoluteLongitude,
             ),
+            dateIso: event.dateIso,
             dateText: t("exactDatePrefix", {
                 date: formatDateIsoForLocale(event.dateIso, locale),
             }),
@@ -322,6 +364,9 @@ function getPersonalizedAspectEvents(
             natalAbsoluteLongitude: toFiniteNumber(
                 event.natalAbsoluteLongitude,
             ),
+            startDateIso: event.startDateIso,
+            peakDateIso: event.peakDateIso,
+            endDateIso: event.endDateIso,
             dateText: t("rangeDateStart", {
                 start: formatDateIsoForLocale(event.startDateIso, locale),
             }),
@@ -342,68 +387,222 @@ function getPersonalizedAspectEvents(
         .slice(0, Math.max(6, exactEvents.length + rangeEvents.length))
 }
 
-function AspectIcon({ aspectType }: { aspectType: string }) {
-    if (aspectType === "conjunction") {
-        return <Layers className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "opposition") {
-        return <MoveHorizontal className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "square") {
-        return <Square className='h-4 w-4 text-cyan-200' />
-    }
-    if (aspectType === "trine") {
-        return <Triangle className='h-4 w-4 text-cyan-200' />
-    }
-    return <Minus className='h-4 w-4 text-cyan-200' />
-}
-
-type ToggleItem = {
-    key: string
-    isOpen: boolean
-    button: ReactNode
-    content?: ReactNode
-}
-
-function ToggleButtonGroup({
-    items,
+/**
+ * Visualises where the current moment sits within an aspect's window.
+ *
+ * - Range events (`startDateIso` / `peakDateIso` / `endDateIso` present):
+ *   Horizontal track from start → end with an amber peak dot and a small white
+ *   "today" tick that slides along the bar. The track is split visually so the
+ *   portion before today is dim and the portion ahead is brighter, giving a
+ *   "we are here" hint at a glance. If today is outside the window, the tick
+ *   pins to the nearest edge in a muted style with a small `before`/`after`
+ *   delta label.
+ * - Exact events (only `dateIso`): no bar — just a single amber dot + the
+ *   formatted date and a relative hint ("today" / "in N days" / "N days ago").
+ * - Fallback (no ISOs at all): keep the static start | peak | end text row so
+ *   we never regress to a worse layout than before.
+ */
+function AspectTimeline({
+    event,
+    dateStart,
+    datePeak,
+    dateEnd,
+    locale,
+    t,
 }: {
-    items: Array<ToggleItem | null | undefined>
+    event: PanelAspectEvent
+    dateStart: string
+    datePeak: string
+    dateEnd: string
+    locale: string
+    t: (key: string, values?: Record<string, string | number>) => string
 }) {
-    const visible = items.filter(Boolean) as ToggleItem[]
-    if (visible.length === 0) return null
+    const today = todayUtcEpoch()
+    const startMs = parseIsoDay(event.startDateIso)
+    const peakMs = parseIsoDay(event.peakDateIso)
+    const endMs = parseIsoDay(event.endDateIso)
+    const exactMs = parseIsoDay(event.dateIso)
 
-    const firstOpenIdx = visible.findIndex((item) => item.isOpen && item.content)
+    // RANGE: start / peak / end all parseable and the window has non-zero span.
+    if (
+        startMs !== null &&
+        peakMs !== null &&
+        endMs !== null &&
+        endMs > startMs
+    ) {
+        const span = endMs - startMs
+        const peakProgress = clamp01((peakMs - startMs) / span)
+        const rawTodayProgress = (today - startMs) / span
+        const inWindow = rawTodayProgress >= 0 && rawTodayProgress <= 1
+        const todayProgress = clamp01(rawTodayProgress)
+        const todayPct = todayProgress * 100
+        const peakPct = peakProgress * 100
 
-    if (firstOpenIdx === -1) {
+        const beforeDays = daysBetween(today, startMs)
+        const afterDays = daysBetween(endMs, today)
+        const todayHint = inWindow
+            ? null
+            : rawTodayProgress < 0
+              ? t("timelineUpcoming", {
+                    days: beforeDays,
+                    defaultValue: `in ${beforeDays}d`,
+                })
+              : t("timelinePassed", {
+                    days: afterDays,
+                    defaultValue: `${afterDays}d ago`,
+                })
+
         return (
-            <div className='flex flex-wrap items-center gap-2'>
-                {visible.map((item) => (
-                    <div key={item.key}>{item.button}</div>
-                ))}
+            <div className='space-y-2'>
+                <div className='relative pt-7'>
+                    {/* Peak date sits above the flame / track */}
+                    <span
+                        className='pointer-events-none absolute top-0 z-[3] -translate-x-1/2 whitespace-nowrap font-mono text-[10px] leading-none text-amber-200/90 tabular-nums'
+                        style={{ left: `${peakPct}%` }}
+                    >
+                        {datePeak}
+                    </span>
+                    <div
+                        className='relative h-[6px] rounded-full bg-white/[0.06]'
+                        role='img'
+                        aria-label={t("timelineAriaLabel", {
+                            start: dateStart,
+                            peak: datePeak,
+                            end: dateEnd,
+                            defaultValue: `${dateStart} - ${datePeak} - ${dateEnd}`,
+                        })}
+                    >
+                        {/* Filled portion up to today (or 100% if past) */}
+                        <div
+                            className='absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-white/15 via-amber-200/35 to-amber-200/45'
+                            style={{ width: `${todayPct}%` }}
+                        />
+                        {/* Peak marker — fire icon at exact peak */}
+                        <Flame
+                            className='pointer-events-none absolute top-1/2 z-[1] h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 text-amber-400 drop-shadow-[0_0_10px_rgba(251,146,60,0.85)]'
+                            style={{ left: `${peakPct}%` }}
+                            aria-hidden
+                            strokeWidth={2}
+                            fill='currentColor'
+                        />
+                        {/* Today indicator — small white tick */}
+                        <div
+                            className={`absolute top-1/2 z-[2] h-[14px] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full ${
+                                inWindow
+                                    ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)]"
+                                    : "bg-white/35"
+                            }`}
+                            style={{ left: `${todayPct}%` }}
+                            aria-hidden
+                        />
+                    </div>
+                </div>
+                {/* Start / end only — peak label is above the flame */}
+                <div className='flex min-h-[14px] justify-between gap-3 font-mono text-[10px] tabular-nums'>
+                    <span className='min-w-0 max-w-[48%] truncate text-left text-white/40'>
+                        {dateStart}
+                    </span>
+                    <span className='min-w-0 max-w-[48%] truncate text-right text-white/40'>
+                        {dateEnd}
+                    </span>
+                </div>
+                {todayHint && (
+                    <p className='text-center text-[10px] text-white/35'>
+                        {todayHint}
+                    </p>
+                )}
             </div>
         )
     }
 
-    const before = visible.slice(0, firstOpenIdx + 1)
-    const openItem = visible[firstOpenIdx]
-    const after = visible.slice(firstOpenIdx + 1)
-
-    return (
-        <div className='space-y-2'>
-            <div className='flex flex-wrap items-center gap-2'>
-                {before.map((item) => (
-                    <div key={item.key}>{item.button}</div>
-                ))}
-            </div>
-            {openItem.content}
-            {after.length > 0 && (
-                <ToggleButtonGroup
-                    items={after}
+    // EXACT: only a single date is meaningful.
+    if (exactMs !== null) {
+        const delta = daysBetween(today, exactMs)
+        const exactLabel =
+            delta === 0
+                ? t("timelineToday", { defaultValue: "Today" })
+                : delta > 0
+                  ? t("timelineUpcoming", {
+                        days: delta,
+                        defaultValue: `in ${delta}d`,
+                    })
+                  : t("timelinePassed", {
+                        days: Math.abs(delta),
+                        defaultValue: `${Math.abs(delta)}d ago`,
+                    })
+        const dateLabel = formatDateIsoForLocale(event.dateIso!, locale)
+        const muted = delta < 0
+        return (
+            <div className='flex items-center gap-2'>
+                <div
+                    className={`relative h-[10px] w-[10px] rounded-full ${
+                        muted
+                            ? "bg-white/30"
+                            : "bg-amber-300 shadow-[0_0_10px_2px_rgba(252,191,73,0.5)] ring-1 ring-amber-200/40"
+                    }`}
+                    aria-hidden
                 />
-            )}
+                <p
+                    className={`font-mono text-[11px] tabular-nums ${
+                        muted ? "text-white/40" : "text-white/75"
+                    }`}
+                >
+                    <span>{dateLabel}</span>
+                    <span className='ml-2 text-white/40'>·</span>
+                    <span className='ml-2 text-white/55'>{exactLabel}</span>
+                </p>
+            </div>
+        )
+    }
+
+    // FALLBACK: no ISOs → keep the legacy three-up text row.
+    return (
+        <div className='grid grid-cols-3 gap-2 font-mono text-[10px] tabular-nums text-white/45'>
+            <span>{dateStart}</span>
+            <span className='text-center text-amber-200/85'>{datePeak}</span>
+            <span className='text-right'>{dateEnd}</span>
         </div>
     )
+}
+
+const INITIAL_VISIBLE_EVENTS = 4
+const SHOW_MORE_STEP = 4
+
+type DignityBadgeKey = "exalted" | "ownSign" | "debilitated" | "retrograde"
+
+type DignityBadge = {
+    key: DignityBadgeKey
+    label: string
+}
+
+const DIGNITY_BADGE_STYLE: Record<DignityBadgeKey, string> = {
+    exalted: "border-amber-300/40 bg-amber-400/12 text-amber-100",
+    ownSign: "border-sky-300/40 bg-sky-400/12 text-sky-100",
+    debilitated: "border-red-300/40 bg-red-400/12 text-red-100",
+    retrograde: "border-white/15 bg-white/[0.06] text-white/70",
+}
+
+function buildDignityBadges({
+    isExalted,
+    isDebilitated,
+    isOwnSign,
+    isRetrograde,
+    t,
+}: {
+    isExalted: boolean
+    isDebilitated: boolean
+    isOwnSign: boolean
+    isRetrograde: boolean
+    t: (key: string, values?: Record<string, string | number>) => string
+}): DignityBadge[] {
+    const badges: DignityBadge[] = []
+    if (isExalted) badges.push({ key: "exalted", label: t("dignity.exalted") })
+    if (isDebilitated)
+        badges.push({ key: "debilitated", label: t("dignity.debilitated") })
+    if (isOwnSign) badges.push({ key: "ownSign", label: t("dignity.ownSign") })
+    if (isRetrograde)
+        badges.push({ key: "retrograde", label: t("dignity.retrograde") })
+    return badges
 }
 
 export default function RealtimePlanetaryPanel({
@@ -413,12 +612,6 @@ export default function RealtimePlanetaryPanel({
     aspectInsights,
     onAskAspectDetail,
     askedAspectKeys,
-    showBirthDetails,
-    showTransitDetails,
-    onToggleBirthDetails,
-    onToggleTransitDetails,
-    birthDetailsContent,
-    transitDetailsContent,
 }: {
     chartData?: Record<string, unknown> | null
     personalizedTransitAspects?: PersonalizedTransitAspectsResult | null
@@ -430,12 +623,6 @@ export default function RealtimePlanetaryPanel({
         event: SourceAspectEvent,
     ) => void
     askedAspectKeys?: Record<string, string>
-    showBirthDetails?: boolean
-    showTransitDetails?: boolean
-    onToggleBirthDetails?: () => void
-    onToggleTransitDetails?: () => void
-    birthDetailsContent?: ReactNode
-    transitDetailsContent?: ReactNode
 }) {
     const locale = useLocale()
     const t = useTranslations("PlanetaryPanel")
@@ -443,11 +630,10 @@ export default function RealtimePlanetaryPanel({
     const [hiddenImages, setHiddenImages] = useState<Record<string, boolean>>(
         {},
     )
-    const [showRelatedAspects, setShowRelatedAspects] = useState(false)
-    const [showAllAspects, setShowAllAspects] = useState(false)
-    const [localShowBirthDetails, setLocalShowBirthDetails] = useState(false)
-    const [localShowTransitDetails, setLocalShowTransitDetails] =
-        useState(false)
+    const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_EVENTS)
+    const [expandedTechnical, setExpandedTechnical] = useState<
+        Record<string, boolean>
+    >({})
     const fallbackAspects = chartData?.personalizedTransitAspects as
         | PersonalizedTransitAspectsResult
         | undefined
@@ -496,44 +682,73 @@ export default function RealtimePlanetaryPanel({
         ? allAspectEvents.filter((event) => !mergedKeys.has(event.aspectKey))
         : []
 
-    const highEvents = discussedEvents.filter((e) => e.intensity === "high")
-    const mediumEvents = discussedEvents.filter((e) => e.intensity === "medium")
-    const lowEvents = discussedEvents.filter(
-        (e) => !e.intensity || e.intensity === "low",
-    )
-    const featuredEvents =
-        highEvents.length > 0
-            ? highEvents
-            : mediumEvents.length > 0
-              ? mediumEvents
-              : lowEvents
-    const featuredKeys = new Set(featuredEvents.map((e) => e.aspectKey))
-    const relatedEvents = discussedEvents.filter(
-        (e) => !featuredKeys.has(e.aspectKey) && (e.impact || e.intensity),
-    )
-    const allRemainingEvents = [
-        ...discussedEvents.filter(
-            (e) =>
-                !featuredKeys.has(e.aspectKey) && !e.impact && !e.intensity,
-        ),
-        ...undiscussedEvents,
+    // Flatten every aspect event into a single priority-ordered list so the
+    // panel can cap initial display at 4 cards and reveal more on demand.
+    // Order (highest priority first):
+    //   1. discussed + high intensity
+    //   2. discussed + medium intensity
+    //   3. discussed + low intensity
+    //   4. discussed without intensity but with impact
+    //   5. discussed without impact/intensity
+    //   6. undiscussed
+    // Within each tier we keep the upstream array order, which is already
+    // sorted by tier=main first, then orb.
+    const tierBuckets: PanelAspectEvent[][] = [
+        discussedEvents.filter((e) => e.intensity === "high"),
+        discussedEvents.filter((e) => e.intensity === "medium"),
+        discussedEvents.filter((e) => e.intensity === "low"),
+        discussedEvents.filter((e) => !e.intensity && e.impact),
+        discussedEvents.filter((e) => !e.intensity && !e.impact),
+        undiscussedEvents,
     ]
-    const hasBirthDetails = Boolean(
-        (chartData as { charts?: unknown[] } | null)?.charts?.length,
+    const orderedEvents: PanelAspectEvent[] = []
+    const seenKeys = new Set<string>()
+    for (const bucket of tierBuckets) {
+        for (const ev of bucket) {
+            if (seenKeys.has(ev.aspectKey)) continue
+            seenKeys.add(ev.aspectKey)
+            orderedEvents.push(ev)
+        }
+    }
+    // Final pass: push Uranus/Neptune/Pluto aspects to the bottom, Jupiter /
+    // Saturn to the top, everything else in between. Array.sort is stable so
+    // the intensity-bucket order above is preserved within each group.
+    orderedEvents.sort(
+        (a, b) =>
+            transitPlanetPriority(a.transitPlanet) -
+            transitPlanetPriority(b.transitPlanet),
     )
-    const hasTransitDetails = Boolean(
-        (chartData as { transit?: { charts?: unknown[] } } | null)?.transit
-            ?.charts?.length,
-    )
-    const resolvedShowBirthDetails = showBirthDetails ?? localShowBirthDetails
-    const resolvedShowTransitDetails =
-        showTransitDetails ?? localShowTransitDetails
-    const handleToggleBirthDetails =
-        onToggleBirthDetails ??
-        (() => setLocalShowBirthDetails((prev) => !prev))
-    const handleToggleTransitDetails =
-        onToggleTransitDetails ??
-        (() => setLocalShowTransitDetails((prev) => !prev))
+    // Drop events whose orb *today* is outside the standard +-5 degree
+    // window. The upstream calc emits aspects with multi-month windows
+    // anchored on the peak date, so an aspect can be "in range" by date but
+    // still 20-30 degrees off orb today — those are not real active
+    // aspects and shouldn't crowd out the ones that actually are. When we
+    // can't compute today's orb (missing chartData longitude), keep the
+    // event so we don't accidentally erase the whole panel.
+    const activeEvents = orderedEvents.filter((event) => {
+        const orbToday = computeTodayOrbForEvent(event, chartData)
+        if (orbToday === null) return true
+        return orbToday <= ACTIVE_ORB_DEGREES
+    })
+    if (activeEvents.length === 0) return null
+    const visibleEvents = activeEvents.slice(0, visibleCount)
+    const hasMoreEvents = visibleCount < activeEvents.length
+
+    function DignityBadges({ badges }: { badges: DignityBadge[] }) {
+        if (badges.length === 0) return null
+        return (
+            <div className='mt-1.5 flex flex-wrap justify-center gap-1'>
+                {badges.map((badge) => (
+                    <span
+                        key={badge.key}
+                        className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-medium tracking-wide ${DIGNITY_BADGE_STYLE[badge.key]}`}
+                    >
+                        {badge.label}
+                    </span>
+                ))}
+            </div>
+        )
+    }
 
     function PlanetAvatar({ planet }: { planet: string }) {
         const key = planet.toLowerCase()
@@ -563,146 +778,242 @@ export default function RealtimePlanetaryPanel({
     }
 
     function EventCard({ event }: { event: PanelAspectEvent }) {
-        const info = getPlanetPositionFromChartData(
+        const transitPoint = readTransitPlanetPoint(
             chartData,
             event.transitPlanet,
         )
+        const natalPoint = readNatalPlanetPoint(chartData, event.natalPlanet)
 
+        const transitChartPosition = getPlanetPositionFromChartData(
+            chartData,
+            event.transitPlanet,
+        )
+        const natalChartPosition = getNatalPlanetPositionFromChartData(
+            chartData,
+            event.natalPlanet,
+        )
+
+        // Show today's transit position (chartData), not the peak-time
+        // position the aspect calc snapshots, so the sign/degree matches the
+        // planet's *actual* current location. The orb shown alongside is
+        // recomputed for today's positions just below so the two never
+        // contradict each other; the peak orb / peak date are rendered
+        // separately (timeline above + peak row in the technical drawer).
         const transitPosition =
+            localizePositionText(transitChartPosition, t) ||
             localizePositionText(event.transitPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.transitAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(info, t) ||
             noChartPositionLabel
         const natalPosition =
+            localizePositionText(natalChartPosition, t) ||
             localizePositionText(event.natalPositionText, t) ||
             formatPositionFromAbsoluteLocalized(
                 event.natalAbsoluteLongitude,
                 t,
             ) ||
-            localizePositionText(
-                getNatalPlanetPositionFromChartData(
-                    chartData,
-                    event.natalPlanet,
-                ),
-                t,
-            ) ||
             noChartPositionLabel
         const resolvedTransitAbsoluteLongitude =
+            toFiniteNumber(transitPoint?.longitude) ??
+            parseAbsoluteFromPositionText(transitChartPosition) ??
             toFiniteNumber(event.transitAbsoluteLongitude) ??
-            parseAbsoluteFromPositionText(event.transitPositionText) ??
-            parseAbsoluteFromPositionText(transitPosition)
+            parseAbsoluteFromPositionText(event.transitPositionText)
         const resolvedNatalAbsoluteLongitude =
+            toFiniteNumber(natalPoint?.longitude) ??
+            parseAbsoluteFromPositionText(natalChartPosition) ??
             toFiniteNumber(event.natalAbsoluteLongitude) ??
-            parseAbsoluteFromPositionText(event.natalPositionText) ??
-            parseAbsoluteFromPositionText(natalPosition)
+            parseAbsoluteFromPositionText(event.natalPositionText)
+        // Recompute orb against today's positions so the technical drawer's
+        // ORB row matches the sign/degree above it. Fall back to the
+        // upstream peak orb only when we couldn't resolve a current
+        // transit / natal longitude.
+        const currentOrb = computeOrbAgainstAngle(
+            resolvedTransitAbsoluteLongitude,
+            resolvedNatalAbsoluteLongitude,
+            event.aspectAngle,
+        )
+        const orbForDisplay = currentOrb ?? event.orb
+        const peakTransitAbsolute =
+            toFiniteNumber(event.transitAbsoluteLongitude) ??
+            parseAbsoluteFromPositionText(event.transitPositionText)
+        const peakTransitPosition =
+            localizePositionText(event.transitPositionText, t) ||
+            formatPositionFromAbsoluteLocalized(peakTransitAbsolute, t)
+        const peakOrbText = `${event.orb.toFixed(1)}°`
+        const showPeakRow = (() => {
+            if (peakTransitAbsolute == null) return false
+            if (resolvedTransitAbsoluteLongitude == null) return false
+            return (
+                Math.abs(
+                    peakTransitAbsolute -
+                        resolvedTransitAbsoluteLongitude,
+                ) > 0.05
+            )
+        })()
+
+        // Dignity is derived from the sign we're actually showing, so the
+        // "Debilitated / Own sign / …" chip never disagrees with the sign
+        // label above it.
+        const transitDisplaySign = canonicalSignName(
+            extractSignFromAbsolute(resolvedTransitAbsoluteLongitude) ??
+                parseSignFromPositionText(event.transitPositionText) ??
+                parseSignFromPositionText(transitChartPosition),
+        )
+        const natalDisplaySign = canonicalSignName(
+            extractSignFromAbsolute(resolvedNatalAbsoluteLongitude) ??
+                parseSignFromPositionText(event.natalPositionText) ??
+                parseSignFromPositionText(natalChartPosition),
+        )
+        const transitDignity = transitDisplaySign
+            ? getPlanetDignity(event.transitPlanet, transitDisplaySign)
+            : { isExalted: false, isDebilitated: false, isOwnSign: false }
+        const natalDignity = natalDisplaySign
+            ? getPlanetDignity(event.natalPlanet, natalDisplaySign)
+            : { isExalted: false, isDebilitated: false, isOwnSign: false }
+        // chartData.transit.retrograde describes today's state, which now
+        // matches the position we're rendering, so the badge is always
+        // applied to "today's" transit.
+        const transitRetrograde = Boolean(transitPoint?.retrograde)
+        const natalRetrograde = Boolean(natalPoint?.retrograde)
+        const transitBadges = buildDignityBadges({
+            isExalted: transitDignity.isExalted,
+            isDebilitated: transitDignity.isDebilitated,
+            isOwnSign: transitDignity.isOwnSign,
+            isRetrograde: transitRetrograde,
+            t,
+        })
+        const natalBadges = buildDignityBadges({
+            isExalted: natalDignity.isExalted,
+            isDebilitated: natalDignity.isDebilitated,
+            isOwnSign: natalDignity.isOwnSign,
+            isRetrograde: natalRetrograde,
+            t,
+        })
         const transitAbsoluteText = formatAbsoluteLongitudeBreakdown(
             resolvedTransitAbsoluteLongitude,
         )
         const natalAbsoluteText = formatAbsoluteLongitudeBreakdown(
             resolvedNatalAbsoluteLongitude,
         )
-        const sentimentIcon =
-            event.sentiment === "good" ? (
-                <TrendingUp className='h-3.5 w-3.5 text-emerald-300' />
-            ) : event.sentiment === "bad" ? (
-                <TrendingDown className='h-3.5 w-3.5 text-rose-300' />
-            ) : (
-                <Minus className='h-3.5 w-3.5 text-slate-300' />
-            )
         const defaultKeyword = t("defaultKeyword")
         const hasRealKeyword =
             !!event.keyword?.trim() && event.keyword.trim() !== defaultKeyword
         const displayKeyword = event.keyword?.trim() || defaultKeyword
+        const intensity = event.intensity ?? "low"
+        const intensityColor =
+            intensity === "high"
+                ? "#E8604C"
+                : intensity === "medium"
+                  ? "#E8A84C"
+                  : "#4CC9A4"
+        const isTechnicalExpanded = Boolean(expandedTechnical[event.aspectKey])
+        const dateStart = event.dateText?.replace(/^.*?\s/, "") || "-"
+        const datePeak = event.peakText?.replace(/^.*?\s/, "") || dateStart
+        const dateEnd = event.endText?.replace(/^.*?\s/, "") || datePeak
+        const transitLabel =
+            t(`planets.${event.transitPlanet}`) ?? event.transitPlanet
+        const natalLabel =
+            t(`planets.${event.natalPlanet}`) ?? event.natalPlanet
+
         return (
-            <div className='rounded-2xl border border-white/10 bg-white/5 p-3 space-y-2 min-w-[260px]'>
-                <div className='flex flex-wrap justify-between items-center gap-1.5'>
-                    {(event.impact || event.intensity) && (
-                        <>
-                            {event.impact && (
-                                <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-violet-500/10 border border-violet-500/20 text-violet-200'>
-                                    {t("impactLabel")}
-                                    <span className='text-violet-100'>
-                                        {event.impact}
-                                    </span>
-                                </span>
-                            )}
-                            {event.intensity && (
-                                <span
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium border ${
-                                        event.intensity === "high"
-                                            ? "bg-rose-500/10 border-rose-500/20 text-rose-200"
-                                            : event.intensity === "medium"
-                                              ? "bg-amber-500/10 border-amber-500/20 text-amber-200"
-                                              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-200"
-                                    }`}
-                                >
-                                    {t("intensityLabel")}
-                                    <span>
-                                        {t(`intensity.${event.intensity}`)}
-                                    </span>
-                                </span>
-                            )}
-                        </>
-                    )}
+            <div className='min-w-[260px] space-y-5 rounded-2xl border border-white/[0.06] bg-gradient-to-br from-white/[0.035] to-white/[0.015] p-5 transition duration-300 hover:bg-white/[0.045]'>
+                <div className='flex flex-wrap items-center gap-1.5'>
+                    <span className='inline-flex h-6 items-center gap-1.5 rounded-full border border-violet-300/15 bg-violet-300/[0.06] px-2.5 text-[10px] font-medium tracking-wide text-violet-100/90'>
+                        <span className='text-violet-200/55'>
+                            {t("impactLabel")}
+                        </span>
+                        <span className='text-violet-50'>
+                            {event.impact || displayKeyword}
+                        </span>
+                    </span>
+                    <span
+                        className='inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-medium tracking-wide'
+                        style={{
+                            borderColor: `${intensityColor}40`,
+                            backgroundColor: `${intensityColor}14`,
+                            color: intensityColor,
+                        }}
+                    >
+                        <span style={{ color: `${intensityColor}AA` }}>
+                            {t("intensityLabel")}
+                        </span>
+                        <span>{t(`intensity.${intensity}`)}</span>
+                    </span>
                 </div>
 
-                <div className='flex items-center justify-between gap-3'>
-                    <div className='inline-flex items-center gap-2'>
-                        <PlanetAvatar planet={event.transitPlanet} />
-                        <div className='flex flex-col'>
-                            <span className='text-sm font-medium text-white'>
-                                {(t(`planets.${event.transitPlanet}`) ??
-                                    event.transitPlanet) + t("transitSuffix")}
-                            </span>
-                            <span className='text-[10px] text-white/65'>
-                                {transitPosition}
-                            </span>
-                            <span className='text-[10px] text-white/45'>
-                                {transitAbsoluteText}
+                <div className='grid grid-cols-[1fr_auto_1fr] items-start gap-3'>
+                    <div className='min-w-0 text-center'>
+                        <div className='mx-auto mb-2 inline-flex'>
+                            <span className='relative inline-flex h-[44px] w-[44px] items-center justify-center rounded-full ring-1 ring-white/10'>
+                                <PlanetAvatar planet={event.transitPlanet} />
                             </span>
                         </div>
+                        <p className='truncate text-[13px] font-medium tracking-tight text-white'>
+                            {transitLabel}
+                        </p>
+                        <p className='text-[10px] tracking-wide text-white/35'>
+                            {t("transitSuffix")}
+                        </p>
+                        <DignityBadges badges={transitBadges} />
                     </div>
-                    <div className='flex flex-col items-center'>
+                    <div className='flex flex-col items-center gap-1 pt-3 text-cyan-200/85'>
                         <AspectIcon aspectType={event.aspectType} />
-                        <span className='text-[10px] text-white/70'>
+                        <span className='text-[10px] font-medium uppercase tracking-[0.18em]'>
                             {t(`aspects.${event.aspectType}`) ??
                                 event.aspectType}
                         </span>
                     </div>
-                    <div className='inline-flex items-center gap-2'>
-                        <PlanetAvatar planet={event.natalPlanet} />
-                        <div className='flex flex-col'>
-                            <span className='text-sm font-medium text-white'>
-                                {(t(`planets.${event.natalPlanet}`) ??
-                                    event.natalPlanet) + t("natalSuffix")}
-                            </span>
-                            <span className='text-[10px] text-white/65'>
-                                {natalPosition}
-                            </span>
-                            <span className='text-[10px] text-white/45'>
-                                {natalAbsoluteText}
+                    <div className='min-w-0 text-center'>
+                        <div className='mx-auto mb-2 inline-flex'>
+                            <span className='relative inline-flex h-[44px] w-[44px] items-center justify-center rounded-full ring-1 ring-white/10'>
+                                <PlanetAvatar planet={event.natalPlanet} />
                             </span>
                         </div>
+                        <p className='truncate text-[13px] font-medium tracking-tight text-white'>
+                            {natalLabel}
+                        </p>
+                        <p className='text-[10px] tracking-wide text-white/35'>
+                            {t("natalSuffix")}
+                        </p>
+                        <DignityBadges badges={natalBadges} />
                     </div>
                 </div>
 
-                <div className='flex justify-between gap-2'>
-                    <div className='flex items-end gap-1.5'>
-                        {hasRealKeyword && (
-                            <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-indigo-500/10 border border-indigo-500/20 text-indigo-200'>
-                                {sentimentIcon}
-                                <span className='font-serif italic text-indigo-100'>
-                                    {displayKeyword}
-                                </span>
-                            </span>
-                        )}
-                        <span className='px-2 py-0.5 rounded-md text-[10px] text-cyan-100/90 border border-cyan-400/20 bg-cyan-500/10'>
-                            {`orb ${event.orb.toFixed(1)}°`}
-                        </span>
-                    </div>
+                <blockquote className='border-l border-white/15 pl-3'>
+                    <p className='font-serif text-[13.5px] italic leading-[1.65] text-white/82'>
+                        {event.insight ||
+                            (hasRealKeyword
+                                ? displayKeyword
+                                : t("defaultInsight"))}
+                    </p>
+                </blockquote>
+
+                <AspectTimeline
+                    event={event}
+                    dateStart={dateStart}
+                    datePeak={datePeak}
+                    dateEnd={dateEnd}
+                    locale={locale}
+                    t={t}
+                />
+
+                <div className='flex items-center justify-between gap-2 pt-1'>
+                    <button
+                        type='button'
+                        onClick={() =>
+                            setExpandedTechnical((prev) => ({
+                                ...prev,
+                                [event.aspectKey]: !prev[event.aspectKey],
+                            }))
+                        }
+                        className='text-[11px] text-white/40 underline decoration-white/10 underline-offset-4 transition-colors hover:text-white/70'
+                    >
+                        {isTechnicalExpanded
+                            ? t("hideTechnical")
+                            : t("showTechnical")}
+                    </button>
 
                     {askedAspectKeys?.[event.aspectKey] ? (
                         <button
@@ -716,23 +1027,19 @@ export default function RealtimePlanetaryPanel({
                                     block: "start",
                                 })
                             }}
-                            className='inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-md shadow-lg hover:bg-emerald-500/20 hover:border-emerald-500/30 transition-colors cursor-pointer'
+                            className='inline-flex h-8 items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/[0.08] px-3 text-[11px] font-medium text-emerald-100 transition-colors hover:bg-emerald-500/15'
                         >
                             <Eye className='h-3.5 w-3.5 text-emerald-300' />
-                            <span className='text-[10px] font-medium text-emerald-100'>
-                                {t("readDescription")}
-                            </span>
+                            {t("readDescription")}
                         </button>
                     ) : (
                         <button
                             type='button'
                             onClick={() => {
                                 const question = t("askAspectQuestion", {
-                                    transit: t(
-                                        `planets.${event.transitPlanet}`,
-                                    ),
+                                    transit: transitLabel,
                                     aspect: t(`aspects.${event.aspectType}`),
-                                    natal: t(`planets.${event.natalPlanet}`),
+                                    natal: natalLabel,
                                 })
                                 onAskAspectDetail?.(question, event.aspectKey, {
                                     aspectKey: event.aspectKey,
@@ -744,183 +1051,112 @@ export default function RealtimePlanetaryPanel({
                                     orb: event.orb,
                                     transitPositionText: transitPosition,
                                     natalPositionText: natalPosition,
-                                    transitAbsoluteText: transitAbsoluteText,
-                                    natalAbsoluteText: natalAbsoluteText,
+                                    transitAbsoluteText,
+                                    natalAbsoluteText,
                                 })
                                 scrollTo({
                                     top: document.body.scrollHeight,
                                     behavior: "smooth",
                                 })
                             }}
-                            className='inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 backdrop-blur-md shadow-lg hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-colors cursor-pointer'
+                            className='inline-flex h-8 items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/[0.08] px-3 text-[11px] font-medium text-indigo-100 transition-colors hover:bg-indigo-500/15'
                         >
                             <Sparkles className='h-3.5 w-3.5 text-indigo-300' />
-                            <span className='text-[10px] font-medium text-indigo-100'>
-                                {t("askMore")}
-                            </span>
-                            <Star className='h-3 w-3 text-amber-300 fill-amber-300' />
-                            <span className='text-[10px] font-medium text-amber-200'>
-                                1
+                            <span>{t("askMore")}</span>
+                            <span className='ml-1 inline-flex items-center gap-0.5 text-amber-200/90'>
+                                <Star className='h-3 w-3 fill-amber-300 text-amber-300' />
+                                <span>1</span>
                             </span>
                         </button>
                     )}
                 </div>
 
-                {event.insight && (
-                    <p className='text-[10px] text-white/75 leading-relaxed'>
-                        {event.insight}
-                    </p>
-                )}
-
-                {event.dateText && (
-                    <div className='flex justify-between items-center text-[10px] w-full text-amber-100/90 rounded px-2 py-1'>
-                        <span className='inline-flex items-center gap-1'>
-                            <Calendar className='h-3 w-3 shrink-0' />
-                            {event.dateText}
-                        </span>
-                        {event.peakText && (
-                            <span className='inline-flex items-center gap-1 text-amber-200/90 px-2'>
-                                <Flame className='h-3 w-3 text-orange-300' />
-                                {event.peakText}
+                {isTechnicalExpanded && (
+                    <dl className='grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 rounded-xl border border-white/[0.06] bg-white/[0.015] p-3 font-mono text-[10px] tabular-nums'>
+                        <dt className='uppercase tracking-[0.18em] text-white/35'>
+                            {t("transitSuffix")}
+                        </dt>
+                        <dd className='text-white/65'>
+                            <span>{transitPosition}</span>
+                            <span className='ml-1.5 text-white/30'>
+                                ({transitAbsoluteText})
                             </span>
-                        )}
-                        {event.endText && (
-                            <span className='text-amber-200/80 text-right'>
-                                {event.endText}
+                        </dd>
+                        <dt className='uppercase tracking-[0.18em] text-white/35'>
+                            {t("natalSuffix")}
+                        </dt>
+                        <dd className='text-white/65'>
+                            <span>{natalPosition}</span>
+                            <span className='ml-1.5 text-white/30'>
+                                ({natalAbsoluteText})
                             </span>
-                        )}
-                    </div>
+                        </dd>
+                        <dt className='uppercase tracking-[0.18em] text-white/35'>
+                            {t("orbLabel")}
+                        </dt>
+                        <dd className='text-white/65'>{`${orbForDisplay.toFixed(1)}°`}</dd>
+                        {showPeakRow && peakTransitPosition ? (
+                            <>
+                                <dt className='uppercase tracking-[0.18em] text-white/35'>
+                                    {t("peakLabel")}
+                                </dt>
+                                <dd className='text-white/65'>
+                                    <span>{peakTransitPosition}</span>
+                                    <span className='ml-1.5 text-white/30'>
+                                        ({peakOrbText})
+                                    </span>
+                                </dd>
+                            </>
+                        ) : null}
+                    </dl>
                 )}
             </div>
         )
     }
 
+    // Index of the first U/N/P card in the slice — where the divider
+    // should appear. -1 when none of the visible cards is generational.
+    const generationalStartIndex = visibleEvents.findIndex(
+        (event) => transitPlanetPriority(event.transitPlanet) === 2,
+    )
+
     return (
-        <div className='space-y-4'>
-            {featuredEvents.length > 0 && (
-                <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                    {featuredEvents.map((event) => (
-                        <EventCard key={event.aspectKey} event={event} />
+        <div className='space-y-5'>
+            {visibleEvents.length > 0 && (
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                    {visibleEvents.map((event, idx) => (
+                        <Fragment key={event.aspectKey}>
+                            {idx === generationalStartIndex ? (
+                                <div className='col-span-full flex items-center gap-3 pt-1 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45'>
+                                    <span className='h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-white/15' />
+                                    <span>{t("longTermSectionLabel")}</span>
+                                    <span className='h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-white/15' />
+                                </div>
+                            ) : null}
+                            <EventCard event={event} />
+                        </Fragment>
                     ))}
                 </div>
             )}
 
-            <ToggleButtonGroup
-                items={[
-                    relatedEvents.length > 0
-                        ? {
-                              key: "related",
-                              isOpen: showRelatedAspects,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={() =>
-                                          setShowRelatedAspects(
-                                              (prev) => !prev,
-                                          )
-                                      }
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {showRelatedAspects ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showRelatedAspects", {
-                                          count: relatedEvents.length,
-                                      })}
-                                  </button>
-                              ),
-                              content: (
-                                  <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                                      {relatedEvents.map((event) => (
-                                          <EventCard
-                                              key={event.aspectKey}
-                                              event={event}
-                                          />
-                                      ))}
-                                  </div>
-                              ),
-                          }
-                        : null,
-                    allRemainingEvents.length > 0
-                        ? {
-                              key: "all",
-                              isOpen: showAllAspects,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={() =>
-                                          setShowAllAspects((prev) => !prev)
-                                      }
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {showAllAspects ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showAllAspects", {
-                                          count: allRemainingEvents.length,
-                                      })}
-                                  </button>
-                              ),
-                              content: (
-                                  <div className='grid gap-3 grid-cols-1 sm:grid-cols-2'>
-                                      {allRemainingEvents.map((event) => (
-                                          <EventCard
-                                              key={event.aspectKey}
-                                              event={event}
-                                          />
-                                      ))}
-                                  </div>
-                              ),
-                          }
-                        : null,
-                    hasBirthDetails
-                        ? {
-                              key: "birth",
-                              isOpen: resolvedShowBirthDetails,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={handleToggleBirthDetails}
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {resolvedShowBirthDetails ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showBirthDetails")}
-                                  </button>
-                              ),
-                              content: birthDetailsContent,
-                          }
-                        : null,
-                    hasTransitDetails
-                        ? {
-                              key: "transit",
-                              isOpen: resolvedShowTransitDetails,
-                              button: (
-                                  <button
-                                      type='button'
-                                      onClick={handleToggleTransitDetails}
-                                      className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
-                                  >
-                                      {resolvedShowTransitDetails ? (
-                                          <ChevronUp className='h-3.5 w-3.5' />
-                                      ) : (
-                                          <ChevronDown className='h-3.5 w-3.5' />
-                                      )}
-                                      {t("showTransitDetails")}
-                                  </button>
-                              ),
-                              content: transitDetailsContent,
-                          }
-                        : null,
-                ]}
-            />
+            {hasMoreEvents && (
+                <div className='flex justify-center'>
+                    <button
+                        type='button'
+                        onClick={() =>
+                            setVisibleCount((count) =>
+                                Math.min(
+                                    count + SHOW_MORE_STEP,
+                                    activeEvents.length,
+                                ),
+                            )
+                        }
+                        className='inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1 text-xs text-white/80 hover:text-white hover:border-white/30 transition-colors'
+                    >
+                        + {t("showMore")}
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

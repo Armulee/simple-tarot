@@ -510,7 +510,7 @@ export default function SummaryTab({
                         <div className='pt-6 border-t border-white/5 flex items-center justify-center'>
                             <div className='flex items-center gap-2 text-white/30 text-[10px] uppercase tracking-[0.3em] font-medium'>
                                 <div className='w-8 h-px bg-white/10' />
-                                Asking Fate
+                                AskingFate
                                 <div className='w-8 h-px bg-white/10' />
                             </div>
                         </div>

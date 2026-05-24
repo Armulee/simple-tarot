@@ -7,11 +7,20 @@ import {
 } from "@/lib/astrology/intake"
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
-import { resolveQuestionTimeRangeAsync } from "@/lib/astrology/question-time-range"
+import {
+    hydrateQuestionTimeRange,
+    questionTimeRangePayloadSchema,
+    resolveQuestionTimeRangeAsync,
+} from "@/lib/astrology/question-time-range"
 import { getCodexTransitWindow } from "@/lib/astrology/ephemeris-codex"
 import {
     isBirthChartSuitabilityQuestion,
     classifyQuestionTopic,
+    isNatalChartReferenceQuestion,
+    detectCalendarRecommendationIntent,
+    hydrateRelevantPlanets,
+    questionClassificationSchema,
+    type QuestionClassification,
 } from "@/lib/astrology/question-intent"
 import type { PersonalizedTransitAspectsResult } from "@/lib/astrology/transit-aspects"
 import { normalizeConversationContext } from "@/lib/astrology/question-context"
@@ -20,6 +29,13 @@ import {
     buildPersonalizedTransitAspects,
     buildTransitLongitudesFromSwissPlanets,
 } from "@/lib/astrology/transit-aspects"
+import { queryCalendarDates } from "@/lib/calendar/query"
+import type { CalendarPlanTier } from "@/lib/calendar/access-window"
+import { isSingleDayQuestionRange } from "@/lib/astrology/single-day"
+import {
+    buildMyCalendarDaySnapshotForHoroscope,
+    resolveSessionPrimaryChartSystem,
+} from "@/lib/calendar/my-calendar-day-snapshot"
 
 // Chart data (with aspects) is now served separately via /api/horoscope/chart-data.
 // This route only streams the AI interpretation.
@@ -30,6 +46,7 @@ const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3
 
 function detectQuestionLanguage(text: string): string {
+    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
     if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
     if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
     if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
@@ -126,7 +143,31 @@ const requestSchema = z.object({
             totalMessages: z.number().optional(),
         })
         .optional(),
+    /**
+     * The signed-in user's previously computed natal chart, if any.
+     * When provided AND the question is a natal-chart reference (e.g. "what
+     * does my Saturn mean?"), the prompt loosens its "no astrology jargon"
+     * rule so the answer can cite real placements.
+     */
+    storedBirthChart: z
+        .object({
+            houses: z.record(z.string(), z.unknown()).nullable().optional(),
+            planets: z.record(z.string(), z.unknown()).nullable().optional(),
+        })
+        .nullable()
+        .optional(),
+    planTier: z.enum(["free", "basic", "pro"]).optional(),
+    classification: questionClassificationSchema.optional(),
+    questionRange: questionTimeRangePayloadSchema.optional(),
 })
+
+function startOfLocalDay(date: Date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+}
+
+function maxDate(left: Date, right: Date) {
+    return left > right ? left : right
+}
 
 export async function POST(req: Request) {
     try {
@@ -136,19 +177,39 @@ export async function POST(req: Request) {
             body.system ||
             getDefaultAstrologySystem(locale) ||
             ("vedic_sidereal" as const)
-        const questionRange = await resolveQuestionTimeRangeAsync(
-            body.question,
-            {
-                hintedTransitDate: body.transit
-                    ? {
-                          day: body.transit.day ?? null,
-                          month: body.transit.month ?? null,
-                          year: body.transit.year ?? null,
+        const questionRange = body.questionRange
+            ? hydrateQuestionTimeRange(body.questionRange)
+            : await resolveQuestionTimeRangeAsync(body.question, {
+                  hintedTransitDate: body.transit
+                      ? {
+                            day: body.transit.day ?? null,
+                            month: body.transit.month ?? null,
+                            year: body.transit.year ?? null,
+                        }
+                      : null,
+              })
+
+        const classification: QuestionClassification = body.classification
+            ? hydrateRelevantPlanets(body.classification)
+            : {
+                  replyStrategy: "general",
+                  questionTopic: (() => {
+                      const t = classifyQuestionTopic(body.question)
+                      return {
+                          topic: t.topic,
+                          relevantPlanets: [...t.relevantPlanets],
                       }
-                    : null,
-            },
-        )
-        const codexTransit = await getCodexTransitWindow(questionRange)
+                  })(),
+                  predictiveIntent: false,
+                  naturalNatalReference: isNatalChartReferenceQuestion(
+                      body.question,
+                  ),
+                  birthChartSuitability: isBirthChartSuitabilityQuestion(
+                      body.question,
+                  ),
+                  calendarRecommendationIntent:
+                      detectCalendarRecommendationIntent(body.question),
+              }
         const aspectRange = {
             ...questionRange,
             startDate: addUtcDays(
@@ -164,18 +225,27 @@ export async function POST(req: Request) {
             ),
             durationDays: questionRange.durationDays + ASPECT_PADDING_DAYS * 2,
         }
-        const aspectCodexTransit = await getCodexTransitWindow(aspectRange)
-        const suitabilityQuestion = isBirthChartSuitabilityQuestion(
-            body.question,
-        )
-        const questionTopic = classifyQuestionTopic(body.question)
+        const [codexTransit, aspectCodexTransit] = await Promise.all([
+            getCodexTransitWindow(questionRange),
+            getCodexTransitWindow(aspectRange),
+        ])
+        const suitabilityQuestion = classification.birthChartSuitability
+        const naturalNatalReference = classification.naturalNatalReference
+        const questionTopic = {
+            topic: classification.questionTopic.topic,
+            relevantPlanets:
+                classification.questionTopic.relevantPlanets ?? [],
+        }
+        const calendarRecommendationIntent =
+            classification.calendarRecommendationIntent
         const conversationContext = normalizeConversationContext(
             body.conversationContext,
         )
         const conversationContextText = conversationContext?.contextText ?? ""
 
         const questionLang = detectQuestionLanguage(body.question)
-        const chartLocale = questionLang === "Thai" ? "th" : "en"
+        const chartLocale =
+            questionLang === "Thai" || questionLang === "Lao" ? "th" : "en"
 
         const chartDataResult = await buildChartData(
             {
@@ -214,6 +284,28 @@ export async function POST(req: Request) {
                       questionTopic.relevantPlanets,
                   )
                 : rawTransitAspects
+
+        const sessionPrimarySystem = resolveSessionPrimaryChartSystem(
+            locale,
+            body.birth.country,
+            body.system,
+        )
+        const myCalendarDay =
+            isSingleDayQuestionRange({
+                durationDays: questionRange.durationDays,
+                source: questionRange.source,
+            }) && primaryBirthChart?.planets
+                ? await buildMyCalendarDaySnapshotForHoroscope({
+                      birth: body.birth,
+                      isoDate: questionRange.startDateIso,
+                      codexRows: codexTransit.rows,
+                      textLocale: locale,
+                      sessionChartSystem: sessionPrimarySystem,
+                      sessionNatalPlanets:
+                          primaryBirthChart.planets as Record<string, unknown>,
+                  })
+                : null
+
         const resolvedTime = resolveBirthTime({
             hour: body.birth.hour ?? null,
             minute: body.birth.minute ?? null,
@@ -232,6 +324,24 @@ export async function POST(req: Request) {
             timeStyle: "long",
             timeZone: "UTC",
         })
+        const today = startOfLocalDay(now)
+        const calendarRecommendation = calendarRecommendationIntent
+            ? await queryCalendarDates({
+                  intent: calendarRecommendationIntent.intent,
+                  locale,
+                  birth: body.birth,
+                  planTier: (body.planTier ?? "free") as CalendarPlanTier,
+                  today,
+                  startDate:
+                      questionRange.source === "default_30d"
+                          ? undefined
+                          : maxDate(today, questionRange.startDate),
+                  endDate:
+                      questionRange.source === "default_30d"
+                          ? undefined
+                          : questionRange.endDate,
+              })
+            : null
 
         const prompt = getHoroscopeInterpretationPrompt({
             question: body.question,
@@ -255,28 +365,48 @@ export async function POST(req: Request) {
             userMainPoint: conversationContext?.userMainPoint ?? "",
             questionTopic,
             questionLanguage: questionLang,
+            storedBirthChart: body.storedBirthChart ?? null,
+            isNatalChartReferenceQuestion: naturalNatalReference,
+            calendarRecommendation,
+            myCalendarDay,
         })
 
         console.log(
             `[horoscope/question] prompt size: ${(prompt.length / 1024).toFixed(1)}KB (~${Math.ceil(prompt.length / 4)} tokens)`,
         )
 
-        const result = await streamObject({
+        const allowNatalReferences = Boolean(
+            naturalNatalReference &&
+                body.storedBirthChart &&
+                (body.storedBirthChart.houses || body.storedBirthChart.planets),
+        )
+        const terminologySystemRule = allowNatalReferences
+            ? `Because the user is asking about a feature of their OWN saved natal chart (see <saved_birth_chart> in the prompt), you MAY name specific planets (Sun, Moon, Mars, Venus, Saturn, etc.), zodiac signs (Aries, Pisces, ราศีเมษ, ราศีมีน, etc.), and houses when it directly answers the natal-chart question — keep it in plain conversational language. Avoid heavy jargon (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม). For unrelated transit / timing / life-advice content, keep translating astrology into plain life impact.`
+            : `ABSOLUTELY FORBIDDEN in interpretation text: planet names (Saturn, Jupiter, Mars, Venus, Rahu, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ราหู, จันทร์, etc.), zodiac sign names (Aries, Pisces, ราศีเมษ, ราศีมีน, etc.), and astrology terms (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, etc.). Translate all astrological meaning into life impact — emotions, energy, timing, advice.`
+
+        const result = streamObject({
             model: MODEL,
+            // Force JSON streaming mode so partial fields stream to the client
+            // token-by-token. The default 'auto' often resolves to tool-call
+            // mode on DeepSeek, which buffers the whole JSON payload until the
+            // tool call completes (the response then "pops in" all at once).
+            mode: "json",
             schema: horoscopeInterpretationSchema,
             system: `You are an expert astrologer who writes for a general audience with ZERO astrology knowledge.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
 Be clear, kind, and practical. Never claim fixed destiny.
 Write like a caring friend giving life advice — warm, conversational, and in plain everyday language. Write the way a native speaker would text a close friend. NEVER sound like an astrology textbook.
 
-ABSOLUTELY FORBIDDEN in interpretation text: planet names (Saturn, Jupiter, Mars, Venus, Rahu, ดาวเสาร์, ดาวพฤหัส, ดาวอังคาร, ดาวศุกร์, ราหู, จันทร์, etc.), zodiac sign names (Aries, Pisces, ราศีเมษ, ราศีมีน, etc.), and astrology terms (conjunction, opposition, square, trine, sextile, orb, transit, เล็ง, ตรีโกณ, จตุโกณ, ร่วม, etc.). Translate all astrological meaning into life impact — emotions, energy, timing, advice.
+${terminologySystemRule}
 
 LANGUAGE DETECTION RESULT: The user's question is in ${questionLang}.
 CRITICAL: You MUST write your ENTIRE response (interpretation, conclusion, suggestions, aspectInsights) in ${questionLang}. Do NOT use any other language. If the question is in English, every single word of your output must be in English. If in Thai, every word in Thai. Ignore the language of any chart data or internal context — ONLY the user's question language matters.
 
 CRITICAL: When citing time periods, use dates in the SAME language as your output. Thai output = Thai month names (กุมภาพันธ์, มีนาคม, etc.). English output = English month names (February, March, etc.). Example: Thai "22 กุมภาพันธ์ 2026 ถึง 22 กุมภาพันธ์ 2028"; English "February 22, 2026 to February 22, 2028". Do NOT use ISO format (YYYY-MM-DD). Never mix languages (e.g. Thai text with "February").
 
-Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (3-5 follow-up questions the user could ask next, written as user questions).`,
+If the prompt includes a <calendar_recommendation> block, that block is the source of truth for any recommended single day. Follow its topCandidate date exactly and use the transit data only to explain why that day stands out.
+
+Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 very short, casual follow-up prompts the user could ask next — single line each, like quick texts, not long formal questions).`,
             prompt,
             temperature: 0.6,
         })

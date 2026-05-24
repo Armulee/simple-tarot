@@ -2,42 +2,57 @@
 
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
-import { Sparkles, Star } from "lucide-react"
+import { Orbit, Sparkles, Star } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { followUpChipClass } from "@/components/question-input"
 import "swiper/css"
 import "swiper/css/free-mode"
 
 interface HomeQuickCardsProps {
     onCardClick: (question: string) => void
     disabled?: boolean
+    /** Use inside `QuestionInput` action strip (no outer max-width / horizontal padding). */
+    embedded?: boolean
 }
 
 export default function HomeQuickCards({
     onCardClick,
     disabled = false,
+    embedded = false,
 }: HomeQuickCardsProps) {
     const t = useTranslations("Home")
 
     const cards = [
         {
-            id: "cardReading",
-            label: t("quickCards.cardReading"),
-            question: t("quickCardQuestions.cardReading"),
+            id: "tarotCard",
+            label: t("quickCards.tarotCard"),
+            question: t("quickCardQuestions.tarotCard"),
             icon: Sparkles,
         },
         {
-            id: "todayHoroscope",
-            label: t("quickCards.todayHoroscope"),
-            question: t("quickCardQuestions.todayHoroscope"),
+            id: "birthChart",
+            label: t("quickCards.birthChart"),
+            question: t("quickCardQuestions.birthChart"),
+            icon: Orbit,
+        },
+        {
+            id: "horoscope",
+            label: t("quickCards.horoscope"),
+            question: t("quickCardQuestions.horoscope"),
             icon: Star,
         },
     ] as const
 
+    const outerClass = embedded
+        ? "w-full"
+        : "flex justify-start mx-auto w-full max-w-3xl px-4"
+
     return (
-        <div className='flex justify-start mx-auto w-full max-w-3xl px-4'>
-            <div className='text-center w-full'>
+        <div className={outerClass}>
+            <div className='w-full text-left'>
                 <Swiper
                     modules={[FreeMode, Mousewheel]}
+                    noSwiping
                     freeMode={{
                         enabled: true,
                         momentum: true,
@@ -49,15 +64,15 @@ export default function HomeQuickCards({
                         sensitivity: 1,
                     }}
                     slidesPerView='auto'
-                    spaceBetween={12}
-                    className='suggestion-swiper w-full px-2'
+                    spaceBetween={8}
+                    className='w-full !overflow-visible'
                 >
                     {cards.map((card) => {
                         const Icon = card.icon
                         return (
                             <SwiperSlide
                                 key={card.id}
-                                className='!w-auto min-w-0'
+                                className='!w-auto !flex-shrink-0 min-w-0'
                             >
                                 <button
                                     type='button'
@@ -67,20 +82,13 @@ export default function HomeQuickCards({
                                         }
                                     }}
                                     disabled={disabled}
-                                    className={`
-                                        flex items-center gap-3 rounded-xl border border-white/10
-                                        bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15
-                                        backdrop-blur-xl px-4 py-3
-                                        transition-all duration-300
-                                        hover:from-indigo-500/25 hover:via-purple-500/25 hover:to-cyan-500/25
-                                        hover:border-white/20 hover:shadow-[0_8px_25px_-8px_rgba(56,189,248,0.35)]
-                                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none
-                                    `}
+                                    className={`${followUpChipClass} disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-indigo-500/15 disabled:hover:via-purple-500/15 disabled:hover:to-cyan-500/15`}
                                 >
-                                    <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10'>
-                                        <Icon className='h-4 w-4 text-white/90' />
-                                    </div>
-                                    <span className='text-sm font-medium text-white/90 whitespace-nowrap'>
+                                    <Icon
+                                        aria-hidden
+                                        className='mr-1.5 size-3.5 shrink-0 text-white/55'
+                                    />
+                                    <span className='block max-w-[min(92vw,20rem)] truncate'>
                                         {card.label}
                                     </span>
                                 </button>
