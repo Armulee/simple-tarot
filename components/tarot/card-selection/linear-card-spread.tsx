@@ -245,7 +245,7 @@ export function LinearCardSpread({
                 const index = deckList.indexOf(randomName)
                 const swiper = swiperRef.current
                 if (swiper) {
-                    swiper.slideTo(index, 600)
+                    swiper.slideToLoop(index, 600)
                     await new Promise((r) => setTimeout(r, 700))
                 }
 
@@ -628,6 +628,8 @@ export function LinearCardSpread({
                             swiperRef.current = instance
                         }}
                         modules={[FreeMode, Mousewheel]}
+                        loop={true}
+                        loopAdditionalSlides={6}
                         freeMode={{
                             enabled: true,
                             momentum: true,
