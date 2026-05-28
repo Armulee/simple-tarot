@@ -25,7 +25,7 @@ type ActionTriggerProps = {
 }
 
 const buttonBase =
-    "swiper-no-swiping inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:text-white hover:border-white/30 transition-colors text-left cursor-pointer"
+    "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:text-white hover:border-white/30 transition-colors text-left cursor-pointer"
 
 const DUMMY_CARD_UI: CardUiText = {
     selected: () => "",
@@ -134,7 +134,6 @@ export default function ActionTrigger({
             ) : null}
             <Swiper
                 modules={[FreeMode, Mousewheel]}
-                noSwiping
                 freeMode={{
                     enabled: true,
                     momentum: true,
