@@ -5,27 +5,10 @@ import {
 } from "@/lib/privacy/prompt-redaction"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
 import { readAndVerifyDid } from "@/lib/server/did"
-import { createClient } from "@supabase/supabase-js"
-
-// Helper to get user from authorization header
-async function getUserFromAuth(req: NextRequest) {
-    const authHeader = req.headers.get("authorization")
-    if (!authHeader?.startsWith("Bearer ")) return null
-    
-    const token = authHeader.slice(7)
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        return null
-    }
-    
-    const supabaseClient = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    )
-    
-    const { data: { user }, error } = await supabaseClient.auth.getUser(token)
-    if (error || !user) return null
-    return user
-}
+import {
+    getUserFromAuthHeader,
+    resolveSessionAuth,
+} from "@/lib/chat/session-access"
 
 export async function GET(
     _req: NextRequest,
@@ -64,12 +47,22 @@ export async function PATCH(
             )
         }
 
-        const did = await readAndVerifyDid()
-        if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
-
         const { id: rawId } = await context.params
         const id = (rawId ?? "").toString().slice(0, 32)
         if (!id) return NextResponse.json({ error: "BAD_ID" }, { status: 400 })
+
+        // Only the owner (auth or matching did) or an explicitly granted user
+        // can mutate a session.
+        const resolved = await resolveSessionAuth(req, id)
+        if (!resolved.ok) {
+            return NextResponse.json(
+                { error: resolved.error },
+                { status: resolved.status },
+            )
+        }
+        if (!resolved.auth.canCompose) {
+            return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
+        }
 
         const body = await req.json()
         const update: Record<string, unknown> = {
@@ -124,7 +117,7 @@ export async function DELETE(
         }
 
         // Allow deletion by signed-in owner or the same DID used to create it.
-        const user = await getUserFromAuth(req)
+        const user = await getUserFromAuthHeader(req)
         const did = await readAndVerifyDid()
         if (!user && !did) {
             return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 })

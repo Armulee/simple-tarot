@@ -72,6 +72,7 @@ import type {
 import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
 import MessageList from "@/components/chat/message-list"
+import ShareAccessDialog from "@/components/chat/share-access-dialog"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
     Dialog,
@@ -82,7 +83,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowDown, Star } from "lucide-react"
+import { ArrowDown, EyeOff, Share2, Star } from "lucide-react"
 import {
     CARD_UI_TEXT,
     isPickForMeIntent,
@@ -800,7 +801,7 @@ export default function ChatSession({
     const locale = useLocale()
     const router = useRouter()
     const pathname = usePathname()
-    const { user } = useAuth()
+    const { user, loading: authLoading } = useAuth()
     const { subscription } = useActiveSubscription()
     const { profile, birthChart: storedBirthChart } = useProfile()
     const storedBirthChartPayload = useMemo(
@@ -928,6 +929,83 @@ export default function ChatSession({
     const [showCardDraw, setShowCardDraw] = useState(
         initialSession?.showCardDraw ?? false,
     )
+
+    // Compose-access gating: only the owner and explicitly granted users may
+    // submit messages. Owner-by-auth and owner-by-device-id are known
+    // synchronously; non-owner authenticated users may still have a grant,
+    // which we resolve via /access.
+    const isAuthOwner = !!(
+        user &&
+        initialSession?.owner_user_id &&
+        user.id === initialSession.owner_user_id
+    )
+    const ownerKnownSync =
+        isAuthOwner || Boolean(initialSession?.youAreCreatorDevice)
+    const [isOwner, setIsOwner] = useState<boolean>(ownerKnownSync)
+    const [canCompose, setCanCompose] = useState<boolean>(ownerKnownSync)
+    const [composeAuthLoaded, setComposeAuthLoaded] =
+        useState<boolean>(ownerKnownSync)
+    const [shareDialogOpen, setShareDialogOpen] = useState(false)
+
+    useEffect(() => {
+        if (ownerKnownSync) {
+            setIsOwner(true)
+            setCanCompose(true)
+            setComposeAuthLoaded(true)
+            return
+        }
+        // Wait for auth context to settle before declaring "denied", so an
+        // authenticated owner doesn't briefly see the view-only banner.
+        if (authLoading) return
+        if (!sessionId || !user) {
+            setIsOwner(false)
+            setCanCompose(false)
+            setComposeAuthLoaded(true)
+            return
+        }
+        let cancelled = false
+        ;(async () => {
+            try {
+                const { data: sess } = await supabase.auth.getSession()
+                const token = sess.session?.access_token
+                if (!token) {
+                    if (!cancelled) {
+                        setIsOwner(false)
+                        setCanCompose(false)
+                        setComposeAuthLoaded(true)
+                    }
+                    return
+                }
+                const res = await fetch(
+                    `/api/chat-sessions/${sessionId}/access`,
+                    { headers: { Authorization: `Bearer ${token}` } },
+                )
+                if (!res.ok) {
+                    if (!cancelled) {
+                        setIsOwner(false)
+                        setCanCompose(false)
+                        setComposeAuthLoaded(true)
+                    }
+                    return
+                }
+                const json = await res.json()
+                if (cancelled) return
+                setIsOwner(Boolean(json?.isOwner))
+                setCanCompose(Boolean(json?.canCompose))
+                setComposeAuthLoaded(true)
+            } catch {
+                if (!cancelled) {
+                    setIsOwner(false)
+                    setCanCompose(false)
+                    setComposeAuthLoaded(true)
+                }
+            }
+        })()
+        return () => {
+            cancelled = true
+        }
+    }, [ownerKnownSync, sessionId, user, authLoading])
+
     const [autoPickOn, setAutoPickOn] = useState(false)
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>("auto")
@@ -5910,6 +5988,36 @@ export default function ChatSession({
                 </DialogContent>
             </Dialog>
 
+            {sessionId && isOwner ? (
+                <ShareAccessDialog
+                    sessionId={sessionId}
+                    open={shareDialogOpen}
+                    onOpenChange={setShareDialogOpen}
+                />
+            ) : null}
+
+            {composeAuthLoaded && !canCompose && !authLoading ? (
+                <div className='mx-auto flex max-w-md items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-white/70 backdrop-blur-md'>
+                    <EyeOff className='h-3.5 w-3.5 text-white/55' />
+                    View-only conversation — only the creator and invited
+                    people can continue this chat.
+                </div>
+            ) : null}
+
+            {canCompose && isOwner && sessionId ? (
+                <div className='mx-auto flex max-w-3xl justify-end px-4'>
+                    <button
+                        type='button'
+                        onClick={() => setShareDialogOpen(true)}
+                        className='inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/75 hover:border-white/25 hover:text-white transition-colors'
+                    >
+                        <Share2 className='h-3.5 w-3.5' />
+                        Share access
+                    </button>
+                </div>
+            ) : null}
+
+            {canCompose ? (
             <QuestionInput
                 id='home-question-input'
                 value={question}
@@ -6000,6 +6108,7 @@ export default function ChatSession({
                     hasMessages ? "max-w-3xl" : "max-w-sm md:max-w-md"
                 }
             />
+            ) : null}
         </>
     )
 

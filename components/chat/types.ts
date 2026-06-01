@@ -397,6 +397,11 @@ export type ChatSessionPayload = {
     owner_user_id?: string | null
     showInsufficientStars?: boolean
     showCardDraw?: boolean
+    /**
+     * Server-side check: did this device create the session? Used to grant
+     * compose access to anonymous owners (the original creator's device).
+     */
+    youAreCreatorDevice?: boolean
 }
 
 export type ConversationContext = ConversationContextPayload
