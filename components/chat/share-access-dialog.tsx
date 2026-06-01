@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 import { Check, Loader2, Mail, Share2, Trash2, X } from "lucide-react"
 
@@ -28,6 +28,12 @@ type AccessRequest = {
     createdAt: string
 }
 
+type LookupResult = {
+    exists: boolean
+    name?: string | null
+    avatarUrl?: string | null
+}
+
 interface ShareAccessDialogProps {
     sessionId: string
     open: boolean
@@ -35,6 +41,14 @@ interface ShareAccessDialogProps {
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+async function sha256Hex(input: string): Promise<string> {
+    const buf = new TextEncoder().encode(input)
+    const hash = await crypto.subtle.digest("SHA-256", buf)
+    return Array.from(new Uint8Array(hash))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("")
+}
 
 export default function ShareAccessDialog({
     sessionId,
@@ -48,11 +62,88 @@ export default function ShareAccessDialog({
     const [submitting, setSubmitting] = useState(false)
     const [removingId, setRemovingId] = useState<string | null>(null)
     const [decidingId, setDecidingId] = useState<string | null>(null)
+    const [lookup, setLookup] = useState<LookupResult | null>(null)
+    const [lookupLoading, setLookupLoading] = useState(false)
+    const [gravatarUrl, setGravatarUrl] = useState<string | null>(null)
+    const lookupSeqRef = useRef(0)
 
     const getToken = useCallback(async () => {
         const { data } = await supabase.auth.getSession()
         return data.session?.access_token ?? null
     }, [])
+
+    const normalizedEmail = useMemo(
+        () => email.trim().toLowerCase(),
+        [email],
+    )
+    const isValidEmail = useMemo(
+        () => EMAIL_REGEX.test(normalizedEmail),
+        [normalizedEmail],
+    )
+
+    // Debounced lookup: searches for an existing app user and computes a
+    // Gravatar URL as a fallback so the preview is always populated.
+    useEffect(() => {
+        if (!open) return
+        if (!isValidEmail) {
+            setLookup(null)
+            setGravatarUrl(null)
+            setLookupLoading(false)
+            return
+        }
+        const seq = ++lookupSeqRef.current
+        setLookupLoading(true)
+        const timer = window.setTimeout(async () => {
+            try {
+                const hash = await sha256Hex(normalizedEmail)
+                if (seq !== lookupSeqRef.current) return
+                setGravatarUrl(
+                    `https://gravatar.com/avatar/${hash}?d=404&s=80`,
+                )
+
+                const token = await getToken()
+                if (!token) {
+                    if (seq === lookupSeqRef.current) {
+                        setLookup({ exists: false })
+                        setLookupLoading(false)
+                    }
+                    return
+                }
+                const res = await fetch(
+                    `/api/users/search?email=${encodeURIComponent(normalizedEmail)}`,
+                    { headers: { Authorization: `Bearer ${token}` } },
+                )
+                if (seq !== lookupSeqRef.current) return
+                if (!res.ok) {
+                    setLookup({ exists: false })
+                    setLookupLoading(false)
+                    return
+                }
+                const json = await res.json()
+                if (seq !== lookupSeqRef.current) return
+                setLookup({
+                    exists: Boolean(json?.exists),
+                    name: json?.name ?? null,
+                    avatarUrl: json?.avatarUrl ?? null,
+                })
+            } finally {
+                if (seq === lookupSeqRef.current) {
+                    setLookupLoading(false)
+                }
+            }
+        }, 350)
+        return () => window.clearTimeout(timer)
+    }, [open, isValidEmail, normalizedEmail, getToken])
+
+    // Clear preview state when the dialog closes.
+    useEffect(() => {
+        if (!open) {
+            setEmail("")
+            setLookup(null)
+            setGravatarUrl(null)
+            setLookupLoading(false)
+        }
+    }, [open])
 
     const load = useCallback(async () => {
         if (!sessionId) return
@@ -262,6 +353,15 @@ export default function ShareAccessDialog({
                     </button>
                 </form>
 
+                {isValidEmail ? (
+                    <InviteePreview
+                        email={normalizedEmail}
+                        loading={lookupLoading}
+                        lookup={lookup}
+                        gravatarUrl={gravatarUrl}
+                    />
+                ) : null}
+
                 {requests.length > 0 ? (
                     <div className='mt-2'>
                         <p className='mb-2 text-xs font-medium uppercase tracking-wider text-amber-200/80'>
@@ -377,5 +477,90 @@ export default function ShareAccessDialog({
                 </div>
             </DialogContent>
         </Dialog>
+    )
+}
+
+type PreviewStep = "profile" | "gravatar" | "initial"
+
+function InviteePreview({
+    email,
+    loading,
+    lookup,
+    gravatarUrl,
+}: {
+    email: string
+    loading: boolean
+    lookup: LookupResult | null
+    gravatarUrl: string | null
+}) {
+    const profileUrl =
+        lookup?.exists && lookup.avatarUrl ? lookup.avatarUrl : null
+
+    const [step, setStep] = useState<PreviewStep>(() =>
+        profileUrl ? "profile" : gravatarUrl ? "gravatar" : "initial",
+    )
+
+    // Reset the fallback chain whenever the inputs change.
+    useEffect(() => {
+        setStep(profileUrl ? "profile" : gravatarUrl ? "gravatar" : "initial")
+    }, [profileUrl, gravatarUrl, email])
+
+    const initial = email.trim().charAt(0).toUpperCase() || "?"
+    const displayName = lookup?.exists ? lookup.name : null
+    const subline = lookup?.exists
+        ? "AskingFate user"
+        : loading
+          ? "Looking up…"
+          : "Will receive an email invite"
+
+    return (
+        <div
+            className={cn(
+                "mt-2 flex items-center gap-3 rounded-lg border p-2.5",
+                lookup?.exists
+                    ? "border-emerald-400/25 bg-emerald-500/[0.06]"
+                    : "border-white/[0.08] bg-white/[0.02]",
+            )}
+        >
+            <span
+                className='inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-base font-semibold text-black ring-1 ring-white/15'
+                aria-hidden
+            >
+                {step === "profile" && profileUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={profileUrl}
+                        alt=''
+                        className='h-full w-full object-cover'
+                        referrerPolicy='no-referrer'
+                        onError={() =>
+                            setStep(gravatarUrl ? "gravatar" : "initial")
+                        }
+                    />
+                ) : step === "gravatar" && gravatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={gravatarUrl}
+                        alt=''
+                        className='h-full w-full object-cover'
+                        referrerPolicy='no-referrer'
+                        onError={() => setStep("initial")}
+                    />
+                ) : (
+                    <span>{initial}</span>
+                )}
+            </span>
+            <div className='min-w-0 flex-1'>
+                <p className='truncate text-sm font-medium text-white'>
+                    {displayName || email}
+                </p>
+                <p className='truncate text-[11px] text-white/55'>
+                    {displayName ? email : subline}
+                </p>
+            </div>
+            {loading ? (
+                <Loader2 className='h-4 w-4 shrink-0 animate-spin text-white/50' />
+            ) : null}
+        </div>
     )
 }
