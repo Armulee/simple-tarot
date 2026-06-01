@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslations, useLocale } from "next-intl"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { parsePartialJson } from "ai"
@@ -73,6 +73,7 @@ import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
 import MessageList from "@/components/chat/message-list"
 import ShareAccessDialog from "@/components/chat/share-access-dialog"
+import { toast } from "sonner"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
     Dialog,
@@ -801,6 +802,7 @@ export default function ChatSession({
     const locale = useLocale()
     const router = useRouter()
     const pathname = usePathname()
+    const searchParams = useSearchParams()
     const { user, loading: authLoading } = useAuth()
     const { subscription } = useActiveSubscription()
     const { profile, birthChart: storedBirthChart } = useProfile()
@@ -946,6 +948,61 @@ export default function ChatSession({
     const [composeAuthLoaded, setComposeAuthLoaded] =
         useState<boolean>(ownerKnownSync)
     const [shareDialogOpen, setShareDialogOpen] = useState(false)
+    const [accessRequestSent, setAccessRequestSent] = useState(false)
+    const [accessRequestSending, setAccessRequestSending] = useState(false)
+
+    const handleRequestAccess = useCallback(async () => {
+        if (!sessionId) return
+        setAccessRequestSending(true)
+        try {
+            const { data: sess } = await supabase.auth.getSession()
+            const token = sess.session?.access_token
+            if (!token) {
+                toast.error("Sign in to request access")
+                return
+            }
+            const res = await fetch(
+                `/api/chat-sessions/${sessionId}/access/request`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({}),
+                },
+            )
+            if (!res.ok) {
+                const json = await res.json().catch(() => ({}))
+                if (json?.error === "ALREADY_HAS_ACCESS") {
+                    toast.success("You already have access")
+                    setAccessRequestSent(true)
+                    return
+                }
+                if (json?.error === "OWNER_NOT_REACHABLE") {
+                    toast.error(
+                        "The session creator can't receive requests",
+                    )
+                    return
+                }
+                if (json?.error === "REQUESTER_NOT_AUTHENTICATED") {
+                    toast.error("Sign in to request access")
+                    return
+                }
+                toast.error("Failed to send request")
+                return
+            }
+            const json = await res.json().catch(() => ({}))
+            if (json?.alreadyExists) {
+                toast.message("Request already pending")
+            } else {
+                toast.success("Request sent")
+            }
+            setAccessRequestSent(true)
+        } finally {
+            setAccessRequestSending(false)
+        }
+    }, [sessionId])
 
     useEffect(() => {
         if (ownerKnownSync) {
@@ -1005,6 +1062,13 @@ export default function ChatSession({
             cancelled = true
         }
     }, [ownerKnownSync, sessionId, user, authLoading])
+
+    useEffect(() => {
+        if (!isOwner) return
+        if (searchParams?.get("share") === "requests") {
+            setShareDialogOpen(true)
+        }
+    }, [isOwner, searchParams])
 
     const [autoPickOn, setAutoPickOn] = useState(false)
     const [interpretationMode, setInterpretationMode] =
@@ -5997,10 +6061,37 @@ export default function ChatSession({
             ) : null}
 
             {composeAuthLoaded && !canCompose && !authLoading ? (
-                <div className='mx-auto flex max-w-md items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-white/70 backdrop-blur-md'>
-                    <EyeOff className='h-3.5 w-3.5 text-white/55' />
-                    View-only conversation — only the creator and invited
-                    people can continue this chat.
+                <div className='mx-auto flex max-w-md flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-xs text-white/70 backdrop-blur-md sm:flex-row sm:justify-between'>
+                    <div className='flex items-center gap-2 text-center sm:text-left'>
+                        <EyeOff className='h-3.5 w-3.5 shrink-0 text-white/55' />
+                        <span>
+                            View-only conversation — only the creator and
+                            invited people can continue this chat.
+                        </span>
+                    </div>
+                    {user && initialSession?.owner_user_id ? (
+                        <button
+                            type='button'
+                            onClick={() => void handleRequestAccess()}
+                            disabled={
+                                accessRequestSending || accessRequestSent
+                            }
+                            className='inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-black hover:bg-white/90 disabled:opacity-60 disabled:cursor-not-allowed'
+                        >
+                            {accessRequestSent
+                                ? "Request sent"
+                                : accessRequestSending
+                                  ? "Sending…"
+                                  : "Request access"}
+                        </button>
+                    ) : !user && initialSession?.owner_user_id ? (
+                        <a
+                            href={`/signin?callbackUrl=/${sessionId ?? ""}`}
+                            className='inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/85 hover:bg-white/10 hover:text-white'
+                        >
+                            Sign in to request access
+                        </a>
+                    ) : null}
                 </div>
             ) : null}
 
