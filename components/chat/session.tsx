@@ -84,7 +84,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowDown, EyeOff, Share2, Star } from "lucide-react"
+import { ArrowDown, EyeOff, Star } from "lucide-react"
 import {
     CARD_UI_TEXT,
     isPickForMeIntent,
@@ -6095,19 +6095,6 @@ export default function ChatSession({
                 </div>
             ) : null}
 
-            {canCompose && isOwner && sessionId ? (
-                <div className='mx-auto flex max-w-3xl justify-end px-4'>
-                    <button
-                        type='button'
-                        onClick={() => setShareDialogOpen(true)}
-                        className='inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/75 hover:border-white/25 hover:text-white transition-colors'
-                    >
-                        <Share2 className='h-3.5 w-3.5' />
-                        Share access
-                    </button>
-                </div>
-            ) : null}
-
             {canCompose ? (
             <QuestionInput
                 id='home-question-input'
@@ -6155,6 +6142,11 @@ export default function ChatSession({
                               cardsToSelect,
                               cardUi,
                               onScrollToDraw: handleScrollToDraw,
+                              showShareAccess: Boolean(
+                                  isOwner && sessionId,
+                              ),
+                              onShareAccessClick: () =>
+                                  setShareDialogOpen(true),
                           }
                 }
                 composerFollowUps={

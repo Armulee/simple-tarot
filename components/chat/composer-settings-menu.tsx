@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
-import { ChevronRight, Settings } from "lucide-react"
+import { ChevronRight, Settings, Share2 } from "lucide-react"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { CardUiText } from "@/components/chat/types"
 
@@ -60,6 +60,9 @@ export type ComposerSettingsMenuProps = {
     cardsToSelect?: number
     cardUi?: CardUiText
     onScrollToDraw?: () => void
+    /** Show "Share access" action — owner of the session only. */
+    showShareAccess?: boolean
+    onShareAccessClick?: () => void
 }
 
 export function ComposerSettingsMenu({
@@ -77,6 +80,8 @@ export function ComposerSettingsMenu({
     cardsToSelect = 0,
     cardUi = DUMMY_CARD_UI,
     onScrollToDraw = () => {},
+    showShareAccess = false,
+    onShareAccessClick = () => {},
 }: ComposerSettingsMenuProps) {
     const tMode = useTranslations("InterpretationMode")
     const tAction = useTranslations("ActionTrigger")
@@ -88,7 +93,8 @@ export function ComposerSettingsMenu({
     const showBirthInMenu = true
     const showPreferencesBlock =
         showAutoPick || showComposerSuggestionsToggle
-    const showActionsBlock = showBirthInMenu || showDrawInMenu
+    const showActionsBlock =
+        showBirthInMenu || showDrawInMenu || showShareAccess
 
     return (
         <DropdownMenu>
@@ -250,6 +256,35 @@ export function ComposerSettingsMenu({
                                                     : cardUi.drawCta(
                                                           cardsToSelect,
                                                       )}
+                                            </span>
+                                            <ChevronRight
+                                                className='size-4 shrink-0 text-white/35'
+                                                strokeWidth={2}
+                                                aria-hidden
+                                            />
+                                        </DropdownMenuItem>
+                                    ) : null}
+                                    {(showBirthInMenu || showDrawInMenu) &&
+                                    showShareAccess ? (
+                                        <div
+                                            className='mx-1.5 h-px bg-white/[0.08]'
+                                            aria-hidden
+                                        />
+                                    ) : null}
+                                    {showShareAccess ? (
+                                        <DropdownMenuItem
+                                            onSelect={() =>
+                                                onShareAccessClick()
+                                            }
+                                            className={actionRowClass}
+                                        >
+                                            <Share2
+                                                className='size-4 shrink-0 text-white/65'
+                                                strokeWidth={1.75}
+                                                aria-hidden
+                                            />
+                                            <span className='min-w-0 flex-1 truncate text-left'>
+                                                Share access
                                             </span>
                                             <ChevronRight
                                                 className='size-4 shrink-0 text-white/35'
