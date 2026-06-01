@@ -1,31 +1,42 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
-import { useTranslations } from "next-intl"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { Bell, CheckCircle, AlertCircle, Info, X } from "lucide-react"
+import {
+    AlertCircle,
+    Bell,
+    CheckCircle,
+    Info,
+    Loader2,
+    X,
+} from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
+import { supabase } from "@/lib/supabase"
 
-interface Notification {
+type DbNotification = {
     id: string
-    type: "success" | "info" | "warning" | "error"
-    title: string
-    message: string
-    timestamp: Date
+    type: string
+    title: string | null
+    body: string | null
+    link: string | null
     read: boolean
-    action?: {
-        label: string
-        href: string
-    }
+    created_at: string
 }
+
+const POSITIVE_TYPES = new Set([
+    "access_request_decision",
+    "share_visit",
+])
 
 interface NotificationSheetProps {
     open: boolean
@@ -37,59 +48,102 @@ export function NotificationSheet({
     onOpenChange,
 }: NotificationSheetProps) {
     const t = useTranslations("Notifications")
-    const [notifications, setNotifications] = useState<Notification[]>([])
+    const { user } = useAuth()
+    const [notifications, setNotifications] = useState<DbNotification[]>([])
+    const [loading, setLoading] = useState(false)
 
-    const getNotificationIcon = (type: Notification["type"]) => {
-        switch (type) {
-            case "success":
-                return <CheckCircle className='w-5 h-5 text-green-400' />
-            case "info":
-                return <Info className='w-5 h-5 text-blue-400' />
-            case "warning":
-                return <AlertCircle className='w-5 h-5 text-yellow-400' />
-            case "error":
-                return <AlertCircle className='w-5 h-5 text-red-400' />
-            default:
-                return <Bell className='w-5 h-5 text-gray-400' />
+    const load = useCallback(async () => {
+        if (!user) {
+            setNotifications([])
+            return
         }
+        setLoading(true)
+        try {
+            const { data, error } = await supabase
+                .from("notifications")
+                .select("id, type, title, body, link, read, created_at")
+                .eq("user_id", user.id)
+                .order("created_at", { ascending: false })
+                .limit(50)
+            if (error) {
+                console.error("[notifications] load failed", error)
+                setNotifications([])
+                return
+            }
+            setNotifications((data ?? []) as DbNotification[])
+        } finally {
+            setLoading(false)
+        }
+    }, [user])
+
+    useEffect(() => {
+        if (open && user) {
+            void load()
+        }
+    }, [open, user, load])
+
+    // Mark all unread as read shortly after the sheet opens.
+    useEffect(() => {
+        if (!open || !user) return
+        const unread = notifications.filter((n) => !n.read).map((n) => n.id)
+        if (unread.length === 0) return
+        const timer = window.setTimeout(async () => {
+            const { error } = await supabase
+                .from("notifications")
+                .update({ read: true, updated_at: new Date().toISOString() })
+                .in("id", unread)
+                .eq("user_id", user.id)
+            if (error) {
+                console.error("[notifications] mark read failed", error)
+                return
+            }
+            setNotifications((prev) =>
+                prev.map((n) =>
+                    unread.includes(n.id) ? { ...n, read: true } : n,
+                ),
+            )
+        }, 600)
+        return () => window.clearTimeout(timer)
+    }, [open, user, notifications])
+
+    const dismissLocally = useCallback((id: string) => {
+        setNotifications((prev) => prev.filter((n) => n.id !== id))
+    }, [])
+
+    const getIcon = (type: string) => {
+        if (POSITIVE_TYPES.has(type)) {
+            return <CheckCircle className='w-5 h-5 text-green-400' />
+        }
+        if (type.endsWith("_warning")) {
+            return <AlertCircle className='w-5 h-5 text-yellow-400' />
+        }
+        if (type.endsWith("_error")) {
+            return <AlertCircle className='w-5 h-5 text-red-400' />
+        }
+        return <Info className='w-5 h-5 text-blue-400' />
     }
 
-    const getNotificationBgColor = (type: Notification["type"]) => {
-        switch (type) {
-            case "success":
-                return "bg-green-500/10 border-green-400/20"
-            case "info":
-                return "bg-blue-500/10 border-blue-400/20"
-            case "warning":
-                return "bg-yellow-500/10 border-yellow-400/20"
-            case "error":
-                return "bg-red-500/10 border-red-400/20"
-            default:
-                return "bg-gray-500/10 border-gray-400/20"
-        }
+    const getBg = (type: string) => {
+        if (POSITIVE_TYPES.has(type))
+            return "bg-green-500/10 border-green-400/20"
+        if (type.endsWith("_warning"))
+            return "bg-yellow-500/10 border-yellow-400/20"
+        if (type.endsWith("_error"))
+            return "bg-red-500/10 border-red-400/20"
+        return "bg-blue-500/10 border-blue-400/20"
     }
 
-    const formatTimestamp = (timestamp: Date) => {
-        const now = new Date()
-        const diff = now.getTime() - timestamp.getTime()
-        const minutes = Math.floor(diff / (1000 * 60))
-        const hours = Math.floor(diff / (1000 * 60 * 60))
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-
-        if (minutes < 60) {
-            return `${minutes}m ago`
-        } else if (hours < 24) {
-            return `${hours}h ago`
-        } else {
-            return `${days}d ago`
-        }
-    }
-
-
-    const deleteNotification = (id: string) => {
-        setNotifications((prev) =>
-            prev.filter((notification) => notification.id !== id)
-        )
+    const formatTimestamp = (iso: string) => {
+        const at = new Date(iso).getTime()
+        const diff = Date.now() - at
+        const minutes = Math.floor(diff / 60000)
+        const hours = Math.floor(diff / 3600000)
+        const days = Math.floor(diff / 86400000)
+        if (Number.isNaN(at)) return ""
+        if (minutes < 1) return "just now"
+        if (minutes < 60) return `${minutes}m ago`
+        if (hours < 24) return `${hours}h ago`
+        return `${days}d ago`
     }
 
     const unreadCount = notifications.filter((n) => !n.read).length
@@ -118,7 +172,11 @@ export function NotificationSheet({
 
                 <ScrollArea className='flex-1 mt-4'>
                     <div className='space-y-3'>
-                        {notifications.length === 0 ? (
+                        {loading && notifications.length === 0 ? (
+                            <div className='text-center py-12'>
+                                <Loader2 className='w-6 h-6 text-gray-500 mx-auto animate-spin' />
+                            </div>
+                        ) : notifications.length === 0 ? (
                             <div className='text-center py-12'>
                                 <Bell className='w-16 h-16 text-gray-500 mx-auto mb-4' />
                                 <p className='text-gray-400 text-lg font-medium'>
@@ -129,75 +187,72 @@ export function NotificationSheet({
                                 </p>
                             </div>
                         ) : (
-                            notifications.map((notification) => (
+                            notifications.map((n) => (
                                 <div
-                                    key={notification.id}
-                                    className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-lg ${getNotificationBgColor(
-                                        notification.type
+                                    key={n.id}
+                                    className={`p-4 rounded-lg border transition-all duration-200 hover:shadow-lg ${getBg(
+                                        n.type,
                                     )} ${
-                                        !notification.read
-                                            ? "ring-1 ring-white/20"
-                                            : ""
+                                        !n.read ? "ring-1 ring-white/20" : ""
                                     }`}
                                 >
                                     <div className='flex items-start space-x-3'>
                                         <div className='flex-shrink-0 mt-0.5'>
-                                            {getNotificationIcon(
-                                                notification.type
-                                            )}
+                                            {getIcon(n.type)}
                                         </div>
                                         <div className='flex-1 min-w-0'>
                                             <div className='flex items-start justify-between'>
                                                 <div className='flex-1'>
                                                     <h4
                                                         className={`text-sm font-medium ${
-                                                            !notification.read
+                                                            !n.read
                                                                 ? "text-white"
                                                                 : "text-gray-300"
                                                         }`}
                                                     >
-                                                        {notification.title}
+                                                        {n.title ?? ""}
                                                     </h4>
-                                                    <p className='text-xs text-gray-400 mt-1 leading-relaxed'>
-                                                        {notification.message}
-                                                    </p>
+                                                    {n.body ? (
+                                                        <p className='text-xs text-gray-400 mt-1 leading-relaxed whitespace-pre-wrap'>
+                                                            {n.body}
+                                                        </p>
+                                                    ) : null}
                                                     <p className='text-xs text-gray-500 mt-2'>
                                                         {formatTimestamp(
-                                                            notification.timestamp
+                                                            n.created_at,
                                                         )}
                                                     </p>
                                                 </div>
                                                 <div className='flex items-center space-x-1 ml-2'>
-                                                    {!notification.read && (
-                                                        <div className='w-2 h-2 bg-blue-400 rounded-full'></div>
+                                                    {!n.read && (
+                                                        <div className='w-2 h-2 bg-blue-400 rounded-full' />
                                                     )}
                                                     <Button
                                                         variant='ghost'
                                                         size='sm'
                                                         onClick={() =>
-                                                            deleteNotification(
-                                                                notification.id
-                                                            )
+                                                            dismissLocally(n.id)
                                                         }
                                                         className='h-6 w-6 p-0 text-gray-400 hover:text-white'
+                                                        aria-label='Dismiss'
                                                     >
                                                         <X className='w-3 h-3' />
                                                     </Button>
                                                 </div>
                                             </div>
-                                            {notification.action && (
+                                            {n.link ? (
                                                 <Button
                                                     variant='outline'
                                                     size='sm'
                                                     className='mt-3 text-xs border-white/20 text-white hover:bg-white/10'
                                                     onClick={() => {
                                                         window.location.href =
-                                                            notification.action!.href
+                                                            n.link as string
                                                     }}
                                                 >
-                                                    {notification.action.label}
+                                                    Open
                                                 </Button>
-                                            )}
+                                            ) : null}
                                         </div>
                                     </div>
                                 </div>

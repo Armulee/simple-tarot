@@ -118,12 +118,21 @@ export async function POST(
     // Best-effort: look up owner email + session question for the notification.
     let ownerEmail: string | null = null
     try {
-        const { data } = await supabaseAdmin.auth.admin.getUserById(
+        const { data, error } = await supabaseAdmin.auth.admin.getUserById(
             session.owner_user_id,
         )
-        ownerEmail = data.user?.email ?? null
-    } catch {
-        ownerEmail = null
+        if (error) {
+            console.error(
+                "[access-request] owner email lookup failed",
+                error,
+            )
+        }
+        ownerEmail = data?.user?.email ?? null
+    } catch (err) {
+        console.error(
+            "[access-request] owner email lookup threw",
+            err,
+        )
     }
 
     let sessionQuestion = ""
@@ -141,9 +150,10 @@ export async function POST(
     const sessionLink = `${SITE_URL}/${sessionId}?share=requests`
     const requesterName = requester.email.split("@")[0] || "Someone"
 
-    // In-app notification for the owner (best-effort; ignore errors).
-    try {
-        await supabaseAdmin.from("notifications").insert({
+    // In-app notification for the owner.
+    const { error: notifError } = await supabaseAdmin
+        .from("notifications")
+        .insert({
             user_id: session.owner_user_id,
             type: "access_request",
             title: "Someone wants to join your session",
@@ -153,19 +163,32 @@ export async function POST(
             link: `/${sessionId}?share=requests`,
             shared_id: sessionId,
         })
-    } catch {
-        // ignore
+    if (notifError) {
+        console.error(
+            "[access-request] notification insert failed",
+            notifError,
+        )
     }
 
-    // Email the owner (best-effort).
-    if (
-        ownerEmail &&
-        process.env.RESEND_API_KEY &&
-        process.env.RESEND_API_KEY !== "dummy-key-for-build"
+    // Email the owner — using the same verified subdomain/local-part the
+    // contact form uses (no-reply.askingfate.com / support@). Resend returns
+    // errors on the result, it doesn't throw.
+    if (!ownerEmail) {
+        console.warn(
+            "[access-request] owner has no email; skipping email send",
+            { ownerUserId: session.owner_user_id },
+        )
+    } else if (
+        !process.env.RESEND_API_KEY ||
+        process.env.RESEND_API_KEY === "dummy-key-for-build"
     ) {
+        console.warn(
+            "[access-request] RESEND_API_KEY missing; skipping email send",
+        )
+    } else {
         try {
-            await resend.emails.send({
-                from: "AskingFate <notifications@no-reply.askingfate.com>",
+            const sendResult = await resend.emails.send({
+                from: "AskingFate <support@no-reply.askingfate.com>",
                 to: [ownerEmail],
                 subject: `${requester.email} is requesting access to your session`,
                 react: React.createElement(AccessRequestEmail, {
@@ -176,8 +199,14 @@ export async function POST(
                     message,
                 }),
             })
-        } catch {
-            // ignore — the in-app notification + DB row still let the owner respond
+            if (sendResult.error) {
+                console.error(
+                    "[access-request] resend returned error",
+                    sendResult.error,
+                )
+            }
+        } catch (err) {
+            console.error("[access-request] resend threw", err)
         }
     }
 
