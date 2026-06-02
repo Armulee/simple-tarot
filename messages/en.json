@@ -430,6 +430,7 @@
     "composerSuggestionsOff": "off",
     "newBirthInfo": "New birth info",
     "editBirthInfo": "Edit birth info",
+    "shareAccess": "Share access",
     "birthInfo": "Birth info: {date}",
     "chooseCardInstead": "Choose card instead",
     "location": "Location: {value}",

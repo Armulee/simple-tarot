@@ -443,6 +443,7 @@
     "composerSuggestionsOff": "ปิด",
     "newBirthInfo": "ข้อมูลวันเกิด",
     "editBirthInfo": "แก้ไขข้อมูลวันเกิด",
+    "shareAccess": "แชร์การเข้าถึง",
     "birthInfo": "ข้อมูลวันเกิด: {date}",
     "chooseCardInstead": "เปลี่ยนไปเลือกไพ่แทน",
     "location": "ตำแหน่ง: {value}",

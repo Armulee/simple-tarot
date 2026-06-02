@@ -442,6 +442,7 @@
     "composerSuggestionsOff": "ປິດ",
     "newBirthInfo": "ຂໍ້ມູນວັນເກີດ",
     "editBirthInfo": "ແກ້ໄຂຂໍ້ມູນວັນເກີດ",
+    "shareAccess": "ແບ່ງປັນການເຂົ້າເຖິງ",
     "birthInfo": "ຂໍ້ມູນວັນເກີດ: {date}",
     "chooseCardInstead": "ປ່ຽນໄປເລືອກໄພ່ແທນ",
     "location": "ຕຳແໜ່ງ: {value}",

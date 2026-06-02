@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
-import { ChevronRight, Settings, Share2 } from "lucide-react"
+import { ChevronRight, Settings } from "lucide-react"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import type { CardUiText } from "@/components/chat/types"
 
@@ -278,13 +278,8 @@ export function ComposerSettingsMenu({
                                             }
                                             className={actionRowClass}
                                         >
-                                            <Share2
-                                                className='size-4 shrink-0 text-white/65'
-                                                strokeWidth={1.75}
-                                                aria-hidden
-                                            />
                                             <span className='min-w-0 flex-1 truncate text-left'>
-                                                Share access
+                                                {tAction("shareAccess")}
                                             </span>
                                             <ChevronRight
                                                 className='size-4 shrink-0 text-white/35'
