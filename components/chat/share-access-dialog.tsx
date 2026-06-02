@@ -50,6 +50,175 @@ async function sha256Hex(input: string): Promise<string> {
         .join("")
 }
 
+function useDebouncedValue<T>(value: T, delay = 350): T {
+    const [debounced, setDebounced] = useState(value)
+    useEffect(() => {
+        const t = window.setTimeout(() => setDebounced(value), delay)
+        return () => window.clearTimeout(t)
+    }, [value, delay])
+    return debounced
+}
+
+/**
+ * Resolves `{ lookup, gravatarUrl, loading }` for a given email by hitting
+ * /api/users/search (for the app-profile avatar) and computing a SHA-256
+ * Gravatar URL as a fallback. Sequence counter guards against stale
+ * responses overwriting newer ones.
+ */
+function useInviteeLookup(email: string, enabled: boolean) {
+    const [lookup, setLookup] = useState<LookupResult | null>(null)
+    const [gravatarUrl, setGravatarUrl] = useState<string | null>(null)
+    const [loading, setLoading] = useState(false)
+    const seqRef = useRef(0)
+
+    useEffect(() => {
+        const normalized = (email ?? "").trim().toLowerCase()
+        if (!enabled || !normalized || !EMAIL_REGEX.test(normalized)) {
+            setLookup(null)
+            setGravatarUrl(null)
+            setLoading(false)
+            return
+        }
+        const seq = ++seqRef.current
+        setLoading(true)
+        ;(async () => {
+            try {
+                const hash = await sha256Hex(normalized)
+                if (seq !== seqRef.current) return
+                setGravatarUrl(
+                    `https://gravatar.com/avatar/${hash}?d=404&s=80`,
+                )
+
+                const { data: sess } = await supabase.auth.getSession()
+                const token = sess.session?.access_token
+                if (!token) {
+                    if (seq === seqRef.current) setLookup({ exists: false })
+                    return
+                }
+                const res = await fetch(
+                    `/api/users/search?email=${encodeURIComponent(normalized)}`,
+                    { headers: { Authorization: `Bearer ${token}` } },
+                )
+                if (seq !== seqRef.current) return
+                if (!res.ok) {
+                    setLookup({ exists: false })
+                    return
+                }
+                const json = await res.json()
+                if (seq !== seqRef.current) return
+                setLookup({
+                    exists: Boolean(json?.exists),
+                    name: json?.name ?? null,
+                    avatarUrl: json?.avatarUrl ?? null,
+                })
+            } finally {
+                if (seq === seqRef.current) setLoading(false)
+            }
+        })()
+    }, [email, enabled])
+
+    return { lookup, gravatarUrl, loading }
+}
+
+type AvatarSize = "sm" | "md"
+
+const avatarSizeClass: Record<AvatarSize, string> = {
+    sm: "h-8 w-8 text-sm",
+    md: "h-10 w-10 text-base",
+}
+
+type PreviewStep = "profile" | "gravatar" | "initial"
+
+/**
+ * Circular avatar tile that falls back from app profile avatar -> Gravatar
+ * (with d=404) -> first-letter on white. Reused by the search preview and
+ * by the rows in the grants / pending-requests lists.
+ */
+function InviteeAvatar({
+    email,
+    profileUrl,
+    gravatarUrl,
+    size = "sm",
+}: {
+    email: string
+    profileUrl: string | null
+    gravatarUrl: string | null
+    size?: AvatarSize
+}) {
+    const initialStep: PreviewStep = profileUrl
+        ? "profile"
+        : gravatarUrl
+          ? "gravatar"
+          : "initial"
+    const [step, setStep] = useState<PreviewStep>(initialStep)
+
+    useEffect(() => {
+        setStep(
+            profileUrl ? "profile" : gravatarUrl ? "gravatar" : "initial",
+        )
+    }, [profileUrl, gravatarUrl, email])
+
+    const initial = email.trim().charAt(0).toUpperCase() || "?"
+
+    return (
+        <span
+            className={cn(
+                "inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white font-semibold text-black ring-1 ring-white/15",
+                avatarSizeClass[size],
+            )}
+            aria-hidden
+        >
+            {step === "profile" && profileUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={profileUrl}
+                    alt=''
+                    className='h-full w-full object-cover'
+                    referrerPolicy='no-referrer'
+                    onError={() =>
+                        setStep(gravatarUrl ? "gravatar" : "initial")
+                    }
+                />
+            ) : step === "gravatar" && gravatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={gravatarUrl}
+                    alt=''
+                    className='h-full w-full object-cover'
+                    referrerPolicy='no-referrer'
+                    onError={() => setStep("initial")}
+                />
+            ) : (
+                <span>{initial}</span>
+            )}
+        </span>
+    )
+}
+
+/**
+ * Self-contained avatar for a row in the grants / pending-requests lists:
+ * does its own lookup based on the row's email.
+ */
+function RowAvatar({
+    email,
+    size = "sm",
+}: {
+    email: string
+    size?: AvatarSize
+}) {
+    const { lookup, gravatarUrl } = useInviteeLookup(email, true)
+    const profileUrl =
+        lookup?.exists && lookup.avatarUrl ? lookup.avatarUrl : null
+    return (
+        <InviteeAvatar
+            email={email}
+            profileUrl={profileUrl}
+            gravatarUrl={gravatarUrl}
+            size={size}
+        />
+    )
+}
+
 export default function ShareAccessDialog({
     sessionId,
     open,
@@ -62,10 +231,6 @@ export default function ShareAccessDialog({
     const [submitting, setSubmitting] = useState(false)
     const [removingId, setRemovingId] = useState<string | null>(null)
     const [decidingId, setDecidingId] = useState<string | null>(null)
-    const [lookup, setLookup] = useState<LookupResult | null>(null)
-    const [lookupLoading, setLookupLoading] = useState(false)
-    const [gravatarUrl, setGravatarUrl] = useState<string | null>(null)
-    const lookupSeqRef = useRef(0)
 
     const getToken = useCallback(async () => {
         const { data } = await supabase.auth.getSession()
@@ -80,68 +245,17 @@ export default function ShareAccessDialog({
         () => EMAIL_REGEX.test(normalizedEmail),
         [normalizedEmail],
     )
-
-    // Debounced lookup: searches for an existing app user and computes a
-    // Gravatar URL as a fallback so the preview is always populated.
-    useEffect(() => {
-        if (!open) return
-        if (!isValidEmail) {
-            setLookup(null)
-            setGravatarUrl(null)
-            setLookupLoading(false)
-            return
-        }
-        const seq = ++lookupSeqRef.current
-        setLookupLoading(true)
-        const timer = window.setTimeout(async () => {
-            try {
-                const hash = await sha256Hex(normalizedEmail)
-                if (seq !== lookupSeqRef.current) return
-                setGravatarUrl(
-                    `https://gravatar.com/avatar/${hash}?d=404&s=80`,
-                )
-
-                const token = await getToken()
-                if (!token) {
-                    if (seq === lookupSeqRef.current) {
-                        setLookup({ exists: false })
-                        setLookupLoading(false)
-                    }
-                    return
-                }
-                const res = await fetch(
-                    `/api/users/search?email=${encodeURIComponent(normalizedEmail)}`,
-                    { headers: { Authorization: `Bearer ${token}` } },
-                )
-                if (seq !== lookupSeqRef.current) return
-                if (!res.ok) {
-                    setLookup({ exists: false })
-                    setLookupLoading(false)
-                    return
-                }
-                const json = await res.json()
-                if (seq !== lookupSeqRef.current) return
-                setLookup({
-                    exists: Boolean(json?.exists),
-                    name: json?.name ?? null,
-                    avatarUrl: json?.avatarUrl ?? null,
-                })
-            } finally {
-                if (seq === lookupSeqRef.current) {
-                    setLookupLoading(false)
-                }
-            }
-        }, 350)
-        return () => window.clearTimeout(timer)
-    }, [open, isValidEmail, normalizedEmail, getToken])
+    const debouncedEmail = useDebouncedValue(normalizedEmail, 350)
+    const {
+        lookup: previewLookup,
+        gravatarUrl: previewGravatar,
+        loading: previewLoading,
+    } = useInviteeLookup(debouncedEmail, open && isValidEmail)
 
     // Clear preview state when the dialog closes.
     useEffect(() => {
         if (!open) {
             setEmail("")
-            setLookup(null)
-            setGravatarUrl(null)
-            setLookupLoading(false)
         }
     }, [open])
 
@@ -356,9 +470,9 @@ export default function ShareAccessDialog({
                 {isValidEmail ? (
                     <InviteePreview
                         email={normalizedEmail}
-                        loading={lookupLoading}
-                        lookup={lookup}
-                        gravatarUrl={gravatarUrl}
+                        loading={previewLoading}
+                        lookup={previewLookup}
+                        gravatarUrl={previewGravatar}
                     />
                 ) : null}
 
@@ -374,15 +488,18 @@ export default function ShareAccessDialog({
                                     className='rounded-lg border border-amber-300/20 bg-amber-300/[0.05] p-3'
                                 >
                                     <div className='flex items-start justify-between gap-3'>
-                                        <div className='min-w-0 flex-1'>
-                                            <p className='truncate text-sm font-medium text-white'>
-                                                {r.requesterEmail}
-                                            </p>
-                                            {r.message ? (
-                                                <p className='mt-1 text-xs leading-relaxed text-white/70'>
-                                                    {r.message}
+                                        <div className='flex min-w-0 flex-1 items-start gap-2.5'>
+                                            <RowAvatar email={r.requesterEmail} />
+                                            <div className='min-w-0 flex-1'>
+                                                <p className='truncate text-sm font-medium text-white'>
+                                                    {r.requesterEmail}
                                                 </p>
-                                            ) : null}
+                                                {r.message ? (
+                                                    <p className='mt-1 text-xs leading-relaxed text-white/70'>
+                                                        {r.message}
+                                                    </p>
+                                                ) : null}
+                                            </div>
                                         </div>
                                         <div className='flex shrink-0 items-center gap-1.5'>
                                             <button
@@ -436,30 +553,12 @@ export default function ShareAccessDialog({
                     ) : (
                         <ul className='divide-y divide-white/[0.06] rounded-lg border border-white/[0.06] bg-white/[0.02]'>
                             {grants.map((g) => (
-                                <li
+                                <GrantRow
                                     key={g.id}
-                                    className='flex items-center justify-between gap-3 px-3 py-2'
-                                >
-                                    <span className='truncate text-sm text-white/85'>
-                                        {g.email ?? g.userId}
-                                    </span>
-                                    <button
-                                        type='button'
-                                        onClick={() => void remove(g.id)}
-                                        disabled={removingId === g.id}
-                                        aria-label='Revoke access'
-                                        className={cn(
-                                            "inline-flex h-8 w-8 items-center justify-center rounded-md text-white/55 hover:bg-white/10 hover:text-white",
-                                            removingId === g.id && "opacity-60",
-                                        )}
-                                    >
-                                        {removingId === g.id ? (
-                                            <Loader2 className='h-4 w-4 animate-spin' />
-                                        ) : (
-                                            <Trash2 className='h-4 w-4' />
-                                        )}
-                                    </button>
-                                </li>
+                                    grant={g}
+                                    isRemoving={removingId === g.id}
+                                    onRemove={() => void remove(g.id)}
+                                />
                             ))}
                         </ul>
                     )}
@@ -480,8 +579,6 @@ export default function ShareAccessDialog({
     )
 }
 
-type PreviewStep = "profile" | "gravatar" | "initial"
-
 function InviteePreview({
     email,
     loading,
@@ -495,17 +592,6 @@ function InviteePreview({
 }) {
     const profileUrl =
         lookup?.exists && lookup.avatarUrl ? lookup.avatarUrl : null
-
-    const [step, setStep] = useState<PreviewStep>(() =>
-        profileUrl ? "profile" : gravatarUrl ? "gravatar" : "initial",
-    )
-
-    // Reset the fallback chain whenever the inputs change.
-    useEffect(() => {
-        setStep(profileUrl ? "profile" : gravatarUrl ? "gravatar" : "initial")
-    }, [profileUrl, gravatarUrl, email])
-
-    const initial = email.trim().charAt(0).toUpperCase() || "?"
     const displayName = lookup?.exists ? lookup.name : null
     const subline = lookup?.exists
         ? "AskingFate user"
@@ -522,34 +608,12 @@ function InviteePreview({
                     : "border-white/[0.08] bg-white/[0.02]",
             )}
         >
-            <span
-                className='inline-flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-base font-semibold text-black ring-1 ring-white/15'
-                aria-hidden
-            >
-                {step === "profile" && profileUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={profileUrl}
-                        alt=''
-                        className='h-full w-full object-cover'
-                        referrerPolicy='no-referrer'
-                        onError={() =>
-                            setStep(gravatarUrl ? "gravatar" : "initial")
-                        }
-                    />
-                ) : step === "gravatar" && gravatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                        src={gravatarUrl}
-                        alt=''
-                        className='h-full w-full object-cover'
-                        referrerPolicy='no-referrer'
-                        onError={() => setStep("initial")}
-                    />
-                ) : (
-                    <span>{initial}</span>
-                )}
-            </span>
+            <InviteeAvatar
+                email={email}
+                profileUrl={profileUrl}
+                gravatarUrl={gravatarUrl}
+                size='md'
+            />
             <div className='min-w-0 flex-1'>
                 <p className='truncate text-sm font-medium text-white'>
                     {displayName || email}
@@ -562,5 +626,60 @@ function InviteePreview({
                 <Loader2 className='h-4 w-4 shrink-0 animate-spin text-white/50' />
             ) : null}
         </div>
+    )
+}
+
+function GrantRow({
+    grant,
+    isRemoving,
+    onRemove,
+}: {
+    grant: Grant
+    isRemoving: boolean
+    onRemove: () => void
+}) {
+    const email = grant.email ?? ""
+    const { lookup, gravatarUrl } = useInviteeLookup(email, true)
+    const profileUrl =
+        lookup?.exists && lookup.avatarUrl ? lookup.avatarUrl : null
+    const displayName = lookup?.exists ? lookup.name : null
+
+    return (
+        <li className='flex items-center justify-between gap-3 px-3 py-2.5'>
+            <div className='flex min-w-0 flex-1 items-center gap-2.5'>
+                <InviteeAvatar
+                    email={email}
+                    profileUrl={profileUrl}
+                    gravatarUrl={gravatarUrl}
+                    size='sm'
+                />
+                <div className='min-w-0 flex-1'>
+                    <p className='truncate text-sm font-medium text-white/90'>
+                        {displayName || email || grant.userId || "Invited"}
+                    </p>
+                    {displayName ? (
+                        <p className='truncate text-[11px] text-white/55'>
+                            {email}
+                        </p>
+                    ) : null}
+                </div>
+            </div>
+            <button
+                type='button'
+                onClick={onRemove}
+                disabled={isRemoving}
+                aria-label='Revoke access'
+                className={cn(
+                    "inline-flex h-8 w-8 items-center justify-center rounded-md text-white/55 hover:bg-white/10 hover:text-white",
+                    isRemoving && "opacity-60",
+                )}
+            >
+                {isRemoving ? (
+                    <Loader2 className='h-4 w-4 animate-spin' />
+                ) : (
+                    <Trash2 className='h-4 w-4' />
+                )}
+            </button>
+        </li>
     )
 }
