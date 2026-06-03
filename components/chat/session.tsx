@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTranslations, useLocale } from "next-intl"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { parsePartialJson } from "ai"
@@ -802,7 +802,6 @@ export default function ChatSession({
     const locale = useLocale()
     const router = useRouter()
     const pathname = usePathname()
-    const searchParams = useSearchParams()
     const { user, loading: authLoading } = useAuth()
     const { subscription } = useActiveSubscription()
     const { profile, birthChart: storedBirthChart } = useProfile()
@@ -1065,10 +1064,12 @@ export default function ChatSession({
 
     useEffect(() => {
         if (!isOwner) return
-        if (searchParams?.get("share") === "requests") {
+        if (typeof window === "undefined") return
+        const params = new URLSearchParams(window.location.search)
+        if (params.get("share") === "requests") {
             setShareDialogOpen(true)
         }
-    }, [isOwner, searchParams])
+    }, [isOwner])
 
     const [autoPickOn, setAutoPickOn] = useState(false)
     const [interpretationMode, setInterpretationMode] =
