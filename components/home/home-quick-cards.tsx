@@ -2,7 +2,7 @@
 
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
-import { Orbit, Sparkles, Star } from "lucide-react"
+import { Orbit, Sparkles, Star, CalendarDays } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { followUpChipClass } from "@/components/question-input"
 import "swiper/css"
@@ -40,6 +40,12 @@ export default function HomeQuickCards({
             label: t("quickCards.horoscope"),
             question: t("quickCardQuestions.horoscope"),
             icon: Star,
+        },
+        {
+            id: "calendarYear",
+            label: t("quickCards.calendarYear"),
+            question: t("quickCardQuestions.calendarYear"),
+            icon: CalendarDays,
         },
     ] as const
 

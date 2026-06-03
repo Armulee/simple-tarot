@@ -351,6 +351,16 @@ export const SUPPORT_TOPICS: Record<SupportTopic, SupportTopicMeta> = {
             "year overview",
             "year forecast",
             "year outlook",
+            // Thai — handle both common spellings (ฏ / ฎ).
+            "ปฏิทินดวง",
+            "ปฎิทินดวง",
+            "ปฏิทิน",
+            "ปฎิทิน",
+            "ดวงปี",
+            // Lao
+            "ປະຕິທິນດວງ",
+            "ປະຕິທິນ",
+            "ດວງປີ",
         ],
     },
     horoscope: {

@@ -352,12 +352,14 @@
     "quickCards": {
       "tarotCard": "Tarot Card",
       "birthChart": "Birth Chart",
-      "horoscope": "Horoscope"
+      "horoscope": "Horoscope",
+      "calendarYear": "Cosmic Calendar"
     },
     "quickCardQuestions": {
       "tarotCard": "Draw me a tarot card",
       "birthChart": "Tell me my birth chart",
-      "horoscope": "What is my horoscope for today"
+      "horoscope": "What is my horoscope for today",
+      "calendarYear": "Show me my cosmic calendar"
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "consulting": "Consulting",

@@ -365,12 +365,14 @@
     "quickCards": {
       "tarotCard": "ไพ่ทาโรต์",
       "birthChart": "แผนภูมิเกิด",
-      "horoscope": "โฮโรสโคป"
+      "horoscope": "โฮโรสโคป",
+      "calendarYear": "ปฏิทินดวง"
     },
     "quickCardQuestions": {
       "tarotCard": "ขอจั่วไพ่ทาโรต์ให้ฉัน",
       "birthChart": "บอกแผนภูมิเกิดของฉันให้ฟัง",
-      "horoscope": "ดวงของฉันวันนี้เป็นอย่างไร"
+      "horoscope": "ดวงของฉันวันนี้เป็นอย่างไร",
+      "calendarYear": "ขอดูปฏิทินดวงของฉัน"
     },
     "selectedCards": "คุณเลือกไพ่แล้ว {selectedCount}/{cardsToSelect} ใบ",
     "consulting": "กำลังปรึกษา",

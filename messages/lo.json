@@ -364,12 +364,14 @@
     "quickCards": {
       "tarotCard": "ໄພ່ທາໂຣດ",
       "birthChart": "ແຜນຠູມເກີດ",
-      "horoscope": "ໂຮໂຣສໂຄບ"
+      "horoscope": "ໂຮໂຣສໂຄບ",
+      "calendarYear": "ປະຕິທິນດວງ"
     },
     "quickCardQuestions": {
       "tarotCard": "ຈັບໄພ່ທາໂຣດໃຫ້ຂ້ອຍ",
       "birthChart": "ບອກແຜນຠູມເກີດຂອງຂ້ອຍໃຫ້ຟັງ",
-      "horoscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ"
+      "horoscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ",
+      "calendarYear": "ຂໍເບິ່ງປະຕິທິນດວງຂອງຂ້ອຍ"
     },
     "selectedCards": "ທ່ານເລືອກໄພ່ແລ້ວ {selectedCount}/{cardsToSelect} ໃບ",
     "consulting": "ກຳລັງປຶກສາ",
