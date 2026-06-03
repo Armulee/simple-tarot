@@ -25,7 +25,17 @@ type ActionTriggerProps = {
 }
 
 const buttonBase =
-    "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:text-white hover:border-white/30 transition-colors text-left cursor-pointer"
+    "inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:text-white hover:border-white/30 transition-colors text-left cursor-pointer touch-pan-x"
+
+function chipKeyDown(
+    event: React.KeyboardEvent<HTMLDivElement>,
+    action: () => void,
+) {
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault()
+        action()
+    }
+}
 
 const DUMMY_CARD_UI: CardUiText = {
     selected: () => "",
@@ -63,22 +73,26 @@ export default function ActionTrigger({
               {
                   id: "choose-card-instead",
                   content: (
-                      <button
-                          type='button'
+                      <div
+                          role='button'
+                          tabIndex={0}
                           onClick={onChooseCardInstead}
+                          onKeyDown={(e) => chipKeyDown(e, onChooseCardInstead)}
                           className={buttonBase}
                       >
                           <Sparkles className='size-4' />
                           {t("chooseCardInstead")}
-                      </button>
+                      </div>
                   ),
               },
               {
                   id: "location",
                   content: (
-                      <button
-                          type='button'
+                      <div
+                          role='button'
+                          tabIndex={0}
                           onClick={onLocationClick}
+                          onKeyDown={(e) => chipKeyDown(e, onLocationClick)}
                           className={buttonBase}
                       >
                           <MapPin className='size-4' />
@@ -86,20 +100,22 @@ export default function ActionTrigger({
                               value:
                                   currentLocationLabel || t("locationUnknown"),
                           })}
-                      </button>
+                      </div>
                   ),
               },
               {
                   id: "cancel-intake",
                   content: (
-                      <button
-                          type='button'
+                      <div
+                          role='button'
+                          tabIndex={0}
                           onClick={onCancelIntake}
+                          onKeyDown={(e) => chipKeyDown(e, onCancelIntake)}
                           className={buttonBase}
                       >
                           <X className='size-4' />
                           {t("cancelIntake")}
-                      </button>
+                      </div>
                   ),
               },
           ]
@@ -108,16 +124,18 @@ export default function ActionTrigger({
                 {
                     id: "draw",
                     content: (
-                        <button
-                            type='button'
+                        <div
+                            role='button'
+                            tabIndex={0}
                             onClick={onScrollToDraw}
+                            onKeyDown={(e) => chipKeyDown(e, onScrollToDraw)}
                             className={buttonBase}
                         >
                             <CornerDownRight className='size-4' />
                             {showInsufficientStars
                                 ? cardUi.topUpCta(cardsToSelect)
                                 : cardUi.drawCta(cardsToSelect)}
-                        </button>
+                        </div>
                     ),
                 },
             ]
@@ -134,6 +152,8 @@ export default function ActionTrigger({
             ) : null}
             <Swiper
                 modules={[FreeMode, Mousewheel]}
+                noSwiping={false}
+                touchEventsTarget='container'
                 freeMode={{
                     enabled: true,
                     momentum: true,
@@ -146,7 +166,7 @@ export default function ActionTrigger({
                 }}
                 slidesPerView='auto'
                 spaceBetween={8}
-                className='action-trigger-swiper w-full !overflow-visible'
+                className='action-trigger-swiper w-full touch-pan-x !overflow-visible'
             >
                 {slides.map((slide) => (
                     <SwiperSlide

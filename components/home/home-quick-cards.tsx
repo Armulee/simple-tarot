@@ -58,7 +58,8 @@ export default function HomeQuickCards({
             <div className='w-full text-left'>
                 <Swiper
                     modules={[FreeMode, Mousewheel]}
-                    noSwiping
+                    noSwiping={false}
+                    touchEventsTarget='container'
                     freeMode={{
                         enabled: true,
                         momentum: true,
@@ -71,7 +72,7 @@ export default function HomeQuickCards({
                     }}
                     slidesPerView='auto'
                     spaceBetween={8}
-                    className='w-full !overflow-visible'
+                    className='w-full touch-pan-x !overflow-visible'
                 >
                     {cards.map((card) => {
                         const Icon = card.icon
@@ -80,15 +81,23 @@ export default function HomeQuickCards({
                                 key={card.id}
                                 className='!w-auto !flex-shrink-0 min-w-0'
                             >
-                                <button
-                                    type='button'
+                                <div
+                                    role='button'
+                                    tabIndex={disabled ? -1 : 0}
+                                    aria-disabled={disabled || undefined}
                                     onClick={() => {
                                         if (!disabled) {
                                             onCardClick(card.question, card.id)
                                         }
                                     }}
-                                    disabled={disabled}
-                                    className={`${followUpChipClass} disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-indigo-500/15 disabled:hover:via-purple-500/15 disabled:hover:to-cyan-500/15`}
+                                    onKeyDown={(e) => {
+                                        if (disabled) return
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault()
+                                            onCardClick(card.question, card.id)
+                                        }
+                                    }}
+                                    className={`${followUpChipClass} ${disabled ? "opacity-50 cursor-not-allowed hover:from-indigo-500/15 hover:via-purple-500/15 hover:to-cyan-500/15" : ""}`}
                                 >
                                     <Icon
                                         aria-hidden
@@ -97,7 +106,7 @@ export default function HomeQuickCards({
                                     <span className='block max-w-[min(92vw,20rem)] truncate'>
                                         {card.label}
                                     </span>
-                                </button>
+                                </div>
                             </SwiperSlide>
                         )
                     })}

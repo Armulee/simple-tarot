@@ -16,28 +16,28 @@ Unlike typical fortune-telling apps, Askingfate generates **emotionally resonant
 
 ## 🔮 Features
 
-| Category | Description |
-|-----------|-------------|
-| 🃏 **Tarot Reading** | Draw cards and let the AI oracle reveal your destiny through traditional archetypes. |
-| ☀️ **Birth Chart** | Generate a complete astrological natal chart with AI-guided planetary interpretation. |
-| 🌙 **Horoscope** | Get daily and monthly forecasts based on your zodiac and transits. |
-| 🔢 **Numerology** | Discover your life path, expression, and destiny numbers through mathematical spirituality. |
-| 🪶 **Namelogy** | Analyze your name’s vibration and meaning through AI linguistics and numerology. |
-| 🎨 **Lucky Colors** | Find aura colors that enhance balance, confidence, and attraction. |
-| 💞 **Fated Relations** | Compare two people’s charts to explore karmic and romantic compatibility. |
-| ✋ **Palmistry** | Upload or draw your palm lines — AI detects patterns and narrates your life story. |
+| Category               | Description                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| 🃏 **Tarot Reading**   | Draw cards and let the AI oracle reveal your destiny through traditional archetypes.        |
+| ☀️ **Birth Chart**     | Generate a complete astrological natal chart with AI-guided planetary interpretation.       |
+| 🌙 **Horoscope**       | Get daily and monthly forecasts based on your zodiac and transits.                          |
+| 🔢 **Numerology**      | Discover your life path, expression, and destiny numbers through mathematical spirituality. |
+| 🪶 **Namelogy**        | Analyze your name’s vibration and meaning through AI linguistics and numerology.            |
+| 🎨 **Lucky Colors**    | Find aura colors that enhance balance, confidence, and attraction.                          |
+| 💞 **Fated Relations** | Compare two people’s charts to explore karmic and romantic compatibility.                   |
+| ✋ **Palmistry**       | Upload or draw your palm lines — AI detects patterns and narrates your life story.          |
 
 ---
 
 ## ⚙️ Tech Stack
 
-- **Framework:** [Next.js 15](https://nextjs.org/) (Full-stack React Framework)  
-- **Database:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + Storage)  
-- **AI Engine:** GPT-based tarot & astrology interpretation  
-- **Analytics:** [Vercel Analytics](https://vercel.com/analytics)  
-- **Styling:** Tailwind CSS  
-- **Deployment:** Vercel  
-- **Data Sources:** Ephemeris API (Astrology), internal tarot & numerology dataset  
+- **Framework:** [Next.js 15](https://nextjs.org/) (Full-stack React Framework)
+- **Database:** [Supabase](https://supabase.com/) (PostgreSQL + Auth + Storage)
+- **AI Engine:** GPT-based tarot & astrology interpretation
+- **Analytics:** [Vercel Analytics](https://vercel.com/analytics)
+- **Styling:** Tailwind CSS
+- **Deployment:** Vercel
+- **Data Sources:** Ephemeris API (Astrology), internal tarot & numerology dataset
 
 ---
 
@@ -53,6 +53,7 @@ It’s not just a reading — it’s an **experience of self-reflection, predict
 ## 🚀 Getting Started
 
 ### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/yourusername/askingfate.git
 cd askingfate
@@ -64,18 +65,18 @@ Signed-in users get cross-device unmasking of redacted PII (e.g. `[Person_0]` re
 
 1. Generate a 32-byte base64 master key and set it in `.env`:
 
-   ```bash
-   openssl rand -base64 32
-   ```
+    ```bash
+    openssl rand -base64 32
+    ```
 
-   ```env
-   PRIVACY_ENCRYPTION_MASTER_KEY=<paste-output-here>
-   ```
+    ```env
+    PRIVACY_ENCRYPTION_MASTER_KEY=<paste-output-here>
+    ```
 
 2. Apply the schema (idempotent):
 
-   ```bash
-   psql "$DATABASE_URL" -f database-privacy-aliases.sql
-   ```
+    ```bash
+    psql "$DATABASE_URL" -f database-privacy-aliases.sql
+    ```
 
 If `PRIVACY_ENCRYPTION_MASTER_KEY` is missing, `/api/privacy-aliases` returns 500 and the client silently keeps its existing sessionStorage-only behavior — no crash, no plaintext fallback. Rotating the master key invalidates every existing ciphertext, so reserve the `key_version` column on `privacy_aliases` for any future rotation work.

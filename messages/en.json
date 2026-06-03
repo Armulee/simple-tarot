@@ -410,6 +410,7 @@
     },
     "sanitizingPrompt": "Purifying",
     "signInGate": {
+      "eyebrow": "Your reading awaits",
       "title": "Sign in to continue",
       "description": "Sign in to use this feature. We'll bring you right back to your question.",
       "signIn": "Sign in",

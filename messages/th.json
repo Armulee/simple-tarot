@@ -365,7 +365,7 @@
     "quickCards": {
       "tarotCard": "ไพ่ทาโรต์",
       "birthChart": "แผนภูมิเกิด",
-      "horoscope": "โฮโรสโคป",
+      "horoscope": "โหราศาสตร์",
       "calendarYear": "ปฏิทินดวง"
     },
     "quickCardQuestions": {
@@ -423,6 +423,7 @@
     },
     "sanitizingPrompt": "กำลังชำระล้าง",
     "signInGate": {
+      "eyebrow": "คำทำนายของคุณรออยู่",
       "title": "เข้าสู่ระบบเพื่อใช้งานต่อ",
       "description": "กรุณาเข้าสู่ระบบเพื่อใช้ฟีเจอร์นี้ เราจะพากลับมาที่คำถามของคุณทันที",
       "signIn": "เข้าสู่ระบบ",

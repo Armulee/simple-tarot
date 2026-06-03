@@ -244,7 +244,8 @@ export default function PageContextComposer({
             {suggestions && suggestions.length > 0 ? (
                 <Swiper
                     modules={[FreeMode, Mousewheel]}
-                    noSwiping
+                    noSwiping={false}
+                    touchEventsTarget='container'
                     freeMode={{
                         enabled: true,
                         momentum: true,
@@ -257,21 +258,31 @@ export default function PageContextComposer({
                     }}
                     slidesPerView='auto'
                     spaceBetween={8}
-                    className='composer-follow-up-swiper w-full !overflow-visible'
+                    className='composer-follow-up-swiper w-full touch-pan-x !overflow-visible'
                 >
                     {suggestions.map((suggestion, idx) => (
                         <SwiperSlide
                             key={`page-suggestion-${idx}`}
                             className='!w-auto !flex-shrink-0 min-w-0'
                         >
-                            <button
-                                type='button'
+                            <div
+                                role='button'
+                                tabIndex={isLinking ? -1 : 0}
+                                aria-disabled={isLinking || undefined}
                                 onClick={() => {
+                                    if (isLinking) return
                                     setQuestion(suggestion)
                                     void createSessionAndRedirect(suggestion)
                                 }}
-                                disabled={isLinking}
-                                className={`${followUpChipClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+                                onKeyDown={(e) => {
+                                    if (isLinking) return
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault()
+                                        setQuestion(suggestion)
+                                        void createSessionAndRedirect(suggestion)
+                                    }
+                                }}
+                                className={`${followUpChipClass} ${isLinking ? "opacity-50 cursor-not-allowed" : ""}`}
                             >
                                 <CornerDownRight
                                     aria-hidden
@@ -280,7 +291,7 @@ export default function PageContextComposer({
                                 <span className='block max-w-[min(92vw,20rem)] truncate'>
                                     {suggestion}
                                 </span>
-                            </button>
+                            </div>
                         </SwiperSlide>
                     ))}
                 </Swiper>

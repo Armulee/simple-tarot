@@ -10,13 +10,16 @@ import Footer from "@/components/footer/footer"
 import HomeQuickCards from "@/components/home/home-quick-cards"
 import {
     Dialog,
-    DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import {
+    CelestialIcon,
+    CornerAccents,
+    StarsDialog,
+} from "@/components/star-consent"
+import { LogIn } from "lucide-react"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import {
     loadInterpretationModeFromStorage,
@@ -538,35 +541,59 @@ export default function Home() {
                     if (!open) setAuthGate(null)
                 }}
             >
-                <DialogContent className='sm:max-w-md'>
-                    <DialogHeader>
-                        <DialogTitle>{tHome("signInGate.title")}</DialogTitle>
-                        <DialogDescription>
-                            {tHome("signInGate.description")}
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className='gap-2 sm:gap-2'>
-                        <Button
-                            variant='ghost'
-                            onClick={() => setAuthGate(null)}
-                            className='text-white/80 hover:bg-white/10 hover:text-white'
-                        >
-                            {tHome("signInGate.cancel")}
-                        </Button>
-                        <Button
-                            onClick={() => {
-                                if (!authGate) return
-                                const callback = `/?autosend=${encodeURIComponent(authGate.question)}`
-                                router.push(
-                                    `/signin?callbackUrl=${encodeURIComponent(callback)}`,
-                                )
-                            }}
-                            className='bg-white text-black hover:bg-white/90'
-                        >
-                            {tHome("signInGate.signIn")}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
+                <StarsDialog className='relative flex max-w-[480px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'>
+                    <div className='relative z-10 flex w-full flex-col'>
+                        <CornerAccents />
+
+                        <div className='relative shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-5 pt-6'>
+                            <div className='mb-2 flex justify-center'>
+                                <CelestialIcon />
+                            </div>
+                            <p className='text-center font-serif text-[10px] font-normal uppercase tracking-[0.28em] text-[rgba(200,180,140,0.6)]'>
+                                {tHome("signInGate.eyebrow")}
+                            </p>
+                            <DialogHeader className='mt-1 text-center'>
+                                <DialogTitle className='font-serif text-[22px] font-medium leading-tight text-[#e8e0d0]'>
+                                    {tHome("signInGate.title")}
+                                </DialogTitle>
+                            </DialogHeader>
+                        </div>
+
+                        <div className='px-6 py-6'>
+                            <DialogDescription asChild>
+                                <p className='text-center text-[13px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                    {tHome("signInGate.description")}
+                                </p>
+                            </DialogDescription>
+                        </div>
+
+                        <footer className='relative shrink-0 border-t border-[rgba(200,180,140,0.1)] bg-[#13121f]/95 px-6 pb-5 pt-4 backdrop-blur-sm'>
+                            <div className='flex flex-col gap-2.5'>
+                                <button
+                                    type='button'
+                                    onClick={() => {
+                                        if (!authGate) return
+                                        const callback = `/?autosend=${encodeURIComponent(authGate.question)}`
+                                        router.push(
+                                            `/signin?callbackUrl=${encodeURIComponent(callback)}`,
+                                        )
+                                    }}
+                                    className='inline-flex w-full items-center justify-center gap-2 rounded-[2px] border-[0.5px] border-[rgba(200,180,140,0.55)] bg-transparent py-3.5 text-[11px] font-normal uppercase tracking-[0.18em] text-[rgba(232,224,208,0.88)] transition-all duration-300 hover:border-[rgba(200,180,140,0.8)] hover:bg-[rgba(200,180,140,0.07)] active:scale-[0.99]'
+                                >
+                                    <LogIn className='h-3.5 w-3.5' />
+                                    {tHome("signInGate.signIn")}
+                                </button>
+                                <button
+                                    type='button'
+                                    onClick={() => setAuthGate(null)}
+                                    className='w-full rounded-[2px] border-[0.5px] border-transparent py-2.5 text-[10.5px] font-normal uppercase tracking-[0.16em] text-[rgba(232,224,208,0.45)] transition-colors duration-200 hover:border-[rgba(200,180,140,0.15)] hover:bg-[rgba(200,180,140,0.04)] hover:text-[rgba(232,224,208,0.72)]'
+                                >
+                                    {tHome("signInGate.cancel")}
+                                </button>
+                            </div>
+                        </footer>
+                    </div>
+                </StarsDialog>
             </Dialog>
         </div>
     )

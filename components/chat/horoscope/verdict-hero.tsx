@@ -15,7 +15,11 @@ import type {
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
 import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
-import { getPlanetDignity } from "@/lib/birth-chart-utils"
+import {
+    canonicalPlanetName,
+    getPlanetDignity,
+    isKnownPlanetName,
+} from "@/lib/birth-chart-utils"
 import { unmaskTextWithAliases } from "@/lib/privacy/prompt-redaction"
 import ShareSection from "@/components/tarot/interpretation/share"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
@@ -270,9 +274,10 @@ function resolveHeroPlacements(
             ? data?.transit?.charts?.[0]?.planets ?? {}
             : data?.charts?.[0]?.planets ?? {}
     return relevantPlanets.map((rp) => {
-        const point = planets[rp.planet]
+        const planet = canonicalPlanetName(rp.planet)
+        const point = planets[planet] ?? planets[rp.planet]
         return {
-            planet: rp.planet,
+            planet,
             sign: point?.sign,
             degree: typeof point?.degree === "number" ? point.degree : undefined,
             retrograde: !!point?.retrograde,
@@ -347,10 +352,11 @@ function NatalHeroCrest({
                     }`}
                 >
                     {visible.map(({ planet, sign, degree, retrograde }) => {
-                        const planetName = tAstro(`planets.${planet}`, {
-                            defaultValue: planet,
-                        })
-                        const src = getPlanetImageSrc(planet)
+                        const canonicalPlanet = canonicalPlanetName(planet)
+                        const planetName = isKnownPlanetName(canonicalPlanet)
+                            ? tAstro(`planets.${canonicalPlanet}`)
+                            : canonicalPlanet
+                        const src = getPlanetImageSrc(canonicalPlanet)
                         const canonical = sign ? canonicalSign(sign) : null
                         const signName = canonical
                             ? tAstro(`zodiacSigns.${canonical}`, {
@@ -358,7 +364,7 @@ function NatalHeroCrest({
                               })
                             : null
                         const dignity = canonical
-                            ? getPlanetDignity(planet, canonical)
+                            ? getPlanetDignity(canonicalPlanet, canonical)
                             : null
                         const dignityNameClass = dignity?.isExalted
                             ? "text-amber-200"
