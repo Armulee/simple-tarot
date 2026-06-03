@@ -27,6 +27,7 @@ export const supportTopicSchema = z.enum([
     "tarot-cards-index",
     "birth-chart",
     "horoscope",
+    "calendar-year",
     "account",
     "settings",
     "about",

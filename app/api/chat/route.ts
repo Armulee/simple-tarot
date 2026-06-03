@@ -61,6 +61,7 @@ support
 - "show me all tarot cards", "the deck" → supportTopic: "tarot-cards-index"
 - our birth chart feature → supportTopic: "birth-chart"
 - our horoscope feature (asking ABOUT the feature, not requesting a horoscope) → supportTopic: "horoscope"
+- "show me the calendar year", "calendar year", "year ahead", yearly outlook, the 12-month view → supportTopic: "calendar-year"
 - browsing articles or guides → supportTopic: "articles"
 
 When the message is BOTH a feature question AND a fortune-telling question, prefer "support" only if it is clearly about the product. Otherwise stick with draw/horoscope. For a real fortune question that incidentally mentions stars / pricing, still use draw.

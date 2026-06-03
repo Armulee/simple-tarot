@@ -2959,6 +2959,8 @@
   },
   "SupportBlock": {
     "openPage": "Open page",
+    "openCalendar": "Open calendar",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec",
     "readArticle": "Read article",
     "readFullMeaning": "Read full meaning",
     "majorArcana": "Major Arcana",
@@ -3038,6 +3040,10 @@
       "horoscope": {
         "title": "Personalized horoscope",
         "description": "Daily, monthly, and yearly horoscope readings based on your birth and today's sky."
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
       },
       "account": {
         "title": "Account",

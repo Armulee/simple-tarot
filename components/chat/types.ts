@@ -342,6 +342,15 @@ export type SupportBlockPayload =
           description: string
           iconId?: string
       }
+    | {
+          kind: "calendar-year"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+          /** Year shown in the inline preview (defaults to current year on the client). */
+          year: number
+      }
 
 export type SupportBlockPayloadKind = SupportBlockKind
 

@@ -31,6 +31,7 @@ export type SupportTopic =
     | "tarot-cards-index"
     | "birth-chart"
     | "horoscope"
+    | "calendar-year"
     | "account"
     | "settings"
     | "about"
@@ -46,6 +47,7 @@ export type SupportBlockKind =
     | "tarot-card"
     | "article"
     | "page"
+    | "calendar-year"
 
 export type SupportTopicMeta = {
     topic: SupportTopic
@@ -77,6 +79,7 @@ export type SupportTopicMeta = {
         | "compass"
         | "log-in"
         | "user-plus"
+        | "calendar"
     /** Keywords used by the lightweight local fallback intent matcher. */
     keywords: readonly string[]
 }
@@ -325,6 +328,29 @@ export const SUPPORT_TOPICS: Record<SupportTopic, SupportTopicMeta> = {
             "astrology chart",
             "houses",
             "planets",
+        ],
+    },
+    "calendar-year": {
+        topic: "calendar-year",
+        href: "/calendar",
+        title: "Your cosmic calendar",
+        description:
+            "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance.",
+        block: "calendar-year",
+        iconId: "calendar",
+        keywords: [
+            "calendar year",
+            "calendar",
+            "year ahead",
+            "year-ahead",
+            "yearly",
+            "this year",
+            "next year",
+            "annual",
+            "12 months",
+            "year overview",
+            "year forecast",
+            "year outlook",
         ],
     },
     horoscope: {

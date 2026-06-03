@@ -7,6 +7,7 @@ import { ContactBlock } from "./contact-block"
 import { TarotCardBlock } from "./tarot-card-block"
 import { ArticleBlock } from "./article-block"
 import { PageBlock } from "./page-block"
+import { CalendarYearBlock } from "./calendar-year-block"
 
 export function SupportBlock({ payload }: { payload: SupportBlockPayload }) {
     if (payload.kind === "plan") {
@@ -23,6 +24,9 @@ export function SupportBlock({ payload }: { payload: SupportBlockPayload }) {
     }
     if (payload.kind === "article") {
         return <ArticleBlock payload={payload} />
+    }
+    if (payload.kind === "calendar-year") {
+        return <CalendarYearBlock payload={payload} />
     }
     return <PageBlock payload={payload} />
 }
