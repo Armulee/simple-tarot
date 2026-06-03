@@ -409,6 +409,12 @@
       "national_id": "National ID"
     },
     "sanitizingPrompt": "Purifying",
+    "signInGate": {
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
+    },
     "horoscopeAuthGate": {
       "intro": "This question would be better answered through your <pill>horoscope</pill>. You'll need to ",
       "introSignedIn": "This question is best answered through your <pill>horoscope</pill>.",

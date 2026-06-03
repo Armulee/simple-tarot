@@ -9,7 +9,7 @@ import "swiper/css"
 import "swiper/css/free-mode"
 
 interface HomeQuickCardsProps {
-    onCardClick: (question: string) => void
+    onCardClick: (question: string, cardId: string) => void
     disabled?: boolean
     /** Use inside `QuestionInput` action strip (no outer max-width / horizontal padding). */
     embedded?: boolean
@@ -84,7 +84,7 @@ export default function HomeQuickCards({
                                     type='button'
                                     onClick={() => {
                                         if (!disabled) {
-                                            onCardClick(card.question)
+                                            onCardClick(card.question, card.id)
                                         }
                                     }}
                                     disabled={disabled}

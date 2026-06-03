@@ -8,6 +8,15 @@ import { LoopingTypewriterText } from "@/components/home/looping-typewriter-text
 import QuestionInput from "@/components/question-input"
 import Footer from "@/components/footer/footer"
 import HomeQuickCards from "@/components/home/home-quick-cards"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import {
     loadInterpretationModeFromStorage,
@@ -41,7 +50,11 @@ export default function Home() {
     const tHome = useTranslations("Home")
     const locale = useLocale()
     const router = useRouter()
-    const { user } = useAuth()
+    const { user, loading: authLoading } = useAuth()
+    const [authGate, setAuthGate] = useState<{
+        question: string
+        cardId: string
+    } | null>(null)
     const { ageGateState } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
@@ -303,6 +316,41 @@ export default function Home() {
         }
     }
 
+    // Feature chip clicks (excluding tarot) require an authenticated user.
+    // When the viewer is signed out we surface a sign-in gate and stash the
+    // prompt; after sign-in the autosend effect below replays it.
+    const handleQuickCardClick = (question: string, cardId: string) => {
+        if (cardId !== "tarotCard" && !user) {
+            setAuthGate({ question, cardId })
+            return
+        }
+        void createSessionAndRedirect(question)
+    }
+
+    // Pickup after sign-in: if we land back on home with ?autosend=<encoded>
+    // and the user is now authenticated, replay the prompt and clear the
+    // marker so a refresh doesn't re-fire.
+    const autosendFiredRef = useRef(false)
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        if (authLoading) return
+        if (!user) return
+        if (autosendFiredRef.current) return
+        const params = new URLSearchParams(window.location.search)
+        const autosend = params.get("autosend")
+        if (!autosend) return
+        autosendFiredRef.current = true
+        params.delete("autosend")
+        const search = params.toString()
+        window.history.replaceState(
+            {},
+            "",
+            `${window.location.pathname}${search ? `?${search}` : ""}`,
+        )
+        void createSessionAndRedirect(autosend)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, authLoading])
+
     const shouldShowHero = !isLinking
     const shouldShowLearnMore = showLearnMore && !isLinking
     const randomQuestionPool = useMemo(() => {
@@ -459,7 +507,7 @@ export default function Home() {
                                 </p>
                                 <HomeQuickCards
                                     embedded
-                                    onCardClick={createSessionAndRedirect}
+                                    onCardClick={handleQuickCardClick}
                                     disabled={isLinking}
                                 />
                             </div>
@@ -484,6 +532,42 @@ export default function Home() {
                     <Footer />
                 </div>
             </div>
+            <Dialog
+                open={authGate !== null}
+                onOpenChange={(open) => {
+                    if (!open) setAuthGate(null)
+                }}
+            >
+                <DialogContent className='sm:max-w-md'>
+                    <DialogHeader>
+                        <DialogTitle>{tHome("signInGate.title")}</DialogTitle>
+                        <DialogDescription>
+                            {tHome("signInGate.description")}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className='gap-2 sm:gap-2'>
+                        <Button
+                            variant='ghost'
+                            onClick={() => setAuthGate(null)}
+                            className='text-white/80 hover:bg-white/10 hover:text-white'
+                        >
+                            {tHome("signInGate.cancel")}
+                        </Button>
+                        <Button
+                            onClick={() => {
+                                if (!authGate) return
+                                const callback = `/?autosend=${encodeURIComponent(authGate.question)}`
+                                router.push(
+                                    `/signin?callbackUrl=${encodeURIComponent(callback)}`,
+                                )
+                            }}
+                            className='bg-white text-black hover:bg-white/90'
+                        >
+                            {tHome("signInGate.signIn")}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
