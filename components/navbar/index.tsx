@@ -13,6 +13,7 @@ import { StarPill } from "./star-pill"
 import { UserProfile } from "@/components/user-profile"
 // Avatar imports removed (unused)
 import { useAuth } from "@/hooks/use-auth"
+import { supabase } from "@/lib/supabase"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -57,9 +58,15 @@ export function Navbar({ locale }: { locale: string }) {
         const next = cleanTopic(topicDraft)
         setTopicSaving(true)
         try {
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            const { data: sess } = await supabase.auth.getSession()
+            const token = sess.session?.access_token
+            if (token) headers["Authorization"] = `Bearer ${token}`
             const res = await fetch(`/api/chat-sessions/${sessionId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({ topic: next }),
             })
             if (!res.ok) throw new Error("Failed to save topic")

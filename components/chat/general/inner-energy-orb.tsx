@@ -172,7 +172,9 @@ function ShapeMark({ shape, accent }: { shape: InnerEnergyShape; accent: string 
  * daily forecast.
  */
 export default function InnerEnergyOrb({ shape, className }: InnerEnergyOrbProps) {
-    const style = SHAPE_STYLES[shape]
+    const safeShape: InnerEnergyShape =
+        shape && shape in SHAPE_STYLES ? shape : "fog"
+    const style = SHAPE_STYLES[safeShape]
     return (
         <div
             className={`relative flex items-center justify-center ${
@@ -191,7 +193,7 @@ export default function InnerEnergyOrb({ shape, className }: InnerEnergyOrbProps
                 className={`relative flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] ring-1 ${style.ring} ${style.shadow} backdrop-blur-sm`}
             >
                 <div className='absolute inset-3'>
-                    <ShapeMark shape={shape} accent={style.accent} />
+                    <ShapeMark shape={safeShape} accent={style.accent} />
                 </div>
             </div>
         </div>

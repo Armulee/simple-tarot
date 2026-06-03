@@ -2714,9 +2714,15 @@ export default function ChatSession({
             showCardDraw: boolean
         }) => {
             if (!sessionId) return
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            const { data: sess } = await supabase.auth.getSession()
+            const token = sess.session?.access_token
+            if (token) headers["Authorization"] = `Bearer ${token}`
             await fetch(`/api/chat-sessions/${sessionId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     question: currentQuestion,
                     messages: currentMessages,
