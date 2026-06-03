@@ -46,7 +46,19 @@ import {
     MonthOverview,
 } from "./ui"
 
-export default function CalendarClient() {
+type CalendarClientProps = {
+    /**
+     * When true, render only the calendar surface (no full-viewport height,
+     * no PageContextComposer) so the component can be embedded inside
+     * another scrolling context — e.g. an inline tool block in a chat
+     * session.
+     */
+    embedded?: boolean
+}
+
+export default function CalendarClient({
+    embedded = false,
+}: CalendarClientProps = {}) {
     const locale = useLocale()
     const tCalendar = useTranslations("Calendar")
     const { user, loading: authLoading } = useAuth()
@@ -436,9 +448,16 @@ export default function CalendarClient() {
         [tCalendar],
     )
 
+    const outerClass = embedded
+        ? "relative isolate overflow-x-hidden"
+        : "relative isolate min-h-[calc(100dvh-64px)] overflow-x-hidden pb-[220px]"
+    const innerClass = embedded
+        ? "relative w-full space-y-5"
+        : "relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8"
+
     return (
-        <div className='relative isolate min-h-[calc(100dvh-64px)] overflow-x-hidden pb-[220px]'>
-            <div className='relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8'>
+        <div className={outerClass}>
+            <div className={innerClass}>
                 <Header
                     viewMonth={viewMonth}
                     onPrev={goPrevMonth}
@@ -508,7 +527,7 @@ export default function CalendarClient() {
                     </>
                 )}
             </div>
-            {calendarOriginContext ? (
+            {!embedded && calendarOriginContext ? (
                 <PageContextComposer
                     originContext={calendarOriginContext}
                     placeholder={tCalendar("composerPlaceholder")}
