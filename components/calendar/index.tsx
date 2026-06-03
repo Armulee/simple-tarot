@@ -35,7 +35,8 @@ import type {
     MonthKey,
     TransitDayFetchState,
 } from "./types"
-import { monthKey } from "./utils"
+import { formatMonthHeading, monthKey } from "./utils"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import {
     AuthGateCard,
     BirthGateCard,
@@ -48,10 +49,12 @@ import {
 
 type CalendarClientProps = {
     /**
-     * When true, render only the calendar surface (no full-viewport height,
-     * no PageContextComposer) so the component can be embedded inside
-     * another scrolling context — e.g. an inline tool block in a chat
-     * session.
+     * When true, render only the calendar grid (with a compact prev/next
+     * month chip and auth/birth gates when applicable) — no Header,
+     * MonthOverview, DetailPanel, LockedPaywallDialog, or
+     * PageContextComposer. Used by the inline CalendarYearBlock so the
+     * chat shows just the calendar surface, with a "View more" CTA that
+     * deep-links into the full /calendar page.
      */
     embedded?: boolean
 }
@@ -455,46 +458,81 @@ export default function CalendarClient({
         ? "relative w-full space-y-5"
         : "relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8"
 
+    const renderGrid = (
+        <CalendarGrid
+            matrix={monthMatrix}
+            today={today}
+            selectedDate={selectedDate}
+            onSelect={(d) => {
+                if (embedded) return
+                if (today && !isDateAccessible(d)) {
+                    setLockedPaywallDate(d)
+                    return
+                }
+                setSelectedDate(d)
+            }}
+            unlockedDates={unlockedDates}
+            daysMap={daysMap}
+            windowDays={windowDays}
+            loading={currentMonthState?.status === "loading"}
+            error={
+                currentMonthState?.status === "error"
+                    ? currentMonthState.message
+                    : null
+            }
+        />
+    )
+
     return (
         <div className={outerClass}>
             <div className={innerClass}>
-                <Header
-                    viewMonth={viewMonth}
-                    onPrev={goPrevMonth}
-                    onNext={goNextMonth}
-                    todayData={todayData}
-                />
+                {embedded ? (
+                    <div className='flex items-center justify-between gap-2'>
+                        <button
+                            type='button'
+                            onClick={goPrevMonth}
+                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10 hover:text-white transition-colors'
+                            aria-label={tCalendar("prevMonth")}
+                        >
+                            <ChevronLeft className='h-4 w-4' />
+                        </button>
+                        <div className='text-sm font-medium text-white'>
+                            {viewMonth
+                                ? formatMonthHeading(
+                                      locale,
+                                      viewMonth.year,
+                                      viewMonth.month,
+                                  )
+                                : "—"}
+                        </div>
+                        <button
+                            type='button'
+                            onClick={goNextMonth}
+                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10 hover:text-white transition-colors'
+                            aria-label={tCalendar("nextMonth")}
+                        >
+                            <ChevronRight className='h-4 w-4' />
+                        </button>
+                    </div>
+                ) : (
+                    <Header
+                        viewMonth={viewMonth}
+                        onPrev={goPrevMonth}
+                        onNext={goNextMonth}
+                        todayData={todayData}
+                    />
+                )}
 
                 {showAuthGate ? (
                     <AuthGateCard />
                 ) : showBirthGate ? (
                     <BirthGateCard />
+                ) : embedded ? (
+                    renderGrid
                 ) : (
                     <>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px] lg:gap-8'>
-                            <CalendarGrid
-                                matrix={monthMatrix}
-                                today={today}
-                                selectedDate={selectedDate}
-                                onSelect={(d) => {
-                                    if (today && !isDateAccessible(d)) {
-                                        setLockedPaywallDate(d)
-                                        return
-                                    }
-                                    setSelectedDate(d)
-                                }}
-                                unlockedDates={unlockedDates}
-                                daysMap={daysMap}
-                                windowDays={windowDays}
-                                loading={
-                                    currentMonthState?.status === "loading"
-                                }
-                                error={
-                                    currentMonthState?.status === "error"
-                                        ? currentMonthState.message
-                                        : null
-                                }
-                            />
+                            {renderGrid}
                             <MonthOverview overview={monthOverview} />
                             <DetailPanel
                                 data={selectedDayData}
@@ -534,6 +572,7 @@ export default function CalendarClient({
                     suggestions={calendarSuggestions}
                 />
             ) : null}
+            {!embedded ? (
             <LockedPaywallDialog
                 open={lockedPaywallDate !== null}
                 onOpenChange={(open) => {
@@ -566,6 +605,7 @@ export default function CalendarClient({
                     setLockedPaywallDate(null)
                 }}
             />
+            ) : null}
         </div>
     )
 }
