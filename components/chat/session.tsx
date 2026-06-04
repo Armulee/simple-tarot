@@ -836,23 +836,11 @@ export default function ChatSession({
     const [showPrompt, setShowPrompt] = useState(false)
     const [showLearnMore, setShowLearnMore] = useState(false)
     const [consulting, setConsulting] = useState(false)
-    const [messages, setMessages] = useState<ChatMessage[]>(() => {
-        const restored = Array.isArray(initialSession?.messages)
+    const [messages, setMessages] = useState<ChatMessage[]>(
+        Array.isArray(initialSession?.messages)
             ? normalizeRestoredMessages(initialSession.messages)
-            : []
-        // Backfill the per-message context snapshot from the session's
-        // initial originContext for any user message that doesn't already
-        // carry one. Covers sessions started from /calendar where the
-        // originContext lives at the session level but should still show
-        // as a chip above each user bubble.
-        const sessionOrigin = initialSession?.originContext ?? null
-        if (!sessionOrigin) return restored
-        return restored.map((m) =>
-            m.role === "user" && !m.originContextSnapshot
-                ? { ...m, originContextSnapshot: sessionOrigin }
-                : m,
-        )
-    })
+            : [],
+    )
     const [decision, setDecision] = useState<ChatDecision | null>(
         initialSession?.decision ?? null,
     )
@@ -901,14 +889,6 @@ export default function ChatSession({
     const [originContext, setOriginContext] = useState<OriginContext | null>(
         initialSession?.originContext ?? null,
     )
-    // Mirror originContext into a ref so the user-message-add callbacks
-    // (memoised with stable deps for perf) always snapshot the latest
-    // context onto the new message — even after the calendar tool
-    // refreshes it mid-session.
-    const originContextRef = useRef<OriginContext | null>(originContext)
-    useEffect(() => {
-        originContextRef.current = originContext
-    }, [originContext])
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>([])
     const unmask = useCallback(
         (text?: string | null): string => {
@@ -4132,7 +4112,6 @@ export default function ChatSession({
                             id: `user-${Date.now()}`,
                             role: "user",
                             text: trimmed,
-                            originContextSnapshot: originContextRef.current,
                         },
                     ])
                 }
@@ -5274,7 +5253,6 @@ export default function ChatSession({
                         id: `user-${Date.now()}`,
                         role: "user",
                         text: trimmed,
-                        originContextSnapshot: originContextRef.current,
                     },
                 ])
             }
@@ -5640,7 +5618,6 @@ export default function ChatSession({
                 role: "user",
                 text: result.sanitized,
                 isSanitizing: false,
-                originContextSnapshot: originContextRef.current,
                 ...(privacyStorageKey && {
                     displayText: rawValue,
                     privacyStorageKey,
@@ -5703,7 +5680,6 @@ export default function ChatSession({
                     text: trimmed,
                     displayText: trimmed,
                     isSanitizing: true,
-                    originContextSnapshot: originContextRef.current,
                 },
             ]
         })
@@ -5880,37 +5856,15 @@ export default function ChatSession({
         return last
     }, [messages])
 
-    // When the most recent assistant turn is the horoscope-calendar tool,
-    // mirror /calendar's PageContextComposer by surfacing its suggestion
-    // chips above the composer so the viewer can tap a generic prompt
-    // (focus today / good decision day / etc.) instead of typing.
-    const tCalendarShared = useTranslations("Calendar")
-    const calendarFollowUpHost = useMemo(() => {
-        if (messages.length === 0) return null
-        const last = messages[messages.length - 1]
-        if (last.role !== "assistant") return null
-        if (last.variant !== "horoscope-calendar") return null
-        return last
-    }, [messages])
-    const calendarFollowUpSuggestions = useMemo(() => {
-        if (!calendarFollowUpHost) return null
-        return [
-            tCalendarShared("suggestions.focusToday"),
-            tCalendarShared("suggestions.goodDecisionDay"),
-            tCalendarShared("suggestions.activitiesForToday"),
-            tCalendarShared("suggestions.warnings"),
-        ]
-    }, [calendarFollowUpHost, tCalendarShared])
-
     const composerFollowUpsVisible =
         !isHoroscopeIntakeActive &&
         Boolean(composerFollowUpHost) &&
         composerSuggestionsEnabled
 
     const hideComposerActionTriggerRow =
-        ((Boolean(composerFollowUpHost) && composerSuggestionsEnabled) ||
-            Boolean(calendarFollowUpHost)) &&
-        !isHoroscopeIntakeActive
+        Boolean(composerFollowUpHost) &&
+        !isHoroscopeIntakeActive &&
+        composerSuggestionsEnabled
 
     const formattedCurrentLocationLabel = useMemo(() => {
         if (
@@ -6305,33 +6259,22 @@ export default function ChatSession({
                           }
                 }
                 composerFollowUps={
-                    calendarFollowUpHost && calendarFollowUpSuggestions
+                    composerFollowUpsVisible && composerFollowUpHost
                         ? {
-                              messageId: calendarFollowUpHost.id,
-                              items: calendarFollowUpSuggestions.slice(0, 4),
+                              messageId: composerFollowUpHost.id,
+                              items: composerFollowUpHost.followUpSuggestions!.slice(
+                                  0,
+                                  4,
+                              ),
                               onSelect: (text: string) => {
                                   applySuggestedQuestion(unmask(text))
                               },
+                              onDismissStrip: () => {
+                                  handleComposerSuggestionsEnabledChange(false)
+                              },
                               privacyAliases,
                           }
-                        : composerFollowUpsVisible && composerFollowUpHost
-                          ? {
-                                messageId: composerFollowUpHost.id,
-                                items: composerFollowUpHost.followUpSuggestions!.slice(
-                                    0,
-                                    4,
-                                ),
-                                onSelect: (text: string) => {
-                                    applySuggestedQuestion(unmask(text))
-                                },
-                                onDismissStrip: () => {
-                                    handleComposerSuggestionsEnabledChange(
-                                        false,
-                                    )
-                                },
-                                privacyAliases,
-                            }
-                          : null
+                        : null
                 }
                 actionTrigger={
                     hideComposerActionTriggerRow ? null : (
@@ -6348,6 +6291,16 @@ export default function ChatSession({
                             onLocationClick={openLocationDialog}
                             onCancelIntake={handleCancelHoroscopeIntake}
                             onChooseCardInstead={handleChooseCardInstead}
+                            dayContext={
+                                originContext?.kind === "calendar-day"
+                                    ? {
+                                          label: originContext.label,
+                                          hint: tHoroscopeCalendar(
+                                              "actionTriggerHint",
+                                          ),
+                                      }
+                                    : null
+                            }
                         />
                     )
                 }
