@@ -57,10 +57,11 @@ type CalendarClientProps = {
     embedded?: boolean
     /**
      * Embedded only. When provided, day clicks call this handler with the
-     * Date the user picked instead of triggering the paywall dialog /
-     * detail panel. Used by the inline horoscope calendar tool.
+     * Date the user picked (and the loaded DayData if available) instead
+     * of triggering the paywall dialog / detail panel. Used by the inline
+     * horoscope calendar tool.
      */
-    onDayClick?: (date: Date) => void
+    onDayClick?: (date: Date, dayData: DayData | null) => void
     /**
      * Embedded only. Externally-controlled "selected" highlight on the
      * grid. When provided this overrides the internal selection state so
@@ -423,7 +424,32 @@ export default function CalendarClient({
         return !isDateAccessible(selectedDate)
     }, [selectedDate, today, isDateAccessible])
 
+    const canGoPrevMonth = useMemo(() => {
+        if (!embedded || !viewMonth || !today) return true
+        if (!Number.isFinite(windowDays)) return true
+        const candidate = new Date(viewMonth.year, viewMonth.month - 1, 1)
+        return !isMonthFullyOutsideWindow(
+            candidate.getFullYear(),
+            candidate.getMonth(),
+            today,
+            windowDays,
+        )
+    }, [embedded, viewMonth, today, windowDays])
+
+    const canGoNextMonth = useMemo(() => {
+        if (!embedded || !viewMonth || !today) return true
+        if (!Number.isFinite(windowDays)) return true
+        const candidate = new Date(viewMonth.year, viewMonth.month + 1, 1)
+        return !isMonthFullyOutsideWindow(
+            candidate.getFullYear(),
+            candidate.getMonth(),
+            today,
+            windowDays,
+        )
+    }, [embedded, viewMonth, today, windowDays])
+
     const goPrevMonth = () => {
+        if (!canGoPrevMonth) return
         setViewMonth((prev) => {
             if (!prev) return prev
             const d = new Date(prev.year, prev.month - 1, 1)
@@ -432,6 +458,7 @@ export default function CalendarClient({
     }
 
     const goNextMonth = () => {
+        if (!canGoNextMonth) return
         setViewMonth((prev) => {
             if (!prev) return prev
             const d = new Date(prev.year, prev.month + 1, 1)
@@ -480,7 +507,11 @@ export default function CalendarClient({
             selectedDate={effectiveSelected}
             onSelect={(d) => {
                 if (embedded) {
-                    if (onDayClick) onDayClick(d)
+                    if (onDayClick) {
+                        const iso = toLocalIsoDate(d)
+                        const dayData = daysMap?.[iso] ?? null
+                        onDayClick(d, dayData)
+                    }
                     return
                 }
                 if (today && !isDateAccessible(d)) {
@@ -509,7 +540,8 @@ export default function CalendarClient({
                         <button
                             type='button'
                             onClick={goPrevMonth}
-                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10 hover:text-white transition-colors'
+                            disabled={!canGoPrevMonth}
+                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/[0.04]'
                             aria-label={tCalendar("prevMonth")}
                         >
                             <ChevronLeft className='h-4 w-4' />
@@ -526,7 +558,8 @@ export default function CalendarClient({
                         <button
                             type='button'
                             onClick={goNextMonth}
-                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 hover:bg-white/10 hover:text-white transition-colors'
+                            disabled={!canGoNextMonth}
+                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/[0.04]'
                             aria-label={tCalendar("nextMonth")}
                         >
                             <ChevronRight className='h-4 w-4' />

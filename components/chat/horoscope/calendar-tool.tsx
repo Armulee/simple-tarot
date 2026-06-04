@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
     Briefcase,
@@ -14,6 +14,8 @@ import {
 } from "lucide-react"
 
 import CalendarClient from "@/components/calendar"
+import type { DayData } from "@/lib/calendar-helper"
+import { cn } from "@/lib/utils"
 
 type ChipId =
     | "financial"
@@ -40,13 +42,22 @@ const CHIPS: ChipMeta[] = [
 ]
 
 type Props = {
-    /**
-     * Called when the viewer taps a topic chip — fires a follow-up
-     * horoscope reading for the chosen topic on the picked date.
-     * `topicLabel` is the localized chip label that gets woven into the
-     * follow-up question; the parent merges that with the date.
-     */
+    /** Fired when the viewer taps a topic chip. */
     onChipClick: (chipId: ChipId, topicLabel: string, date: Date) => void
+    /**
+     * Fired whenever the picked date or its loaded DayData changes — the
+     * session uses this to update its `originContext` so the AI receives
+     * the day's transit/aspect summary on the next message.
+     */
+    onSelectionChange?: (date: Date, dayData: DayData | null) => void
+}
+
+const QUALITY_LABEL: Record<DayData["quality"], string> = {
+    excellent: "excellent",
+    good: "good",
+    neutral: "neutral",
+    caution: "caution",
+    avoid: "avoid",
 }
 
 /**
@@ -57,13 +68,21 @@ type Props = {
  * calendar" turn itself does not deduct a star — only the follow-up
  * reading triggered by a chip click does.
  */
-export default function HoroscopeCalendarTool({ onChipClick }: Props) {
+export default function HoroscopeCalendarTool({
+    onChipClick,
+    onSelectionChange,
+}: Props) {
     const t = useTranslations("HoroscopeCalendar")
     const locale = useLocale()
     const [selected, setSelected] = useState<Date>(() => {
         const now = new Date()
         return new Date(now.getFullYear(), now.getMonth(), now.getDate())
     })
+    const [dayData, setDayData] = useState<DayData | null>(null)
+
+    useEffect(() => {
+        onSelectionChange?.(selected, dayData)
+    }, [selected, dayData, onSelectionChange])
 
     const formattedDate = useMemo(() => {
         try {
@@ -77,20 +96,47 @@ export default function HoroscopeCalendarTool({ onChipClick }: Props) {
         }
     }, [locale, selected])
 
-    return (
-        <div className='w-full overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]'>
-            <div className='px-2 pt-3 pb-2 sm:px-3 sm:pt-4'>
-                <CalendarClient
-                    embedded
-                    selectedDateOverride={selected}
-                    onDayClick={(d) => setSelected(d)}
-                />
-            </div>
+    const contextLine = useMemo(() => {
+        if (!dayData) return t("context.noData")
+        const overall = Number.isFinite(dayData.overall)
+            ? dayData.overall.toFixed(1)
+            : "—"
+        return t("context.selected", {
+            date: formattedDate,
+            quality: QUALITY_LABEL[dayData.quality] ?? dayData.quality,
+            score: overall,
+        })
+    }, [dayData, formattedDate, t])
 
-            <div className='border-t border-white/[0.06] px-4 py-4 space-y-3'>
+    return (
+        <div className='w-full space-y-3'>
+            <p className='text-sm text-white/85'>{t("intro")}</p>
+
+            <CalendarClient
+                embedded
+                selectedDateOverride={selected}
+                onDayClick={(d, data) => {
+                    setSelected(d)
+                    setDayData(data)
+                }}
+            />
+
+            <div className='space-y-3 pt-1'>
                 <p className='text-sm text-white/85'>
                     {t("followUpPrompt", { date: formattedDate })}
                 </p>
+                <div
+                    className={cn(
+                        "inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium",
+                        dayData
+                            ? "bg-white/[0.06] text-white/80"
+                            : "bg-white/[0.03] text-white/55",
+                    )}
+                    aria-live='polite'
+                >
+                    <Sparkles className='h-3 w-3 shrink-0' aria-hidden />
+                    <span className='truncate'>{contextLine}</span>
+                </div>
                 <ul className='flex flex-wrap gap-2'>
                     {CHIPS.map(({ id, icon: Icon }) => {
                         const label = t(`chips.${id}`)

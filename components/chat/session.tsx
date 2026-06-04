@@ -36,6 +36,7 @@ import {
     buildSessionContextSummary,
 } from "@/lib/astrology/question-context"
 import {
+    buildCalendarDayOriginContext,
     mergeOriginContextIntoSummary,
     type OriginContext,
 } from "@/lib/chat/origin-context"
@@ -885,7 +886,7 @@ export default function ChatSession({
     const [composerSuggestionsEnabled, setComposerSuggestionsEnabled] =
         useState(true)
     const [sessionId] = useState<string | null>(initialSession?.id ?? null)
-    const [originContext] = useState<OriginContext | null>(
+    const [originContext, setOriginContext] = useState<OriginContext | null>(
         initialSession?.originContext ?? null,
     )
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>([])
@@ -5099,6 +5100,14 @@ export default function ChatSession({
         })
         void handleSubmit(followUpQuestion)
     }
+    const handleCalendarSelectionChange = (
+        date: Date,
+        dayData: import("@/lib/calendar-helper").DayData | null,
+    ) => {
+        setOriginContext(
+            buildCalendarDayOriginContext(date, dayData, locale),
+        )
+    }
 
     const handleAskAspectDetail = async (
         question: string,
@@ -6336,6 +6345,7 @@ export default function ChatSession({
                 disclaimerText={disclaimerText}
                 onRegenerateAt={handleRegenerateAt}
                 onCalendarChipClick={handleCalendarChipClick}
+                onCalendarSelectionChange={handleCalendarSelectionChange}
                 onStartEditAt={handleStartEditAt}
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}

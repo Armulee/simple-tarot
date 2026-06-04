@@ -2719,8 +2719,14 @@
     "removeBirth": "Remove"
   },
   "HoroscopeCalendar": {
-    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day.",
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
     "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
     "chips": {
       "financial": "Financial",
       "love": "Love",

@@ -257,6 +257,15 @@ type MessageListProps = {
         topicLabel: string,
         date: Date,
     ) => void
+    /**
+     * Fires whenever the viewer picks a date (or new DayData lands) in the
+     * inline horoscope calendar tool. The session refreshes its
+     * originContext so the AI sees that day on follow-up questions.
+     */
+    onCalendarSelectionChange?: (
+        date: Date,
+        dayData: import("@/lib/calendar-helper").DayData | null,
+    ) => void
     onAskAspectDetail?: (
         question: string,
         aspectKey: string,
@@ -339,6 +348,7 @@ export default function MessageList({
     onCancelEdit,
     onSendEditAt,
     onCalendarChipClick,
+    onCalendarSelectionChange,
     onAskAspectDetail,
     onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
@@ -707,6 +717,12 @@ export default function MessageList({
                                                     chipId,
                                                     topicLabel,
                                                     date,
+                                                )
+                                            }
+                                            onSelectionChange={(date, data) =>
+                                                onCalendarSelectionChange?.(
+                                                    date,
+                                                    data,
                                                 )
                                             }
                                         />
