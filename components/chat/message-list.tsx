@@ -49,7 +49,6 @@ import {
     RotateCw,
     Send,
     Share2,
-    Sparkles,
     Square,
     ThumbsDown,
     ThumbsUp,
@@ -374,7 +373,6 @@ export default function MessageList({
 }: MessageListProps) {
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
-    const tPageContextComposer = useTranslations("PageContextComposer")
     const tHoroscope = useTranslations("HoroscopeChat")
     const consultingBase = t("consulting")
 
@@ -509,34 +507,6 @@ export default function MessageList({
                                     id={`msg-${message.id}`}
                                     className='flex flex-col items-end gap-2'
                                 >
-                                    {message.originContextSnapshot?.kind ===
-                                    "calendar-day" ? (
-                                        <div className='flex max-w-[80%] flex-col items-end gap-1 text-right'>
-                                            <p className='text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55'>
-                                                {tPageContextComposer(
-                                                    "eyebrow",
-                                                )}
-                                            </p>
-                                            <div
-                                                className='inline-flex max-w-full items-center gap-2 rounded-xl border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-white/[0.04] to-violet-400/10 px-3 py-1.5 text-xs text-white/85 backdrop-blur'
-                                                role='note'
-                                                aria-label={
-                                                    message
-                                                        .originContextSnapshot
-                                                        .label
-                                                }
-                                            >
-                                                <Sparkles className='size-3.5 shrink-0 text-amber-200/85' />
-                                                <span className='truncate font-medium text-white'>
-                                                    {
-                                                        message
-                                                            .originContextSnapshot
-                                                            .label
-                                                    }
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ) : null}
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                         {isEditing ? (
                                             <div className='relative'>
