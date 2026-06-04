@@ -19,6 +19,7 @@ import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
+import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import PaywallBlock from "@/components/chat/paywall-block"
@@ -246,6 +247,16 @@ type MessageListProps = {
     onStartEditAt: (messageIndex: number) => void
     onCancelEdit: () => void
     onSendEditAt: (messageIndex: number) => void
+    /**
+     * Fires when the viewer taps a topic chip inside an inline horoscope
+     * calendar tool (variant: "horoscope-calendar"). The session sends a
+     * follow-up question for the chosen topic + date.
+     */
+    onCalendarChipClick?: (
+        chipId: string,
+        topicLabel: string,
+        date: Date,
+    ) => void
     onAskAspectDetail?: (
         question: string,
         aspectKey: string,
@@ -327,6 +338,7 @@ export default function MessageList({
     onStartEditAt,
     onCancelEdit,
     onSendEditAt,
+    onCalendarChipClick,
     onAskAspectDetail,
     onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
@@ -683,7 +695,23 @@ export default function MessageList({
                                         privacyAliases={privacyAliases}
                                     />
                                 )}
-                                {message.variant ===
+                                {message.variant === "horoscope-calendar" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <HoroscopeCalendarTool
+                                            onChipClick={(
+                                                chipId,
+                                                topicLabel,
+                                                date,
+                                            ) =>
+                                                onCalendarChipClick?.(
+                                                    chipId,
+                                                    topicLabel,
+                                                    date,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                ) : message.variant ===
                                 "box" ? null : message.variant ===
                                   "horoscope" ? (
                                     <>

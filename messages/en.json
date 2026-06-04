@@ -2718,6 +2718,19 @@
     "rememberBirth": "Remember my birth date",
     "removeBirth": "Remove"
   },
+  "HoroscopeCalendar": {
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
+    }
+  },
   "HoroscopeChat": {
     "usingSavedBirthDate": "Using your saved birth date for this interpretation...",
     "loading": "Consulting your birth chart...",

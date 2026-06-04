@@ -2719,6 +2719,19 @@
     "rememberBirth": "จำข้อมูลวันเกิดของฉัน",
     "removeBirth": "ลบข้อมูล"
   },
+  "HoroscopeCalendar": {
+    "followUpPrompt": "อยากรู้เพิ่มเกี่ยวกับ {date} ไหม? แตะหัวข้อแล้วฉันจะอ่านให้สำหรับวันนั้น",
+    "followUpQuestion": "ช่วยอ่าน {topic} ของฉันสำหรับวันที่ {date} ให้หน่อย",
+    "chips": {
+      "financial": "การเงิน",
+      "love": "ความรัก",
+      "career": "การงาน",
+      "health": "สุขภาพ",
+      "family": "ครอบครัว",
+      "travel": "การเดินทาง",
+      "thinkMore": "ช่วยคิดให้เพิ่มอีกหน่อย"
+    }
+  },
   "HoroscopeChat": {
     "usingSavedBirthDate": "กำลังใช้ข้อมูลวันเกิดที่บันทึกไว้ทำนายดวง...",
     "loading": "กำลังอ่านดวงจากข้อมูลเกิดของคุณ...",

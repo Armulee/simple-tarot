@@ -2715,6 +2715,19 @@
     "rememberBirth": "ຈົດຈຳຂໍ້ມູນວັນເກີດຂອງຂ້ອຍ",
     "removeBirth": "ລຶບຂໍ້ມູນ"
   },
+  "HoroscopeCalendar": {
+    "followUpPrompt": "ຢາກຮູ້ເພີ່ມກ່ຽວກັບ {date} ບໍ? ກົດຫົວຂໍ້ ແລ້ວເຮົາຈະອ່ານໃຫ້ສຳລັບມື້ນັ້ນ.",
+    "followUpQuestion": "ຊ່ວຍບອກກ່ຽວກັບ {topic} ຂອງຂ້ອຍສຳລັບ {date}.",
+    "chips": {
+      "financial": "ການເງິນ",
+      "love": "ຄວາມຮັກ",
+      "career": "ການງານ",
+      "health": "ສຸຂະພາບ",
+      "family": "ຄອບຄົວ",
+      "travel": "ການເດີນທາງ",
+      "thinkMore": "ຊ່ວຍຄິດໃຫ້ເພີ່ມ"
+    }
+  },
   "HoroscopeChat": {
     "usingSavedBirthDate": "ກຳລັງໃຊ້ຂໍ້ມູນວັນເກີດທີ່ບັນທຶກໄວ້ທຳນາຍດວງ...",
     "loading": "ກຳລັງອ່ານດວງຈາກຂໍ້ມູນເກີດຂອງທ່ານ...",

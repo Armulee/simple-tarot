@@ -143,7 +143,12 @@ export type ChatMessage = {
     perCard?: PerCardSentence[]
     /** New tarot result schema: soft, non-commanding next step. */
     nextStep?: string
-    variant?: "plain" | "box" | "horoscope" | "paywall"
+    variant?:
+        | "plain"
+        | "box"
+        | "horoscope"
+        | "horoscope-calendar"
+        | "paywall"
     /**
      * Reply strategy resolved by /api/horoscope/extract. Drives which
      * downstream route renders the reading and which tabs the
@@ -284,6 +289,14 @@ export type ChatDecision = {
     supportTopic?: SupportTopic
     /** When supportTopic === "tarot-card": canonical card slug. */
     supportCardSlug?: string
+    /**
+     * When type === "horoscope" and horoscopeMode === "calendar", the
+     * assistant turn renders the interactive horoscope calendar tool
+     * instead of an immediate streamed reading. No stars are spent for
+     * this turn; the follow-up reading triggered by a chip click is what
+     * counts.
+     */
+    horoscopeMode?: "calendar"
 }
 
 /**

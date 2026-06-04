@@ -73,6 +73,7 @@ import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
 import MessageList from "@/components/chat/message-list"
 import ShareAccessDialog from "@/components/chat/share-access-dialog"
+import type { ChipId as HoroscopeCalendarChipId } from "@/components/chat/horoscope/calendar-tool"
 import { toast } from "sonner"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
@@ -4815,6 +4816,32 @@ export default function ChatSession({
                 flowDecision = nextDecision
                 setDecision(nextDecision)
 
+                // Calendar-mode horoscope: render the inline calendar tool
+                // instead of streaming a reading, and don't spend a star.
+                // The follow-up question fired by a chip click goes through
+                // the normal horoscope flow and spends one star then.
+                if (
+                    nextDecision.type === "horoscope" &&
+                    nextDecision.horoscopeMode === "calendar"
+                ) {
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: "",
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      variant: "horoscope-calendar",
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                    return
+                }
+
                 if (horoscopeAuthGate) {
                     setConsulting(false)
                     setMessages((prev) =>
@@ -5053,6 +5080,24 @@ export default function ChatSession({
     const applySuggestedQuestion = (value: string) => {
         setQuestion(value)
         focusInput()
+    }
+
+    const tHoroscopeCalendar = useTranslations("HoroscopeCalendar")
+    const handleCalendarChipClick = (
+        _chipId: HoroscopeCalendarChipId | string,
+        topicLabel: string,
+        date: Date,
+    ) => {
+        const formattedDate = new Intl.DateTimeFormat(locale, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        }).format(date)
+        const followUpQuestion = tHoroscopeCalendar("followUpQuestion", {
+            topic: topicLabel,
+            date: formattedDate,
+        })
+        void handleSubmit(followUpQuestion)
     }
 
     const handleAskAspectDetail = async (
@@ -6290,6 +6335,7 @@ export default function ChatSession({
                 hasAssistantResponse={hasAssistantResponse}
                 disclaimerText={disclaimerText}
                 onRegenerateAt={handleRegenerateAt}
+                onCalendarChipClick={handleCalendarChipClick}
                 onStartEditAt={handleStartEditAt}
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}

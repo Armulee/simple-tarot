@@ -52,15 +52,27 @@ type CalendarClientProps = {
      * When true, render only the calendar grid (with a compact prev/next
      * month chip and auth/birth gates when applicable) — no Header,
      * MonthOverview, DetailPanel, LockedPaywallDialog, or
-     * PageContextComposer. Used by the inline CalendarYearBlock so the
-     * chat shows just the calendar surface, with a "View more" CTA that
-     * deep-links into the full /calendar page.
+     * PageContextComposer.
      */
     embedded?: boolean
+    /**
+     * Embedded only. When provided, day clicks call this handler with the
+     * Date the user picked instead of triggering the paywall dialog /
+     * detail panel. Used by the inline horoscope calendar tool.
+     */
+    onDayClick?: (date: Date) => void
+    /**
+     * Embedded only. Externally-controlled "selected" highlight on the
+     * grid. When provided this overrides the internal selection state so
+     * the visual reflects whatever the parent is tracking.
+     */
+    selectedDateOverride?: Date | null
 }
 
 export default function CalendarClient({
     embedded = false,
+    onDayClick,
+    selectedDateOverride,
 }: CalendarClientProps = {}) {
     const locale = useLocale()
     const tCalendar = useTranslations("Calendar")
@@ -458,13 +470,19 @@ export default function CalendarClient({
         ? "relative w-full space-y-5"
         : "relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8"
 
+    const effectiveSelected = embedded
+        ? (selectedDateOverride ?? selectedDate)
+        : selectedDate
     const renderGrid = (
         <CalendarGrid
             matrix={monthMatrix}
             today={today}
-            selectedDate={selectedDate}
+            selectedDate={effectiveSelected}
             onSelect={(d) => {
-                if (embedded) return
+                if (embedded) {
+                    if (onDayClick) onDayClick(d)
+                    return
+                }
                 if (today && !isDateAccessible(d)) {
                     setLockedPaywallDate(d)
                     return
