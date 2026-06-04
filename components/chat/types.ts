@@ -143,6 +143,14 @@ export type ChatMessage = {
     perCard?: PerCardSentence[]
     /** New tarot result schema: soft, non-commanding next step. */
     nextStep?: string
+    /**
+     * Snapshot of the session's originContext at the moment this message
+     * was submitted. Lets MessageList render a per-message context chip
+     * (e.g. the calendar-day pill) above the bubble so the viewer sees
+     * which date the question was read for, even after subsequent days
+     * have been selected.
+     */
+    originContextSnapshot?: OriginContext | null
     variant?:
         | "plain"
         | "box"

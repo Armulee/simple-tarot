@@ -8,14 +8,12 @@ import {
 } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { CornerDownRight, Sparkles } from "lucide-react"
-import { Swiper, SwiperSlide } from "swiper/react"
-import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
 import "swiper/css/free-mode"
 
 import { useAuth } from "@/hooks/use-auth"
-import QuestionInput, { followUpChipClass } from "@/components/question-input"
+import QuestionInput from "@/components/question-input"
+import OriginContextStrip from "@/components/chat/origin-context-strip"
 import { CARD_UI_TEXT, normalizeLocale } from "@/components/chat/card-ui"
 import {
     detectInputLanguage,
@@ -224,79 +222,17 @@ export default function PageContextComposer({
     }
 
     const contextChip: ReactNode = (
-        <div className='w-full space-y-2 text-left'>
-            <p className='text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
-                {eyebrow ?? t("eyebrow")}
-            </p>
-            <div
-                className='inline-flex max-w-full items-center gap-2 rounded-xl border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-white/[0.04] to-violet-400/10 px-3 py-1.5 text-xs text-white/85 backdrop-blur'
-                role='note'
-                aria-label={`${originContext.label} — ${hint ?? t("hint")}`}
-            >
-                <Sparkles className='size-3.5 shrink-0 text-amber-200/85' />
-                <span className='truncate font-medium text-white'>
-                    {originContext.label}
-                </span>
-                <span className='hidden sm:inline text-white/60'>
-                    — {hint ?? t("hint")}
-                </span>
-            </div>
-            {suggestions && suggestions.length > 0 ? (
-                <Swiper
-                    modules={[FreeMode, Mousewheel]}
-                    noSwiping={false}
-                    touchEventsTarget='container'
-                    freeMode={{
-                        enabled: true,
-                        momentum: true,
-                        sticky: false,
-                    }}
-                    mousewheel={{
-                        forceToAxis: true,
-                        releaseOnEdges: true,
-                        sensitivity: 1,
-                    }}
-                    slidesPerView='auto'
-                    spaceBetween={8}
-                    className='composer-follow-up-swiper w-full touch-pan-x !overflow-visible'
-                >
-                    {suggestions.map((suggestion, idx) => (
-                        <SwiperSlide
-                            key={`page-suggestion-${idx}`}
-                            className='!w-auto !flex-shrink-0 min-w-0'
-                        >
-                            <div
-                                role='button'
-                                tabIndex={isLinking ? -1 : 0}
-                                aria-disabled={isLinking || undefined}
-                                onClick={() => {
-                                    if (isLinking) return
-                                    setQuestion(suggestion)
-                                    void createSessionAndRedirect(suggestion)
-                                }}
-                                onKeyDown={(e) => {
-                                    if (isLinking) return
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault()
-                                        setQuestion(suggestion)
-                                        void createSessionAndRedirect(suggestion)
-                                    }
-                                }}
-                                className={`${followUpChipClass} ${isLinking ? "opacity-50 cursor-not-allowed" : ""}`}
-                            >
-                                <CornerDownRight
-                                    aria-hidden
-                                    className='mr-1.5 size-3.5 shrink-0 text-white/55'
-                                />
-                                <span className='block max-w-[min(92vw,20rem)] truncate'>
-                                    {suggestion}
-                                </span>
-                            </div>
-                        </SwiperSlide>
-                    ))}
-                </Swiper>
-            ) : null}
-        </div>
+        <OriginContextStrip
+            originContext={originContext}
+            eyebrow={eyebrow}
+            hint={hint}
+            suggestions={suggestions}
+            onSuggestionClick={(suggestion) => {
+                setQuestion(suggestion)
+                void createSessionAndRedirect(suggestion)
+            }}
+            disabled={isLinking}
+        />
     )
 
     return (

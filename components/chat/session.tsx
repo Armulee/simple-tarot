@@ -72,6 +72,7 @@ import type {
 } from "@/types/horoscope"
 import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
+import OriginContextStrip from "@/components/chat/origin-context-strip"
 import MessageList from "@/components/chat/message-list"
 import ShareAccessDialog from "@/components/chat/share-access-dialog"
 import type { ChipId as HoroscopeCalendarChipId } from "@/components/chat/horoscope/calendar-tool"
@@ -836,11 +837,22 @@ export default function ChatSession({
     const [showPrompt, setShowPrompt] = useState(false)
     const [showLearnMore, setShowLearnMore] = useState(false)
     const [consulting, setConsulting] = useState(false)
-    const [messages, setMessages] = useState<ChatMessage[]>(
-        Array.isArray(initialSession?.messages)
+    const [messages, setMessages] = useState<ChatMessage[]>(() => {
+        const restored = Array.isArray(initialSession?.messages)
             ? normalizeRestoredMessages(initialSession.messages)
-            : [],
-    )
+            : []
+        // Backfill the per-message context snapshot from the session's
+        // initial originContext for any user message that doesn't already
+        // carry one — sessions opened from /calendar should keep showing
+        // the day pill above the first user bubble.
+        const sessionOrigin = initialSession?.originContext ?? null
+        if (!sessionOrigin) return restored
+        return restored.map((m) =>
+            m.role === "user" && !m.originContextSnapshot
+                ? { ...m, originContextSnapshot: sessionOrigin }
+                : m,
+        )
+    })
     const [decision, setDecision] = useState<ChatDecision | null>(
         initialSession?.decision ?? null,
     )
@@ -889,6 +901,14 @@ export default function ChatSession({
     const [originContext, setOriginContext] = useState<OriginContext | null>(
         initialSession?.originContext ?? null,
     )
+    // Mirror originContext into a ref so the user-message-add callbacks
+    // (memoised with stable deps for perf) snapshot the latest context
+    // onto the new message even after the calendar tool refreshes it
+    // mid-session.
+    const originContextRef = useRef<OriginContext | null>(originContext)
+    useEffect(() => {
+        originContextRef.current = originContext
+    }, [originContext])
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>([])
     const unmask = useCallback(
         (text?: string | null): string => {
@@ -4112,6 +4132,7 @@ export default function ChatSession({
                             id: `user-${Date.now()}`,
                             role: "user",
                             text: trimmed,
+                            originContextSnapshot: originContextRef.current,
                         },
                     ])
                 }
@@ -5253,6 +5274,7 @@ export default function ChatSession({
                         id: `user-${Date.now()}`,
                         role: "user",
                         text: trimmed,
+                        originContextSnapshot: originContextRef.current,
                     },
                 ])
             }
@@ -5618,6 +5640,7 @@ export default function ChatSession({
                 role: "user",
                 text: result.sanitized,
                 isSanitizing: false,
+                originContextSnapshot: originContextRef.current,
                 ...(privacyStorageKey && {
                     displayText: rawValue,
                     privacyStorageKey,
@@ -5680,6 +5703,7 @@ export default function ChatSession({
                     text: trimmed,
                     displayText: trimmed,
                     isSanitizing: true,
+                    originContextSnapshot: originContextRef.current,
                 },
             ]
         })
@@ -5865,6 +5889,26 @@ export default function ChatSession({
         Boolean(composerFollowUpHost) &&
         !isHoroscopeIntakeActive &&
         composerSuggestionsEnabled
+
+    // Above the chat-session composer, reuse the /calendar page's
+    // PageContextComposer "context chip + suggestions" strip whenever a
+    // calendar-day originContext is active — typically right after the
+    // inline horoscope calendar tool turn. Mirrors what /calendar shows
+    // so the chip + suggestion chips travel between surfaces without
+    // visual breaks.
+    const tCalendarShared = useTranslations("Calendar")
+    const showOriginContextStrip = Boolean(
+        originContext?.kind === "calendar-day" && !isHoroscopeIntakeActive,
+    )
+    const originContextStripSuggestions = useMemo(() => {
+        if (!showOriginContextStrip) return null
+        return [
+            tCalendarShared("suggestions.focusToday"),
+            tCalendarShared("suggestions.goodDecisionDay"),
+            tCalendarShared("suggestions.activitiesForToday"),
+            tCalendarShared("suggestions.warnings"),
+        ]
+    }, [showOriginContextStrip, tCalendarShared])
 
     const formattedCurrentLocationLabel = useMemo(() => {
         if (
@@ -6278,30 +6322,40 @@ export default function ChatSession({
                 }
                 actionTrigger={
                     hideComposerActionTriggerRow ? null : (
-                        <ActionTrigger
-                            autoPickOn={autoPickOn}
-                            showDrawTrigger={showDrawTrigger}
-                            showInsufficientStars={showInsufficientStars}
-                            cardsToSelect={cardsToSelect}
-                            cardUi={cardUi}
-                            onScrollToDraw={handleScrollToDraw}
-                            intakeMode={isHoroscopeIntakeActive}
-                            intakeHelperText={tActionTrigger("birthTimeHelper")}
-                            currentLocationLabel={formattedCurrentLocationLabel}
-                            onLocationClick={openLocationDialog}
-                            onCancelIntake={handleCancelHoroscopeIntake}
-                            onChooseCardInstead={handleChooseCardInstead}
-                            dayContext={
-                                originContext?.kind === "calendar-day"
-                                    ? {
-                                          label: originContext.label,
-                                          hint: tHoroscopeCalendar(
-                                              "actionTriggerHint",
-                                          ),
-                                      }
-                                    : null
-                            }
-                        />
+                        <div className='space-y-3'>
+                            {showOriginContextStrip && originContext ? (
+                                <OriginContextStrip
+                                    originContext={originContext}
+                                    suggestions={
+                                        originContextStripSuggestions ??
+                                        undefined
+                                    }
+                                    onSuggestionClick={(suggestion) =>
+                                        applySuggestedQuestion(
+                                            unmask(suggestion),
+                                        )
+                                    }
+                                />
+                            ) : null}
+                            <ActionTrigger
+                                autoPickOn={autoPickOn}
+                                showDrawTrigger={showDrawTrigger}
+                                showInsufficientStars={showInsufficientStars}
+                                cardsToSelect={cardsToSelect}
+                                cardUi={cardUi}
+                                onScrollToDraw={handleScrollToDraw}
+                                intakeMode={isHoroscopeIntakeActive}
+                                intakeHelperText={tActionTrigger(
+                                    "birthTimeHelper",
+                                )}
+                                currentLocationLabel={
+                                    formattedCurrentLocationLabel
+                                }
+                                onLocationClick={openLocationDialog}
+                                onCancelIntake={handleCancelHoroscopeIntake}
+                                onChooseCardInstead={handleChooseCardInstead}
+                            />
+                        </div>
                     )
                 }
                 disclaimerText={disclaimerText}
