@@ -6291,6 +6291,16 @@ export default function ChatSession({
                             onLocationClick={openLocationDialog}
                             onCancelIntake={handleCancelHoroscopeIntake}
                             onChooseCardInstead={handleChooseCardInstead}
+                            dayContext={
+                                originContext?.kind === "calendar-day"
+                                    ? {
+                                          label: originContext.label,
+                                          hint: tHoroscopeCalendar(
+                                              "actionTriggerHint",
+                                          ),
+                                      }
+                                    : null
+                            }
                         />
                     )
                 }

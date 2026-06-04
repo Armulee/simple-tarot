@@ -22,6 +22,12 @@ type ActionTriggerProps = {
     onLocationClick?: () => void
     onCancelIntake?: () => void
     onChooseCardInstead?: () => void
+    /**
+     * Selected-day context shown as a pill at the start of the chip row.
+     * Mirrors the `/calendar` page's PageContextComposer chip so the
+     * viewer can see what date their next question will be read for.
+     */
+    dayContext?: { label: string; hint?: string } | null
 }
 
 const buttonBase =
@@ -65,6 +71,7 @@ export default function ActionTrigger({
     onLocationClick = () => {},
     onCancelIntake = () => {},
     onChooseCardInstead = () => {},
+    dayContext = null,
 }: ActionTriggerProps) {
     const t = useTranslations("ActionTrigger")
 
@@ -141,7 +148,7 @@ export default function ActionTrigger({
             ]
           : []
 
-    if (!intakeMode && slides.length === 0) {
+    if (!intakeMode && slides.length === 0 && !dayContext) {
         return null
     }
 
@@ -168,6 +175,32 @@ export default function ActionTrigger({
                 spaceBetween={8}
                 className='action-trigger-swiper w-full touch-pan-x !overflow-visible'
             >
+                {dayContext ? (
+                    <SwiperSlide
+                        key='day-context'
+                        className='!w-auto !flex-shrink-0 min-w-0'
+                    >
+                        <div
+                            className='inline-flex max-w-full items-center gap-2 rounded-xl border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-white/[0.04] to-violet-400/10 px-3 py-1.5 text-xs text-white/85 backdrop-blur'
+                            role='note'
+                            aria-label={
+                                dayContext.hint
+                                    ? `${dayContext.label} — ${dayContext.hint}`
+                                    : dayContext.label
+                            }
+                        >
+                            <Sparkles className='size-3.5 shrink-0 text-amber-200/85' />
+                            <span className='truncate font-medium text-white'>
+                                {dayContext.label}
+                            </span>
+                            {dayContext.hint ? (
+                                <span className='hidden sm:inline text-white/60'>
+                                    — {dayContext.hint}
+                                </span>
+                            ) : null}
+                        </div>
+                    </SwiperSlide>
+                ) : null}
                 {slides.map((slide) => (
                     <SwiperSlide
                         key={slide.id}
