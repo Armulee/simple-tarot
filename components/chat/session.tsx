@@ -763,7 +763,6 @@ export default function ChatSession({
     const tReadingTypes = useTranslations("Reading.types")
     const tHoroscope = useTranslations("HoroscopeChat")
     const tActionTrigger = useTranslations("ActionTrigger")
-    const tOriginContext = useTranslations("Chat.originContext")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -6417,19 +6416,6 @@ export default function ChatSession({
                     </div>
                 </div>
             )}
-
-            {originContext ? (
-                <div className='w-full max-w-3xl mx-auto px-4 pt-2'>
-                    <div className='inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-white/70 backdrop-blur'>
-                        <Star className='size-3 text-amber-200/85' />
-                        <span>
-                            {tOriginContext("attached", {
-                                label: originContext.label,
-                            })}
-                        </span>
-                    </div>
-                </div>
-            ) : null}
 
             <MessageList
                 hasMessages={hasMessages}
