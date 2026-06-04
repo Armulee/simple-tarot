@@ -3200,6 +3200,52 @@ export default function ChatSession({
         [interpretationMode, user],
     )
 
+    // Question phrasings that should force the calendar tool regardless of
+    // how the classifier labels the decision. Matches Thai (both common
+    // spellings), Lao, and several English variants.
+    const CALENDAR_KEYWORDS = useMemo(
+        () => [
+            "ปฏิทินดวง",
+            "ปฎิทินดวง",
+            "ปฏิทินดวง",
+            "ປະຕິທິນດວງ",
+            "ປະຕິທິນ",
+            "calendar year",
+            "cosmic calendar",
+            "year ahead",
+            "year-ahead",
+            "12-month view",
+            "12 month view",
+            "show me my calendar",
+            "show my calendar",
+        ],
+        [],
+    )
+    const questionMatchesCalendarIntent = useCallback(
+        (question: string) => {
+            const lower = (question ?? "").toLowerCase()
+            return CALENDAR_KEYWORDS.some((k) => lower.includes(k.toLowerCase()))
+        },
+        [CALENDAR_KEYWORDS],
+    )
+    const applyCalendarModeOverride = useCallback(
+        (decision: ChatDecision, question: string): ChatDecision => {
+            if (!questionMatchesCalendarIntent(question)) return decision
+            return {
+                ...decision,
+                type: "horoscope",
+                horoscopeMode: "calendar",
+                // Don't carry over a stale spread choice from a draw classification.
+                spreadType: undefined,
+                spreadReason: undefined,
+                cardCount: undefined,
+                supportTopic: undefined,
+                supportCardSlug: undefined,
+            }
+        },
+        [questionMatchesCalendarIntent],
+    )
+
     const normalizeDrawDecision = useCallback(
         (decision: ChatDecision) => {
             if (decision.type !== "draw") {
@@ -4814,6 +4860,7 @@ export default function ChatSession({
                 }
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 nextDecision = normalizeDrawDecision(nextDecision)
+                nextDecision = applyCalendarModeOverride(nextDecision, trimmed)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
 
@@ -4961,6 +5008,7 @@ export default function ChatSession({
         },
         [
             applyInterpretationModeOverride,
+            applyCalendarModeOverride,
             consulting,
             detectHoroscopeAuthGate,
             fetchDecision,
