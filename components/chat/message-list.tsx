@@ -264,9 +264,15 @@ type MessageListProps = {
      * originContext so the AI sees that day on follow-up questions.
      */
     onCalendarSelectionChange?: (
-        date: Date,
+        date: Date | null,
         dayData: import("@/lib/calendar-helper").DayData | null,
     ) => void
+    /**
+     * Bumped by the chat session to clear the inline calendar tool's
+     * date selection — typically right after the viewer cancels the
+     * originContext from the composer's OriginContextStrip.
+     */
+    calendarToolResetSignal?: number
     onAskAspectDetail?: (
         question: string,
         aspectKey: string,
@@ -350,6 +356,7 @@ export default function MessageList({
     onSendEditAt,
     onCalendarChipClick,
     onCalendarSelectionChange,
+    calendarToolResetSignal,
     onAskAspectDetail,
     onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
@@ -748,6 +755,9 @@ export default function MessageList({
                                                     date,
                                                     data,
                                                 )
+                                            }
+                                            clearSelectionSignal={
+                                                calendarToolResetSignal
                                             }
                                         />
                                     </div>

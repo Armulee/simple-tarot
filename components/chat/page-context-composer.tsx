@@ -62,6 +62,12 @@ type PageContextComposerProps = {
      * text as the question.
      */
     suggestions?: string[]
+    /**
+     * When provided, an X button renders next to the day pill that calls
+     * this. The parent typically clears its selected date so the strip
+     * disappears (and can come back when a new date is picked).
+     */
+    onClearContext?: () => void
 }
 
 function createPendingSessionId() {
@@ -78,6 +84,7 @@ export default function PageContextComposer({
     eyebrow,
     hint,
     suggestions,
+    onClearContext,
 }: PageContextComposerProps) {
     const t = useTranslations("PageContextComposer")
     const locale = useLocale()
@@ -231,6 +238,7 @@ export default function PageContextComposer({
                 setQuestion(suggestion)
                 void createSessionAndRedirect(suggestion)
             }}
+            onCancel={onClearContext}
             disabled={isLinking}
         />
     )

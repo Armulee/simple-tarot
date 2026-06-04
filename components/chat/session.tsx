@@ -5169,13 +5169,24 @@ export default function ChatSession({
         void handleSubmit(followUpQuestion)
     }
     const handleCalendarSelectionChange = (
-        date: Date,
+        date: Date | null,
         dayData: import("@/lib/calendar-helper").DayData | null,
     ) => {
+        if (!date) {
+            setOriginContext(null)
+            return
+        }
         setOriginContext(
             buildCalendarDayOriginContext(date, dayData, locale),
         )
     }
+    // Bump to clear the inline calendar tool's selection (in response to
+    // the X button on the OriginContextStrip).
+    const [calendarToolResetSignal, setCalendarToolResetSignal] = useState(0)
+    const handleClearOriginContext = useCallback(() => {
+        setOriginContext(null)
+        setCalendarToolResetSignal((n) => n + 1)
+    }, [])
 
     const handleAskAspectDetail = async (
         question: string,
@@ -6334,6 +6345,7 @@ export default function ChatSession({
                                             unmask(suggestion),
                                         )
                                     }
+                                    onCancel={handleClearOriginContext}
                                 />
                             ) : null}
                             <ActionTrigger
@@ -6444,6 +6456,7 @@ export default function ChatSession({
                 onRegenerateAt={handleRegenerateAt}
                 onCalendarChipClick={handleCalendarChipClick}
                 onCalendarSelectionChange={handleCalendarSelectionChange}
+                calendarToolResetSignal={calendarToolResetSignal}
                 onStartEditAt={handleStartEditAt}
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}

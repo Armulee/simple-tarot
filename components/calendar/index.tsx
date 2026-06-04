@@ -621,6 +621,7 @@ export default function CalendarClient({
                     originContext={calendarOriginContext}
                     placeholder={tCalendar("composerPlaceholder")}
                     suggestions={calendarSuggestions}
+                    onClearContext={() => setSelectedDate(null)}
                 />
             ) : null}
             {!embedded ? (
