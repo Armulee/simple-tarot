@@ -6344,40 +6344,43 @@ export default function ChatSession({
                           }
                         : null
                 }
-                topAccessory={
-                    showOriginContextStrip && originContext ? (
-                        <div className='mb-3'>
-                            <OriginContextStrip
-                                originContext={originContext}
-                                suggestions={
-                                    originContextStripSuggestions ?? undefined
-                                }
-                                onSuggestionClick={(suggestion) =>
-                                    applySuggestedQuestion(unmask(suggestion))
-                                }
-                                onCancel={handleClearOriginContext}
-                            />
-                        </div>
-                    ) : null
-                }
                 actionTrigger={
                     hideComposerActionTriggerRow ? null : (
-                        <ActionTrigger
-                            autoPickOn={autoPickOn}
-                            showDrawTrigger={showDrawTrigger}
-                            showInsufficientStars={showInsufficientStars}
-                            cardsToSelect={cardsToSelect}
-                            cardUi={cardUi}
-                            onScrollToDraw={handleScrollToDraw}
-                            intakeMode={isHoroscopeIntakeActive}
-                            intakeHelperText={tActionTrigger("birthTimeHelper")}
-                            currentLocationLabel={
-                                formattedCurrentLocationLabel
-                            }
-                            onLocationClick={openLocationDialog}
-                            onCancelIntake={handleCancelHoroscopeIntake}
-                            onChooseCardInstead={handleChooseCardInstead}
-                        />
+                        <div className='space-y-3'>
+                            {showOriginContextStrip && originContext ? (
+                                <OriginContextStrip
+                                    originContext={originContext}
+                                    suggestions={
+                                        originContextStripSuggestions ??
+                                        undefined
+                                    }
+                                    onSuggestionClick={(suggestion) =>
+                                        applySuggestedQuestion(
+                                            unmask(suggestion),
+                                        )
+                                    }
+                                    onCancel={handleClearOriginContext}
+                                />
+                            ) : null}
+                            <ActionTrigger
+                                autoPickOn={autoPickOn}
+                                showDrawTrigger={showDrawTrigger}
+                                showInsufficientStars={showInsufficientStars}
+                                cardsToSelect={cardsToSelect}
+                                cardUi={cardUi}
+                                onScrollToDraw={handleScrollToDraw}
+                                intakeMode={isHoroscopeIntakeActive}
+                                intakeHelperText={tActionTrigger(
+                                    "birthTimeHelper",
+                                )}
+                                currentLocationLabel={
+                                    formattedCurrentLocationLabel
+                                }
+                                onLocationClick={openLocationDialog}
+                                onCancelIntake={handleCancelHoroscopeIntake}
+                                onChooseCardInstead={handleChooseCardInstead}
+                            />
+                        </div>
                     )
                 }
                 disclaimerText={disclaimerText}

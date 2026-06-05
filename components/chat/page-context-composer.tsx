@@ -282,7 +282,7 @@ export default function PageContextComposer({
                     cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
                     onScrollToDraw: () => {},
                 }}
-                topAccessory={contextChip}
+                actionTrigger={contextChip}
                 showDisclaimer={Boolean(disclaimerText)}
                 disclaimerText={disclaimerText}
                 error={

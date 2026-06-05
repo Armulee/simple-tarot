@@ -79,7 +79,6 @@ export default function QuestionInput({
     composerSettings,
     composerFollowUps,
     actionTrigger,
-    topAccessory,
     disclaimerText,
     showDisclaimer = true,
     error,
@@ -107,12 +106,6 @@ export default function QuestionInput({
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
-    /**
-     * Always-rendered slot above the composerFollowUps / actionTrigger
-     * row. Use for pinned UI (e.g. the OriginContextStrip) that must
-     * survive the followUpRow vs actionTrigger swap below.
-     */
-    topAccessory?: React.ReactNode
     disclaimerText?: string
     showDisclaimer?: boolean
     error?: React.ReactNode
@@ -144,7 +137,6 @@ export default function QuestionInput({
 
     const showBottomChrome =
         actionTrigger != null ||
-        topAccessory != null ||
         composerFollowUps != null ||
         composerSettings != null
 
@@ -394,7 +386,6 @@ export default function QuestionInput({
                     <div
                         className={`flex flex-col transition-[max-width] duration-500 ease-in-out ${inputWrapperClassName}`}
                     >
-                        {topAccessory}
                         {followUpRow ?? actionTrigger}
                         {inputContent}
                     </div>
