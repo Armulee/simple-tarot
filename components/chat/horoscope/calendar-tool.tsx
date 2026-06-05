@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
-import { useLocale, useTranslations } from "next-intl"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useLocale } from "next-intl"
 import {
     Briefcase,
     DollarSign,
@@ -16,6 +16,30 @@ import {
 import CalendarClient from "@/components/calendar"
 import type { DayData } from "@/lib/calendar-helper"
 import { cn } from "@/lib/utils"
+import enMessages from "@/messages/en.json"
+import thMessages from "@/messages/th.json"
+import loMessages from "@/messages/lo.json"
+
+type SupportedToolLocale = "en" | "th" | "lo"
+
+const MESSAGES_BY_LOCALE: Record<SupportedToolLocale, typeof enMessages> = {
+    en: enMessages,
+    th: thMessages as unknown as typeof enMessages,
+    lo: loMessages as unknown as typeof enMessages,
+}
+
+function resolveToolLocale(locale: string): SupportedToolLocale {
+    return (locale === "th" || locale === "lo" ? locale : "en")
+}
+
+function formatTemplate(text: string, params?: Record<string, string>): string {
+    if (!params) return text
+    return text.replace(/\{(\w+)\}/g, (_, k) =>
+        Object.prototype.hasOwnProperty.call(params, k)
+            ? String(params[k])
+            : `{${k}}`,
+    )
+}
 
 type ChipId =
     | "financial"
@@ -57,6 +81,13 @@ type Props = {
      * OriginContextStrip). The next picked date re-arms the selection.
      */
     clearSelectionSignal?: number
+    /**
+     * Locale the tool's strings (intro / follow-up / chips / context line)
+     * and date formatting should use, regardless of the app's UI locale.
+     * Set by session.tsx from detectInputLanguage(triggerQuestion) so the
+     * tool responds in the same language the viewer wrote in.
+     */
+    responseLocale?: SupportedToolLocale
 }
 
 const QUALITY_LABEL: Record<DayData["quality"], string> = {
@@ -79,9 +110,32 @@ export default function HoroscopeCalendarTool({
     onChipClick,
     onSelectionChange,
     clearSelectionSignal,
+    responseLocale,
 }: Props) {
-    const t = useTranslations("HoroscopeCalendar")
-    const locale = useLocale()
+    const uiLocale = useLocale()
+    const activeLocale: SupportedToolLocale =
+        responseLocale ?? resolveToolLocale(uiLocale)
+    const messages = MESSAGES_BY_LOCALE[activeLocale]
+    const t = useCallback(
+        (key: string, params?: Record<string, string>): string => {
+            const ns = (
+                messages as { HoroscopeCalendar?: Record<string, unknown> }
+            ).HoroscopeCalendar
+            const node = key
+                .split(".")
+                .reduce<unknown>(
+                    (acc, k) =>
+                        acc && typeof acc === "object"
+                            ? (acc as Record<string, unknown>)[k]
+                            : undefined,
+                    ns,
+                )
+            if (typeof node !== "string") return key
+            return formatTemplate(node, params)
+        },
+        [messages],
+    )
+    const locale = activeLocale
     const [selected, setSelected] = useState<Date | null>(() => {
         const now = new Date()
         return new Date(now.getFullYear(), now.getMonth(), now.getDate())

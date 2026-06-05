@@ -151,6 +151,14 @@ export type ChatMessage = {
      * have been selected.
      */
     originContextSnapshot?: OriginContext | null
+    /**
+     * For tool-render assistant messages (e.g. `horoscope-calendar`),
+     * the language the response should be displayed in — derived from
+     * the triggering user message's text via detectInputLanguage so the
+     * chips, intro, and follow-up sentence match what the user wrote
+     * regardless of the app's UI locale.
+     */
+    responseLocale?: "en" | "th" | "lo"
     variant?:
         | "plain"
         | "box"

@@ -759,6 +759,9 @@ export default function MessageList({
                                             clearSelectionSignal={
                                                 calendarToolResetSignal
                                             }
+                                            responseLocale={
+                                                message.responseLocale
+                                            }
                                         />
                                     </div>
                                 ) : message.variant ===

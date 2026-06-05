@@ -115,6 +115,11 @@ import { useProfile } from "@/contexts/profile-context"
 import { supabase } from "@/lib/supabase"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
 import {
+    detectInputLanguage,
+    isSupportedLocale,
+    type SupportedLocale,
+} from "@/lib/detect-input-language"
+import {
     buildPrivacyStorageKey,
     loadRawPromptFromSession,
     loadSessionAliases,
@@ -4893,6 +4898,13 @@ export default function ChatSession({
                     nextDecision.horoscopeMode === "calendar"
                 ) {
                     setConsulting(false)
+                    const detectedFromQuestion = detectInputLanguage(trimmed)
+                    const calendarResponseLocale: SupportedLocale =
+                        detectedFromQuestion && isSupportedLocale(detectedFromQuestion)
+                            ? detectedFromQuestion
+                            : isSupportedLocale(locale)
+                              ? (locale as SupportedLocale)
+                              : "en"
                     setMessages((prev) =>
                         prev.map((m) =>
                             m.id === assistantLoadingId
@@ -4902,6 +4914,7 @@ export default function ChatSession({
                                       isLoading: false,
                                       streamStopped: false,
                                       variant: "horoscope-calendar",
+                                      responseLocale: calendarResponseLocale,
                                   }
                                 : m,
                         ),
@@ -5040,6 +5053,7 @@ export default function ChatSession({
             normalizeDrawDecision,
             startGeneralReplyStream,
             streamAssistantResponse,
+            locale,
         ],
     )
 
