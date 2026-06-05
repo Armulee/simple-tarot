@@ -39,11 +39,14 @@ import type { OriginContext } from "@/lib/chat/origin-context"
 
 type PageContextComposerProps = {
     /**
-     * Page context that should be attached to the new chat session. Persisted on
-     * the `chat_sessions.origin_context` row and merged into every
-     * `contextSummary` we send to the AI on follow-ups.
+     * Page context attached to the new chat session. Persisted on the
+     * `chat_sessions.origin_context` row and merged into every
+     * `contextSummary` we send to the AI on follow-ups. When null/omitted
+     * the composer renders without the OriginContextStrip — used on
+     * /calendar after the viewer cancels the strip, where the composer
+     * should stay mounted even with no day selected.
      */
-    originContext: OriginContext
+    originContext?: OriginContext | null
     placeholder?: string
     disclaimerText?: string
     /**
@@ -228,7 +231,7 @@ export default function PageContextComposer({
         }
     }
 
-    const contextChip: ReactNode = (
+    const contextChip: ReactNode = originContext ? (
         <OriginContextStrip
             originContext={originContext}
             eyebrow={eyebrow}
@@ -241,7 +244,7 @@ export default function PageContextComposer({
             onCancel={onClearContext}
             disabled={isLinking}
         />
-    )
+    ) : null
 
     return (
         <div

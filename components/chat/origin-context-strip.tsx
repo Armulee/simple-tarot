@@ -43,35 +43,33 @@ export default function OriginContextStrip({
 }) {
     const t = useTranslations("PageContextComposer")
     return (
-        <div className='w-full space-y-2 text-left'>
+        <div className='relative w-full space-y-2 pr-9 text-left'>
+            {onCancel ? (
+                <button
+                    type='button'
+                    onClick={onCancel}
+                    aria-label={t("clear")}
+                    title={t("clear")}
+                    className='absolute right-0 top-0 inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-white/25 hover:bg-white/[0.08] hover:text-white'
+                >
+                    <X className='size-3.5' aria-hidden />
+                </button>
+            ) : null}
             <p className='text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70'>
                 {eyebrow ?? t("eyebrow")}
             </p>
-            <div className='inline-flex max-w-full items-center gap-1.5'>
-                <div
-                    className='inline-flex max-w-full items-center gap-2 rounded-xl border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-white/[0.04] to-violet-400/10 px-3 py-1.5 text-xs text-white/85 backdrop-blur'
-                    role='note'
-                    aria-label={`${originContext.label} — ${hint ?? t("hint")}`}
-                >
-                    <Sparkles className='size-3.5 shrink-0 text-amber-200/85' />
-                    <span className='truncate font-medium text-white'>
-                        {originContext.label}
-                    </span>
-                    <span className='hidden sm:inline text-white/60'>
-                        — {hint ?? t("hint")}
-                    </span>
-                </div>
-                {onCancel ? (
-                    <button
-                        type='button'
-                        onClick={onCancel}
-                        aria-label={t("clear")}
-                        title={t("clear")}
-                        className='inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] text-white/70 transition-colors hover:border-white/25 hover:bg-white/[0.08] hover:text-white'
-                    >
-                        <X className='size-3.5' aria-hidden />
-                    </button>
-                ) : null}
+            <div
+                className='inline-flex max-w-full items-center gap-2 rounded-xl border border-amber-300/30 bg-gradient-to-br from-amber-300/10 via-white/[0.04] to-violet-400/10 px-3 py-1.5 text-xs text-white/85 backdrop-blur'
+                role='note'
+                aria-label={`${originContext.label} — ${hint ?? t("hint")}`}
+            >
+                <Sparkles className='size-3.5 shrink-0 text-amber-200/85' />
+                <span className='truncate font-medium text-white'>
+                    {originContext.label}
+                </span>
+                <span className='hidden sm:inline text-white/60'>
+                    — {hint ?? t("hint")}
+                </span>
             </div>
             {suggestions && suggestions.length > 0 && onSuggestionClick ? (
                 <Swiper

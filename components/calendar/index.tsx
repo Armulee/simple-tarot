@@ -616,7 +616,7 @@ export default function CalendarClient({
                     </>
                 )}
             </div>
-            {!embedded && calendarOriginContext ? (
+            {!embedded ? (
                 <PageContextComposer
                     originContext={calendarOriginContext}
                     placeholder={tCalendar("composerPlaceholder")}
