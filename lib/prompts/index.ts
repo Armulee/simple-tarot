@@ -539,8 +539,12 @@ ${JSON.stringify(myCalendarDay)}
 
 `
         : ""
-    const myCalendarMoodLock = myCalendarDay
-        ? `LOCKED MOOD (My Calendar): set \`mood\` EXACTLY to "${mapMyCalendarQualityToVerdictMood(myCalendarDay.quality)}" — derived from calendar quality "${myCalendarDay.quality}". headline, keyMessage, and detailedHtml MUST agree with this mood (no opposite framing). Personalized aspects explain texture only; they must not override the calendar day's favorability tier.
+    const shouldLockMood =
+        myCalendarDay !== null &&
+        myCalendarDay !== undefined &&
+        myCalendarDay.quality !== "neutral"
+    const myCalendarMoodLock = shouldLockMood
+        ? `LOCKED MOOD (My Calendar): set \`mood\` EXACTLY to "${mapMyCalendarQualityToVerdictMood(myCalendarDay!.quality)}" — derived from calendar quality "${myCalendarDay!.quality}". headline, keyMessage, and detailedHtml MUST agree with this mood (no opposite framing). Personalized aspects explain texture only; they must not override the calendar day's favorability tier.
 `
         : ""
     return `<role>
@@ -575,7 +579,7 @@ Required fields (every string in ${lang}):
   - "good" = supportive flow with mostly positive aspects active that day; the user can take action and start things.
   - "caution" = high-friction or pressured day with one or more high/medium intensity bad aspects; the user should slow down and be careful.
   - "rest" = mixed-but-low intensity, scattered, or quiet planetary day; the user should recharge instead of pushing.
-  ${myCalendarDay ? `When <my_calendar_day> is present, IGNORE the bullet definitions above for choosing mood — use the LOCKED MOOD line instead.` : `Derive the mood from the dominant sentiments + intensities of the personalized transit aspects.`}
+  ${shouldLockMood ? `When <my_calendar_day> is present (and not a "neutral" quality day), IGNORE the bullet definitions above for choosing mood — use the LOCKED MOOD line instead.` : `Derive the mood from the dominant sentiments + intensities of the personalized transit aspects. Use the bullet definitions above. Do NOT default to "rest" just because the day's overall score is middling — only choose "rest" when the day genuinely reads as scattered or low-intensity. A balanced or context-rich neutral day is usually "good" or "caution" depending on the dominant aspect sentiment.`}
 
 - headline: a short, punchy verdict line (2-8 words). Plain language only. NO planet names, NO zodiac signs, NO astrology jargon. Example tones: "A clear day to begin", "Pause before reacting", "Soft day, recharge well".
 
