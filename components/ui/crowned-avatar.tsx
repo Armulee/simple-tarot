@@ -1,6 +1,6 @@
 "use client"
 
-import { FaCrown } from "react-icons/fa"
+import { FaCrown } from "react-icons/fa6"
 import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
 import { cn } from "@/lib/utils"
