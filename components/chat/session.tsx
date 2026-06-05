@@ -5182,18 +5182,35 @@ export default function ChatSession({
         })
         void handleSubmit(followUpQuestion)
     }
-    const handleCalendarSelectionChange = (
-        date: Date | null,
-        dayData: import("@/lib/calendar-helper").DayData | null,
-    ) => {
-        if (!date) {
-            setOriginContext(null)
-            return
-        }
-        setOriginContext(
-            buildCalendarDayOriginContext(date, dayData, locale),
-        )
-    }
+    // Memoised so the calendar tool's onSelectionChange-effect deps stay
+    // stable; otherwise a fresh function reference each render kicks off
+    // a setState loop (React #185) — especially obvious when an unrelated
+    // re-render hits, e.g. opening the composer settings popover.
+    const handleCalendarSelectionChange = useCallback(
+        (
+            date: Date | null,
+            dayData: import("@/lib/calendar-helper").DayData | null,
+        ) => {
+            if (!date) {
+                setOriginContext((prev) => (prev === null ? prev : null))
+                return
+            }
+            const next = buildCalendarDayOriginContext(date, dayData, locale)
+            setOriginContext((prev) => {
+                if (
+                    prev &&
+                    prev.kind === "calendar-day" &&
+                    prev.isoDate === next.isoDate &&
+                    prev.label === next.label &&
+                    prev.summary === next.summary
+                ) {
+                    return prev
+                }
+                return next
+            })
+        },
+        [locale],
+    )
     // Bump to clear the inline calendar tool's selection (in response to
     // the X button on the OriginContextStrip).
     const [calendarToolResetSignal, setCalendarToolResetSignal] = useState(0)
