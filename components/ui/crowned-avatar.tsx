@@ -1,6 +1,6 @@
 "use client"
 
-import { Crown } from "lucide-react"
+import { FaCrown } from "react-icons/fa"
 import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
 import { cn } from "@/lib/utils"
@@ -46,17 +46,16 @@ export function CrownedAvatar({
         <span className={cn("relative inline-flex shrink-0", className)}>
             <ConsistentAvatar data={data} size={size} />
             {crownClass ? (
-                <Crown
+                <FaCrown
                     aria-hidden
                     className={cn(
-                        // Anchor to the top edge of the avatar, then lift
-                        // by ~70% of the crown's own height so the visual
-                        // base of the crown rests on the avatar's rim
-                        // instead of overlapping its interior. Lucide's
-                        // Crown SVG has ~20% padding at the bottom of its
-                        // 24×24 box, so 70% lifts the artwork up to the
-                        // border without floating off it.
-                        "pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[70%] -rotate-[8deg] fill-current",
+                        // Anchor to the avatar's top edge, lift by ~70%
+                        // of the icon's own height so the artwork's base
+                        // rests on the rim, and bias the horizontal
+                        // origin a touch to the right of centre so the
+                        // crown leans toward the upper-right corner with
+                        // a matching clockwise tilt.
+                        "pointer-events-none absolute left-1/2 top-0 -translate-x-[35%] -translate-y-[70%] rotate-[16deg]",
                         CROWN_SIZE_BY_AVATAR[size],
                         crownClass,
                     )}
