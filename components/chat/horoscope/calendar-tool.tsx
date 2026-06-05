@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
     Briefcase,
@@ -94,8 +94,14 @@ export default function HoroscopeCalendarTool({
 
     // External cancel: clear the selection so the calendar shows no
     // highlight. A subsequent day-click re-arms it.
+    // Skip the very first run — React fires the effect once after mount
+    // with the parent's initial signal value (0), and we don't want that
+    // to nuke the default "today is selected" state.
+    const lastResetSignalRef = useRef<number | undefined>(clearSelectionSignal)
     useEffect(() => {
         if (clearSelectionSignal === undefined) return
+        if (lastResetSignalRef.current === clearSelectionSignal) return
+        lastResetSignalRef.current = clearSelectionSignal
         setSelected(null)
         setDayData(null)
     }, [clearSelectionSignal])
