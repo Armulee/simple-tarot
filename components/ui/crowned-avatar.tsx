@@ -55,7 +55,7 @@ export function CrownedAvatar({
                         // origin a touch to the right of centre so the
                         // crown leans toward the upper-right corner with
                         // a matching clockwise tilt.
-                        "pointer-events-none absolute left-1/2 top-0 -translate-x-[35%] -translate-y-[70%] rotate-[16deg]",
+                        "pointer-events-none absolute left-1/2 top-0 -translate-x-[10%] -translate-y-[70%] rotate-[16deg]",
                         CROWN_SIZE_BY_AVATAR[size],
                         crownClass,
                     )}
