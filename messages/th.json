@@ -478,6 +478,13 @@
     "composerSettingsSectionPreferences": "การตั้งค่าทั่วไป",
     "composerSettingsSectionActions": "การดำเนินการ"
   },
+  "OracleReading": {
+    "messageReceived": "ข้อความที่ได้รับ",
+    "oracleEnergy": "พลังงานออราเคิล",
+    "meaning": "ความหมาย",
+    "guidance": "แนวทางที่ควรทำ",
+    "listening": "กำลังรับข้อความ…"
+  },
   "About": {
     "whatIs": "คืออะไร",
     "brand": "AskingFate?",

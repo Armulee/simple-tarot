@@ -48,16 +48,16 @@ export const oracleReadingSchema = z.object({
     message: z
         .string()
         .min(8)
-        .max(220)
+        .max(280)
         .describe(
-            "ONE powerful, memorable oracle message — short, quote-worthy line (a single sentence) that delivers the heart of the reading. Written in the user's language.",
+            "THE ANSWER. A direct, mystical, quote-worthy oracle message (1-3 short sentences) that ANSWERS the user's actual question. If they asked 'what does X want to tell me', this IS the message X is telling them. Never the energy archetype name. Never analysis. Personal, emotional, memorable. Written in the user's language.",
         ),
     deeperMeaning: z
         .string()
         .min(40)
         .max(900)
         .describe(
-            "Short prose (1-3 paragraphs) explaining symbolically why this message appears. Use language like 'the energy suggests...', 'this may reflect...', 'symbolically...'. Connect to emotions, growth, perspective, uncertainty. NEVER assert supernatural certainty. Written in the user's language. Plain text only — no HTML, no Markdown.",
+            "Short prose (2-4 short paragraphs) explaining symbolically why the message above appeared — interpretation, not the answer itself. Use language like 'the energy suggests...', 'this may reflect...', 'symbolically...'. Connect to emotions, growth, perspective, uncertainty. NEVER assert supernatural certainty. Written in the user's language. Plain text only — no HTML, no Markdown.",
         ),
     guidance: z
         .array(

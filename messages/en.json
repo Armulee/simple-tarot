@@ -465,6 +465,13 @@
     "composerSettingsSectionPreferences": "Preferences",
     "composerSettingsSectionActions": "Actions"
   },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
   "About": {
     "whatIs": "What is",
     "brand": "AskingFate?",

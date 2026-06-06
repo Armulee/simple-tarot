@@ -477,6 +477,13 @@
     "composerSettingsSectionPreferences": "ຄ່າທີ່ນິຍົມ",
     "composerSettingsSectionActions": "ການດຳເນີນການ"
   },
+  "OracleReading": {
+    "messageReceived": "ຂໍ້ຄວາມທີ່ໄດ້ຮັບ",
+    "oracleEnergy": "ພະລັງງານໂອຣາເຄິລ",
+    "meaning": "ຄວາມໝາຍ",
+    "guidance": "ແນວທາງທີ່ຄວນເຮັດ",
+    "listening": "ກຳລັງຮັບຂໍ້ຄວາມ…"
+  },
   "About": {
     "whatIs": "ແມ່ນຫຍັງ",
     "brand": "AskingFate?",
