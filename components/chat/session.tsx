@@ -24,6 +24,10 @@ import {
     type GeneralReply,
     type StreamingGeneralReply,
 } from "@/lib/chat/general-reply-schema"
+import {
+    streamingOracleReadingSchema,
+    type StreamingOracleReading,
+} from "@/lib/chat/oracle-reading-schema"
 import { resolveDeterministicTransitDate } from "@/lib/astrology/transit-date-extract"
 import {
     mergeAspectKeywordsIntoAspects,
@@ -1127,6 +1131,7 @@ export default function ChatSession({
     const horoscopeTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeVerdictTargetMessageIdRef = useRef<string | null>(null)
     const generalReplyTargetMessageIdRef = useRef<string | null>(null)
+    const oracleReplyTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeIsRefetchRef = useRef(false)
     const horoscopeRefetchSystemRef = useRef<
         "western_tropical" | "vedic_sidereal" | null
@@ -1381,6 +1386,54 @@ export default function ChatSession({
                 )
             }
             generalReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+    })
+
+    const {
+        submit: submitOracleReply,
+        object: oracleReplyObject,
+        stop: stopOracleReply,
+    } = useObject({
+        api: "/api/chat/oracle",
+        schema: streamingOracleReadingSchema,
+        onFinish: ({ object }) => {
+            const targetId = oracleReplyTargetMessageIdRef.current
+            if (!targetId) return
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === targetId
+                        ? {
+                              ...m,
+                              oracleReading: object ?? m.oracleReading ?? null,
+                              isLoading: false,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            oracleReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+        onError: (e: unknown) => {
+            console.error("[chat/oracle/useObject] stream error:", e)
+            const targetId = oracleReplyTargetMessageIdRef.current
+            if (targetId) {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === targetId
+                            ? {
+                                  ...m,
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            oracleReplyTargetMessageIdRef.current = null
             consultingLoadingIdRef.current = null
             setConsulting(false)
         },
@@ -2497,6 +2550,40 @@ export default function ChatSession({
         })
     }, [generalReplyObject])
 
+    useEffect(() => {
+        const targetId = oracleReplyTargetMessageIdRef.current
+        if (!targetId || !oracleReplyObject) return
+        setMessages((prev) => {
+            const m = prev.find((x) => x.id === targetId)
+            if (!m) return prev
+            const incoming = oracleReplyObject as StreamingOracleReading
+            const current = m.oracleReading ?? null
+            if (
+                current &&
+                current.energy === incoming.energy &&
+                current.energyLabel === incoming.energyLabel &&
+                current.message === incoming.message &&
+                current.deeperMeaning === incoming.deeperMeaning &&
+                current.closing === incoming.closing &&
+                (current.guidance?.length ?? 0) ===
+                    (incoming.guidance?.length ?? 0) &&
+                (current.guidance ?? []).every(
+                    (g, i) => g === incoming.guidance?.[i],
+                )
+            ) {
+                return prev
+            }
+            return prev.map((mm) =>
+                mm.id === targetId
+                    ? {
+                          ...mm,
+                          oracleReading: incoming,
+                      }
+                    : mm,
+            )
+        })
+    }, [oracleReplyObject])
+
     const freezeStoppedPlainMessage = useCallback((targetId: string) => {
         setMessages((prev) => {
             const target = prev.find((m) => m.id === targetId)
@@ -2701,6 +2788,34 @@ export default function ChatSession({
         return true
     }, [generalReplyObject, stopGeneralReply])
 
+    const finalizeOracleReplyStream = useCallback(() => {
+        const targetId = oracleReplyTargetMessageIdRef.current
+        if (!targetId) return false
+
+        setMessages((prev) =>
+            prev.map((m) => {
+                if (m.id !== targetId) return m
+                const merged =
+                    (oracleReplyObject as StreamingOracleReading | undefined) ??
+                    m.oracleReading ??
+                    null
+                return {
+                    ...m,
+                    oracleReading: merged,
+                    text: merged?.message?.trim() || m.text || "",
+                    isLoading: false,
+                    streamStopped: true,
+                }
+            }),
+        )
+
+        oracleReplyTargetMessageIdRef.current = null
+        consultingLoadingIdRef.current = null
+        setConsulting(false)
+        stopOracleReply()
+        return true
+    }, [oracleReplyObject, stopOracleReply])
+
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
@@ -2710,8 +2825,15 @@ export default function ChatSession({
             stopHoroscope()
             stopHoroscopeVerdict()
             stopGeneralReply()
+            stopOracleReply()
         }
-    }, [stopInterpretation, stopHoroscope, stopHoroscopeVerdict, stopGeneralReply])
+    }, [
+        stopInterpretation,
+        stopHoroscope,
+        stopHoroscopeVerdict,
+        stopGeneralReply,
+        stopOracleReply,
+    ])
 
     useEffect(() => {
         return () => {
@@ -3209,8 +3331,8 @@ export default function ChatSession({
                 }
             }
             // Support-mode answers about the product itself bypass tarot /
-            // horoscope mode locks so users keep getting the right inline
-            // tool block.
+            // horoscope / oracle mode locks so users keep getting the right
+            // inline tool block.
             if (decision.type === "support") return decision
             if (interpretationMode === "tarot") {
                 return { ...decision, type: "draw" }
@@ -3218,6 +3340,17 @@ export default function ChatSession({
             if (interpretationMode === "horoscope") {
                 if (!user) return decision
                 return { ...decision, type: "horoscope" }
+            }
+            if (interpretationMode === "oracle") {
+                return {
+                    ...decision,
+                    type: "oracle",
+                    spreadType: undefined,
+                    cardCount: undefined,
+                    spreadReason: undefined,
+                    supportTopic: undefined,
+                    supportCardSlug: undefined,
+                }
             }
             return decision
         },
@@ -3470,6 +3603,60 @@ export default function ChatSession({
             submitGeneralReply,
             user,
         ],
+    )
+
+    /**
+     * Kicks off the streaming oracle reading via /api/chat/oracle. Mirrors
+     * startGeneralReplyStream but routes the assistant message through
+     * OracleHero. The streamed object is piped into `message.oracleReading`
+     * by the live-sync effect above.
+     */
+    const startOracleReplyStream = useCallback(
+        ({
+            question,
+            assistantLoadingId,
+            isFollowUp,
+            historyOverride,
+        }: {
+            question: string
+            assistantLoadingId: string
+            isFollowUp?: boolean
+            historyOverride?: { role: string; text: string }[]
+        }) => {
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                originContext,
+                buildSessionContextSummary(messages),
+            )
+
+            oracleReplyTargetMessageIdRef.current = assistantLoadingId
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              variant: "oracle" as const,
+                              oracleReading: null,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            submitOracleReply({
+                question,
+                isFollowUp,
+                history,
+                contextSummary: contextSummary || undefined,
+                locale,
+            })
+        },
+        [locale, messages, originContext, submitOracleReply],
     )
 
     const runHoroscopeReading = useCallback(
@@ -4514,6 +4701,11 @@ export default function ChatSession({
             return
         }
 
+        if (oracleReplyTargetMessageIdRef.current) {
+            finalizeOracleReplyStream()
+            return
+        }
+
         if (consultingLoadingIdRef.current) {
             finalizeConsultingStream()
             return
@@ -4539,6 +4731,7 @@ export default function ChatSession({
         finalizeConsultingStream,
         finalizeGeneralReplyStream,
         finalizeHoroscopeStream,
+        finalizeOracleReplyStream,
         finalizeTarotInterpretationStream,
     ])
 
@@ -4949,13 +5142,24 @@ export default function ChatSession({
 
                 // General/chat answers go through /api/chat/question for a
                 // structured "inner energy reflection" rendered by
-                // InnerEnergyHero. Bridge replies (draw / horoscope) and
-                // support acknowledgments keep the lightweight text stream
-                // from /api/chat/respond.
+                // InnerEnergyHero. Oracle answers go through /api/chat/oracle
+                // for a premium-feel symbolic oracle card rendered by
+                // OracleHero. Bridge replies (draw / horoscope) and support
+                // acknowledgments keep the lightweight text stream from
+                // /api/chat/respond.
                 const useGeneralReplyStream =
                     nextDecision.type === "chat" && !supportBlock
+                const useOracleReplyStream =
+                    nextDecision.type === "oracle" && !supportBlock
 
-                if (useGeneralReplyStream) {
+                if (useOracleReplyStream) {
+                    startOracleReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
                         assistantLoadingId,
@@ -5052,6 +5256,7 @@ export default function ChatSession({
             isInterpreting,
             normalizeDrawDecision,
             startGeneralReplyStream,
+            startOracleReplyStream,
             streamAssistantResponse,
             locale,
         ],
@@ -5411,11 +5616,21 @@ export default function ChatSession({
                 )
 
                 // See runDecisionFlowFromMessages — same branching:
-                // structured inner-energy reflection vs. plain text bridge.
+                // structured inner-energy reflection / oracle reading vs.
+                // plain text bridge.
                 const useGeneralReplyStream =
                     nextDecision.type === "chat" && !supportBlock
+                const useOracleReplyStream =
+                    nextDecision.type === "oracle" && !supportBlock
 
-                if (useGeneralReplyStream) {
+                if (useOracleReplyStream) {
+                    startOracleReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
                         assistantLoadingId,
@@ -5510,6 +5725,7 @@ export default function ChatSession({
             messages,
             normalizeDrawDecision,
             startGeneralReplyStream,
+            startOracleReplyStream,
             streamAssistantResponse,
         ],
     )

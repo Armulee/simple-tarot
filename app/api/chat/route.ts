@@ -18,6 +18,7 @@ chat
 draw
 horoscope
 support
+oracle
 
 Definitions:
 
@@ -38,6 +39,13 @@ horoscope
 - today / tomorrow / this month / this year
 - astrology timing
 - "show me my calendar", "calendar year", "year ahead", "yearly outlook", "ปฏิทินดวง", "ປະຕິທິນດວງ" → ALSO set horoscopeMode: "calendar" so the client renders the interactive calendar tool instead of a streamed reading
+
+oracle
+- mystical / symbolic / spiritual reflective questions that don't fit tarot, astrology, or numerology
+- "what does the spirit in my room want to tell me?", "what message does the universe have for me?", "what does my higher self want me to know?", "why do I keep seeing the same signs?", "what energy surrounds me right now?", "what lesson am I meant to learn?", "what message am I supposed to hear today?"
+- introspective questions about hidden meaning, signs, omens, dreams, intuition, "the universe", "the cosmos", "higher self", "soul lessons", "synchronicity", "destiny calling"
+- Use oracle when the question is clearly mystical/symbolic AND there is no time anchor (otherwise horoscope), no card/spread request (otherwise draw), no product question (otherwise support), and no purely factual/knowledge ask (otherwise chat). Oracle is the fallback for spiritual-but-not-mechanism questions.
+- DO NOT use oracle for: "what does the Tower card mean" (that's chat/knowledge), "is today a good day to start a business" (that's horoscope), "draw me a card" (that's draw).
 
 support
 - ANY question about the AskingFate WEBSITE / PRODUCT itself

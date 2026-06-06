@@ -43,9 +43,9 @@ export type HoroscopeMode = z.infer<typeof horoscopeModeSchema>
 
 export const chatDecisionSchema = z.object({
     type: z
-        .enum(["chat", "draw", "horoscope", "support"])
+        .enum(["chat", "draw", "horoscope", "support", "oracle"])
         .describe(
-            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block)",
+            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block), oracle (mystical / symbolic / spiritual reflection that doesn't fit tarot, astrology, numerology)",
         ),
     isFollowUp: z
         .boolean()

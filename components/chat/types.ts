@@ -165,6 +165,12 @@ export type ChatMessage = {
         | "horoscope"
         | "horoscope-calendar"
         | "paywall"
+        | "oracle"
+    /**
+     * Streamed oracle-mode reading. Populated on assistant messages
+     * with `variant === "oracle"`. The renderer is `OracleHero`.
+     */
+    oracleReading?: import("@/lib/chat/oracle-reading-schema").StreamingOracleReading | null
     /**
      * Reply strategy resolved by /api/horoscope/extract. Drives which
      * downstream route renders the reading and which tabs the
@@ -294,7 +300,7 @@ export type HoroscopeAuthGate = {
 }
 
 export type ChatDecision = {
-    type: "chat" | "draw" | "horoscope" | "support"
+    type: "chat" | "draw" | "horoscope" | "support" | "oracle"
     spreadType?: string
     cardCount?: number
     spreadReason?: string

@@ -10,7 +10,7 @@ import {
     saveInterpretationModeToStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
-import { FaStar, FaMessage } from "react-icons/fa6"
+import { FaStar, FaMessage, FaWandMagicSparkles } from "react-icons/fa6"
 import { TbPlayCardStarFilled } from "react-icons/tb"
 import { PiSparkleFill } from "react-icons/pi"
 import { useState, useEffect, useRef } from "react"
@@ -21,6 +21,7 @@ const MODE_ICONS = {
     chat: FaMessage,
     tarot: TbPlayCardStarFilled,
     horoscope: FaStar,
+    oracle: FaWandMagicSparkles,
 } as const
 
 const MODE_THEME = {
@@ -55,6 +56,14 @@ const MODE_THEME = {
         activeBg: "bg-blue-500/20",
         activeText: "text-blue-400",
         flare: "shadow-[0_0_18px_4px_rgba(96,165,250,0.55)]",
+    },
+    oracle: {
+        border: "border-amber-300/40 hover:border-amber-300/60",
+        text: "text-amber-200 hover:text-amber-100",
+        icon: "text-amber-300",
+        activeBg: "bg-amber-400/20",
+        activeText: "text-amber-300",
+        flare: "shadow-[0_0_18px_4px_rgba(252,211,77,0.6)]",
     },
 } as const
 
@@ -97,7 +106,9 @@ export default function InterpretationModeSelector({
               ? t("tarot")
               : value === "horoscope"
                 ? t("horoscope")
-                : t("chat")
+                : value === "oracle"
+                  ? t("oracle")
+                  : t("chat")
 
     const IconComponent = MODE_ICONS[value]
     const theme = MODE_THEME[value]
@@ -127,7 +138,15 @@ export default function InterpretationModeSelector({
                 className='w-48 rounded-xl border-white/10 bg-[#0A0F26] p-2'
             >
                 <div className='space-y-1'>
-                    {(["auto", "chat", "tarot", "horoscope"] as const).map(
+                    {(
+                        [
+                            "auto",
+                            "chat",
+                            "tarot",
+                            "horoscope",
+                            "oracle",
+                        ] as const
+                    ).map(
                         (mode) => {
                             const Icon = MODE_ICONS[mode]
                             const mt = MODE_THEME[mode]

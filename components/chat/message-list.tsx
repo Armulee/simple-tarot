@@ -20,6 +20,7 @@ import { ConsultingBadge } from "@/components/consulting-badge"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
+import OracleHero from "@/components/chat/oracle/oracle-hero"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import PaywallBlock from "@/components/chat/paywall-block"
@@ -736,6 +737,14 @@ export default function MessageList({
                                         privacyAliases={privacyAliases}
                                     />
                                 )}
+                                {message.variant === "oracle" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <OracleHero
+                                            reading={message.oracleReading}
+                                            isLoading={message.isLoading}
+                                        />
+                                    </div>
+                                ) : null}
                                 {message.variant === "horoscope-calendar" ? (
                                     <div className='w-full md:max-w-[85%]'>
                                         <HoroscopeCalendarTool
@@ -764,8 +773,9 @@ export default function MessageList({
                                             }
                                         />
                                     </div>
-                                ) : message.variant ===
-                                "box" ? null : message.variant ===
+                                ) : message.variant === "box" ||
+                                  message.variant ===
+                                      "oracle" ? null : message.variant ===
                                   "horoscope" ? (
                                     <>
                                         {message.sourceAspectEvent && (

@@ -27,6 +27,7 @@ const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
     tarot: "border-purple-400/30 focus:border-purple-400/60 focus:ring-purple-400/30",
     horoscope:
         "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
+    oracle: "border-amber-300/40 focus:border-amber-300/70 focus:ring-amber-300/30",
 }
 
 /** Shared with homepage quick cards so composer chips match exactly. */
@@ -38,6 +39,7 @@ const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
     chat: "shadow-[0_10px_30px_-10px_rgba(52,211,153,0.3)]",
     tarot: "shadow-[0_10px_30px_-10px_rgba(168,85,247,0.3)]",
     horoscope: "shadow-[0_10px_30px_-10px_rgba(96,165,250,0.3)]",
+    oracle: "shadow-[0_10px_30px_-10px_rgba(252,211,77,0.35)]",
 }
 
 function chipKeyDown(
