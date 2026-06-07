@@ -155,8 +155,10 @@ const CY = 500
 
 const WHEEL_RX_OUTER = 478
 const WHEEL_RY_OUTER = 402
-const WHEEL_RX_MID = 458
-const WHEEL_RY_MID = 386
+// Zodiac labels sit just OUTSIDE the outer ring; cardinal diamond marks sit
+// right on it. These offsets keep both away from the orbit lines.
+const ZODIAC_LABEL_RX = 510
+const ZODIAC_LABEL_RY = 432
 
 function buildStars(seed: string, count: number, w: number, h: number) {
     let s = 0
@@ -403,7 +405,7 @@ export default function OrbitVisual({
     return (
         <div className='relative w-full overflow-hidden'>
             <svg
-                viewBox={`0 0 ${VB_W} ${VB_H}`}
+                viewBox={`-70 -30 ${VB_W + 140} ${VB_H + 60}`}
                 preserveAspectRatio='xMidYMid meet'
                 className='block h-auto w-full'
                 aria-label={ariaLabel}
@@ -518,9 +520,6 @@ export default function OrbitVisual({
                     </radialGradient>
                 </defs>
 
-                <rect width={VB_W} height={VB_H} fill='url(#orbit-sky)' />
-                <rect width={VB_W} height={VB_H} fill='url(#orbit-nebula)' />
-
                 {stars.map((s) => (
                     <circle
                         key={s.id}
@@ -563,67 +562,97 @@ export default function OrbitVisual({
                             rx={vis.orbit.rx}
                             ry={vis.orbit.ry}
                             fill='none'
-                            stroke='rgba(203, 213, 225, 0.5)'
-                            strokeWidth={1.1}
+                            stroke='rgba(252, 211, 77, 0.22)'
+                            strokeWidth={0.9}
                         />
                     )
                 })}
 
                 <g>
+                    {/* Soft outer ring — a touch brighter than the orbits so
+                        the zodiac boundary reads. */}
                     <ellipse
                         cx={CX}
                         cy={CY}
                         rx={WHEEL_RX_OUTER}
                         ry={WHEEL_RY_OUTER}
                         fill='none'
-                        stroke='rgba(252, 211, 77, 0.34)'
-                        strokeWidth={1.2}
+                        stroke='rgba(252, 211, 77, 0.38)'
+                        strokeWidth={1}
                     />
-                    {Array.from({ length: 12 }, (_, i) => {
-                        const lng = i * 30
-                        const outer = pointOnOrbit(
+                    {/* Two cardinal axis lines — horizontal + vertical — pass
+                        through Earth to mirror the reference layout (no 12
+                        wheel spokes). */}
+                    {[0, 90].map((lng) => {
+                        const a = pointOnOrbit(
                             lng,
+                            WHEEL_RX_OUTER,
+                            WHEEL_RY_OUTER,
+                        )
+                        const b = pointOnOrbit(
+                            lng + 180,
                             WHEEL_RX_OUTER,
                             WHEEL_RY_OUTER,
                         )
                         return (
                             <line
-                                key={`wheel-spoke-${i}`}
-                                x1={CX}
-                                y1={CY}
-                                x2={outer.x}
-                                y2={outer.y}
-                                stroke='#ffffffff'
-                                strokeOpacity={0.7}
-                                strokeWidth={1.2}
+                                key={`cardinal-${lng}`}
+                                x1={a.x}
+                                y1={a.y}
+                                x2={b.x}
+                                y2={b.y}
+                                stroke='rgba(252, 211, 77, 0.18)'
+                                strokeWidth={0.9}
                             />
                         )
                     })}
+                    {/* Small gold diamonds where the cardinal cross meets the
+                        outer ring. */}
+                    {[0, 90, 180, 270].map((lng) => {
+                        const p = pointOnOrbit(
+                            lng,
+                            WHEEL_RX_OUTER,
+                            WHEEL_RY_OUTER,
+                        )
+                        const s = 6
+                        return (
+                            <polygon
+                                key={`cardinal-mark-${lng}`}
+                                points={`${p.x},${p.y - s} ${p.x + s},${p.y} ${p.x},${p.y + s} ${p.x - s},${p.y}`}
+                                fill='rgba(253, 224, 71, 0.85)'
+                                stroke='rgba(252, 211, 77, 0.6)'
+                                strokeWidth={0.6}
+                            />
+                        )
+                    })}
+                    {/* Zodiac labels at every 30° interval, OUTSIDE the outer
+                        ring — names sit beyond the wheel rather than between
+                        rings, matching the reference visual. */}
                     {ZODIAC_CANONICAL.map((sign, i) => {
                         const lng = i * 30 + 15
                         const pos = pointOnOrbit(
                             lng,
-                            WHEEL_RX_MID,
-                            WHEEL_RY_MID,
+                            ZODIAC_LABEL_RX,
+                            ZODIAC_LABEL_RY,
                         )
                         const name = tAstro(`zodiacSigns.${sign}`, {
                             defaultValue: sign,
-                        }).toUpperCase()
+                        })
                         return (
                             <text
                                 key={`wheel-sign-${sign}`}
                                 x={pos.x}
                                 y={pos.y + 5}
                                 textAnchor='middle'
-                                fill='#ffffffff'
-                                fontSize={16}
-                                fontWeight={700}
-                                letterSpacing={2}
-                                opacity={0.95}
+                                fill='#fde68a'
+                                fontSize={18}
+                                fontWeight={500}
+                                letterSpacing={1}
+                                opacity={0.9}
                                 style={{
                                     fontFamily:
                                         'ui-sans-serif, system-ui, -apple-system, "Segoe UI"',
-                                    filter: "drop-shadow(0 0 6px rgba(0,0,0,0.6))",
+                                    filter: "drop-shadow(0 0 6px rgba(0,0,0,0.7))",
                                 }}
                             >
                                 {name}

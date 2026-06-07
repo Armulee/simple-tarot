@@ -209,6 +209,28 @@
 
   body {
     background-color: var(--background);
+    /* Faint nebula clouds anchored to the corners — top-right pink/magenta
+       glow, bottom-right lavender. Mirrors the reference fortune-card
+       backdrop so the cosmic body reads as a single mood rather than a flat
+       black. Layered radial gradients overlay the base color. */
+    background-image:
+      radial-gradient(
+        60% 50% at 100% 0%,
+        rgba(190, 80, 160, 0.16) 0%,
+        rgba(190, 80, 160, 0) 70%
+      ),
+      radial-gradient(
+        60% 55% at 100% 100%,
+        rgba(140, 110, 220, 0.13) 0%,
+        rgba(140, 110, 220, 0) 70%
+      ),
+      radial-gradient(
+        70% 45% at 0% 100%,
+        rgba(70, 90, 200, 0.1) 0%,
+        rgba(70, 90, 200, 0) 70%
+      );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
     color: var(--foreground);
     min-height: 100vh;
   }

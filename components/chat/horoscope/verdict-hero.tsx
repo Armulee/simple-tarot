@@ -711,25 +711,43 @@ export default function VerdictHero({
                                 moodShadow={style.iconShadow}
                             />
                         </div>
-                    ) : showDailyOrbit ? (
-                        <div className='w-full animate-fade-in'>
-                            <TransitOrbitVisual
-                                chartData={transitSourceMessage.chartData}
-                            />
-                        </div>
-                    ) : (
+                    ) : showDailyOrbit ? null : (
                         <MoodIcon
                             mood={verdict.mood}
                             className={`h-12 w-12 mb-2 ${style.accent} ${style.iconShadow}`}
                         />
                     )}
+
+                    {/* Daily-verdict header: small star + date pill above the
+                        serif headline, subtitle below, and the orbit visual
+                        rendered AFTER this text block. Matches the
+                        premium-fortune layout in the reference. */}
+                    {showDailyOrbit && (
+                        <div className='flex items-center justify-center gap-2.5 text-amber-200/85'>
+                            <span aria-hidden className='inline-flex h-px w-6 bg-gradient-to-r from-transparent to-amber-300/60' />
+                            <span aria-hidden className='text-base leading-none'>✦</span>
+                            <span aria-hidden className='inline-flex h-px w-6 bg-gradient-to-l from-transparent to-amber-300/60' />
+                        </div>
+                    )}
                     {dateLabel && (
-                        <p className='text-center text-[11px] uppercase tracking-[0.22em] text-white/45'>
+                        <p
+                            className={
+                                showDailyOrbit
+                                    ? 'text-center text-[12px] uppercase tracking-[0.32em] text-amber-200/80'
+                                    : 'text-center text-[11px] uppercase tracking-[0.22em] text-white/45'
+                            }
+                        >
                             {dateLabel}
                         </p>
                     )}
 
-                    <h2 className='max-w-[28ch] text-balance text-xl font-semibold leading-[1.25] text-white'>
+                    <h2
+                        className={
+                            showDailyOrbit
+                                ? 'max-w-[24ch] text-balance font-serif text-3xl font-semibold leading-[1.15] text-amber-50 sm:text-4xl'
+                                : 'max-w-[28ch] text-balance text-xl font-semibold leading-[1.25] text-white'
+                        }
+                    >
                         <PrivacyHighlightedText
                             text={verdict.headline}
                             aliases={aliases}
@@ -737,15 +755,32 @@ export default function VerdictHero({
                         />
                     </h2>
 
-                    {moodLabel && (
-                        <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
-                            <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
+                    {moodLabel &&
+                        (showDailyOrbit ? (
+                            <p className='max-w-[36ch] text-balance text-center text-sm leading-relaxed text-amber-100/75'>
                                 <PrivacyHighlightedText
                                     text={moodLabel}
                                     aliases={aliases}
                                     supportMarkdown
                                 />
                             </p>
+                        ) : (
+                            <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
+                                <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
+                                    <PrivacyHighlightedText
+                                        text={moodLabel}
+                                        aliases={aliases}
+                                        supportMarkdown
+                                    />
+                                </p>
+                            </div>
+                        ))}
+
+                    {showDailyOrbit && (
+                        <div className='mt-2 w-full animate-fade-in'>
+                            <TransitOrbitVisual
+                                chartData={transitSourceMessage.chartData}
+                            />
                         </div>
                     )}
                 </div>
