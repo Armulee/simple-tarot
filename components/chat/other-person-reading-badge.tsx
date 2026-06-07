@@ -12,8 +12,9 @@ type OtherPersonReadingBadgeProps = {
 /**
  * Pill rendered above an assistant horoscope bubble when the reading is for
  * a third party whose birthdate the asker dropped into the chat
- * ("วันนี้จะเป็นยังไงสำหรับคนที่เกิด 17 กค 2545"). Makes it obvious at a
- * glance that the verdict is NOT for the asker's own chart.
+ * ("วันนี้จะเป็นยังไงสำหรับคนที่เกิด 17 กค 2545"). The label is the birth
+ * date itself — name / relationship words are ignored, because the only
+ * thing that drives the chart is the DOB.
  */
 export default function OtherPersonReadingBadge({
     info,
@@ -36,17 +37,12 @@ export default function OtherPersonReadingBadge({
         }
     })()
 
-    const subject =
-        info.name?.trim() ||
-        info.relationshipHint?.trim() ||
-        t("anonymousSubject")
-
     return (
         <div className='inline-flex items-center gap-2 rounded-full border border-amber-300/35 bg-gradient-to-r from-amber-400/15 via-amber-300/10 to-orange-400/10 px-3 py-1 text-[12px] text-amber-100 shadow-[0_6px_24px_-8px_rgba(251,191,36,0.35)]'>
             <UserRound aria-hidden className='size-3.5 shrink-0 opacity-90' />
-            <span className='font-medium'>{t("readingFor", { subject })}</span>
-            <span aria-hidden className='opacity-40'>·</span>
-            <span className='tabular-nums opacity-90'>{formattedDate}</span>
+            <span className='font-medium tabular-nums'>
+                {t("readingFor", { date: formattedDate })}
+            </span>
         </div>
     )
 }

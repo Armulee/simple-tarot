@@ -486,8 +486,7 @@
     "listening": "กำลังรับข้อความ…"
   },
   "HoroscopeOtherPerson": {
-    "readingFor": "อ่านดวงให้{subject}",
-    "anonymousSubject": "คนที่คุณกล่าวถึง"
+    "readingFor": "อ่านดวงให้คนเกิด {date}"
   },
   "About": {
     "whatIs": "คืออะไร",

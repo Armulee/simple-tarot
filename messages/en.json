@@ -473,8 +473,7 @@
     "listening": "Listening for the message…"
   },
   "HoroscopeOtherPerson": {
-    "readingFor": "Reading for {subject}",
-    "anonymousSubject": "the person you mentioned"
+    "readingFor": "Reading for {date}"
   },
   "About": {
     "whatIs": "What is",
