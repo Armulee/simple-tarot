@@ -29,10 +29,10 @@ const ENERGY_FALLBACK_LABEL: Record<string, string> = {
 }
 
 /**
- * Premium-feel oracle reading card. Renders the ANSWER first
- * (Message Received) so the user sees the message that answers their
- * question within the first 3 seconds, then Oracle Energy → Meaning →
- * Guidance → optional closing whisper. Gold-amber theme.
+ * Premium-feel oracle reading. The headline (Message Received) sits in
+ * a soft amber pill with the energy chip beneath it. Meaning and
+ * Guidance flow straight on the cosmic page background — no section
+ * labels, no outer card.
  */
 export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
     const t = useTranslations("OracleReading")
@@ -58,84 +58,64 @@ export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
         <section className='relative w-full text-amber-50'>
             <div className='relative space-y-6'>
                 {message || isLoading ? (
-                    <div className='space-y-3'>
-                        <SectionEyebrow emoji='💌'>
-                            {t("messageReceived")}
-                        </SectionEyebrow>
-                        <div
-                            className={cn(
-                                "relative mx-auto flex max-w-[36rem] flex-col items-center gap-4 rounded-2xl border border-amber-300/30 bg-amber-300/[0.06] px-5 py-8 text-center sm:py-10",
-                                "shadow-[inset_0_0_28px_rgba(252,211,77,0.10)]",
-                            )}
+                    <div
+                        className={cn(
+                            "relative mx-auto flex max-w-[36rem] flex-col items-center gap-4 rounded-2xl border border-amber-300/30 bg-amber-300/[0.06] px-5 py-8 text-center sm:py-10",
+                            "shadow-[inset_0_0_28px_rgba(252,211,77,0.10)]",
+                        )}
+                    >
+                        <span
+                            aria-hidden
+                            className='absolute -top-2 left-4 select-none text-3xl text-amber-300/70'
                         >
-                            <span
-                                aria-hidden
-                                className='absolute -top-2 left-4 select-none text-3xl text-amber-300/70'
-                            >
-                                “
-                            </span>
-                            {message ? (
-                                <p className='block font-serif text-2xl italic leading-tight text-amber-50 sm:text-3xl'>
-                                    {message}
-                                </p>
-                            ) : (
-                                <p className='block font-serif text-2xl italic leading-tight text-amber-100/40 sm:text-3xl'>
-                                    …
-                                </p>
-                            )}
-                            {energyLabel ? (
-                                <span className='inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-300/[0.10] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-100/90'>
-                                    <span aria-hidden>✨</span>
-                                    <span className='normal-case tracking-normal text-[12px] font-medium'>
-                                        {energyLabel}
-                                    </span>
+                            “
+                        </span>
+                        {message ? (
+                            <p className='block font-serif text-2xl italic leading-tight text-amber-50 sm:text-3xl'>
+                                {message}
+                            </p>
+                        ) : (
+                            <p className='block font-serif text-2xl italic leading-tight text-amber-100/40 sm:text-3xl'>
+                                …
+                            </p>
+                        )}
+                        {energyLabel ? (
+                            <span className='inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-300/[0.10] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-100/90'>
+                                <span aria-hidden>✨</span>
+                                <span className='normal-case tracking-normal text-[12px] font-medium'>
+                                    {energyLabel}
                                 </span>
-                            ) : null}
-                            <span
-                                aria-hidden
-                                className='absolute -bottom-4 right-4 select-none text-3xl text-amber-300/70'
-                            >
-                                ”
                             </span>
-                        </div>
+                        ) : null}
+                        <span
+                            aria-hidden
+                            className='absolute -bottom-4 right-4 select-none text-3xl text-amber-300/70'
+                        >
+                            ”
+                        </span>
                     </div>
                 ) : null}
 
                 {deeperMeaning ? (
-                    <div className='space-y-2'>
-                        <SectionEyebrow emoji='🔮'>
-                            {t("meaning")}
-                        </SectionEyebrow>
-                        <div className='space-y-3 text-[14.5px] leading-relaxed text-amber-50/90'>
-                            {deeperMeaning
-                                .split(/\n{2,}/)
-                                .map((para, idx) => (
-                                    <p key={idx}>{para}</p>
-                                ))}
-                        </div>
+                    <div className='space-y-3 text-[14.5px] leading-relaxed text-amber-50/90'>
+                        {deeperMeaning.split(/\n{2,}/).map((para, idx) => (
+                            <p key={idx}>{para}</p>
+                        ))}
                     </div>
                 ) : null}
 
                 {guidance.length > 0 ? (
-                    <div className='space-y-2'>
-                        <SectionEyebrow emoji='🌙'>
-                            {t("guidance")}
-                        </SectionEyebrow>
-                        <ul className='space-y-2 text-[14.5px] leading-relaxed text-amber-50/90'>
-                            {guidance.map((item, idx) => (
-                                <li
-                                    key={idx}
-                                    className='flex items-start gap-2.5'
-                                >
-                                    <span
-                                        aria-hidden
-                                        className='mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300/80 shadow-[0_0_8px_rgba(252,211,77,0.5)]'
-                                    />
-                                    <span>{item}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    <ul className='space-y-2 text-[14.5px] leading-relaxed text-amber-50/90'>
+                        {guidance.map((item, idx) => (
+                            <li key={idx} className='flex items-start gap-2.5'>
+                                <span
+                                    aria-hidden
+                                    className='mt-2 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300/80 shadow-[0_0_8px_rgba(252,211,77,0.5)]'
+                                />
+                                <span>{item}</span>
+                            </li>
+                        ))}
+                    </ul>
                 ) : null}
 
                 {closing ? (
@@ -157,25 +137,5 @@ export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
                 ) : null}
             </div>
         </section>
-    )
-}
-
-function SectionEyebrow({
-    emoji,
-    children,
-}: {
-    emoji: string
-    children: React.ReactNode
-}) {
-    return (
-        <div className='flex items-center gap-2'>
-            <span aria-hidden className='text-sm leading-none'>
-                {emoji}
-            </span>
-            <p className='text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-200/85'>
-                {children}
-            </p>
-            <span className='h-px flex-1 bg-gradient-to-r from-amber-300/40 to-transparent' />
-        </div>
     )
 }
