@@ -3676,6 +3676,12 @@ export default function ChatSession({
             horoscopeIsRefetchRef.current = false
             horoscopeTargetMessageIdRef.current = loadingId
             horoscopeLastTransitRef.current = transit ?? null
+            // Snapshot refs whose values must reach the React updater. React
+            // schedules the updater and runs it later — clearing the ref on
+            // the next synchronous line would erase the value before the
+            // updater reads it.
+            const pendingOtherPerson = pendingOtherPersonRef.current
+            pendingOtherPersonRef.current = null
             setMessages((prev) => {
                 const last = prev[prev.length - 1]
                 const withoutBridgeLoading =
@@ -3685,7 +3691,6 @@ export default function ChatSession({
                         ? prev.slice(0, -1)
                         : prev
                 const pendingAspect = pendingAspectDetailRef.current
-                const pendingOtherPerson = pendingOtherPersonRef.current
                 const userPrivacy = lastUserPrivacyRef.current
                 const strategy = (
                     horoscopeClassificationRef.current as
@@ -3717,7 +3722,6 @@ export default function ChatSession({
                     },
                 ]
             })
-            pendingOtherPersonRef.current = null
             const classification = horoscopeClassificationRef.current
             const questionRange = horoscopeQuestionRangeRef.current
             const prefetchBody = {
