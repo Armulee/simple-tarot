@@ -55,26 +55,8 @@ export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
         Boolean(closing)
 
     return (
-        <section
-            className={cn(
-                "relative w-full overflow-hidden rounded-[28px] border border-amber-300/25 bg-gradient-to-b from-amber-500/10 via-[#0c0716]/60 to-[#0b0617]/70 p-5 sm:p-7",
-                "shadow-[0_24px_60px_-24px_rgba(252,211,77,0.35)]",
-            )}
-        >
-            <div
-                aria-hidden
-                className='pointer-events-none absolute -top-24 left-1/2 h-56 w-[28rem] -translate-x-1/2 rounded-full bg-[radial-gradient(60%_60%_at_50%_50%,rgba(252,211,77,0.25),transparent_70%)] blur-3xl'
-            />
-            <div
-                aria-hidden
-                className='pointer-events-none absolute -bottom-24 -right-16 h-48 w-48 rounded-full bg-amber-400/15 blur-3xl'
-            />
-            <div
-                aria-hidden
-                className='pointer-events-none absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-violet-500/15 blur-3xl'
-            />
-
-            <div className='relative space-y-6 text-amber-50'>
+        <section className='relative w-full text-amber-50'>
+            <div className='relative space-y-6'>
                 {message || isLoading ? (
                     <div className='space-y-3'>
                         <SectionEyebrow emoji='💌'>
