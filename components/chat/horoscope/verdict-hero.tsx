@@ -654,10 +654,18 @@ export default function VerdictHero({
     )
     // Technical verdicts hoist the orbit visual into the hero slot (replacing
     // the planet portraits). Natal verdicts keep the planet-portrait crest.
+    // Daily / fallback verdicts also surface the orbit when we have chart
+    // data — it replaces the legacy mood icon so the overview tab carries the
+    // visual that used to live in the transit tab.
     const showTechnicalOrbit = isTechnicalMode
     const showNatalHeroCrest =
         isNatalMode && heroPlacements.length > 0
     const showTimingHeroCrest = isTimingMode && !!verdict.timingWindow
+    const showDailyOrbit =
+        !isTechnicalMode &&
+        !showNatalHeroCrest &&
+        !showTimingHeroCrest &&
+        Boolean(transitSourceMessage.chartData)
     const hasVerdictText =
         verdict.headline.trim().length > 0 ||
         keyMessageHeadline.length > 0 ||
@@ -701,6 +709,12 @@ export default function VerdictHero({
                                 window={verdict.timingWindow}
                                 accentClass={style.accent}
                                 moodShadow={style.iconShadow}
+                            />
+                        </div>
+                    ) : showDailyOrbit ? (
+                        <div className='w-full animate-fade-in'>
+                            <TransitOrbitVisual
+                                chartData={transitSourceMessage.chartData}
                             />
                         </div>
                     ) : (

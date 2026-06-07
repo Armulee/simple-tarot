@@ -23,7 +23,6 @@ import {
 } from "@/lib/astrology/single-day"
 import VerdictHero from "./horoscope/verdict-hero"
 import TransitPlanetGrid from "./horoscope/transit-planet-grid"
-import TransitOrbitVisual from "./horoscope/transit-orbit-visual"
 import NatalChartDetail from "./horoscope/natal-chart-detail"
 import PredictionTimeline from "./horoscope/prediction-timeline"
 
@@ -462,7 +461,6 @@ export default function HoroscopeReadingTabs({
                                     {transitDatePickerNode}
                                 </div>
                             )}
-                            <TransitOrbitVisual chartData={message.chartData} />
                             <TransitPlanetGrid chartData={message.chartData} />
                             <NatalChartCollapsible
                                 chartData={message.chartData}
