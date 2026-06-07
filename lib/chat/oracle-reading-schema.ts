@@ -50,7 +50,7 @@ export const oracleReadingSchema = z.object({
         .min(8)
         .max(280)
         .describe(
-            "THE ANSWER. A direct, mystical, quote-worthy oracle message (1-3 short sentences) that ANSWERS the user's actual question. Generated from the question's specific subject and emotional intention — NOT chosen from a theme bank (no defaulting to healing / transformation / new beginnings / self-love / awakening / divine timing / letting go unless they truly emerge from this question). It must obviously belong to THIS question and no other — if the same line could fit a completely different question, rewrite it. Never the energy archetype name. Never analysis. Personal, emotional, memorable. Written in the user's language.",
+            "THE ANSWER. A direct, clear oracle message (1-3 short sentences) that ANSWERS the user's actual question. CLARITY OVERRIDES MYSTICISM — the user must understand this line in under 2 seconds, without needing the rest of the reading to interpret it. Speak directly to the user, concrete language, no abstract symbolism, no 'energy / vibration / portal / cosmic thread' as the literal subject, no poetic riddles. Generated from the question's specific subject and emotional intention — NOT chosen from a theme bank (no defaulting to healing / transformation / new beginnings / self-love / awakening / divine timing / letting go unless they truly emerge from this question). It must obviously belong to THIS question and no other — if the same line could fit a completely different question, rewrite it. The mystical tone lives in deeperMeaning, not here. Personal, emotional, memorable. Written in the user's language.",
         ),
     deeperMeaning: z
         .string()
