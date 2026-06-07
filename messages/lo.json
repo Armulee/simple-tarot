@@ -484,6 +484,10 @@
     "guidance": "ແນວທາງທີ່ຄວນເຮັດ",
     "listening": "ກຳລັງຮັບຂໍ້ຄວາມ…"
   },
+  "HoroscopeOtherPerson": {
+    "readingFor": "ອ່ານດວງໃຫ້{subject}",
+    "anonymousSubject": "ຄົນທີ່ທ່ານກ່າວເຖິງ"
+  },
   "About": {
     "whatIs": "ແມ່ນຫຍັງ",
     "brand": "AskingFate?",

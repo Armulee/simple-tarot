@@ -1166,6 +1166,9 @@ export default function ChatSession({
         aspectKey: string
         event: SourceAspectEvent
     } | null>(null)
+    const pendingOtherPersonRef = useRef<
+        NonNullable<ChatMessage["horoscopeForOtherPerson"]> | null
+    >(null)
 
     const {
         submit: submitInterpretation,
@@ -3682,6 +3685,7 @@ export default function ChatSession({
                         ? prev.slice(0, -1)
                         : prev
                 const pendingAspect = pendingAspectDetailRef.current
+                const pendingOtherPerson = pendingOtherPersonRef.current
                 const userPrivacy = lastUserPrivacyRef.current
                 const strategy = (
                     horoscopeClassificationRef.current as
@@ -3707,9 +3711,13 @@ export default function ChatSession({
                             sourceAspectKey: pendingAspect.aspectKey,
                             sourceAspectEvent: pendingAspect.event,
                         }),
+                        ...(pendingOtherPerson && {
+                            horoscopeForOtherPerson: pendingOtherPerson,
+                        }),
                     },
                 ]
             })
+            pendingOtherPersonRef.current = null
             const classification = horoscopeClassificationRef.current
             const questionRange = horoscopeQuestionRangeRef.current
             const prefetchBody = {
@@ -4434,6 +4442,28 @@ export default function ChatSession({
                 const birthToUse = sourceBirth
                     ? applyEphemerisLocationTimeDefaults(sourceBirth)
                     : null
+                // Stamp the 3rd-party DOB onto the upcoming assistant bubble
+                // so the renderer can show a "Reading for …" badge.
+                if (
+                    mentionedBirth &&
+                    mentionedBirth.day != null &&
+                    mentionedBirth.month != null &&
+                    mentionedBirth.year != null
+                ) {
+                    pendingOtherPersonRef.current = {
+                        name: extracted?.mentionedPerson?.name ?? null,
+                        relationshipHint:
+                            extracted?.mentionedPerson?.relationshipHint ??
+                            null,
+                        birthDate: {
+                            day: mentionedBirth.day,
+                            month: mentionedBirth.month,
+                            year: mentionedBirth.year,
+                        },
+                    }
+                } else {
+                    pendingOtherPersonRef.current = null
+                }
                 if (!birthToUse) {
                     setMessages((prev) => [
                         ...prev,

@@ -21,6 +21,7 @@ import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
+import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
 import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import PaywallBlock from "@/components/chat/paywall-block"
@@ -786,6 +787,15 @@ export default function MessageList({
                                                         message.sourceAspectEvent
                                                     }
                                                     tPanel={tPanel}
+                                                />
+                                            </div>
+                                        )}
+                                        {message.horoscopeForOtherPerson && (
+                                            <div className='w-full md:max-w-[85%]'>
+                                                <OtherPersonReadingBadge
+                                                    info={
+                                                        message.horoscopeForOtherPerson
+                                                    }
                                                 />
                                             </div>
                                         )}

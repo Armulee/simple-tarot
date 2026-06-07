@@ -472,6 +472,10 @@
     "guidance": "Guidance",
     "listening": "Listening for the message…"
   },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {subject}",
+    "anonymousSubject": "the person you mentioned"
+  },
   "About": {
     "whatIs": "What is",
     "brand": "AskingFate?",

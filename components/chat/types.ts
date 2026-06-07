@@ -213,6 +213,18 @@ export type ChatMessage = {
     houseMeanings?: Record<string, string> | null
     /** Birth data for loading horoscope (used for display and cancel) */
     horoscopeBirthData?: HoroscopeBirthData | null
+    /**
+     * When the asker (paid) included a 3rd party's birth in the chat
+     * (e.g. "วันนี้จะเป็นยังไงสำหรับคนที่เกิด 17 กค 2545"), the reading
+     * runs on THAT person's chart. We carry the resolved DOB and the
+     * optional name here so the assistant bubble can show a "Reading for…"
+     * badge above the verdict.
+     */
+    horoscopeForOtherPerson?: {
+        name?: string | null
+        relationshipHint?: string | null
+        birthDate: { day: number; month: number; year: number }
+    } | null
     /** From /api/situation: whether the question touches legal / medical / financial advice. */
     questionDomain?: QuestionDomain
     /** Sanitized question persisted for assistant messages. */

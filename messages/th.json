@@ -485,6 +485,10 @@
     "guidance": "แนวทางที่ควรทำ",
     "listening": "กำลังรับข้อความ…"
   },
+  "HoroscopeOtherPerson": {
+    "readingFor": "อ่านดวงให้{subject}",
+    "anonymousSubject": "คนที่คุณกล่าวถึง"
+  },
   "About": {
     "whatIs": "คืออะไร",
     "brand": "AskingFate?",
