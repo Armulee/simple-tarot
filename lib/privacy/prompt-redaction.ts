@@ -113,6 +113,27 @@ function isAllDigitsTheSame(digits: string): boolean {
 }
 
 /**
+ * True when the span reads as a calendar date, e.g. `1990-04-12`,
+ * `12/03/2025`, `2025.03.12`. Used to keep dates of birth out of the phone /
+ * card / id pipelines so they aren't accidentally redacted as PII — the
+ * horoscope extractor needs to read them. Accepts ISO `YYYY-MM-DD`,
+ * day-month-year, and month-day-year orderings with `-`, `/`, or `.`
+ * separators. Years 1900-2099 (Gregorian) and 2400-2699 (Buddhist Era) count.
+ */
+export function looksLikeCalendarDate(span: string): boolean {
+    if (typeof span !== "string") return false
+    const compact = span.replace(/\s+/g, "")
+    const Y = "(?:19|20|2[4-6])\\d{2}"
+    const M = "(?:0?[1-9]|1[0-2])"
+    const D = "(?:0?[1-9]|[12]\\d|3[01])"
+    const SEP = "[-./]"
+    const isoYmd = new RegExp(`^${Y}${SEP}${M}${SEP}${D}$`)
+    const dmy = new RegExp(`^${D}${SEP}${M}${SEP}${Y}$`)
+    const mdy = new RegExp(`^${M}${SEP}${D}${SEP}${Y}$`)
+    return isoYmd.test(compact) || dmy.test(compact) || mdy.test(compact)
+}
+
+/**
  * Regex defence-in-depth: only digit runs that look like phone numbers are redacted.
  * - Length must be &gt; 7 and ≤ 11 digits (typical phone lengths).
  * - Runs longer than 11 digits are assumed to be national IDs or similar — not redacted as phone.
@@ -330,6 +351,7 @@ export function collectRegexRedactionItems(
 
     const phoneRe = new RegExp(PHONE_REGEX.source, PHONE_REGEX.flags)
     while ((m = phoneRe.exec(text)) !== null) {
+        if (looksLikeCalendarDate(m[0])) continue
         const digits = m[0].replace(/\D/g, "")
         if (phoneDigitsQualifyAsPii(digits)) {
             raw.push({ type: "phone", original: m[0] })
@@ -368,6 +390,7 @@ export function sanitizePromptForPersistence(input: unknown): string {
     out = replacePassportSpans(out, PROMPT_REDACTION_LABELS.passport)
     out = replaceCreditCardSpans(out, PROMPT_REDACTION_LABELS.card)
     out = out.replace(PHONE_REGEX, (match) => {
+        if (looksLikeCalendarDate(match)) return match
         const digits = match.replace(/\D/g, "")
         if (!phoneDigitsQualifyAsPii(digits)) return match
         return PROMPT_REDACTION_LABELS.phone
