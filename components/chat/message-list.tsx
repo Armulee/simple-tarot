@@ -711,6 +711,15 @@ export default function MessageList({
                                 }
                                 className='flex flex-col items-start gap-4'
                             >
+                                {message.horoscopeForOtherPerson && (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <OtherPersonReadingBadge
+                                            info={
+                                                message.horoscopeForOtherPerson
+                                            }
+                                        />
+                                    </div>
+                                )}
                                 {((message.cards && message.cards.length > 0) ||
                                     message.variant === "box") && (
                                     <TarotAssistantInterpretation
@@ -787,15 +796,6 @@ export default function MessageList({
                                                         message.sourceAspectEvent
                                                     }
                                                     tPanel={tPanel}
-                                                />
-                                            </div>
-                                        )}
-                                        {message.horoscopeForOtherPerson && (
-                                            <div className='w-full md:max-w-[85%]'>
-                                                <OtherPersonReadingBadge
-                                                    info={
-                                                        message.horoscopeForOtherPerson
-                                                    }
                                                 />
                                             </div>
                                         )}
