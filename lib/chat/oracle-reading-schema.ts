@@ -55,9 +55,9 @@ export const oracleReadingSchema = z.object({
     deeperMeaning: z
         .string()
         .min(40)
-        .max(500)
+        .max(600)
         .describe(
-            "1-2 short paragraphs explaining WHY this headline appeared and what part of the user's situation it reflects. Interpretation only, not the answer itself. Use language like 'this may reflect...', 'symbolically...'. NEVER assert supernatural certainty. Written in the user's language. Plain text only — no HTML, no Markdown.",
+            "1-2 short paragraphs (HTML fragment) explaining WHY this headline appeared and what part of the user's situation it reflects. Interpretation only, not the answer itself. Use language like 'this may reflect...', 'symbolically...'. NEVER assert supernatural certainty. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <br>, and <span class=\"highlight-gold\">. Use <span class=\"highlight-gold\">…</span> to highlight 1-3 key phrases (a feeling, a turning point, a thing to notice). Highlight WORDS or short phrases — never whole paragraphs. No headings, no lists, no other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Written in the user's language.",
         ),
     guidance: z
         .array(

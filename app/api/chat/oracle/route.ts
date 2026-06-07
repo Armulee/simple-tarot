@@ -254,10 +254,12 @@ WRITING STYLE — fortune card, not blog post
 Write like a premium fortune app. NOT like a philosopher, a spiritual blogger, a self-help article, or a psychology essay.
 
 \`deeperMeaning\` rules:
-  • Maximum 1-2 short paragraphs.
+  • Maximum 1-2 short paragraphs (HTML fragment).
   • Tell the user why this headline appeared and what part of their situation it reflects.
   • Do not re-explain symbolism the headline already implied.
-  • Plain text only. No HTML, no Markdown.
+  • ALLOWED TAGS ONLY: <p>, <strong>, <em>, <br>, and <span class="highlight-gold">.
+  • Use <span class="highlight-gold">…</span> on 1-3 key phrases (a feeling, a turning point, a thing to notice). Highlight WORDS or short phrases — never whole paragraphs.
+  • No headings, no lists, no other tags / attributes / classes / scripts / links / images / code fences / Markdown.
 
 \`guidance\` rules:
   • 3-5 bullets, each a single short practical sentence.
@@ -304,7 +306,7 @@ Field order matters for streaming. Fill in this order:
 1) energy — one symbolic archetype that anchors the reading.
 2) energyLabel — small energy tag under the headline, in the user's language (2-5 words).
 3) message — THE HEADLINE. 3-8 words, one line, directly answers the user's question. This IS the reading; everything below just explains it. Generated via the Subject + Emotional-Intention reasoning — never the energy archetype phrase, never a stock spiritual theme.
-4) deeperMeaning — 1-2 short paragraphs explaining WHY this headline appeared and what part of the user's situation it reflects. Plain text only.
+4) deeperMeaning — 1-2 short paragraphs (HTML fragment) explaining WHY this headline appeared and what part of the user's situation it reflects. Allowed tags only: <p>, <strong>, <em>, <br>, <span class="highlight-gold">. Use <span class="highlight-gold">…</span> on 1-3 key phrases.
 5) guidance — 3-5 practical, empowering single-sentence bullets — concrete things they can actually do.
 6) closing — optional final whisper. One short sentence.
 
@@ -314,7 +316,7 @@ Length discipline (binding):
 - deeperMeaning: 1-2 short paragraphs. No walls of text.
 - guidance: 3-5 single-sentence bullets.
 
-Plain text only in deeperMeaning / guidance / closing — no HTML, no Markdown. The client renders the layout. Do not wrap anything in <html>, <body>, or code fences.
+deeperMeaning may use the limited HTML set above (<p>, <strong>, <em>, <br>, <span class="highlight-gold">). guidance and closing are plain text only — no HTML, no Markdown. The client renders the layout. Do not wrap anything in <html>, <body>, or code fences.
 `
 
 function buildPrompt(body: z.infer<typeof requestSchema>) {

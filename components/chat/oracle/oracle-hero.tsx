@@ -2,12 +2,15 @@
 
 import { useTranslations } from "next-intl"
 
+import { PrivacyDetailedHtml } from "@/components/chat/privacy/privacy-detailed-html"
 import type { StreamingOracleReading } from "@/lib/chat/oracle-reading-schema"
+import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import { cn } from "@/lib/utils"
 
 type OracleHeroProps = {
     reading: StreamingOracleReading | null | undefined
     isLoading?: boolean
+    privacyAliases?: PromptAliasEntry[]
 }
 
 const ENERGY_FALLBACK_LABEL: Record<string, string> = {
@@ -34,7 +37,11 @@ const ENERGY_FALLBACK_LABEL: Record<string, string> = {
  * Guidance flow straight on the cosmic page background — no section
  * labels, no outer card.
  */
-export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
+export default function OracleHero({
+    reading,
+    isLoading,
+    privacyAliases,
+}: OracleHeroProps) {
     const t = useTranslations("OracleReading")
     const energy = reading?.energy
     const energyLabel =
@@ -97,11 +104,11 @@ export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
                 ) : null}
 
                 {deeperMeaning ? (
-                    <div className='space-y-3 text-[14.5px] leading-relaxed text-amber-50/90'>
-                        {deeperMeaning.split(/\n{2,}/).map((para, idx) => (
-                            <p key={idx}>{para}</p>
-                        ))}
-                    </div>
+                    <PrivacyDetailedHtml
+                        html={deeperMeaning}
+                        aliases={privacyAliases ?? []}
+                        className='tarot-detailed-html space-y-3 text-[14.5px] leading-relaxed text-amber-50/90'
+                    />
                 ) : null}
 
                 {guidance.length > 0 ? (

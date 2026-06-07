@@ -742,6 +742,7 @@ export default function MessageList({
                                         <OracleHero
                                             reading={message.oracleReading}
                                             isLoading={message.isLoading}
+                                            privacyAliases={privacyAliases}
                                         />
                                     </div>
                                 ) : null}
