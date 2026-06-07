@@ -1166,9 +1166,6 @@ export default function ChatSession({
         aspectKey: string
         event: SourceAspectEvent
     } | null>(null)
-    const pendingOtherPersonRef = useRef<
-        NonNullable<ChatMessage["horoscopeForOtherPerson"]> | null
-    >(null)
 
     const {
         submit: submitInterpretation,
@@ -3676,12 +3673,6 @@ export default function ChatSession({
             horoscopeIsRefetchRef.current = false
             horoscopeTargetMessageIdRef.current = loadingId
             horoscopeLastTransitRef.current = transit ?? null
-            // Snapshot refs whose values must reach the React updater. React
-            // schedules the updater and runs it later — clearing the ref on
-            // the next synchronous line would erase the value before the
-            // updater reads it.
-            const pendingOtherPerson = pendingOtherPersonRef.current
-            pendingOtherPersonRef.current = null
             setMessages((prev) => {
                 const last = prev[prev.length - 1]
                 const withoutBridgeLoading =
@@ -3715,9 +3706,6 @@ export default function ChatSession({
                         ...(pendingAspect && {
                             sourceAspectKey: pendingAspect.aspectKey,
                             sourceAspectEvent: pendingAspect.event,
-                        }),
-                        ...(pendingOtherPerson && {
-                            horoscopeForOtherPerson: pendingOtherPerson,
                         }),
                     },
                 ]
@@ -4446,15 +4434,19 @@ export default function ChatSession({
                 const birthToUse = sourceBirth
                     ? applyEphemerisLocationTimeDefaults(sourceBirth)
                     : null
-                // Stamp the 3rd-party DOB onto the upcoming assistant bubble
-                // so the renderer can show a "Reading for …" badge.
+                // Stamp the 3rd-party DOB onto the bridge bubble — the first
+                // chatty AI reply that streamed in just before this code
+                // runs — so the "Reading for …" pill appears above the AI's
+                // initial response, not above the later verdict card.
                 if (
                     mentionedBirth &&
                     mentionedBirth.day != null &&
                     mentionedBirth.month != null &&
                     mentionedBirth.year != null
                 ) {
-                    pendingOtherPersonRef.current = {
+                    const otherPersonInfo: NonNullable<
+                        ChatMessage["horoscopeForOtherPerson"]
+                    > = {
                         name: extracted?.mentionedPerson?.name ?? null,
                         relationshipHint:
                             extracted?.mentionedPerson?.relationshipHint ??
@@ -4465,8 +4457,27 @@ export default function ChatSession({
                             year: mentionedBirth.year,
                         },
                     }
-                } else {
-                    pendingOtherPersonRef.current = null
+                    setMessages((prev) => {
+                        // Find the most recent assistant bubble and stamp the
+                        // badge on it. This is the bridge reply for the
+                        // standard decision flow; in the regenerate / direct
+                        // horoscope paths it's whichever bubble was just
+                        // appended.
+                        for (let i = prev.length - 1; i >= 0; i -= 1) {
+                            const m = prev[i]
+                            if (m.role !== "assistant") continue
+                            return prev.map((mm, idx) =>
+                                idx === i
+                                    ? {
+                                          ...mm,
+                                          horoscopeForOtherPerson:
+                                              otherPersonInfo,
+                                      }
+                                    : mm,
+                            )
+                        }
+                        return prev
+                    })
                 }
                 if (!birthToUse) {
                     setMessages((prev) => [
