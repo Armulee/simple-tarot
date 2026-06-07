@@ -48,6 +48,7 @@ import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
 import { loadBirthFromStorage } from "@/lib/birth-storage"
 import {
     applyEphemerisLocationTimeDefaults,
+    mentionedPersonToHoroscopeBirthData,
     profileToHoroscopeBirthData,
 } from "@/lib/horoscope-profile-birth"
 import {
@@ -4417,14 +4418,21 @@ export default function ChatSession({
                 horoscopeQuestionRangeRef.current =
                     extracted?.questionRange ?? null
 
-                // Onboarding makes birth data mandatory, so the profile is
-                // the single source of truth. If it's somehow missing, the
-                // reading can't run — surface a generic failure.
+                // Paid askers who include a third party's birth DATE in the
+                // chat ("my friend, born 1990-04-12 …") read the chart for
+                // THAT person, not themselves. The asker's own profile is
+                // still the location/time fallback. Free askers were already
+                // bounced by the paywall gate above.
+                const mentionedBirth = mentionedPersonToHoroscopeBirthData(
+                    extracted?.mentionedPerson ?? null,
+                    user ? profile : null,
+                )
                 const profileBirth = profileToHoroscopeBirthData(
                     user ? profile : null,
                 )
-                const birthToUse = profileBirth
-                    ? applyEphemerisLocationTimeDefaults(profileBirth)
+                const sourceBirth = mentionedBirth ?? profileBirth
+                const birthToUse = sourceBirth
+                    ? applyEphemerisLocationTimeDefaults(sourceBirth)
                     : null
                 if (!birthToUse) {
                     setMessages((prev) => [

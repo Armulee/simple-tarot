@@ -143,3 +143,86 @@ export function applyEphemerisLocationTimeDefaults(
         usedLocationFallback: birth.usedLocationFallback,
     }
 }
+
+/**
+ * Shape returned by `/api/horoscope/extract` for a third party mentioned in
+ * the chat message. Each leaf may be null when the model couldn't extract it.
+ */
+export type MentionedPersonBirth = {
+    isOtherPerson?: boolean | null
+    birthDate?: {
+        day: number | null
+        month: number | null
+        year: number | null
+    } | null
+    birthTime?: {
+        hour: number | null
+        minute: number | null
+    } | null
+    birthPlace?: {
+        country: string | null
+        state: string | null
+    } | null
+}
+
+/**
+ * Buddhist Era → Gregorian for years that are clearly BE (≥2400). Mirrors the
+ * same conversion the extract route applies before comparison.
+ */
+function normalizeBirthYear(year: number | null | undefined): number | null {
+    if (year == null || !Number.isFinite(year)) return null
+    const n = Number(year)
+    if (n >= 2400 && n <= 2800) return n - 543
+    return n
+}
+
+/**
+ * Build `HoroscopeBirthData` for the third party mentioned in the chat
+ * message — used when a paid asker asks about someone else's chart. Falls
+ * back to the asker's profile for time/place so the reading can still run
+ * when the user only supplied the third party's birth DATE.
+ *
+ * Returns null when the mention is missing day / month / year (required to
+ * build a natal chart at all).
+ */
+export function mentionedPersonToHoroscopeBirthData(
+    mention: MentionedPersonBirth | null | undefined,
+    askerProfile: ProfileBirthFields | null | undefined,
+): HoroscopeBirthData | null {
+    if (!mention?.birthDate) return null
+    const { day, month } = mention.birthDate
+    const year = normalizeBirthYear(mention.birthDate.year)
+    if (!day || !month || !year) return null
+
+    const askerBirth = profileToHoroscopeBirthData(askerProfile ?? null)
+    const mentionedPlace = mention.birthPlace ?? null
+    const resolvedPlace = mentionedPlace?.country
+        ? resolveLocationFromCountryState(
+              mentionedPlace.country,
+              mentionedPlace.state ?? undefined,
+          )
+        : null
+
+    return {
+        day,
+        month,
+        year,
+        hour: mention.birthTime?.hour ?? null,
+        minute: mention.birthTime?.minute ?? null,
+        timeHint: "unknown",
+        timezone: resolvedPlace?.timezone ?? askerBirth?.timezone ?? null,
+        lat: resolvedPlace?.latitude ?? askerBirth?.lat ?? null,
+        lng: resolvedPlace?.longitude ?? askerBirth?.lng ?? null,
+        country:
+            resolvedPlace?.countryName ??
+            mentionedPlace?.country ??
+            askerBirth?.country ??
+            null,
+        state:
+            resolvedPlace?.stateName ??
+            mentionedPlace?.state ??
+            askerBirth?.state ??
+            null,
+        usedLocationFallback: false,
+    }
+}
