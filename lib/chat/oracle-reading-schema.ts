@@ -41,23 +41,23 @@ export const oracleReadingSchema = z.object({
     energyLabel: z
         .string()
         .min(2)
-        .max(60)
+        .max(40)
         .describe(
-            "Short, decorative label for the chosen energy, written in the user's language (e.g. 'Reflection & Inner Wisdom', 'การปล่อยวาง'). 2-6 words.",
+            "Small energy tag rendered as a chip directly under the headline. 2-5 words in the user's language (e.g. 'Safety & Stillness', 'การเริ่มต้นใหม่', 'ความชัดเจนกำลังมา'). Not a sentence — a tag.",
         ),
     message: z
         .string()
-        .min(8)
-        .max(280)
+        .min(6)
+        .max(120)
         .describe(
-            "THE ANSWER. A direct, clear oracle message (1-3 short sentences) that ANSWERS the user's actual question. CLARITY OVERRIDES MYSTICISM — the user must understand this line in under 2 seconds, without needing the rest of the reading to interpret it. Speak directly to the user, concrete language, no abstract symbolism, no 'energy / vibration / portal / cosmic thread' as the literal subject, no poetic riddles. Generated from the question's specific subject and emotional intention — NOT chosen from a theme bank (no defaulting to healing / transformation / new beginnings / self-love / awakening / divine timing / letting go unless they truly emerge from this question). It must obviously belong to THIS question and no other — if the same line could fit a completely different question, rewrite it. The mystical tone lives in deeperMeaning, not here. Personal, emotional, memorable. Written in the user's language.",
+            "THE HEADLINE OF THE FORTUNE CARD. 3 to 8 words. One line. This IS the reading — if the user reads only this and walks away, they should already have their answer. CLARITY OVERRIDES MYSTICISM — understood in under 2 seconds, no poetic riddles, no abstract symbolism, no 'energy / vibration / portal / cosmic thread' as the subject. Speak directly to the user with concrete language. Generated from the question's specific subject + emotional intention — NOT pulled from a theme bank (no defaulting to healing / transformation / new beginnings / self-love / awakening / divine timing / letting go unless they truly emerge from THIS question). If the same line could fit a completely different question, rewrite it. No multi-sentence messages, no semicolons, no em-dash splits. Written in the user's language.",
         ),
     deeperMeaning: z
         .string()
         .min(40)
-        .max(900)
+        .max(500)
         .describe(
-            "Short prose (2-4 short paragraphs) explaining symbolically why the message above appeared — interpretation, not the answer itself. Use language like 'the energy suggests...', 'this may reflect...', 'symbolically...'. Connect to emotions, growth, perspective, uncertainty. NEVER assert supernatural certainty. Written in the user's language. Plain text only — no HTML, no Markdown.",
+            "1-2 short paragraphs explaining WHY this headline appeared and what part of the user's situation it reflects. Interpretation only, not the answer itself. Use language like 'this may reflect...', 'symbolically...'. NEVER assert supernatural certainty. Written in the user's language. Plain text only — no HTML, no Markdown.",
         ),
     guidance: z
         .array(

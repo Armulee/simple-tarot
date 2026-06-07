@@ -80,9 +80,9 @@ export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
                         <SectionEyebrow emoji='💌'>
                             {t("messageReceived")}
                         </SectionEyebrow>
-                        <blockquote
+                        <div
                             className={cn(
-                                "relative mx-auto max-w-[36rem] rounded-2xl border border-amber-300/30 bg-amber-300/[0.06] px-5 py-7 text-center text-lg font-medium leading-relaxed text-amber-50 sm:text-xl",
+                                "relative mx-auto flex max-w-[36rem] flex-col items-center gap-4 rounded-2xl border border-amber-300/30 bg-amber-300/[0.06] px-5 py-8 text-center sm:py-10",
                                 "shadow-[inset_0_0_28px_rgba(252,211,77,0.10)]",
                             )}
                         >
@@ -93,32 +93,29 @@ export default function OracleHero({ reading, isLoading }: OracleHeroProps) {
                                 “
                             </span>
                             {message ? (
-                                <span className='block font-serif italic'>
+                                <p className='block font-serif text-2xl italic leading-tight text-amber-50 sm:text-3xl'>
                                     {message}
-                                </span>
+                                </p>
                             ) : (
-                                <span className='block font-serif italic text-amber-100/40'>
+                                <p className='block font-serif text-2xl italic leading-tight text-amber-100/40 sm:text-3xl'>
                                     …
-                                </span>
+                                </p>
                             )}
+                            {energyLabel ? (
+                                <span className='inline-flex items-center gap-1.5 rounded-full border border-amber-300/40 bg-amber-300/[0.10] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-100/90'>
+                                    <span aria-hidden>✨</span>
+                                    <span className='normal-case tracking-normal text-[12px] font-medium'>
+                                        {energyLabel}
+                                    </span>
+                                </span>
+                            ) : null}
                             <span
                                 aria-hidden
                                 className='absolute -bottom-4 right-4 select-none text-3xl text-amber-300/70'
                             >
                                 ”
                             </span>
-                        </blockquote>
-                    </div>
-                ) : null}
-
-                {energyLabel ? (
-                    <div className='space-y-2'>
-                        <SectionEyebrow emoji='✨'>
-                            {t("oracleEnergy")}
-                        </SectionEyebrow>
-                        <p className='font-serif text-lg italic leading-tight text-amber-100 sm:text-xl'>
-                            {energyLabel}
-                        </p>
+                        </div>
                     </div>
                 ) : null}
 
