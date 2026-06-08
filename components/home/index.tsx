@@ -356,29 +356,9 @@ export default function Home() {
 
     const shouldShowHero = !isLinking
     const shouldShowLearnMore = showLearnMore && !isLinking
-    const randomQuestionPool = useMemo(() => {
-        const prompts = tHome.raw("prompts")
-        const arr = Array.isArray(prompts)
-            ? (prompts as string[]).filter(
-                  (p): p is string => typeof p === "string",
-              )
-            : []
-        const tarotQ = tHome("quickCardQuestions.tarotCard")
-        const birthQ = tHome("quickCardQuestions.birthChart")
-        const horoQ = tHome("quickCardQuestions.horoscope")
-        return [...arr, tarotQ, birthQ, horoQ].filter(Boolean)
-    }, [tHome])
-
-    const pickRandomQuestion = () => {
-        if (randomQuestionPool.length === 0)
-            return tHome("quickCardQuestions.tarotCard")
-        return randomQuestionPool[
-            Math.floor(Math.random() * randomQuestionPool.length)
-        ]
-    }
 
     const handleGetStarted = () => {
-        createSessionAndRedirect(pickRandomQuestion())
+        createSessionAndRedirect(tHome("getStartedPrompt"))
     }
 
     const { heroPhrases, splitAtPerPhrase } = useMemo(() => {
