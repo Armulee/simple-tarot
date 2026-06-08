@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react"
  * Two-step "AI thinking" loading text.
  *
  * Step 1 (chat-decision phase) shows a randomly chosen phrase for
- * `step1DurationMs`, then fades out. Step 2 (interpretation phase) fades in a
+ * `step1DurationMs` (~2s), then fades out. Step 2 (interpretation phase) fades in a
  * second randomly chosen phrase and holds it until the component unmounts —
  * which is exactly when the real answer begins streaming, so the simulated
  * timeline terminates instantly. All timers are cleared on unmount, so there
@@ -17,7 +17,7 @@ import { useEffect, useMemo, useState } from "react"
  */
 
 /** Default time Step 1 stays on screen before fading toward Step 2. */
-export const STEP_ONE_DURATION_MS = 4000
+export const STEP_ONE_DURATION_MS = 2000
 /** Opacity fade duration; kept within the 300–500ms "premium feel" range. */
 export const FADE_DURATION_MS = 400
 
