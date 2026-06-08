@@ -5097,6 +5097,7 @@ export default function ChatSession({
                     text: "",
                     variant: "plain",
                     isLoading: true,
+                    loadingStage: "deciding",
                 },
             ])
 
@@ -5187,6 +5188,17 @@ export default function ChatSession({
                     consultingLoadingIdRef.current = null
                     return
                 }
+
+                // Decision resolved: advance the loading badge to Step 2
+                // (interpretation) so it begins cycling the interpretation
+                // phrases until the real response streams in.
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId && m.isLoading
+                            ? { ...m, loadingStage: "interpreting" }
+                            : m,
+                    ),
+                )
 
                 const supportBlock = buildSupportBlockFromDecision(
                     nextDecision,
@@ -5587,6 +5599,7 @@ export default function ChatSession({
                     text: "",
                     variant: "plain",
                     isLoading: true,
+                    loadingStage: "deciding",
                     ...(pending && {
                         sourceAspectKey: pending.aspectKey,
                         sourceAspectEvent: pending.event,
@@ -5662,6 +5675,17 @@ export default function ChatSession({
                     consultingLoadingIdRef.current = null
                     return
                 }
+
+                // Decision resolved: advance the loading badge to Step 2
+                // (interpretation) so it begins cycling the interpretation
+                // phrases until the real response streams in.
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId && m.isLoading
+                            ? { ...m, loadingStage: "interpreting" }
+                            : m,
+                    ),
+                )
 
                 const supportBlock = buildSupportBlockFromDecision(
                     nextDecision,

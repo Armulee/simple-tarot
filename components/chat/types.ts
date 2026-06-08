@@ -187,6 +187,13 @@ export type ChatMessage = {
     detailedHtml?: string
     cardMeanings?: string[]
     isLoading?: boolean
+    /**
+     * Which AI workflow step a still-loading assistant message is in:
+     * `"deciding"` while the chat-decision API call is in flight, then
+     * `"interpreting"` once a decision is resolved and the interpretation/
+     * response call begins. Drives the two-step loading phrases.
+     */
+    loadingStage?: "deciding" | "interpreting"
     spreadType?: ChatDecision["spreadType"] | null
     aspectInsights?: AspectInsightItem[]
     relevance?: RelevanceStat[]

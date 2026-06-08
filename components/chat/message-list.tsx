@@ -1001,6 +1001,10 @@ export default function MessageList({
                                                         step2Phrases={
                                                             loadingStep2Phrases
                                                         }
+                                                        stage={
+                                                            message.loadingStage ??
+                                                            "deciding"
+                                                        }
                                                         fallback={consultingBase}
                                                     />
                                                 </span>
