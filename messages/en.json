@@ -364,6 +364,22 @@
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "consulting": "Consulting",
+    "loadingPhases": {
+      "step1": [
+        "Determining the best response mode…",
+        "Analyzing your question…",
+        "Evaluating the intent behind your request…",
+        "Selecting the most suitable interpretation path…",
+        "Preparing the response strategy…"
+      ],
+      "step2": [
+        "Interpreting the received insights…",
+        "Decoding hidden meanings…",
+        "Crafting your personalized reading…",
+        "Connecting the patterns and symbols…",
+        "Preparing a message meant for you…"
+      ]
+    },
     "enterBirthDate": "Please enter your birth date",
     "streamStopped": "Response stopped",
     "scrollToBottom": "Scroll to bottom",
