@@ -81,16 +81,20 @@ export function ConsultingPhasesText({
 }) {
     const activePhrases = stage === "interpreting" ? step2Phrases : step1Phrases
 
+    // Start with the first phrase already visible so the badge is sized to real
+    // content on mount instead of briefly showing an empty (but full-width) pill
+    // while a fade-in plays.
     const [text, setText] = useState(
         () => pickRandomPhrase(activePhrases) ?? fallback,
     )
-    const [visible, setVisible] = useState(false)
+    const [visible, setVisible] = useState(true)
 
     // Keep the freshest values available to the cycle without re-arming it.
     const phrasesRef = useRef(activePhrases)
     phrasesRef.current = activePhrases
     const fallbackRef = useRef(fallback)
     fallbackRef.current = fallback
+    const isFirstRunRef = useRef(true)
 
     // Re-arm whenever the step changes so each step cycles its own list. We key
     // on `stage` (not the array identity) so an upstream re-memo doesn't restart
@@ -99,8 +103,7 @@ export function ConsultingPhasesText({
         let swapTimer: number | undefined
 
         // Fade the current phrase out, swap to a fresh one from the active
-        // list, then fade it back in. Used both for the step's entrance and for
-        // every subsequent transition, so the motion stays consistent.
+        // list, then fade it back in.
         const transition = () => {
             setVisible(false)
             swapTimer = window.setTimeout(() => {
@@ -111,7 +114,14 @@ export function ConsultingPhasesText({
             }, fadeDurationMs)
         }
 
-        transition()
+        // On the very first mount the initial phrase is already showing, so skip
+        // the entrance fade (that's what caused the empty, expanded pill). On a
+        // step change, fade across to the new step's phrase immediately.
+        if (!isFirstRunRef.current) {
+            transition()
+        }
+        isFirstRunRef.current = false
+
         const cycle = window.setInterval(transition, phraseIntervalMs)
 
         return () => {
