@@ -21,13 +21,34 @@ export const STEP_ONE_DURATION_MS = 2000
 /** Opacity fade duration; kept within the 300–500ms "premium feel" range. */
 export const FADE_DURATION_MS = 400
 
-/** Robust uniform random pick. Returns `undefined` for empty/invalid input. */
+/**
+ * Remembers the last phrase served for a given list so consecutive loads don't
+ * repeat. Keyed by the array reference (the i18n arrays are memoized upstream),
+ * and falls back gracefully when a list isn't stable.
+ */
+const lastPickByList = new WeakMap<readonly string[], string>()
+
+/**
+ * Robust random pick that avoids returning the same phrase twice in a row for
+ * the same list. Returns `undefined` for empty/invalid input.
+ */
 export function pickRandomPhrase(
     phrases: readonly string[] | null | undefined,
 ): string | undefined {
     if (!Array.isArray(phrases) || phrases.length === 0) return undefined
-    const index = Math.floor(Math.random() * phrases.length)
-    return phrases[index]
+    if (phrases.length === 1) return phrases[0]
+
+    const previous = lastPickByList.get(phrases)
+    let pick = phrases[Math.floor(Math.random() * phrases.length)]
+    // Re-roll until we land on a different phrase than last time.
+    let guard = 0
+    while (pick === previous && guard < 10) {
+        pick = phrases[Math.floor(Math.random() * phrases.length)]
+        guard += 1
+    }
+
+    lastPickByList.set(phrases, pick)
+    return pick
 }
 
 type Phase = "step1" | "step2"
