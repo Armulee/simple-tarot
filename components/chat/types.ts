@@ -188,20 +188,10 @@ export type ChatMessage = {
     cardMeanings?: string[]
     isLoading?: boolean
     /**
-     * Which AI workflow step a still-loading assistant message is in:
-     * `"deciding"` while the chat-decision API call is in flight, then
-     * `"interpreting"` once a decision is resolved and the interpretation/
-     * response call begins. Drives the two-step loading phrases.
+     * Live chain-of-thought ("reasoning_content") streamed from the model
+     * before/while the answer streams in. Drives the DynamicThinking indicator.
      */
-    loadingStage?: "deciding" | "interpreting"
-    /** The user's question for this loading session, used to make Step 1 (decision) phrases reflect what was actually asked. */
-    loadingQuestion?: string
-    /** Resolved decision metadata, used to make Step 2 (interpretation) phrases reflect the actual response type and reasoning. */
-    loadingDecision?: {
-        type?: "chat" | "draw" | "horoscope" | "support" | "oracle"
-        spreadType?: string | null
-        spreadReason?: string | null
-    }
+    reasoningText?: string
     spreadType?: ChatDecision["spreadType"] | null
     aspectInsights?: AspectInsightItem[]
     relevance?: RelevanceStat[]

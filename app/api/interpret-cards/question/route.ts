@@ -13,7 +13,7 @@ import {
 } from "@/lib/astrology/question-context"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 function detectQuestionLanguage(text: string): string {
     if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"

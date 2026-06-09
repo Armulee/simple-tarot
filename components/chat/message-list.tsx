@@ -17,12 +17,7 @@ import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
-import { ConsultingPhasesText } from "@/components/chat/consulting-phases-text"
-import {
-    buildDecisionPhrases,
-    buildInterpretPhrases,
-    type LoadingPhraseTemplates,
-} from "@/lib/chat/loading-phrases"
+import { DynamicThinking } from "@/components/chat/dynamic-thinking"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
@@ -391,21 +386,14 @@ export default function MessageList({
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
     const consultingBase = t("consulting")
-    const loadingTemplates = useMemo<LoadingPhraseTemplates>(() => {
-        const decisionWithQuestion = t.raw("loadingPhases.decisionWithQuestion")
-        return {
-            step1: (t.raw("loadingPhases.step1") as string[] | undefined) ?? [],
-            step2: (t.raw("loadingPhases.step2") as string[] | undefined) ?? [],
-            decisionWithQuestion:
-                typeof decisionWithQuestion === "string"
-                    ? decisionWithQuestion
-                    : undefined,
-            interpret:
-                (t.raw("loadingPhases.interpret") as
-                    | Record<string, string[]>
-                    | undefined) ?? {},
-        }
-    }, [t])
+    const thinkingLabels = useMemo(
+        () => ({
+            consulting: `${t("consulting")}…`,
+            complete: t("thinkingComplete"),
+            toggle: t("thinkingToggle"),
+        }),
+        [t],
+    )
 
     const askedAspectKeys = useMemo(() => {
         const map: Record<string, string> = {}
@@ -1001,34 +989,28 @@ export default function MessageList({
                                                 />
                                             </div>
                                         )}
-                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {message.isLoading &&
-                                            !message.text?.trim() ? (
-                                                <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
-                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    <ConsultingPhasesText
-                                                        step1Phrases={buildDecisionPhrases(
-                                                            loadingTemplates,
-                                                            message.loadingQuestion,
-                                                        )}
-                                                        step2Phrases={buildInterpretPhrases(
-                                                            loadingTemplates,
-                                                            message.loadingDecision,
-                                                        )}
-                                                        stage={
-                                                            message.loadingStage ??
-                                                            "deciding"
-                                                        }
-                                                        fallback={consultingBase}
-                                                    />
-                                                </span>
-                                            ) : (
+                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap space-y-3'>
+                                            {(message.isLoading ||
+                                                message.reasoningText) && (
+                                                <DynamicThinking
+                                                    reasoningText={
+                                                        message.reasoningText ??
+                                                        ""
+                                                    }
+                                                    isThinking={
+                                                        !!message.isLoading &&
+                                                        !message.text?.trim()
+                                                    }
+                                                    labels={thinkingLabels}
+                                                />
+                                            )}
+                                            {message.text?.trim() ? (
                                                 <PrivacyHighlightedText
                                                     text={message.text || ""}
                                                     aliases={privacyAliases}
                                                     supportMarkdown
                                                 />
-                                            )}
+                                            ) : null}
                                         </div>
                                         {!message.isLoading &&
                                             message.supportBlock && (
@@ -1158,13 +1140,13 @@ export default function MessageList({
                             (m) => m.variant === "plain" && m.isLoading,
                         ) && (
                             <div className='flex flex-col items-start gap-4'>
-                                {isHoroscopeIntakeActive ? (
-                                    <ConsultingBadge
-                                        label={t("enterBirthDate")}
-                                    />
-                                ) : (
-                                    <ConsultingBadge multiStep />
-                                )}
+                                <ConsultingBadge
+                                    label={
+                                        isHoroscopeIntakeActive
+                                            ? t("enterBirthDate")
+                                            : consultingBase
+                                    }
+                                />
                             </div>
                         )}
 

@@ -7,7 +7,7 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),

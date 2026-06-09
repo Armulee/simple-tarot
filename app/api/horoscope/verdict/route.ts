@@ -50,7 +50,7 @@ import {
 // /api/horoscope/chart-data so the VerdictHero can mount well before the
 // long-form interpretation finishes streaming.
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3

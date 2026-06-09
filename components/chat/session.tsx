@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from "next-intl"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { parsePartialJson } from "ai"
 import { useStars } from "@/contexts/stars-context"
+import { readReasoningStream } from "@/lib/chat/reasoning-stream-client"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
 import QuestionInput from "@/components/question-input"
@@ -4683,6 +4684,7 @@ export default function ChatSession({
             historyOverride,
             savedBirthInfo,
             onChunk,
+            onReasoning,
         }: {
             question: string
             type: ChatDecision["type"]
@@ -4691,6 +4693,7 @@ export default function ChatSession({
             historyOverride?: { role: string; text: string }[]
             savedBirthInfo?: string | null
             onChunk?: (text: string) => void
+            onReasoning?: (reasoning: string) => void
         }) => {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort()
@@ -4726,24 +4729,12 @@ export default function ChatSession({
                 throw new Error("Failed to generate chat response")
             }
 
-            const reader = response.body.getReader()
-            const decoder = new TextDecoder()
-            let text = ""
+            const { content } = await readReasoningStream(response, {
+                onReasoning: (accumulated) => onReasoning?.(accumulated),
+                onContent: (accumulated) => onChunk?.(accumulated),
+            })
 
-            try {
-                while (true) {
-                    const { done, value: chunk } = await reader.read()
-                    if (done) break
-                    text += decoder.decode(chunk, { stream: true })
-                    onChunk?.(text)
-                }
-                text += decoder.decode()
-                onChunk?.(text)
-            } finally {
-                reader.releaseLock()
-            }
-
-            return text
+            return content
         },
         [messages, originContext],
     )
@@ -5097,8 +5088,6 @@ export default function ChatSession({
                     text: "",
                     variant: "plain",
                     isLoading: true,
-                    loadingStage: "deciding",
-                    loadingQuestion: trimmed,
                 },
             ])
 
@@ -5190,26 +5179,6 @@ export default function ChatSession({
                     return
                 }
 
-                // Decision resolved: advance the loading badge to Step 2
-                // (interpretation), carrying the real decision so the badge can
-                // cycle phrases that reflect the actual response type until the
-                // real response streams in.
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === assistantLoadingId && m.isLoading
-                            ? {
-                                  ...m,
-                                  loadingStage: "interpreting",
-                                  loadingDecision: {
-                                      type: nextDecision.type,
-                                      spreadType: nextDecision.spreadType,
-                                      spreadReason: nextDecision.spreadReason,
-                                  },
-                              }
-                            : m,
-                    ),
-                )
-
                 const supportBlock = buildSupportBlockFromDecision(
                     nextDecision,
                     trimmed,
@@ -5254,6 +5223,15 @@ export default function ChatSession({
                                 prev.map((m) =>
                                     m.id === assistantLoadingId
                                         ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
                                         : m,
                                 ),
                             )
@@ -5609,8 +5587,6 @@ export default function ChatSession({
                     text: "",
                     variant: "plain",
                     isLoading: true,
-                    loadingStage: "deciding",
-                    loadingQuestion: trimmed,
                     ...(pending && {
                         sourceAspectKey: pending.aspectKey,
                         sourceAspectEvent: pending.event,
@@ -5687,26 +5663,6 @@ export default function ChatSession({
                     return
                 }
 
-                // Decision resolved: advance the loading badge to Step 2
-                // (interpretation), carrying the real decision so the badge can
-                // cycle phrases that reflect the actual response type until the
-                // real response streams in.
-                setMessages((prev) =>
-                    prev.map((m) =>
-                        m.id === assistantLoadingId && m.isLoading
-                            ? {
-                                  ...m,
-                                  loadingStage: "interpreting",
-                                  loadingDecision: {
-                                      type: nextDecision.type,
-                                      spreadType: nextDecision.spreadType,
-                                      spreadReason: nextDecision.spreadReason,
-                                  },
-                              }
-                            : m,
-                    ),
-                )
-
                 const supportBlock = buildSupportBlockFromDecision(
                     nextDecision,
                     trimmed,
@@ -5747,6 +5703,15 @@ export default function ChatSession({
                                 prev.map((m) =>
                                     m.id === assistantLoadingId
                                         ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
                                         : m,
                                 ),
                             )

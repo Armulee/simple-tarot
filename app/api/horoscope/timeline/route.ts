@@ -33,7 +33,7 @@ import {
 } from "@/lib/astrology/transit-aspects"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_DAILY_SLOTS = 21
 

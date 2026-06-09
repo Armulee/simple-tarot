@@ -40,7 +40,7 @@ import {
 // Chart data (with aspects) is now served separately via /api/horoscope/chart-data.
 // This route only streams the AI interpretation.
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3

@@ -4,8 +4,9 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { createReasoningStreamResponse } from "@/lib/chat/reasoning-stream"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -155,7 +156,10 @@ export async function POST(req: Request) {
             },
         })
 
-        return result.toTextStreamResponse()
+        // Stream reasoning (chain-of-thought) and content on separate channels
+        // so the client can render the live "thinking" headline before the
+        // answer text begins.
+        return createReasoningStreamResponse(result)
     } catch (error) {
         console.error("Error generating chat response:", error)
         return new Response("Failed to generate response", { status: 500 })
