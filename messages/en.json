@@ -365,6 +365,7 @@
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "consulting": "Consulting",
+    "thinkingActive": "Chain of thoughts",
     "thinkingComplete": "Consultation Complete",
     "thinkingToggle": "Show reasoning",
     "enterBirthDate": "Please enter your birth date",

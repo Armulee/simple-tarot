@@ -377,6 +377,7 @@
     },
     "selectedCards": "ທ່ານເລືອກໄພ່ແລ້ວ {selectedCount}/{cardsToSelect} ໃບ",
     "consulting": "ກຳລັງປຶກສາ",
+    "thinkingActive": "ລຳດັບຄວາມຄິດ",
     "thinkingComplete": "ວິເຄາະສຳເລັດແລ້ວ",
     "thinkingToggle": "ສະແດງຂັ້ນຕອນການຄິດ",
     "enterBirthDate": "ກະລຸນາກອກວັນເກີດຂອງທ່ານ",

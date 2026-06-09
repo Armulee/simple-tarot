@@ -378,6 +378,7 @@
     },
     "selectedCards": "คุณเลือกไพ่แล้ว {selectedCount}/{cardsToSelect} ใบ",
     "consulting": "กำลังปรึกษา",
+    "thinkingActive": "ลำดับความคิด",
     "thinkingComplete": "วิเคราะห์เสร็จสมบูรณ์",
     "thinkingToggle": "แสดงกระบวนการคิด",
     "enterBirthDate": "กรุณากรอกวันเกิดของคุณ",

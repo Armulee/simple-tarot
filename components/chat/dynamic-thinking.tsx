@@ -1,11 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Check, ChevronDown, ChevronRight, Loader2 } from "lucide-react"
 
 export interface DynamicThinkingLabels {
     /** Shown before any reasoning tokens arrive (State 1). */
     consulting: string
+    /** Shown while reasoning tokens are streaming (State 2). */
+    active: string
     /** Shown once reasoning finishes and the answer begins (State 4). */
     complete: string
     /** Accessible label for the expand/collapse control. */
@@ -14,20 +16,9 @@ export interface DynamicThinkingLabels {
 
 const DEFAULT_LABELS: DynamicThinkingLabels = {
     consulting: "Consulting…",
+    active: "Chain of thoughts",
     complete: "Consultation Complete",
     toggle: "Toggle reasoning",
-}
-
-/**
- * Collapse runs of whitespace and return the most recent sentence-like segment
- * of the reasoning so the headline tracks the model's *current* train of
- * thought instead of the whole transcript.
- */
-function deriveHeadline(reasoning: string): string {
-    const normalized = reasoning.replace(/\s+/g, " ").trim()
-    if (!normalized) return ""
-    const segments = normalized.split(/(?<=[.!?。！？…])\s+/).filter(Boolean)
-    return segments.length ? segments[segments.length - 1] : normalized
 }
 
 /**
@@ -35,13 +26,13 @@ function deriveHeadline(reasoning: string): string {
  *
  * States:
  *   1. Initial wait      — `isThinking` and no reasoning yet → "Consulting…".
- *   2. Streaming reasoning — `isThinking` with reasoning → live headline + chevron.
+ *   2. Streaming reasoning — `isThinking` with reasoning → stable label + chevron.
  *   4. Complete          — `!isThinking` with reasoning → checkmark + complete label.
  * (Renders nothing once finished if no reasoning was ever produced.)
  *
  * Fully controlled: it keeps no streaming buffers of its own (the parent owns
- * `reasoningText`), so there are no timers/intervals to leak. The only local
- * state is the expand/collapse toggle.
+ * `reasoningText`), and the transcript is only rendered inside the expanded
+ * panel. The only local state is the expand/collapse toggle.
  */
 export function DynamicThinking({
     reasoningText,
@@ -59,10 +50,6 @@ export function DynamicThinking({
     const scrollRef = useRef<HTMLDivElement | null>(null)
 
     const hasReasoning = reasoningText.trim().length > 0
-    const headline = useMemo(
-        () => deriveHeadline(reasoningText),
-        [reasoningText],
-    )
 
     // Keep the expanded transcript pinned to the latest tokens while streaming.
     useEffect(() => {
@@ -80,7 +67,7 @@ export function DynamicThinking({
             ? resolvedLabels.consulting
             : !isThinking
               ? resolvedLabels.complete
-              : headline || resolvedLabels.consulting
+              : resolvedLabels.active
 
     const canExpand = hasReasoning
 
