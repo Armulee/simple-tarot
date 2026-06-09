@@ -536,45 +536,19 @@ export function TarotAssistantInterpretation({
                                 {activeCard.meaning}
                             </span>
                         </div>
-                        <div className='relative mt-4 w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
-                            <p className='text-[11px] font-serif italic leading-relaxed text-indigo-200/76'>
-                                &ldquo;
-                                {message.isLoading &&
-                                !message.insights?.[safeActiveIndex] ? (
-                                    <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-2 py-1 backdrop-blur-xl shadow-[0_0_12px_-3px_rgba(56,189,248,0.3)] text-[10px] font-medium text-white/90'>
-                                        <Loader2 className='h-2.5 w-2.5 animate-spin shrink-0' />
-                                        <LoadingDotsText
-                                            active={
-                                                !!(
-                                                    message.isLoading &&
-                                                    !message.insights?.[
-                                                        safeActiveIndex
-                                                    ]
-                                                )
-                                            }
-                                            getText={(d) =>
-                                                `${consultingBase}${".".repeat(d)}`
-                                            }
-                                        />
-                                    </span>
-                                ) : (
+                        {message.insights?.[safeActiveIndex]?.trim() && (
+                            <div className='relative mt-4 w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
+                                <p className='text-[11px] font-serif italic leading-relaxed text-indigo-200/76'>
+                                    &ldquo;
                                     <PrivacyHighlightedText
-                                        text={
-                                            message.insights?.[
-                                                safeActiveIndex
-                                            ]?.trim()
-                                                ? message.insights[
-                                                      safeActiveIndex
-                                                  ]!
-                                                : `${consultingBase}...`
-                                        }
+                                        text={message.insights[safeActiveIndex]!}
                                         aliases={aliases}
                                         supportMarkdown={false}
                                     />
-                                )}
-                                &rdquo;
-                            </p>
-                        </div>
+                                    &rdquo;
+                                </p>
+                            </div>
+                        )}
 
                         {isMultiCard && (
                             <div

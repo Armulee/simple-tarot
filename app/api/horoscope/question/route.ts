@@ -7,6 +7,7 @@ import {
 } from "@/lib/astrology/intake"
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
+import { deepseekThinking } from "@/lib/chat/model-options"
 import {
     hydrateQuestionTimeRange,
     questionTimeRangePayloadSchema,
@@ -391,6 +392,7 @@ export async function POST(req: Request) {
             // mode on DeepSeek, which buffers the whole JSON payload until the
             // tool call completes (the response then "pops in" all at once).
             mode: "json",
+            providerOptions: deepseekThinking(false),
             schema: horoscopeInterpretationSchema,
             system: `You are an expert astrologer who writes for a general audience with ZERO astrology knowledge.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.

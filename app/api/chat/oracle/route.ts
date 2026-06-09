@@ -6,6 +6,7 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
 const MODEL = "deepseek/deepseek-v4-pro"
 
@@ -359,6 +360,7 @@ export async function POST(req: Request) {
             schema: oracleReadingSchema,
             system: ORACLE_SYSTEM_PROMPT,
             prompt: buildPrompt(body),
+            providerOptions: deepseekThinking(false),
             onFinish: ({ object }) => {
                 const incoming = summarizePrivacyPlaceholdersInText(
                     body.question,

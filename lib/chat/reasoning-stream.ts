@@ -52,8 +52,13 @@ export function createReasoningStreamResponse(
             try {
                 for await (const part of result.fullStream) {
                     switch (part.type) {
-                        case "reasoning-delta": {
-                            const delta = (part as { delta?: string }).delta
+                        case "reasoning-delta":
+                        case "reasoning": {
+                            // v5 emits `reasoning-delta` with `delta`; tolerate a
+                            // `reasoning` part carrying `text` as well.
+                            const delta =
+                                (part as { delta?: string }).delta ??
+                                (part as { text?: string }).text
                             if (delta)
                                 controller.enqueue(
                                     encoder.encode(
@@ -62,8 +67,11 @@ export function createReasoningStreamResponse(
                                 )
                             break
                         }
-                        case "text-delta": {
-                            const delta = (part as { delta?: string }).delta
+                        case "text-delta":
+                        case "text": {
+                            const delta =
+                                (part as { delta?: string }).delta ??
+                                (part as { text?: string }).text
                             if (delta)
                                 controller.enqueue(
                                     encoder.encode(

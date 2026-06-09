@@ -5,6 +5,7 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { createReasoningStreamResponse } from "@/lib/chat/reasoning-stream"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
 const MODEL = "deepseek/deepseek-v4-pro"
 
@@ -129,8 +130,14 @@ export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
 
+        // Draw/horoscope replies are a single short "invite" sentence, so
+        // thinking there only adds latency. Enable chain-of-thought (for the
+        // live thinking headline) only for the substantive chat/support replies.
+        const enableThinking = body.type === "chat" || body.type === "support"
+
         const result = streamText({
             model: MODEL,
+            providerOptions: deepseekThinking(enableThinking, "low"),
             system: CHAT_RESPONSE_SYSTEM_PROMPT,
             prompt: getChatResponsePrompt(body),
             onFinish: ({ text }) => {

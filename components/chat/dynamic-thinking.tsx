@@ -86,7 +86,7 @@ export function DynamicThinking({
 
     return (
         <div
-            className={`w-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 backdrop-blur-xl shadow-[0_0_20px_-8px_rgba(56,189,248,0.3)] ${
+            className={`flex w-fit max-w-full flex-col overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-cyan-500/10 backdrop-blur-xl shadow-[0_0_20px_-8px_rgba(56,189,248,0.3)] ${
                 className ?? ""
             }`}
         >
@@ -100,7 +100,7 @@ export function DynamicThinking({
                 )}
 
                 <span
-                    className='min-w-0 flex-1 truncate text-sm font-medium text-white/90'
+                    className='min-w-0 max-w-[16rem] truncate text-sm font-medium text-white/90 sm:max-w-[26rem]'
                     title={headlineText}
                 >
                     {headlineText}
