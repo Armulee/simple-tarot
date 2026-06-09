@@ -367,6 +367,7 @@
     "consulting": "Consulting",
     "thinkingActive": "Chain of thoughts",
     "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
     "thinkingToggle": "Show reasoning",
     "enterBirthDate": "Please enter your birth date",
     "streamStopped": "Response stopped",

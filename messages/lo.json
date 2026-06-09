@@ -379,6 +379,7 @@
     "consulting": "ກຳລັງປຶກສາ",
     "thinkingActive": "ລຳດັບຄວາມຄິດ",
     "thinkingComplete": "ວິເຄາະສຳເລັດແລ້ວ",
+    "thinkingCompleteTimed": "ປຶກສາເຊິ່ງເລິກ {seconds} ວິນາທີ",
     "thinkingToggle": "ສະແດງຂັ້ນຕອນການຄິດ",
     "enterBirthDate": "ກະລຸນາກອກວັນເກີດຂອງທ່ານ",
     "streamStopped": "ຢຸດຄຳຕອບໄວ້ແລ້ວ",

@@ -390,7 +390,7 @@ export default function MessageList({
         () => ({
             consulting: `${t("consulting")}…`,
             active: t("thinkingActive"),
-            complete: t("thinkingComplete"),
+            complete: t("thinkingCompleteTimed"),
             toggle: t("thinkingToggle"),
         }),
         [t],
