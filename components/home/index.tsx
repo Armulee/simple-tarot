@@ -322,11 +322,21 @@ export default function Home() {
     // Feature chip clicks (excluding tarot) require an authenticated user.
     // When the viewer is signed out we surface a sign-in gate and stash the
     // prompt; after sign-in the autosend effect below replays it.
+    // Pressing a feature card is itself an explicit feature choice, so any
+    // locked interpretation mode must drop back to "auto" before the message is
+    // pushed into a new session. We persist to storage too because the new
+    // session hydrates its interpretation mode from there on bootstrap.
+    const resetInterpretationModeToAuto = () => {
+        setInterpretationMode("auto")
+        saveInterpretationModeToStorage("auto")
+    }
+
     const handleQuickCardClick = (question: string, cardId: string) => {
         if (cardId !== "tarotCard" && !user) {
             setAuthGate({ question, cardId })
             return
         }
+        resetInterpretationModeToAuto()
         void createSessionAndRedirect(question)
     }
 
@@ -350,6 +360,9 @@ export default function Home() {
             "",
             `${window.location.pathname}${search ? `?${search}` : ""}`,
         )
+        // This replay only fires for a feature card stashed behind the sign-in
+        // gate, so drop any locked mode back to "auto" before pushing.
+        resetInterpretationModeToAuto()
         void createSessionAndRedirect(autosend)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user, authLoading])
