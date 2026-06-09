@@ -1106,6 +1106,11 @@ export default function ChatSession({
     const [autoPickOn, setAutoPickOn] = useState(false)
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>("auto")
+    // Becomes true once persisted settings (esp. interpretation mode) are
+    // hydrated from storage. The first-message bootstrap waits for this so the
+    // homepage → session decision respects the locked interpretation mode
+    // instead of racing with the default "auto".
+    const [settingsLoaded, setSettingsLoaded] = useState(false)
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         null,
     )
@@ -3170,6 +3175,7 @@ export default function ChatSession({
         )
         setAutoPickOn(loadAutoPickFromStorage())
         setInterpretationMode(loadInterpretationModeFromStorage())
+        setSettingsLoaded(true)
         setPrivacyAliases(loadSessionAliases(sessionId))
         const birth = loadBirthFromStorage()
         setSavedBirth(birth)
@@ -5641,8 +5647,52 @@ export default function ChatSession({
                     }
                 }
                 nextDecision = normalizeDrawDecision(nextDecision)
+                // Apply the same calendar-intent rule as
+                // runDecisionFlowFromMessages so first-message (homepage →
+                // session) prompts like "show my cosmic calendar" render the
+                // calendar tool instead of a natal verdict. Skipped when the
+                // caller forces a plain chat reply.
+                if (!options.forceChatOnly) {
+                    nextDecision = applyCalendarModeOverride(
+                        nextDecision,
+                        trimmed,
+                    )
+                }
                 flowDecision = nextDecision
                 setDecision(nextDecision)
+
+                // Calendar-mode horoscope: render the inline calendar tool
+                // instead of streaming a reading, and don't spend a star.
+                if (
+                    nextDecision.type === "horoscope" &&
+                    nextDecision.horoscopeMode === "calendar"
+                ) {
+                    setConsulting(false)
+                    const detectedFromQuestion = detectInputLanguage(trimmed)
+                    const calendarResponseLocale: SupportedLocale =
+                        detectedFromQuestion &&
+                        isSupportedLocale(detectedFromQuestion)
+                            ? detectedFromQuestion
+                            : isSupportedLocale(locale)
+                              ? (locale as SupportedLocale)
+                              : "en"
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: "",
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      variant: "horoscope-calendar",
+                                      responseLocale: calendarResponseLocale,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                    return
+                }
 
                 if (horoscopeAuthGate) {
                     setConsulting(false)
@@ -5778,6 +5828,8 @@ export default function ChatSession({
         },
         [
             applyInterpretationModeOverride,
+            applyCalendarModeOverride,
+            locale,
             detectHoroscopeAuthGate,
             fetchDecision,
             freezeStoppedPlainMessage,
@@ -5795,6 +5847,7 @@ export default function ChatSession({
     useEffect(() => {
         if (hasBootstrapped.current) return
         if (!sessionId) return
+        if (!settingsLoaded) return
         if (decision) {
             hasBootstrapped.current = true
             return
@@ -5805,7 +5858,7 @@ export default function ChatSession({
                 appendUserMessage: false,
             })
         }
-    }, [sessionId, decision, messages, startDecisionFlow])
+    }, [sessionId, decision, messages, startDecisionFlow, settingsLoaded])
 
     // Rehydrate raw prompts from sessionStorage so the UI shows the user's
     // original wording while the persisted/text fields stay redacted.
