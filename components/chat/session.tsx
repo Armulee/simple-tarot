@@ -5098,6 +5098,7 @@ export default function ChatSession({
                     variant: "plain",
                     isLoading: true,
                     loadingStage: "deciding",
+                    loadingQuestion: trimmed,
                 },
             ])
 
@@ -5190,12 +5191,21 @@ export default function ChatSession({
                 }
 
                 // Decision resolved: advance the loading badge to Step 2
-                // (interpretation) so it begins cycling the interpretation
-                // phrases until the real response streams in.
+                // (interpretation), carrying the real decision so the badge can
+                // cycle phrases that reflect the actual response type until the
+                // real response streams in.
                 setMessages((prev) =>
                     prev.map((m) =>
                         m.id === assistantLoadingId && m.isLoading
-                            ? { ...m, loadingStage: "interpreting" }
+                            ? {
+                                  ...m,
+                                  loadingStage: "interpreting",
+                                  loadingDecision: {
+                                      type: nextDecision.type,
+                                      spreadType: nextDecision.spreadType,
+                                      spreadReason: nextDecision.spreadReason,
+                                  },
+                              }
                             : m,
                     ),
                 )
@@ -5600,6 +5610,7 @@ export default function ChatSession({
                     variant: "plain",
                     isLoading: true,
                     loadingStage: "deciding",
+                    loadingQuestion: trimmed,
                     ...(pending && {
                         sourceAspectKey: pending.aspectKey,
                         sourceAspectEvent: pending.event,
@@ -5677,12 +5688,21 @@ export default function ChatSession({
                 }
 
                 // Decision resolved: advance the loading badge to Step 2
-                // (interpretation) so it begins cycling the interpretation
-                // phrases until the real response streams in.
+                // (interpretation), carrying the real decision so the badge can
+                // cycle phrases that reflect the actual response type until the
+                // real response streams in.
                 setMessages((prev) =>
                     prev.map((m) =>
                         m.id === assistantLoadingId && m.isLoading
-                            ? { ...m, loadingStage: "interpreting" }
+                            ? {
+                                  ...m,
+                                  loadingStage: "interpreting",
+                                  loadingDecision: {
+                                      type: nextDecision.type,
+                                      spreadType: nextDecision.spreadType,
+                                      spreadReason: nextDecision.spreadReason,
+                                  },
+                              }
                             : m,
                     ),
                 )

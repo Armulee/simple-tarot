@@ -194,6 +194,14 @@ export type ChatMessage = {
      * response call begins. Drives the two-step loading phrases.
      */
     loadingStage?: "deciding" | "interpreting"
+    /** The user's question for this loading session, used to make Step 1 (decision) phrases reflect what was actually asked. */
+    loadingQuestion?: string
+    /** Resolved decision metadata, used to make Step 2 (interpretation) phrases reflect the actual response type and reasoning. */
+    loadingDecision?: {
+        type?: "chat" | "draw" | "horoscope" | "support" | "oracle"
+        spreadType?: string | null
+        spreadReason?: string | null
+    }
     spreadType?: ChatDecision["spreadType"] | null
     aspectInsights?: AspectInsightItem[]
     relevance?: RelevanceStat[]

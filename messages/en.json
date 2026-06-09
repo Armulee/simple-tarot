@@ -379,7 +379,39 @@
         "Crafting your personalized reading…",
         "Connecting the patterns and symbols…",
         "Preparing a message meant for you…"
-      ]
+      ],
+      "decisionWithQuestion": "Reading your question: “{question}”…",
+      "interpret": {
+        "draw": [
+          "Choosing the cards for your question…",
+          "Laying out a {count}-card spread…",
+          "Reading what the cards reveal…",
+          "Weaving the cards into your answer…"
+        ],
+        "horoscope": [
+          "Aligning the planets and transits…",
+          "Reading the timing in your chart…",
+          "Mapping the sky to your question…",
+          "Tracing the movements above…"
+        ],
+        "oracle": [
+          "Listening to the symbols around you…",
+          "Decoding the signs and omens…",
+          "Channeling a symbolic reflection…",
+          "Sensing the energy of this moment…"
+        ],
+        "chat": [
+          "Gathering the clearest insight…",
+          "Composing a thoughtful answer…",
+          "Putting the pieces together…",
+          "Finding the right words for you…"
+        ],
+        "support": [
+          "Finding the right details for you…",
+          "Looking that up for you…",
+          "Pulling together what you need…"
+        ]
+      }
     },
     "enterBirthDate": "Please enter your birth date",
     "streamStopped": "Response stopped",
