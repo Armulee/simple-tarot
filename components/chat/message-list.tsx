@@ -17,6 +17,7 @@ import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
+import { DynamicThinking } from "@/components/chat/dynamic-thinking"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
@@ -385,6 +386,14 @@ export default function MessageList({
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
     const consultingBase = t("consulting")
+    const thinkingLabels = useMemo(
+        () => ({
+            consulting: `${t("consulting")}…`,
+            complete: t("thinkingComplete"),
+            toggle: t("thinkingToggle"),
+        }),
+        [t],
+    )
 
     const askedAspectKeys = useMemo(() => {
         const map: Record<string, string> = {}
@@ -980,30 +989,28 @@ export default function MessageList({
                                                 />
                                             </div>
                                         )}
-                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {message.isLoading &&
-                                            !message.text?.trim() ? (
-                                                <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
-                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    <LoadingDotsText
-                                                        active={
-                                                            !!(
-                                                                message.isLoading &&
-                                                                !message.text?.trim()
-                                                            )
-                                                        }
-                                                        getText={(d) =>
-                                                            `${consultingBase}${".".repeat(d)}`
-                                                        }
-                                                    />
-                                                </span>
-                                            ) : (
+                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap space-y-3'>
+                                            {(message.isLoading ||
+                                                message.reasoningText) && (
+                                                <DynamicThinking
+                                                    reasoningText={
+                                                        message.reasoningText ??
+                                                        ""
+                                                    }
+                                                    isThinking={
+                                                        !!message.isLoading &&
+                                                        !message.text?.trim()
+                                                    }
+                                                    labels={thinkingLabels}
+                                                />
+                                            )}
+                                            {message.text?.trim() ? (
                                                 <PrivacyHighlightedText
                                                     text={message.text || ""}
                                                     aliases={privacyAliases}
                                                     supportMarkdown
                                                 />
-                                            )}
+                                            ) : null}
                                         </div>
                                         {!message.isLoading &&
                                             message.supportBlock && (

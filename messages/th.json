@@ -359,6 +359,7 @@
       "cta": "เริ่มอ่านดวงของคุณ"
     },
     "getStarted": "เริ่มต้น",
+    "getStartedPrompt": "ดูดวงให้ฉันหน่อย",
     "tourInstruction": "พิมพ์คำถามที่คุณอยากถามโชคชะตาของคุณที่นี่:",
     "tourExamples": "เช่น \"ข้อความที่ฉันต้องได้ยินวันนี้คืออะไร?\" หรือ \"ฉันจะหาความชัดเจนในอาชีพได้อย่างไร?\"",
     "learnMore": "เรียนรู้เพิ่มเติม",
@@ -377,6 +378,8 @@
     },
     "selectedCards": "คุณเลือกไพ่แล้ว {selectedCount}/{cardsToSelect} ใบ",
     "consulting": "กำลังปรึกษา",
+    "thinkingComplete": "วิเคราะห์เสร็จสมบูรณ์",
+    "thinkingToggle": "แสดงกระบวนการคิด",
     "enterBirthDate": "กรุณากรอกวันเกิดของคุณ",
     "streamStopped": "หยุดคำตอบไว้แล้ว",
     "scrollToBottom": "เลื่อนลงล่างสุด",

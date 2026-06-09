@@ -6,8 +6,9 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -189,6 +190,7 @@ export async function POST(req: Request) {
             schema: generalReplySchema,
             system: GENERAL_REPLY_SYSTEM_PROMPT,
             prompt: buildPrompt(body, astrologyContext?.promptBlock ?? ""),
+            providerOptions: deepseekThinking(false),
             onFinish: ({ object }) => {
                 const incoming = summarizePrivacyPlaceholdersInText(
                     body.question,

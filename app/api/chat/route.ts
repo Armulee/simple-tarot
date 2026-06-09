@@ -6,6 +6,7 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { supabaseAdmin } from "@/lib/supabase"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
 const MODEL = "deepseek/deepseek-v4-flash"
 
@@ -321,8 +322,16 @@ export async function POST(req: Request) {
             return new Response("User question is required", { status: 400 })
         }
 
+        // Only "auto" (no locked interpretation mode) needs the model to reason
+        // about which mode to route to. When the user has locked a mode the
+        // type is already forced, so skip thinking to keep classification fast.
+        const isAutoMode = !(
+            interpretationMode && MODE_TO_TYPE[interpretationMode]
+        )
+
         const result = streamObject({
             model: MODEL,
+            providerOptions: deepseekThinking(isAutoMode),
             schema: chatDecisionSchema,
             system: CHAT_DECISION_SYSTEM_PROMPT,
             prompt: getChatDecisionPrompt({

@@ -187,6 +187,11 @@ export type ChatMessage = {
     detailedHtml?: string
     cardMeanings?: string[]
     isLoading?: boolean
+    /**
+     * Live chain-of-thought ("reasoning_content") streamed from the model
+     * before/while the answer streams in. Drives the DynamicThinking indicator.
+     */
+    reasoningText?: string
     spreadType?: ChatDecision["spreadType"] | null
     aspectInsights?: AspectInsightItem[]
     relevance?: RelevanceStat[]

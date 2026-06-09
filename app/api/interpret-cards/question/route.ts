@@ -12,8 +12,9 @@ import {
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 function detectQuestionLanguage(text: string): string {
     if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
@@ -159,6 +160,7 @@ FOLLOW-UP — PRIOR READING IS BACKGROUND ONLY:
             // tarot reading "pop in" all at once instead of streaming.
             mode: "json",
             temperature: 0.6,
+            providerOptions: deepseekThinking(false),
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
