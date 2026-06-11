@@ -741,6 +741,7 @@
   "ShareImageProgress": {
     "render": "Painting your reading\u2026",
     "download": "Downloading your image\u2026",
+    "animate": "Recording your cosmic animation\u2026",
     "done": "Saved to your device"
   },
   "QuestionInput": {

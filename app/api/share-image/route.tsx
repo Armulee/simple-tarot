@@ -546,6 +546,187 @@ function cornerOrnament(
 }
 
 /**
+ * The parsed `detailedHtml` blocks as Satori flex rows: gold/bold/italic
+ * runs split into wrappable word tokens. Shared by the story and
+ * landscape reading panels.
+ */
+function renderRichBlocks(blocks: RichBlock[], fontSize: number) {
+    return (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                fontSize,
+                lineHeight: 1.6,
+                flex: 1,
+                minHeight: 0,
+                overflow: "hidden",
+            }}
+        >
+            {blocks.map((block, blockIdx) => (
+                <div
+                    key={`detail-${blockIdx}`}
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "flex-start",
+                        marginTop:
+                            blockIdx === 0 ? 0 : Math.round(fontSize * 0.55),
+                        paddingLeft: block.type === "item" ? 6 : 0,
+                    }}
+                >
+                    {block.marker ? (
+                        <span
+                            style={{
+                                whiteSpace: "pre",
+                                color: GOLD_SOFT,
+                                fontWeight: 700,
+                                marginRight: 14,
+                            }}
+                        >
+                            {block.marker}
+                        </span>
+                    ) : null}
+                    {block.runs.map((run, runIdx) =>
+                        tokenizeWords(run.text).map((token, tokenIdx) => (
+                            <span
+                                key={`detail-${blockIdx}-${runIdx}-${tokenIdx}`}
+                                style={{
+                                    whiteSpace: "pre-wrap",
+                                    color: run.gold
+                                        ? "#e8c66a"
+                                        : "rgba(255,255,255,0.93)",
+                                    fontWeight:
+                                        run.bold || run.gold ? 700 : 400,
+                                    fontStyle: run.italic
+                                        ? "italic"
+                                        : "normal",
+                                }}
+                            >
+                                {token}
+                            </span>
+                        )),
+                    )}
+                </div>
+            ))}
+        </div>
+    )
+}
+
+type ParsedCard = {
+    name: string
+    slug: string
+    isReversed: boolean
+    src: string
+}
+
+/**
+ * The spread as a centered wrap row of gold-framed card tiles; spreads of
+ * up to 6 get navy panels with the card name underneath, matching the
+ * story poster. Used by the square and landscape layouts.
+ */
+function renderCardPanelRow({
+    cards,
+    cardW,
+    cardH,
+    panelPad,
+    panelW,
+    labelSize,
+    gap,
+    usePanels,
+}: {
+    cards: ParsedCard[]
+    cardW: number
+    cardH: number
+    panelPad: number
+    panelW: number
+    labelSize: number
+    gap: number
+    usePanels: boolean
+}) {
+    return (
+        <div
+            style={{
+                display: "flex",
+                gap,
+                flexWrap: "wrap",
+                alignItems: "stretch",
+                justifyContent: "center",
+                maxWidth: "100%",
+            }}
+        >
+            {cards.map((c, idx) => {
+                const cardBox = (
+                    <div
+                        style={{
+                            width: cardW,
+                            height: cardH,
+                            borderRadius: 12,
+                            position: "relative",
+                            overflow: "hidden",
+                            border: "1px solid rgba(216,181,109,0.55)",
+                            display: "flex",
+                            background: "rgba(7,11,34,0.5)",
+                        }}
+                    >
+                        <img
+                            src={c.src}
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                objectFit: "cover",
+                                transform: c.isReversed
+                                    ? "rotate(180deg)"
+                                    : "rotate(0deg)",
+                            }}
+                        />
+                    </div>
+                )
+                return usePanels ? (
+                    <div
+                        key={`card-${c.slug}-${idx}`}
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 8,
+                            width: panelW,
+                            padding: panelPad,
+                            paddingBottom: panelPad + 4,
+                            borderRadius: 16,
+                            background: PANEL_BG,
+                            border: PANEL_BORDER,
+                        }}
+                    >
+                        {cardBox}
+                        <div
+                            style={{
+                                fontFamily: SERIF_STACK,
+                                fontSize: labelSize,
+                                fontWeight: 700,
+                                color: GOLD_SOFT,
+                                textAlign: "center",
+                                lineHeight: 1.25,
+                                maxWidth: cardW,
+                            }}
+                        >
+                            {c.name}
+                        </div>
+                    </div>
+                ) : (
+                    <div
+                        key={`card-${c.slug}-${idx}`}
+                        style={{ display: "flex" }}
+                    >
+                        {cardBox}
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
+
+/**
  * One-time pipeline warm-up: loads fonts/logo/background into the module
  * caches and renders a tiny throwaway canvas so Satori + the resvg WASM and
  * the font parser are initialized before the first real request. The client
@@ -703,12 +884,13 @@ export async function POST(req: Request) {
         const imageWidth = Number(width) || 1080
         const imageHeight = Number(height) || 1920
         const basePadding = 72
-        const isWideLayout = imageWidth >= imageHeight
         const isStoryAspect = imageHeight > imageWidth * 1.5
-        const paddingBottom = basePadding + (isWideLayout ? 140 : 0)
-        const maxInterpretChars = isStoryAspect ? 400 : isWideLayout ? 200 : 280
+        const isLandscape = !isStoryAspect && imageWidth >= imageHeight * 1.2
+        const isSquare = !isStoryAspect && !isLandscape
+        const paddingBottom = basePadding
+        const maxInterpretChars = isStoryAspect ? 400 : isLandscape ? 420 : 240
 
-        const displayQuestion = truncate(safeQuestion, 140)
+        const displayQuestion = truncate(safeQuestion, isSquare ? 110 : 140)
         const displayInterpretation = truncate(
             safeInterpretation,
             maxInterpretChars,
@@ -721,12 +903,9 @@ export async function POST(req: Request) {
         const finalInterpretation = content || displayInterpretation || "—"
 
         const isHorizontal = !isStoryAspect
-        const hCardScale = 0.4
         const maxContentWidth = isStoryAspect
             ? 980
-            : isWideLayout
-              ? 1600
-              : 980
+            : imageWidth - basePadding * 2
 
         // The illustrated artwork replaces every procedural sky layer for
         // the story format; the composed sky stays as the fallback and for
@@ -778,13 +957,68 @@ export async function POST(req: Request) {
         const storyPanelW = storyCardW + storyPanelPad * 2 + 2
         const cardLabelSize = storyCount <= 3 ? 24 : storyCount === 4 ? 19 : 15
 
+        // ---- Square (1:1) / Landscape (16:9) gold layout data ----
+        // Same panel treatment as the story poster, tighter size caps. The
+        // landscape card column shares the row with the text column.
+        const altCount = storyCount
+        const altUsePanels = altCount > 0 && altCount <= 6
+        const altPerRow =
+            altCount <= 0
+                ? 1
+                : isLandscape
+                  ? altCount <= 3
+                      ? altCount
+                      : altCount <= 6
+                        ? 3
+                        : Math.ceil(altCount / 2)
+                  : altCount <= 6
+                    ? altCount
+                    : Math.ceil(altCount / 2)
+        const altRowWidth = isLandscape ? 660 : imageWidth - basePadding * 2
+        const altMaxCardW = isLandscape
+            ? altCount <= 1
+                ? 230
+                : altCount <= 3
+                  ? 184
+                  : 150
+            : altCount <= 1
+              ? 190
+              : altCount <= 3
+                ? 165
+                : altCount <= 6
+                  ? 128
+                  : 104
+        const altPanelPad = 10
+        const altCardGap = 14
+        const altCardW = Math.round(
+            Math.min(
+                (altRowWidth - (altPerRow - 1) * altCardGap) /
+                    Math.max(altPerRow, 1) -
+                    (altUsePanels ? altPanelPad * 2 + 2 : 0),
+                altMaxCardW,
+            ),
+        )
+        const altCardH = Math.round(altCardW * 1.728)
+        const altPanelW = altCardW + altPanelPad * 2 + 2
+        const altLabelSize = altCount <= 3 ? 19 : 15
+
         const storyHeadline = truncate(
             String(headline ?? "").trim() || String(keyMessage ?? "").trim(),
             120,
         )
-        const storySubtitle = truncate(String(subtitle ?? ""), 200)
+        const storySubtitle = truncate(
+            String(subtitle ?? ""),
+            isSquare ? 140 : 200,
+        )
         const headlineFontSize =
             storyHeadline.length <= 30 ? 54 : storyHeadline.length <= 60 ? 46 : 38
+        const altHeadlineFontSize = isLandscape
+            ? storyHeadline.length <= 40
+                ? 46
+                : 38
+            : storyHeadline.length <= 40
+              ? 38
+              : 32
 
         const strippedDetailedHtml = stripCardNamesFromHtml(
             String(detailedHtml ?? ""),
@@ -797,8 +1031,11 @@ export async function POST(req: Request) {
                 { type: "paragraph", runs: [{ text: finalInterpretation }] },
             ]
         }
-        const detailBudget =
-            storyCount >= 7
+        const detailBudget = isLandscape
+            ? 420
+            : isSquare
+              ? 0
+              : storyCount >= 7
                 ? 400
                 : storyCount >= 4
                   ? 500
@@ -811,7 +1048,13 @@ export async function POST(req: Request) {
                 sum + block.runs.reduce((s, run) => s + run.text.length, 0),
             0,
         )
-        const detailFontSize = detailChars > 430 ? 26 : 29
+        const detailFontSize = isLandscape
+            ? detailChars > 330
+                ? 24
+                : 27
+            : detailChars > 430
+              ? 26
+              : 29
         const showStoryKeywords = !hasRichDetail && keywords.length > 0
         const ctaText =
             truncate(String(cta ?? ""), 70) ||
@@ -1025,46 +1268,6 @@ export async function POST(req: Request) {
                         </div>
                     )}
 
-                    {/* background card aura — horizontal layouts only; the
-                        story layout shows the full spread, so the ghosts only
-                        cost render time behind its panels */}
-                    {isHorizontal &&
-                        parsedCards.slice(0, 3).map((c, idx) => {
-                        const positions: Array<{
-                            top?: number
-                            bottom?: number
-                            left?: number
-                            right?: number
-                            rotate: number
-                        }> = [
-                            { top: 120, left: 60, rotate: -14 },
-                            { top: 150, right: 80, rotate: 16 },
-                            { bottom: 560, left: 80, rotate: -10 },
-                        ]
-                        const p = positions[idx % positions.length]
-                        return (
-                            <img
-                                key={`bg-${c.slug}-${idx}`}
-                                src={c.src}
-                                width={260}
-                                height={420}
-                                style={{
-                                    position: "absolute",
-                                    ...(p.top != null ? { top: p.top } : {}),
-                                    ...(p.bottom != null
-                                        ? { bottom: p.bottom }
-                                        : {}),
-                                    ...(p.left != null ? { left: p.left } : {}),
-                                    ...(p.right != null
-                                        ? { right: p.right }
-                                        : {}),
-                                    transform: `rotate(${p.rotate}deg) scale(0.9)`,
-                                    opacity: 0.14,
-                                }}
-                            />
-                        )
-                    })}
-
                     <div
                         style={{
                             position: "relative",
@@ -1086,9 +1289,7 @@ export async function POST(req: Request) {
                                 justifyContent: "center",
                                 gap: 14,
                                 position: "relative",
-                                alignSelf: isHorizontal
-                                    ? "flex-end"
-                                    : "center",
+                                alignSelf: "center",
                                 padding: "10px 26px",
                                 borderRadius: 999,
                                 background: "rgba(10,16,44,0.55)",
@@ -1115,336 +1316,379 @@ export async function POST(req: Request) {
                         </div>
 
                         {isHorizontal ? (
-                            /* ===== HORIZONTAL LAYOUT (square / landscape) ===== */
-                            <div
-                                style={{
-                                    display: "flex",
-                                    flex: 1,
-                                    minHeight: 0,
-                                    gap: 36,
-                                    alignItems: "stretch",
-                                }}
-                            >
-                                {/* Left column — card(s) */}
-                                {parsedCards.length > 0 && (
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            alignItems: "center",
-                                            gap: 12,
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                fontSize: 18,
-                                                letterSpacing: 1,
-                                                textTransform: "uppercase",
-                                                color: "rgba(255,255,255,0.6)",
-                                            }}
-                                        >
-                                            Your cards
-                                        </div>
+                            isLandscape ? (
+                                /* ===== LANDSCAPE (16:9) — cards beside the
+                                   reading, same celestial gold treatment ===== */
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        gap: 44,
+                                        width: "100%",
+                                        flex: 1,
+                                        minHeight: 0,
+                                        alignItems: "stretch",
+                                    }}
+                                >
+                                    {storyCards.length > 0 ? (
                                         <div
                                             style={{
                                                 display: "flex",
                                                 flexDirection: "column",
                                                 gap: 16,
                                                 alignItems: "center",
+                                                justifyContent: "center",
+                                                width: altRowWidth,
                                             }}
                                         >
-                                            {parsedCards
-                                                .slice(0, 3)
-                                                .map((c, idx) => (
-                                                    <div
-                                                        key={`card-${c.slug}-${idx}`}
-                                                        style={{
-                                                            display: "flex",
-                                                            flexDirection:
-                                                                "column",
-                                                            alignItems:
-                                                                "center",
-                                                            gap: 8,
-                                                        }}
-                                                    >
-                                                        <div
-                                                            style={{
-                                                                width:
-                                                                    500 *
-                                                                    hCardScale,
-                                                                height:
-                                                                    864 *
-                                                                    hCardScale,
-                                                                borderRadius: 14,
-                                                                position:
-                                                                    "relative",
-                                                                overflow:
-                                                                    "hidden",
-                                                                boxShadow:
-                                                                    "0 16px 50px -12px rgba(234,179,8,0.6), 0 6px 16px rgba(139,92,246,0.3), 0 0 0 2px rgba(255,255,255,0.15)",
-                                                                border: "2px solid rgba(255,255,255,0.2)",
-                                                                display: "flex",
-                                                                background:
-                                                                    "rgba(10,8,26,0.4)",
-                                                            }}
-                                                        >
-                                                            <div
-                                                                style={{
-                                                                    position:
-                                                                        "absolute",
-                                                                    inset: -40,
-                                                                    background:
-                                                                        "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.3), rgba(99,102,241,0.0) 50%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.22), rgba(234,179,8,0.0) 55%)",
-                                                                    opacity: 0.8,
-                                                                }}
-                                                            />
-                                                            <img
-                                                                src={c.src}
-                                                                style={{
-                                                                    position:
-                                                                        "absolute",
-                                                                    inset: 0,
-                                                                    objectFit:
-                                                                        "cover",
-                                                                    transform:
-                                                                        c.isReversed
-                                                                            ? "rotate(180deg)"
-                                                                            : "rotate(0deg)",
-                                                                    borderRadius: 12,
-                                                                }}
-                                                            />
-                                                            <div
-                                                                style={{
-                                                                    position:
-                                                                        "absolute",
-                                                                    inset: 0,
-                                                                    background:
-                                                                        "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%)",
-                                                                    borderRadius: 12,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                        <div
-                                                            style={{
-                                                                fontSize: 16,
-                                                                color: "rgba(255,255,255,0.7)",
-                                                                textAlign:
-                                                                    "center",
-                                                                maxWidth:
-                                                                    500 *
-                                                                    hCardScale,
-                                                                lineHeight: 1.3,
-                                                            }}
-                                                        >
-                                                            {c.name}
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                            {sectionLabel("Your cards", 44)}
+                                            {renderCardPanelRow({
+                                                cards: storyCards,
+                                                cardW: altCardW,
+                                                cardH: altCardH,
+                                                panelPad: altPanelPad,
+                                                panelW: altPanelW,
+                                                labelSize: altLabelSize,
+                                                gap: altCardGap,
+                                                usePanels: altUsePanels,
+                                            })}
                                         </div>
-                                    </div>
-                                )}
+                                    ) : null}
 
-                                {/* Right column — question + interpretation */}
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        flex: 1,
-                                        minHeight: 0,
-                                        gap: 20,
-                                    }}
-                                >
-                                    {/* Question */}
                                     <div
                                         style={{
                                             display: "flex",
                                             flexDirection: "column",
+                                            flex: 1,
+                                            minHeight: 0,
+                                            gap: 20,
                                         }}
                                     >
                                         <div
                                             style={{
-                                                fontSize: 20,
-                                                fontWeight: 600,
-                                                letterSpacing: 0.5,
-                                                textTransform: "uppercase",
-                                                color: "rgba(204,203,203,0.95)",
-                                                marginBottom: 10,
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                textAlign: "center",
+                                                gap: 12,
+                                                maxWidth: "100%",
                                             }}
                                         >
-                                            Question
+                                            {sectionLabel("Question")}
+                                            <div
+                                                style={{
+                                                    fontFamily: SERIF_STACK,
+                                                    fontSize: 34,
+                                                    fontWeight: 800,
+                                                    lineHeight: 1.25,
+                                                    color: "#f6ecd2",
+                                                    textAlign: "center",
+                                                    maxWidth: "100%",
+                                                    wordBreak: "break-word",
+                                                    overflowWrap: "break-word",
+                                                    textShadow:
+                                                        "0 2px 10px rgba(7,11,34,0.8)",
+                                                }}
+                                            >
+                                                {`"${displayQuestion}"`}
+                                            </div>
                                         </div>
+
+                                        {storyHeadline ? (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    alignItems: "center",
+                                                    textAlign: "center",
+                                                    gap: 12,
+                                                    borderRadius: 22,
+                                                    padding: "22px 38px 24px",
+                                                    background: PANEL_BG,
+                                                    border: PANEL_BORDER,
+                                                    maxWidth: "100%",
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                {sectionLabel(
+                                                    "Key message",
+                                                    52,
+                                                )}
+                                                <div
+                                                    style={{
+                                                        fontFamily: SERIF_STACK,
+                                                        fontSize:
+                                                            altHeadlineFontSize,
+                                                        fontWeight: 800,
+                                                        lineHeight: 1.25,
+                                                        color: "#f8eed6",
+                                                        textAlign: "center",
+                                                        wordBreak: "break-word",
+                                                        overflowWrap:
+                                                            "break-word",
+                                                        textShadow:
+                                                            "0 2px 12px rgba(216,181,109,0.25)",
+                                                    }}
+                                                >
+                                                    {storyHeadline}
+                                                </div>
+                                                {storySubtitle ? (
+                                                    <div
+                                                        style={{
+                                                            fontSize: 23,
+                                                            lineHeight: 1.45,
+                                                            color: "rgba(255,255,255,0.72)",
+                                                            textAlign: "center",
+                                                            wordBreak:
+                                                                "break-word",
+                                                            overflowWrap:
+                                                                "break-word",
+                                                        }}
+                                                    >
+                                                        {storySubtitle}
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        ) : null}
+
+                                        {storyBlocks.length > 0 ? (
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    flexDirection: "column",
+                                                    gap: 14,
+                                                    borderRadius: 22,
+                                                    padding: "20px 34px 24px",
+                                                    background: PANEL_BG,
+                                                    border: PANEL_BORDER,
+                                                    maxWidth: "100%",
+                                                    flex: 1,
+                                                    minHeight: 0,
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                {sectionLabel(
+                                                    "The reading",
+                                                    52,
+                                                )}
+                                                {renderRichBlocks(
+                                                    storyBlocks,
+                                                    detailFontSize,
+                                                )}
+                                            </div>
+                                        ) : null}
+
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                gap: 14,
+                                                alignSelf: "center",
+                                                marginTop: "auto",
+                                                padding: "13px 38px",
+                                                borderRadius: 9999,
+                                                border: "1.5px solid rgba(216,181,109,0.65)",
+                                                background:
+                                                    "rgba(216,181,109,0.1)",
+                                                color: "#ecd9a8",
+                                                fontSize: 24,
+                                                fontWeight: 600,
+                                            }}
+                                        >
+                                            <svg
+                                                width='20'
+                                                height='20'
+                                                viewBox='0 0 24 24'
+                                                fill='rgba(232,198,106,0.95)'
+                                                xmlns='http://www.w3.org/2000/svg'
+                                            >
+                                                <path d={STAR_GLYPH_PATH} />
+                                            </svg>
+                                            {ctaText}
+                                            <svg
+                                                width='20'
+                                                height='20'
+                                                viewBox='0 0 24 24'
+                                                fill='rgba(232,198,106,0.95)'
+                                                xmlns='http://www.w3.org/2000/svg'
+                                            >
+                                                <path d={STAR_GLYPH_PATH} />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* ===== SQUARE (1:1) — condensed celestial
+                                   gold column: question, spread, verdict ===== */
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        gap: 22,
+                                        width: "100%",
+                                        flex: 1,
+                                        minHeight: 0,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            textAlign: "center",
+                                            gap: 12,
+                                            maxWidth: "100%",
+                                        }}
+                                    >
+                                        {sectionLabel("Question")}
                                         <div
                                             style={{
                                                 fontFamily: SERIF_STACK,
-                                                fontSize: 36,
-                                                fontWeight: 900,
-                                                lineHeight: 1.2,
-                                                textShadow:
-                                                    "0 3px 14px rgba(56,189,248,0.25)",
-                                                color: "rgba(255,255,255,0.98)",
+                                                fontSize: 32,
+                                                fontWeight: 800,
+                                                lineHeight: 1.25,
+                                                color: "#f6ecd2",
+                                                textAlign: "center",
+                                                maxWidth: "100%",
                                                 wordBreak: "break-word",
                                                 overflowWrap: "break-word",
+                                                textShadow:
+                                                    "0 2px 10px rgba(7,11,34,0.8)",
                                             }}
                                         >
                                             {`"${displayQuestion}"`}
                                         </div>
                                     </div>
 
-                                    {/* Interpretation card */}
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            borderRadius: 24,
-                                            padding: 36,
-                                            background:
-                                                "linear-gradient(135deg, rgba(30,41,59,0.6) 0%, rgba(99,102,241,0.25) 35%, rgba(34,211,238,0.16) 80%)",
-                                            boxShadow:
-                                                "0 20px 60px -20px rgba(56,189,248,0.5), 0 0 0 1px rgba(255,255,255,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
-                                            border: "1px solid rgba(255,255,255,0.16)",
-                                            position: "relative",
-                                            flex: 1,
-                                            minHeight: 0,
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        <div
-                                            style={{
-                                                position: "absolute",
-                                                top: 0,
-                                                left: 0,
-                                                width: 100,
-                                                height: 100,
-                                                borderRadius: "24px 0 0 0",
-                                                background:
-                                                    "radial-gradient(circle at top left, rgba(139,92,246,0.2), transparent 70%)",
-                                                opacity: 0.7,
-                                            }}
-                                        />
-                                        {/* Header */}
+                                    {storyCards.length > 0 ? (
                                         <div
                                             style={{
                                                 display: "flex",
+                                                flexDirection: "column",
+                                                gap: 14,
                                                 alignItems: "center",
-                                                gap: 10,
-                                                marginBottom: 24,
                                             }}
                                         >
-                                            <div
-                                                style={{
-                                                    width: 56,
-                                                    height: 56,
-                                                    borderRadius: 9999,
-                                                    marginRight: 16,
-                                                    background:
-                                                        "radial-gradient(circle at 30% 30%, rgba(59,130,246,0.28), rgba(99,102,241,0.1))",
-                                                    display: "flex",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                    boxShadow:
-                                                        "0 6px 20px rgba(56,189,248,0.2)",
-                                                }}
-                                            >
-                                                <svg
-                                                    width='36'
-                                                    height='36'
-                                                    viewBox='0 0 24 24'
-                                                    fill='none'
-                                                    stroke='rgba(255,255,255,0.95)'
-                                                    strokeWidth='1.6'
-                                                    strokeLinecap='round'
-                                                    strokeLinejoin='round'
-                                                    xmlns='http://www.w3.org/2000/svg'
-                                                >
-                                                    <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
-                                                </svg>
-                                            </div>
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    flexDirection: "column",
-                                                }}
-                                            >
-                                                <div
-                                                    style={{
-                                                        fontFamily: SERIF_STACK,
-                                                        fontSize: 36,
-                                                        fontWeight: 600,
-                                                        color: "rgba(255,255,255,1)",
-                                                        lineHeight: 1.2,
-                                                    }}
-                                                >
-                                                    Interpretation
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        fontSize: 26,
-                                                        color: "rgba(255,255,255,0.6)",
-                                                        marginTop: 2,
-                                                        lineHeight: 1.3,
-                                                    }}
-                                                >
-                                                    AI-powered analysis of your
-                                                    cards
-                                                </div>
-                                            </div>
+                                            {sectionLabel("Your cards")}
+                                            {renderCardPanelRow({
+                                                cards: storyCards,
+                                                cardW: altCardW,
+                                                cardH: altCardH,
+                                                panelPad: altPanelPad,
+                                                panelW: altPanelW,
+                                                labelSize: altLabelSize,
+                                                gap: altCardGap,
+                                                usePanels: altUsePanels,
+                                            })}
                                         </div>
-                                        {/* Keywords */}
-                                        {keywords.length > 0 && (
-                                            <div
-                                                style={{
-                                                    display: "flex",
-                                                    flexWrap: "wrap",
-                                                    gap: 14,
-                                                }}
-                                            >
-                                                {keywords.map(
-                                                    (keyword, idx) => (
-                                                        <div
-                                                            key={`keyword-${idx}`}
-                                                            style={{
-                                                                padding:
-                                                                    "6px 18px",
-                                                                borderRadius: 9999,
-                                                                background:
-                                                                    "rgba(255,255,255,0.1)",
-                                                                border: "1px solid rgba(255,255,255,0.2)",
-                                                                color: "rgba(255,255,255,0.95)",
-                                                                fontSize: 24,
-                                                                fontWeight: 500,
-                                                                whiteSpace:
-                                                                    "nowrap",
-                                                            }}
-                                                        >
-                                                            {keyword}
-                                                        </div>
-                                                    ),
-                                                )}
-                                            </div>
-                                        )}
-                                        {/* Body */}
+                                    ) : null}
+
+                                    {storyHeadline ? (
                                         <div
                                             style={{
-                                                fontSize: 28,
-                                                lineHeight: 1.6,
-                                                whiteSpace: "pre-line",
-                                                color: "rgba(255,255,255,0.95)",
-                                                fontWeight: 400,
-                                                marginTop: 20,
-                                                textShadow:
-                                                    "0 2px 6px rgba(0,0,0,0.2)",
-                                                wordBreak: "break-word",
-                                                overflowWrap: "break-word",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                textAlign: "center",
+                                                gap: 12,
+                                                borderRadius: 22,
+                                                padding: "20px 38px 24px",
+                                                background: PANEL_BG,
+                                                border: PANEL_BORDER,
+                                                maxWidth: "100%",
                                                 flex: 1,
                                                 minHeight: 0,
                                                 overflow: "hidden",
+                                                justifyContent: "center",
                                             }}
                                         >
-                                            {finalInterpretation}
+                                            <svg
+                                                width='26'
+                                                height='26'
+                                                viewBox='0 0 24 24'
+                                                fill='rgba(232,198,106,0.9)'
+                                                xmlns='http://www.w3.org/2000/svg'
+                                                style={{
+                                                    transform: "rotate(-18deg)",
+                                                }}
+                                            >
+                                                <path d={CRESCENT_PATH} />
+                                            </svg>
+                                            {sectionLabel("Key message", 52)}
+                                            <div
+                                                style={{
+                                                    fontFamily: SERIF_STACK,
+                                                    fontSize:
+                                                        altHeadlineFontSize,
+                                                    fontWeight: 800,
+                                                    lineHeight: 1.25,
+                                                    color: "#f8eed6",
+                                                    textAlign: "center",
+                                                    wordBreak: "break-word",
+                                                    overflowWrap: "break-word",
+                                                    textShadow:
+                                                        "0 2px 12px rgba(216,181,109,0.25)",
+                                                }}
+                                            >
+                                                {storyHeadline}
+                                            </div>
+                                            {storySubtitle ? (
+                                                <div
+                                                    style={{
+                                                        fontSize: 22,
+                                                        lineHeight: 1.45,
+                                                        color: "rgba(255,255,255,0.72)",
+                                                        textAlign: "center",
+                                                        wordBreak: "break-word",
+                                                        overflowWrap:
+                                                            "break-word",
+                                                    }}
+                                                >
+                                                    {storySubtitle}
+                                                </div>
+                                            ) : null}
                                         </div>
+                                    ) : null}
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 14,
+                                            alignSelf: "center",
+                                            marginTop: "auto",
+                                            padding: "13px 38px",
+                                            borderRadius: 9999,
+                                            border: "1.5px solid rgba(216,181,109,0.65)",
+                                            background: "rgba(216,181,109,0.1)",
+                                            color: "#ecd9a8",
+                                            fontSize: 23,
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        <svg
+                                            width='20'
+                                            height='20'
+                                            viewBox='0 0 24 24'
+                                            fill='rgba(232,198,106,0.95)'
+                                            xmlns='http://www.w3.org/2000/svg'
+                                        >
+                                            <path d={STAR_GLYPH_PATH} />
+                                        </svg>
+                                        {ctaText}
+                                        <svg
+                                            width='20'
+                                            height='20'
+                                            viewBox='0 0 24 24'
+                                            fill='rgba(232,198,106,0.95)'
+                                            xmlns='http://www.w3.org/2000/svg'
+                                        >
+                                            <path d={STAR_GLYPH_PATH} />
+                                        </svg>
                                     </div>
                                 </div>
-                            </div>
+                            )
                         ) : (
                             /* ===== STORY LAYOUT (9:16 social story) =====
                                Must be a single explicit flex column — Satori
@@ -1741,92 +1985,10 @@ export async function POST(req: Request) {
                                                 )}
                                             </div>
                                         )}
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                fontSize: detailFontSize,
-                                                lineHeight: 1.6,
-                                                flex: 1,
-                                                minHeight: 0,
-                                                overflow: "hidden",
-                                            }}
-                                        >
-                                            {storyBlocks.map(
-                                                (block, blockIdx) => (
-                                                    <div
-                                                        key={`detail-${blockIdx}`}
-                                                        style={{
-                                                            display: "flex",
-                                                            flexWrap: "wrap",
-                                                            alignItems:
-                                                                "flex-start",
-                                                            marginTop:
-                                                                blockIdx === 0
-                                                                    ? 0
-                                                                    : Math.round(
-                                                                          detailFontSize *
-                                                                              0.55,
-                                                                      ),
-                                                            paddingLeft:
-                                                                block.type ===
-                                                                "item"
-                                                                    ? 6
-                                                                    : 0,
-                                                        }}
-                                                    >
-                                                        {block.marker ? (
-                                                            <span
-                                                                style={{
-                                                                    whiteSpace:
-                                                                        "pre",
-                                                                    color: GOLD_SOFT,
-                                                                    fontWeight: 700,
-                                                                    marginRight: 14,
-                                                                }}
-                                                            >
-                                                                {block.marker}
-                                                            </span>
-                                                        ) : null}
-                                                        {block.runs.map(
-                                                            (run, runIdx) =>
-                                                                tokenizeWords(
-                                                                    run.text,
-                                                                ).map(
-                                                                    (
-                                                                        token,
-                                                                        tokenIdx,
-                                                                    ) => (
-                                                                        <span
-                                                                            key={`detail-${blockIdx}-${runIdx}-${tokenIdx}`}
-                                                                            style={{
-                                                                                whiteSpace:
-                                                                                    "pre-wrap",
-                                                                                color: run.gold
-                                                                                    ? "#e8c66a"
-                                                                                    : "rgba(255,255,255,0.93)",
-                                                                                fontWeight:
-                                                                                    run.bold ||
-                                                                                    run.gold
-                                                                                        ? 700
-                                                                                        : 400,
-                                                                                fontStyle:
-                                                                                    run.italic
-                                                                                        ? "italic"
-                                                                                        : "normal",
-                                                                            }}
-                                                                        >
-                                                                            {
-                                                                                token
-                                                                            }
-                                                                        </span>
-                                                                    ),
-                                                                ),
-                                                        )}
-                                                    </div>
-                                                ),
-                                            )}
-                                        </div>
+                                        {renderRichBlocks(
+                                            storyBlocks,
+                                            detailFontSize,
+                                        )}
                                     </div>
                                 ) : null}
 
