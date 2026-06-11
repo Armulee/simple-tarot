@@ -13,7 +13,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
-import SharePreview from "@/components/tarot/share-preview"
+import ShareImageMock from "@/components/share/share-image-mock"
 import { warmShareImagePipeline } from "@/lib/share-image-warmup"
 import { createShareVideo, SHARE_VIDEO_DURATION_MS } from "@/lib/share-video"
 
@@ -101,16 +101,17 @@ export default function ReadingDownloadDialog({
     const [format, setFormat] = useState<"image" | "video">("image")
     const [styleId, setStyleId] =
         useState<ShareDownloadStyle["id"]>("story")
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-    const [previewProgress, setPreviewProgress] = useState<number | null>(null)
-    const [isPreviewLoading, setIsPreviewLoading] = useState(false)
+    // The preview is the instant client-composed mock; once the real PNG
+    // has been fetched for a download it replaces the mock pixel-for-pixel.
+    const [realPreviewUrl, setRealPreviewUrl] = useState<string | null>(null)
     const [videoUrl, setVideoUrl] = useState<string | null>(null)
-    const [videoProgress, setVideoProgress] = useState<number | null>(null)
-    const [isVideoGenerating, setIsVideoGenerating] = useState(false)
     const [isDownloading, setIsDownloading] = useState(false)
-    const [thumbnailUrls, setThumbnailUrls] = useState<
-        Record<string, string>
-    >({})
+    const [downloadPhase, setDownloadPhase] = useState<
+        "render" | "download" | "animate" | null
+    >(null)
+    const [downloadProgress, setDownloadProgress] = useState<number | null>(
+        null,
+    )
 
     const imageCacheRef = useRef<Map<string, Blob>>(new Map())
     const videoCacheRef = useRef<
@@ -135,6 +136,8 @@ export default function ReadingDownloadDialog({
         landscape: "1920 × 1080 · 16:9",
     }
 
+    // Pre-warm the server renderer so the real download starts painting
+    // immediately when the user asks for it.
     useEffect(() => {
         warmShareImagePipeline()
     }, [])
@@ -169,7 +172,7 @@ export default function ReadingDownloadDialog({
         imageCacheRef.current.clear()
         videoCacheRef.current.clear()
         inFlightRef.current.clear()
-        setPreviewUrl((current) => {
+        setRealPreviewUrl((current) => {
             if (current) URL.revokeObjectURL(current)
             return null
         })
@@ -177,19 +180,7 @@ export default function ReadingDownloadDialog({
             if (current) URL.revokeObjectURL(current)
             return null
         })
-        setThumbnailUrls((current) => {
-            Object.values(current).forEach((url) => URL.revokeObjectURL(url))
-            return {}
-        })
     }, [payloadKey])
-
-    useEffect(() => {
-        if (open) return
-        setIsPreviewLoading(false)
-        setPreviewProgress(null)
-        setIsVideoGenerating(false)
-        setVideoProgress(null)
-    }, [open])
 
     const fetchShareImage = useCallback(
         async ({
@@ -199,7 +190,10 @@ export default function ReadingDownloadDialog({
         }: {
             width: number
             height: number
-            onProgress?: (progress: number | null) => void
+            onProgress?: (
+                phase: "render" | "download",
+                progress: number | null,
+            ) => void
         }): Promise<Blob> => {
             const key = `${width}x${height}`
             const existing = inFlightRef.current.get(key)
@@ -210,6 +204,7 @@ export default function ReadingDownloadDialog({
                 const ticker = window.setInterval(() => {
                     const elapsedS = (Date.now() - startedAt) / 1000
                     onProgress?.(
+                        "render",
                         RENDER_PROGRESS_CEILING *
                             (1 -
                                 Math.exp(-elapsedS / RENDER_PROGRESS_TAU_S)),
@@ -246,7 +241,7 @@ export default function ReadingDownloadDialog({
 
                 const total = Number(res.headers.get("Content-Length"))
                 if (!res.body || !Number.isFinite(total) || total <= 0) {
-                    onProgress?.(null)
+                    onProgress?.("download", null)
                     return await res.blob()
                 }
 
@@ -260,13 +255,14 @@ export default function ReadingDownloadDialog({
                         chunks.push(value as BlobPart)
                         received += value.length
                         onProgress?.(
+                            "download",
                             RENDER_PROGRESS_CEILING +
                                 (1 - RENDER_PROGRESS_CEILING) *
                                     Math.min(received / total, 1),
                         )
                     }
                 }
-                onProgress?.(1)
+                onProgress?.("download", 1)
                 return new Blob(chunks, {
                     type: res.headers.get("Content-Type") || "image/png",
                 })
@@ -292,146 +288,48 @@ export default function ReadingDownloadDialog({
         ],
     )
 
+    /** Real server PNG for a style, from cache or fetched with progress. */
     const getStyleImage = useCallback(
         async (
             style: ShareDownloadStyle,
-            onProgress?: (progress: number | null) => void,
+            onProgress?: (
+                phase: "render" | "download",
+                progress: number | null,
+            ) => void,
         ): Promise<Blob> => {
             const cached = imageCacheRef.current.get(style.id)
-            if (cached) {
-                onProgress?.(1)
-                return cached
-            }
+            if (cached) return cached
             const blob = await fetchShareImage({
                 width: style.width,
                 height: style.height,
                 onProgress,
             })
             imageCacheRef.current.set(style.id, blob)
+            if (style.id === selectedStyle.id) {
+                const nextUrl = URL.createObjectURL(blob)
+                setRealPreviewUrl((current) => {
+                    if (current) URL.revokeObjectURL(current)
+                    return nextUrl
+                })
+            }
             return blob
         },
-        [fetchShareImage],
+        [fetchShareImage, selectedStyle.id],
     )
-
-    // Big preview for the selected style.
-    useEffect(() => {
-        if (!open) return
-        let active = true
-        const run = async () => {
-            setIsPreviewLoading(true)
-            setPreviewProgress(0)
-            try {
-                const blob = await getStyleImage(selectedStyle, (progress) => {
-                    if (active) setPreviewProgress(progress)
-                })
-                if (!active) return
-                const nextUrl = URL.createObjectURL(blob)
-                setPreviewUrl((current) => {
-                    if (current) URL.revokeObjectURL(current)
-                    return nextUrl
-                })
-            } catch (error) {
-                if (!active) return
-                console.error("Preview error:", error)
-                toast.error(t("actions.downloadPreviewError"))
-                setPreviewProgress(null)
-            } finally {
-                if (active) setIsPreviewLoading(false)
-            }
-        }
-        void run()
-        return () => {
-            active = false
-        }
-    }, [open, selectedStyle, getStyleImage, t, payloadKey])
-
-    // Thumbnails for the style picker (deduped with the preview fetch).
-    useEffect(() => {
-        if (!open) return
-        let cancelled = false
-        const run = async () => {
-            for (const style of DOWNLOAD_STYLES) {
-                if (cancelled) return
-                try {
-                    const blob = await getStyleImage(style)
-                    if (cancelled) return
-                    const url = URL.createObjectURL(blob)
-                    setThumbnailUrls((current) => {
-                        const next = { ...current }
-                        if (next[style.id]) URL.revokeObjectURL(next[style.id])
-                        next[style.id] = url
-                        return next
-                    })
-                } catch (error) {
-                    console.error("Thumbnail error:", error)
-                }
-            }
-        }
-        void run()
-        return () => {
-            cancelled = true
-        }
-    }, [open, getStyleImage, payloadKey])
-
-    // Video preview — records the 15s animation once per style, then loops.
-    useEffect(() => {
-        if (!open || format !== "video") return
-        const cached = videoCacheRef.current.get(selectedStyle.id)
-        if (cached) {
-            const nextUrl = URL.createObjectURL(cached.blob)
-            setVideoUrl((current) => {
-                if (current) URL.revokeObjectURL(current)
-                return nextUrl
-            })
-            return
-        }
-
-        const controller = new AbortController()
-        let active = true
-        const run = async () => {
-            try {
-                setIsVideoGenerating(true)
-                setVideoProgress(0)
-                const baseBlob = await getStyleImage(selectedStyle)
-                if (!active) return
-                const { blob, ext } = await createShareVideo({
-                    baseImageBlob: baseBlob,
-                    width: selectedStyle.width,
-                    height: selectedStyle.height,
-                    signal: controller.signal,
-                    onProgress: (progress) => {
-                        if (active) setVideoProgress(progress)
-                    },
-                })
-                if (!active) return
-                videoCacheRef.current.set(selectedStyle.id, { blob, ext })
-                const nextUrl = URL.createObjectURL(blob)
-                setVideoUrl((current) => {
-                    if (current) URL.revokeObjectURL(current)
-                    return nextUrl
-                })
-            } catch (error) {
-                if (!active || controller.signal.aborted) return
-                console.error("Video preview error:", error)
-                toast.error(t("actions.downloadVideoError"))
-                setVideoProgress(null)
-            } finally {
-                if (active) setIsVideoGenerating(false)
-            }
-        }
-        void run()
-        return () => {
-            active = false
-            controller.abort()
-        }
-    }, [open, format, selectedStyle, getStyleImage, t, payloadKey])
 
     const handleSelectStyle = (id: ShareDownloadStyle["id"]) => {
         if (id === styleId) return
         setStyleId(id)
+        // The cached real PNG / video belong to the previous style.
+        setRealPreviewUrl((current) => {
+            if (current) URL.revokeObjectURL(current)
+            const cached = imageCacheRef.current.get(id)
+            return cached ? URL.createObjectURL(cached) : null
+        })
         setVideoUrl((current) => {
             if (current) URL.revokeObjectURL(current)
-            return null
+            const cached = videoCacheRef.current.get(id)
+            return cached ? URL.createObjectURL(cached.blob) : null
         })
     }
 
@@ -439,51 +337,68 @@ export default function ReadingDownloadDialog({
 
     const handleImageDownload = useCallback(async () => {
         setIsDownloading(true)
+        setDownloadPhase("render")
+        setDownloadProgress(0)
+        const emit = (status: ReadingImageExportStatus | null) =>
+            onExportStatus?.(status)
+        if (!imageCacheRef.current.get(selectedStyle.id)) {
+            emit({ phase: "render", progress: 0 })
+        }
         try {
-            const cached = imageCacheRef.current.get(selectedStyle.id)
-            if (!cached) onExportStatus?.({ phase: "render", progress: 0 })
-            const blob =
-                cached ??
-                (await getStyleImage(selectedStyle, (progress) => {
-                    onExportStatus?.({
-                        phase:
-                            progress !== null &&
-                            progress >= RENDER_PROGRESS_CEILING
-                                ? "download"
-                                : "render",
-                        progress,
-                    })
-                }))
+            const blob = await getStyleImage(
+                selectedStyle,
+                (phase, progress) => {
+                    setDownloadPhase(phase)
+                    setDownloadProgress(progress)
+                    emit({ phase, progress })
+                },
+            )
             triggerBlobDownload(
                 `${filenameBase}-${selectedStyle.id}-${timestamp()}.png`,
                 blob,
             )
-            onExportStatus?.({ phase: "done", progress: 1 })
+            emit({ phase: "done", progress: 1 })
         } catch (error) {
             console.error("Download error:", error)
             toast.error(t("actions.downloadError"))
-            onExportStatus?.(null)
+            emit(null)
         } finally {
             setIsDownloading(false)
+            setDownloadPhase(null)
+            setDownloadProgress(null)
         }
     }, [selectedStyle, getStyleImage, filenameBase, onExportStatus, t])
 
     const handleVideoDownload = useCallback(async () => {
         setIsDownloading(true)
+        const emit = (status: ReadingImageExportStatus | null) =>
+            onExportStatus?.(status)
         try {
             let cached = videoCacheRef.current.get(selectedStyle.id)
             if (!cached) {
-                setIsVideoGenerating(true)
-                setVideoProgress(0)
-                onExportStatus?.({ phase: "animate", progress: 0 })
-                const baseBlob = await getStyleImage(selectedStyle)
+                // Phase 1: real poster from the server (first ~25% of the
+                // bar); phase 2: the 15s canvas recording (remaining 75%).
+                setDownloadPhase("render")
+                setDownloadProgress(0)
+                const baseBlob = await getStyleImage(
+                    selectedStyle,
+                    (phase, progress) => {
+                        setDownloadPhase(phase)
+                        const scaled =
+                            progress === null ? null : progress * 0.25
+                        setDownloadProgress(scaled)
+                        emit({ phase, progress: scaled })
+                    },
+                )
+                setDownloadPhase("animate")
                 cached = await createShareVideo({
                     baseImageBlob: baseBlob,
                     width: selectedStyle.width,
                     height: selectedStyle.height,
                     onProgress: (progress) => {
-                        setVideoProgress(progress)
-                        onExportStatus?.({ phase: "animate", progress })
+                        const scaled = 0.25 + progress * 0.75
+                        setDownloadProgress(scaled)
+                        emit({ phase: "animate", progress: scaled })
                     },
                 })
                 videoCacheRef.current.set(selectedStyle.id, cached)
@@ -497,14 +412,15 @@ export default function ReadingDownloadDialog({
                 `${filenameBase}-${selectedStyle.id}-${timestamp()}.${cached.ext}`,
                 cached.blob,
             )
-            onExportStatus?.({ phase: "done", progress: 1 })
+            emit({ phase: "done", progress: 1 })
         } catch (error) {
             console.error("Video download error:", error)
             toast.error(t("actions.downloadVideoError"))
-            onExportStatus?.(null)
+            emit(null)
         } finally {
             setIsDownloading(false)
-            setIsVideoGenerating(false)
+            setDownloadPhase(null)
+            setDownloadProgress(null)
         }
     }, [selectedStyle, getStyleImage, filenameBase, onExportStatus, t])
 
@@ -516,16 +432,6 @@ export default function ReadingDownloadDialog({
               : styleId === "square"
                 ? "aspect-square max-w-[380px]"
                 : "aspect-video max-w-[430px]"
-    const previewPhase =
-        previewProgress !== null && previewProgress >= RENDER_PROGRESS_CEILING
-            ? "download"
-            : "render"
-    const showVideoOverlay = format === "video" && isVideoGenerating
-    const showImageOverlay = format === "image" && isPreviewLoading
-    const overlayPhrase = showVideoOverlay
-        ? tProgress("animate")
-        : tProgress(previewPhase)
-    const overlayProgress = showVideoOverlay ? videoProgress : previewProgress
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -625,27 +531,20 @@ export default function ReadingDownloadDialog({
                                     }`}
                                 >
                                     <div className='flex h-20 w-full items-center justify-center overflow-hidden rounded-md border border-white/10 bg-black/30'>
-                                        {thumbnailUrls[style.id] ? (
-                                            <div className='relative h-full w-full'>
-                                                <Image
-                                                    src={
-                                                        thumbnailUrls[style.id]
-                                                    }
-                                                    alt={`${styleLabels[style.id]} preview`}
-                                                    fill
-                                                    unoptimized
-                                                    className='object-contain'
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div
-                                                className='h-full animate-pulse rounded-sm bg-white/10'
-                                                style={{
-                                                    aspectRatio: `${style.width}/${style.height}`,
-                                                    maxWidth: "100%",
-                                                }}
+                                        <div
+                                            className='relative h-full overflow-hidden rounded-sm'
+                                            style={{
+                                                aspectRatio: `${style.width}/${style.height}`,
+                                            }}
+                                        >
+                                            <Image
+                                                src={`/assets/share/${style.id}-background.jpg`}
+                                                alt={`${styleLabels[style.id]} preview`}
+                                                fill
+                                                unoptimized
+                                                className='object-cover'
                                             />
-                                        )}
+                                        </div>
                                     </div>
                                     <div className='mt-2 text-xs font-medium text-white'>
                                         {styleLabels[style.id]}
@@ -678,40 +577,46 @@ export default function ReadingDownloadDialog({
                                     playsInline
                                     className='absolute inset-0 h-full w-full object-contain'
                                 />
-                            ) : previewUrl ? (
+                            ) : realPreviewUrl ? (
                                 <Image
-                                    src={previewUrl}
+                                    src={realPreviewUrl}
                                     alt={t("actions.downloadPreviewAlt")}
                                     fill
                                     unoptimized
                                     className='object-contain'
                                 />
                             ) : (
-                                <SharePreview
+                                <ShareImageMock
+                                    aspect={styleId}
                                     question={question}
                                     cards={cards}
                                     interpretation={interpretation}
-                                    aspectRatio={styleId}
+                                    headline={headline}
+                                    subtitle={subtitle}
+                                    keyMessage={keyMessage}
+                                    detailedHtml={detailedHtml}
+                                    insights={insights}
+                                    cta={t("actions.shareCta")}
                                 />
                             )}
-                            {(showImageOverlay || showVideoOverlay) && (
+                            {isDownloading && (
                                 <div className='absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/55 px-6 backdrop-blur-[2px]'>
                                     <p className='text-center text-xs font-medium tracking-wide text-amber-200/95'>
-                                        {overlayPhrase}
-                                        {overlayProgress !== null &&
-                                            ` · ${Math.round(overlayProgress * 100)}%`}
+                                        {tProgress(downloadPhase ?? "render")}
+                                        {downloadProgress !== null &&
+                                            ` · ${Math.round(downloadProgress * 100)}%`}
                                     </p>
                                     <div className='h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-white/15'>
                                         <div
                                             className={`h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 transition-[width] duration-300 ease-out ${
-                                                overlayProgress === null
+                                                downloadProgress === null
                                                     ? "w-1/3 animate-pulse"
                                                     : ""
                                             }`}
                                             style={
-                                                overlayProgress !== null
+                                                downloadProgress !== null
                                                     ? {
-                                                          width: `${Math.max(6, Math.round(overlayProgress * 100))}%`,
+                                                          width: `${Math.max(6, Math.round(downloadProgress * 100))}%`,
                                                       }
                                                     : undefined
                                             }
@@ -738,12 +643,7 @@ export default function ReadingDownloadDialog({
                                 ? handleVideoDownload()
                                 : handleImageDownload()
                         }
-                        disabled={
-                            isDownloading ||
-                            (format === "video"
-                                ? isVideoGenerating
-                                : isPreviewLoading)
-                        }
+                        disabled={isDownloading}
                     >
                         {t(
                             format === "video"
