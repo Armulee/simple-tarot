@@ -739,9 +739,9 @@
     }
   },
   "ShareImageProgress": {
-    "render": "Painting your reading\u2026",
-    "download": "Downloading your image\u2026",
-    "animate": "Recording your cosmic animation\u2026",
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
     "done": "Saved to your device"
   },
   "QuestionInput": {
@@ -1619,6 +1619,7 @@
         "downloadBrandingTitle": "Branding",
         "downloadBrandingHint": "Preview includes branding",
         "downloadStyleStory": "Story",
+        "downloadStylePost": "Post",
         "downloadStyleSquare": "Square",
         "downloadStyleLandscape": "Landscape",
         "downloadTabImage": "Image",

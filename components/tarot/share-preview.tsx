@@ -44,7 +44,7 @@ interface SharePreviewProps {
     question?: string | null
     cards?: string[] | null
     interpretation?: string | null
-    aspectRatio: "story" | "square" | "landscape"
+    aspectRatio: "story" | "post" | "square" | "landscape"
 }
 
 function StarDots({ count, seed }: { count: number; seed: number }) {
@@ -94,13 +94,15 @@ export default function SharePreview({
     const ratioClass =
         aspectRatio === "story"
             ? "aspect-[9/16]"
-            : aspectRatio === "square"
-              ? "aspect-square"
-              : "aspect-video"
+            : aspectRatio === "post"
+              ? "aspect-[3/4]"
+              : aspectRatio === "square"
+                ? "aspect-square"
+                : "aspect-video"
 
     const displayCards = (cards ?? []).slice(0, 3)
     const questionText = truncate(question ?? "", 140)
-    const isStory = aspectRatio === "story"
+    const isStory = aspectRatio === "story" || aspectRatio === "post"
     const isLandscape = aspectRatio === "landscape"
     const rawInterpretation = truncate(
         interpretation ?? "",

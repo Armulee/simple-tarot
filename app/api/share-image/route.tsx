@@ -326,7 +326,7 @@ function generateSparkles(count: number, width: number, height: number) {
  */
 const cardImageCache = new Map<string, string | null>()
 let logoCache: string | null | undefined
-let storyBgCache: string | null | undefined
+const shareBgCache = new Map<string, string | null>()
 let fontsPromise: Promise<ShareFont[]> | null = null
 
 type ShareFont = {
@@ -411,24 +411,33 @@ async function readImageAsBase64(slug: string) {
     return src
 }
 
-/** Hand-illustrated night-sky artwork used as the story canvas. */
-async function readStoryBackground() {
-    if (storyBgCache !== undefined) return storyBgCache
+type ShareBgVariant = "story" | "post" | "square" | "landscape"
+
+/**
+ * Hand-illustrated night-sky paintings (gold crescent moon, star
+ * sparkles, gilded clouds, baked-in gold frame) — one per aspect
+ * variant, pre-sized to the exact canvas dimensions.
+ */
+async function readShareBackground(variant: ShareBgVariant) {
+    if (shareBgCache.has(variant)) return shareBgCache.get(variant) ?? null
+    let src: string | null = null
     try {
-        const filePath = join(
-            process.cwd(),
-            "public",
-            "assets",
-            "share",
-            "story-background.jpg",
+        const buffer = await readFile(
+            join(
+                process.cwd(),
+                "public",
+                "assets",
+                "share",
+                `${variant}-background.jpg`,
+            ),
         )
-        const buffer = await readFile(filePath)
-        storyBgCache = `data:image/jpeg;base64,${buffer.toString("base64")}`
+        src = `data:image/jpeg;base64,${buffer.toString("base64")}`
     } catch (error) {
-        console.error("Error reading story background:", error)
-        storyBgCache = null
+        console.error(`Error reading ${variant} background:`, error)
+        src = null
     }
-    return storyBgCache
+    shareBgCache.set(variant, src)
+    return src
 }
 
 async function readLogoAsBase64() {
@@ -736,9 +745,12 @@ let warmUpPromise: Promise<void> | null = null
 function warmUpPipeline(): Promise<void> {
     if (!warmUpPromise) {
         warmUpPromise = (async () => {
-            const [, , shareFonts] = await Promise.all([
+            const [, , , , , shareFonts] = await Promise.all([
                 readLogoAsBase64(),
-                readStoryBackground(),
+                readShareBackground("story"),
+                readShareBackground("post"),
+                readShareBackground("square"),
+                readShareBackground("landscape"),
                 loadShareFonts(),
             ])
             const probe = new ImageResponse(
@@ -873,20 +885,32 @@ export async function POST(req: Request) {
             (card): card is NonNullable<typeof card> => card !== null,
         )
 
-        // Load logo + bundled fonts (both cached per instance)
-        const [logoBase64, shareFonts, storyBgSrc] = await Promise.all([
-            readLogoAsBase64(),
-            loadShareFonts(),
-            readStoryBackground(),
-        ])
-        const logoSrc = logoBase64 || `${origin}/assets/logo.png`
-
         const imageWidth = Number(width) || 1080
         const imageHeight = Number(height) || 1920
         const basePadding = 72
         const isStoryAspect = imageHeight > imageWidth * 1.5
         const isLandscape = !isStoryAspect && imageWidth >= imageHeight * 1.2
-        const isSquare = !isStoryAspect && !isLandscape
+        // Post (3:4, 1080x1440) shares the story's portrait column layout
+        // in a shorter frame; square gets the condensed verdict layout.
+        const isPost =
+            !isStoryAspect && !isLandscape && imageHeight >= imageWidth * 1.15
+        const isSquare = !isStoryAspect && !isLandscape && !isPost
+        const bgVariant: ShareBgVariant = isStoryAspect
+            ? "story"
+            : isLandscape
+              ? "landscape"
+              : isPost
+                ? "post"
+                : "square"
+
+        // Load logo + bundled fonts + artwork (all cached per instance)
+        const [logoBase64, shareFonts, shareBgSrc] = await Promise.all([
+            readLogoAsBase64(),
+            loadShareFonts(),
+            readShareBackground(bgVariant),
+        ])
+        const logoSrc = logoBase64 || `${origin}/assets/logo.png`
+
         const paddingBottom = basePadding
         const maxInterpretChars = isStoryAspect ? 400 : isLandscape ? 420 : 240
 
@@ -902,21 +926,22 @@ export async function POST(req: Request) {
         )
         const finalInterpretation = content || displayInterpretation || "—"
 
-        const isHorizontal = !isStoryAspect
+        const isHorizontal = !isStoryAspect && !isPost
         const maxContentWidth = isStoryAspect
             ? 980
             : imageWidth - basePadding * 2
 
-        // The illustrated artwork replaces every procedural sky layer for
-        // the story format; the composed sky stays as the fallback and for
-        // the horizontal formats the art's portrait framing doesn't fit.
-        const useStoryBgImage = isStoryAspect && Boolean(storyBgSrc)
+        // Each variant has its own painted artwork (moon, stars, gold
+        // clouds and frame baked in); the procedural sky below is only
+        // the fallback when an asset is missing.
+        const useBgArt = Boolean(shareBgSrc)
         const stars = generateStars(85, imageWidth, imageHeight)
         const sparkles = generateSparkles(16, imageWidth, imageHeight)
 
-        // ---- Story (9:16) rich layout data ----
+        // ---- Story (9:16) / Post (3:4) rich portrait column data ----
         // Content column is maxContentWidth-capped to 980 but padded to 936
         // on a 1080 canvas; all card-row math uses that effective width.
+        // Post shares this layout with tighter caps for the shorter frame.
         const storyContentWidth = 1080 - basePadding * 2
         const storyCards = parsedCards
         const storyCount = storyCards.length
@@ -932,19 +957,29 @@ export async function POST(req: Request) {
             ? insights.map((i) => String(i ?? ""))
             : []
         const showCardInsights =
+            !isPost &&
             storyCount > 0 &&
             storyCount <= 3 &&
             storyInsights.some((i) => i.trim().length > 0)
-        const storyMaxCardW =
-            storyCount <= 1
-                ? 300
+        const storyMaxCardW = isPost
+            ? storyCount <= 1
+                ? 200
                 : storyCount === 2
-                  ? 256
+                  ? 176
                   : storyCount === 3
-                    ? 228
+                    ? 156
                     : storyCount === 4
-                      ? 190
-                      : 150
+                      ? 136
+                      : 112
+            : storyCount <= 1
+              ? 300
+              : storyCount === 2
+                ? 256
+                : storyCount === 3
+                  ? 228
+                  : storyCount === 4
+                    ? 190
+                    : 150
         const storyCardW = Math.round(
             Math.min(
                 (storyContentWidth - (storyPerRow - 1) * storyCardGap) /
@@ -955,7 +990,15 @@ export async function POST(req: Request) {
         )
         const storyCardH = Math.round(storyCardW * 1.728)
         const storyPanelW = storyCardW + storyPanelPad * 2 + 2
-        const cardLabelSize = storyCount <= 3 ? 24 : storyCount === 4 ? 19 : 15
+        const cardLabelSize = isPost
+            ? storyCount <= 3
+                ? 20
+                : 15
+            : storyCount <= 3
+              ? 24
+              : storyCount === 4
+                ? 19
+                : 15
 
         // ---- Square (1:1) / Landscape (16:9) gold layout data ----
         // Same panel treatment as the story poster, tighter size caps. The
@@ -1010,8 +1053,17 @@ export async function POST(req: Request) {
             String(subtitle ?? ""),
             isSquare ? 140 : 200,
         )
-        const headlineFontSize =
-            storyHeadline.length <= 30 ? 54 : storyHeadline.length <= 60 ? 46 : 38
+        const headlineFontSize = isPost
+            ? storyHeadline.length <= 30
+                ? 44
+                : storyHeadline.length <= 60
+                  ? 38
+                  : 32
+            : storyHeadline.length <= 30
+              ? 54
+              : storyHeadline.length <= 60
+                ? 46
+                : 38
         const altHeadlineFontSize = isLandscape
             ? storyHeadline.length <= 40
                 ? 46
@@ -1035,13 +1087,17 @@ export async function POST(req: Request) {
             ? 420
             : isSquare
               ? 0
-              : storyCount >= 7
-                ? 400
-                : storyCount >= 4
-                  ? 500
-                  : showCardInsights
-                    ? 460
-                    : 600
+              : isPost
+                ? storyCount >= 4
+                    ? 250
+                    : 270
+                : storyCount >= 7
+                  ? 400
+                  : storyCount >= 4
+                    ? 500
+                    : showCardInsights
+                      ? 460
+                      : 600
         storyBlocks = truncateRichBlocks(storyBlocks, detailBudget)
         const detailChars = storyBlocks.reduce(
             (sum, block) =>
@@ -1052,9 +1108,13 @@ export async function POST(req: Request) {
             ? detailChars > 330
                 ? 24
                 : 27
-            : detailChars > 430
-              ? 26
-              : 29
+            : isPost
+              ? detailChars > 260
+                  ? 23
+                  : 25
+              : detailChars > 430
+                ? 26
+                : 29
         const showStoryKeywords = !hasRichDetail && keywords.length > 0
         const ctaText =
             truncate(String(cta ?? ""), 70) ||
@@ -1073,7 +1133,7 @@ export async function POST(req: Request) {
                         paddingLeft: basePadding,
                         paddingBottom,
                         boxSizing: "border-box",
-                        background: useStoryBgImage
+                        background: useBgArt
                             ? "#0a1232"
                             : "radial-gradient(1500px 1000px at 50% -10%, rgba(64, 90, 176, 0.5) 0%, rgba(30, 45, 105, 0.32) 35%, rgba(7, 11, 34, 1) 75%), radial-gradient(1200px 900px at 85% 105%, rgba(45, 65, 140, 0.35) 0%, rgba(7, 11, 34, 1) 65%)",
                         color: "#ffffff",
@@ -1082,11 +1142,11 @@ export async function POST(req: Request) {
                         overflow: "hidden",
                     }}
                 >
-                    {useStoryBgImage ? (
+                    {useBgArt ? (
                         /* Illustrated night-sky artwork — moon, stars, gold
                            clouds and frame are baked into the painting */
                         <img
-                            src={storyBgSrc as string}
+                            src={shareBgSrc as string}
                             width={imageWidth}
                             height={imageHeight}
                             style={{
@@ -1690,14 +1750,14 @@ export async function POST(req: Request) {
                                 </div>
                             )
                         ) : (
-                            /* ===== STORY LAYOUT (9:16 social story) =====
+                            /* ===== STORY (9:16) / POST (3:4) LAYOUT =====
                                Must be a single explicit flex column — Satori
                                lays fragment children out as an implicit row. */
                             <div
                                 style={{
                                     display: "flex",
                                     flexDirection: "column",
-                                    gap: 26,
+                                    gap: isPost ? 18 : 26,
                                     width: "100%",
                                     flex: 1,
                                     minHeight: 0,
@@ -1718,7 +1778,7 @@ export async function POST(req: Request) {
                                     <div
                                         style={{
                                             fontFamily: SERIF_STACK,
-                                            fontSize: 38,
+                                            fontSize: isPost ? 33 : 38,
                                             fontWeight: 800,
                                             lineHeight: 1.25,
                                             color: "#f6ecd2",
@@ -1878,25 +1938,33 @@ export async function POST(req: Request) {
                                             textAlign: "center",
                                             gap: 14,
                                             borderRadius: 24,
-                                            padding: "28px 44px 32px",
+                                            padding: isPost
+                                                ? "22px 40px 24px"
+                                                : "28px 44px 32px",
                                             background: PANEL_BG,
                                             border: PANEL_BORDER,
                                             maxWidth: "100%",
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <svg
-                                            width='30'
-                                            height='30'
-                                            viewBox='0 0 24 24'
-                                            fill='rgba(232,198,106,0.9)'
-                                            xmlns='http://www.w3.org/2000/svg'
-                                            style={{
-                                                transform: "rotate(-18deg)",
-                                            }}
-                                        >
-                                            <path d={CRESCENT_PATH} />
-                                        </svg>
+                                        {/* The crescent flourish costs a
+                                            text line the post frame can't
+                                            spare. */}
+                                        {!isPost && (
+                                            <svg
+                                                width='30'
+                                                height='30'
+                                                viewBox='0 0 24 24'
+                                                fill='rgba(232,198,106,0.9)'
+                                                xmlns='http://www.w3.org/2000/svg'
+                                                style={{
+                                                    transform:
+                                                        "rotate(-18deg)",
+                                                }}
+                                            >
+                                                <path d={CRESCENT_PATH} />
+                                            </svg>
+                                        )}
                                         {sectionLabel("Key message", 60)}
                                         <div
                                             style={{
@@ -1917,7 +1985,7 @@ export async function POST(req: Request) {
                                         {storySubtitle ? (
                                             <div
                                                 style={{
-                                                    fontSize: 26,
+                                                    fontSize: isPost ? 23 : 26,
                                                     lineHeight: 1.5,
                                                     color: "rgba(255,255,255,0.72)",
                                                     textAlign: "center",

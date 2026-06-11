@@ -32,13 +32,14 @@ const RENDER_PROGRESS_CEILING = 0.72
 const RENDER_PROGRESS_TAU_S = 2.8
 
 export type ShareDownloadStyle = {
-    id: "story" | "square" | "landscape"
+    id: "story" | "post" | "square" | "landscape"
     width: number
     height: number
 }
 
 const DOWNLOAD_STYLES: ShareDownloadStyle[] = [
     { id: "story", width: 1080, height: 1920 },
+    { id: "post", width: 1080, height: 1440 },
     { id: "square", width: 1080, height: 1080 },
     { id: "landscape", width: 1920, height: 1080 },
 ]
@@ -123,11 +124,13 @@ export default function ReadingDownloadDialog({
 
     const styleLabels: Record<ShareDownloadStyle["id"], string> = {
         story: t("actions.downloadStyleStory"),
+        post: t("actions.downloadStylePost"),
         square: t("actions.downloadStyleSquare"),
         landscape: t("actions.downloadStyleLandscape"),
     }
     const styleSizes: Record<ShareDownloadStyle["id"], string> = {
         story: "1080 × 1920 · 9:16",
+        post: "1080 × 1440 · 3:4",
         square: "1080 × 1080 · 1:1",
         landscape: "1920 × 1080 · 16:9",
     }
@@ -508,9 +511,11 @@ export default function ReadingDownloadDialog({
     const previewAspectClass =
         styleId === "story"
             ? "aspect-[9/16] max-w-[300px]"
-            : styleId === "square"
-              ? "aspect-square max-w-[380px]"
-              : "aspect-video max-w-[430px]"
+            : styleId === "post"
+              ? "aspect-[3/4] max-w-[330px]"
+              : styleId === "square"
+                ? "aspect-square max-w-[380px]"
+                : "aspect-video max-w-[430px]"
     const previewPhase =
         previewProgress !== null && previewProgress >= RENDER_PROGRESS_CEILING
             ? "download"
@@ -607,7 +612,7 @@ export default function ReadingDownloadDialog({
                                 {t("actions.downloadStylesHint")}
                             </span>
                         </div>
-                        <div className='grid grid-cols-3 gap-2'>
+                        <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
                             {DOWNLOAD_STYLES.map((style) => (
                                 <button
                                     key={style.id}
@@ -686,13 +691,7 @@ export default function ReadingDownloadDialog({
                                     question={question}
                                     cards={cards}
                                     interpretation={interpretation}
-                                    aspectRatio={
-                                        styleId === "story"
-                                            ? "story"
-                                            : styleId === "square"
-                                              ? "square"
-                                              : "landscape"
-                                    }
+                                    aspectRatio={styleId}
                                 />
                             )}
                             {(showImageOverlay || showVideoOverlay) && (
