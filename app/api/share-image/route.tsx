@@ -326,6 +326,7 @@ function generateSparkles(count: number, width: number, height: number) {
  */
 const cardImageCache = new Map<string, string | null>()
 let logoCache: string | null | undefined
+let storyBgCache: string | null | undefined
 let fontsPromise: Promise<ShareFont[]> | null = null
 
 type ShareFont = {
@@ -408,6 +409,26 @@ async function readImageAsBase64(slug: string) {
     }
     cardImageCache.set(slug, src)
     return src
+}
+
+/** Hand-illustrated night-sky artwork used as the story canvas. */
+async function readStoryBackground() {
+    if (storyBgCache !== undefined) return storyBgCache
+    try {
+        const filePath = join(
+            process.cwd(),
+            "public",
+            "assets",
+            "share",
+            "story-background.jpg",
+        )
+        const buffer = await readFile(filePath)
+        storyBgCache = `data:image/jpeg;base64,${buffer.toString("base64")}`
+    } catch (error) {
+        console.error("Error reading story background:", error)
+        storyBgCache = null
+    }
+    return storyBgCache
 }
 
 async function readLogoAsBase64() {
@@ -583,9 +604,10 @@ export async function POST(req: Request) {
         )
 
         // Load logo + bundled fonts (both cached per instance)
-        const [logoBase64, shareFonts] = await Promise.all([
+        const [logoBase64, shareFonts, storyBgSrc] = await Promise.all([
             readLogoAsBase64(),
             loadShareFonts(),
+            readStoryBackground(),
         ])
         const logoSrc = logoBase64 || `${origin}/assets/logo.png`
 
@@ -617,6 +639,10 @@ export async function POST(req: Request) {
               ? 1600
               : 980
 
+        // The illustrated artwork replaces every procedural sky layer for
+        // the story format; the composed sky stays as the fallback and for
+        // the horizontal formats the art's portrait framing doesn't fit.
+        const useStoryBgImage = isStoryAspect && Boolean(storyBgSrc)
         const stars = generateStars(85, imageWidth, imageHeight)
         const sparkles = generateSparkles(16, imageWidth, imageHeight)
 
@@ -715,14 +741,36 @@ export async function POST(req: Request) {
                         paddingLeft: basePadding,
                         paddingBottom,
                         boxSizing: "border-box",
-                        background:
-                            "radial-gradient(1500px 1000px at 50% -10%, rgba(64, 90, 176, 0.5) 0%, rgba(30, 45, 105, 0.32) 35%, rgba(7, 11, 34, 1) 75%), radial-gradient(1200px 900px at 85% 105%, rgba(45, 65, 140, 0.35) 0%, rgba(7, 11, 34, 1) 65%)",
+                        background: useStoryBgImage
+                            ? "#0a1232"
+                            : "radial-gradient(1500px 1000px at 50% -10%, rgba(64, 90, 176, 0.5) 0%, rgba(30, 45, 105, 0.32) 35%, rgba(7, 11, 34, 1) 75%), radial-gradient(1200px 900px at 85% 105%, rgba(45, 65, 140, 0.35) 0%, rgba(7, 11, 34, 1) 65%)",
                         color: "#ffffff",
                         fontFamily: SANS_STACK,
                         position: "relative",
                         overflow: "hidden",
                     }}
                 >
+                    {useStoryBgImage ? (
+                        /* Illustrated night-sky artwork — moon, stars, gold
+                           clouds and frame are baked into the painting */
+                        <img
+                            src={storyBgSrc as string}
+                            width={imageWidth}
+                            height={imageHeight}
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                objectFit: "cover",
+                            }}
+                        />
+                    ) : (
+                        <div
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                display: "flex",
+                            }}
+                        >
                     <div
                         style={{
                             position: "absolute",
@@ -885,6 +933,8 @@ export async function POST(req: Request) {
                     >
                         <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
                     </svg>
+                        </div>
+                    )}
 
                     {/* background card aura — horizontal layouts only; the
                         story layout shows the full spread, so the ghosts only
