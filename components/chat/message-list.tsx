@@ -389,7 +389,8 @@ export default function MessageList({
     const thinkingLabels = useMemo(
         () => ({
             consulting: `${t("consulting")}…`,
-            complete: t("thinkingComplete"),
+            active: t("thinkingActive"),
+            complete: t("thinkingCompleteTimed"),
             toggle: t("thinkingToggle"),
         }),
         [t],
