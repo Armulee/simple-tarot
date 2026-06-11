@@ -129,11 +129,23 @@ export default function ReadingDownloadDialog({
         square: t("actions.downloadStyleSquare"),
         landscape: t("actions.downloadStyleLandscape"),
     }
+    const styleRatios: Record<ShareDownloadStyle["id"], string> = {
+        story: "9:16",
+        post: "3:4",
+        square: "1:1",
+        landscape: "16:9",
+    }
+    const styleResolutions: Record<ShareDownloadStyle["id"], string> = {
+        story: "1080 × 1920",
+        post: "1080 × 1440",
+        square: "1080 × 1080",
+        landscape: "1920 × 1080",
+    }
     const styleSizes: Record<ShareDownloadStyle["id"], string> = {
-        story: "1080 × 1920 · 9:16",
-        post: "1080 × 1440 · 3:4",
-        square: "1080 × 1080 · 1:1",
-        landscape: "1920 × 1080 · 16:9",
+        story: `${styleResolutions.story} · ${styleRatios.story}`,
+        post: `${styleResolutions.post} · ${styleRatios.post}`,
+        square: `${styleResolutions.square} · ${styleRatios.square}`,
+        landscape: `${styleResolutions.landscape} · ${styleRatios.landscape}`,
     }
 
     // Pre-warm the server renderer so the real download starts painting
@@ -519,41 +531,62 @@ export default function ReadingDownloadDialog({
                             </span>
                         </div>
                         <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
-                            {DOWNLOAD_STYLES.map((style) => (
-                                <button
-                                    key={style.id}
-                                    type='button'
-                                    onClick={() => handleSelectStyle(style.id)}
-                                    className={`flex flex-col rounded-lg border p-2 text-left transition ${
-                                        styleId === style.id
-                                            ? "border-yellow-400/60 bg-yellow-400/10"
-                                            : "border-white/10 bg-white/5 hover:border-yellow-400/30"
-                                    }`}
-                                >
-                                    <div className='flex h-20 w-full items-center justify-center overflow-hidden rounded-md border border-white/10 bg-black/30'>
-                                        <div
-                                            className='relative h-full overflow-hidden rounded-sm'
-                                            style={{
-                                                aspectRatio: `${style.width}/${style.height}`,
-                                            }}
-                                        >
-                                            <Image
-                                                src={`/assets/share/${style.id}-background.jpg`}
-                                                alt={`${styleLabels[style.id]} preview`}
-                                                fill
-                                                unoptimized
-                                                className='object-cover'
-                                            />
+                            {DOWNLOAD_STYLES.map((style) => {
+                                const active = styleId === style.id
+                                // Largest box of this aspect ratio that fits
+                                // the 56×52 icon frame — a quick shape cue.
+                                const scale = Math.min(
+                                    56 / style.width,
+                                    52 / style.height,
+                                )
+                                const boxW = Math.round(style.width * scale)
+                                const boxH = Math.round(style.height * scale)
+                                return (
+                                    <button
+                                        key={style.id}
+                                        type='button'
+                                        onClick={() =>
+                                            handleSelectStyle(style.id)
+                                        }
+                                        aria-pressed={active}
+                                        className={`flex flex-col items-center gap-2 rounded-lg border p-3 text-center transition ${
+                                            active
+                                                ? "border-yellow-400/60 bg-yellow-400/10"
+                                                : "border-white/10 bg-white/5 hover:border-yellow-400/30"
+                                        }`}
+                                    >
+                                        <div className='flex h-[56px] w-full items-center justify-center'>
+                                            <div
+                                                className={`flex items-center justify-center rounded-[3px] border-2 transition ${
+                                                    active
+                                                        ? "border-yellow-300/90 bg-yellow-300/10"
+                                                        : "border-white/40 bg-white/5"
+                                                }`}
+                                                style={{
+                                                    width: boxW,
+                                                    height: boxH,
+                                                }}
+                                            >
+                                                <span
+                                                    className={`text-[9px] font-semibold leading-none ${
+                                                        active
+                                                            ? "text-yellow-200"
+                                                            : "text-white/70"
+                                                    }`}
+                                                >
+                                                    {styleRatios[style.id]}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className='mt-2 text-xs font-medium text-white'>
-                                        {styleLabels[style.id]}
-                                    </div>
-                                    <div className='text-[11px] text-white/55'>
-                                        {styleSizes[style.id]}
-                                    </div>
-                                </button>
-                            ))}
+                                        <div className='text-xs font-medium text-white'>
+                                            {styleLabels[style.id]}
+                                        </div>
+                                        <div className='text-[11px] text-white/55'>
+                                            {styleResolutions[style.id]}
+                                        </div>
+                                    </button>
+                                )
+                            })}
                         </div>
                     </div>
                     <div className='space-y-2'>
