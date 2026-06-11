@@ -97,6 +97,11 @@ export interface ActionSectionProps {
         isReversed: boolean
     }>
     assistantText?: string
+    /** Rich tarot fields forwarded to the share-image renderer (story layout). */
+    headline?: string
+    subtitle?: string
+    keyMessage?: string
+    detailedHtml?: string
     /** When set (e.g. from layout: row width − pill width − gap), drives how many icons show in `compact`. */
     compactAvailableWidthPx?: number
 }
@@ -148,6 +153,10 @@ export default function ActionSection({
     spreadType: propSpreadType,
     cardsFull: propCardsFull,
     assistantText: propAssistantText,
+    headline: propHeadline,
+    subtitle: propSubtitle,
+    keyMessage: propKeyMessage,
+    detailedHtml: propDetailedHtml,
     compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
@@ -175,7 +184,7 @@ export default function ActionSection({
         "image",
     )
     const [downloadStyleId, setDownloadStyleId] = useState("story")
-    const [, setPreviewUrl] = useState<string | null>(null)
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [, setPreviewError] = useState<string | null>(null)
     const [isPreviewLoading, setIsPreviewLoading] = useState(false)
     const [, setPreviewProgress] = useState<number | null>(null)
@@ -268,6 +277,10 @@ export default function ActionSection({
                         question,
                         cards,
                         interpretation,
+                        headline: propHeadline,
+                        subtitle: propSubtitle,
+                        keyMessage: propKeyMessage,
+                        detailedHtml: propDetailedHtml,
                         width,
                         height,
                         branding: "AskingFate",
@@ -315,7 +328,15 @@ export default function ActionSection({
                 inFlightRef.current.delete(key)
             }
         },
-        [question, cards, interpretation],
+        [
+            question,
+            cards,
+            interpretation,
+            propHeadline,
+            propSubtitle,
+            propKeyMessage,
+            propDetailedHtml,
+        ],
     )
 
     const createShareVideo = useCallback(
@@ -604,7 +625,16 @@ export default function ActionSection({
         previewCacheRef.current.clear()
         videoCacheRef.current.clear()
         inFlightRef.current.clear()
-    }, [downloadOpen, question, cards, interpretation])
+    }, [
+        downloadOpen,
+        question,
+        cards,
+        interpretation,
+        propHeadline,
+        propSubtitle,
+        propKeyMessage,
+        propDetailedHtml,
+    ])
 
     useEffect(() => {
         if (!downloadOpen) return
@@ -1430,6 +1460,39 @@ export default function ActionSection({
         void action.onClick?.()
     }
 
+    const previewAspect =
+        downloadStyleId === "story"
+            ? ("story" as const)
+            : downloadStyleId === "square"
+              ? ("square" as const)
+              : ("landscape" as const)
+    const previewAspectClass =
+        downloadStyleId === "story"
+            ? "aspect-[9/16]"
+            : downloadStyleId === "square"
+              ? "aspect-square"
+              : "aspect-video"
+    // Prefer the server-rendered preview so what the user sees matches the
+    // downloaded image pixel-for-pixel; SharePreview is the loading skeleton.
+    const sharePreviewNode = previewUrl ? (
+        <div className={`relative w-full ${previewAspectClass}`}>
+            <Image
+                src={previewUrl}
+                alt='Share preview'
+                fill
+                unoptimized
+                className='object-contain'
+            />
+        </div>
+    ) : (
+        <SharePreview
+            question={question}
+            cards={cards}
+            interpretation={interpretation}
+            aspectRatio={previewAspect}
+        />
+    )
+
     if (variant === "compact") {
         return (
             <div className='relative'>
@@ -1632,18 +1695,7 @@ export default function ActionSection({
                                     </span>
                                 </div>
                                 <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                    <SharePreview
-                                        question={question}
-                                        cards={cards}
-                                        interpretation={interpretation}
-                                        aspectRatio={
-                                            downloadStyleId === "story"
-                                                ? "story"
-                                                : downloadStyleId === "square"
-                                                  ? "square"
-                                                  : "landscape"
-                                        }
-                                    />
+                                    {sharePreviewNode}
                                 </div>
                             </div>
                         </div>
@@ -2154,24 +2206,7 @@ export default function ActionSection({
                                                             </span>
                                                         </div>
                                                         <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                                            <SharePreview
-                                                                question={
-                                                                    question
-                                                                }
-                                                                cards={cards}
-                                                                interpretation={
-                                                                    interpretation
-                                                                }
-                                                                aspectRatio={
-                                                                    downloadStyleId ===
-                                                                    "story"
-                                                                        ? "story"
-                                                                        : downloadStyleId ===
-                                                                            "square"
-                                                                          ? "square"
-                                                                          : "landscape"
-                                                                }
-                                                            />
+                                                            {sharePreviewNode}
                                                         </div>
                                                     </div>
                                                     <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
@@ -2769,22 +2804,7 @@ export default function ActionSection({
                                                         </span>
                                                     </div>
                                                     <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                                        <SharePreview
-                                                            question={question}
-                                                            cards={cards}
-                                                            interpretation={
-                                                                interpretation
-                                                            }
-                                                            aspectRatio={
-                                                                downloadStyleId ===
-                                                                "story"
-                                                                    ? "story"
-                                                                    : downloadStyleId ===
-                                                                        "square"
-                                                                      ? "square"
-                                                                      : "landscape"
-                                                            }
-                                                        />
+                                                        {sharePreviewNode}
                                                     </div>
                                                 </div>
                                             </div>

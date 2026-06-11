@@ -40,11 +40,19 @@ async function fetchReadingShareImage({
     question,
     cards,
     interpretation,
+    headline,
+    subtitle,
+    keyMessage,
+    detailedHtml,
     signal,
 }: {
     question?: string
     cards: string[]
     interpretation: string
+    headline?: string
+    subtitle?: string
+    keyMessage?: string
+    detailedHtml?: string
     signal?: AbortSignal
 }): Promise<Blob> {
     const res = await fetch("/api/share-image", {
@@ -54,6 +62,10 @@ async function fetchReadingShareImage({
             question,
             cards,
             interpretation,
+            headline,
+            subtitle,
+            keyMessage,
+            detailedHtml,
             width: 1080,
             height: 1920,
             branding: "AskingFate",
@@ -606,6 +618,10 @@ export function TarotAssistantInterpretation({
                             conclusion={unmask(message.followUpConclusion)}
                             spreadType={message.spreadType ?? undefined}
                             cardsFull={message.cards}
+                            headline={unmaskedHeadline}
+                            subtitle={unmaskedSubtitle}
+                            keyMessage={unmaskedKeyMessage}
+                            detailedHtml={unmask(message.detailedHtml)}
                             assistantText={unmask(
                                 messages
                                     .slice(0, messageIndex)
@@ -760,6 +776,16 @@ export function TarotAssistantInterpretation({
                                                                                 [],
                                                                             interpretation:
                                                                                 readingExportText,
+                                                                            headline:
+                                                                                unmaskedHeadline,
+                                                                            subtitle:
+                                                                                unmaskedSubtitle,
+                                                                            keyMessage:
+                                                                                unmaskedKeyMessage,
+                                                                            detailedHtml:
+                                                                                unmask(
+                                                                                    message.detailedHtml,
+                                                                                ),
                                                                         },
                                                                     )
                                                                 triggerBlobDownload(
