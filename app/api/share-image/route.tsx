@@ -275,24 +275,49 @@ function generateStars(count: number, width: number, height: number) {
         const left = Math.random() * width
         const top = Math.random() * height
 
-        // Random size (2-3px)
-        const size = 2 + Math.random()
+        // Random size (1.5-4px)
+        const size = 1.5 + Math.random() * 2.5
 
-        // Varying opacity - some stars are more faded (0.3-1.0)
-        // 30% chance for faded stars (0.3-0.6), 70% for brighter (0.6-1.0)
-        const isFaded = Math.random() < 0.15
+        // Varying opacity - some stars are more faded (0.25-1.0)
+        const isFaded = Math.random() < 0.3
         const opacity = isFaded
-            ? 0.3 + Math.random() * 0.3 // 0.3-0.6 for faded
-            : 0.6 + Math.random() * 0.4 // 0.6-1.0 for brighter
+            ? 0.25 + Math.random() * 0.3 // 0.25-0.55 for faded
+            : 0.55 + Math.random() * 0.45 // 0.55-1.0 for brighter
+
+        // Mostly white, with warm gold and cool blue accents for a
+        // lived-in night sky (flat fills — cheap for the rasterizer)
+        const roll = Math.random()
+        const color =
+            roll < 0.72
+                ? "255, 255, 255"
+                : roll < 0.88
+                  ? "252, 211, 77"
+                  : "191, 219, 254"
 
         stars.push({
             left,
             top,
             size,
             opacity,
+            color,
         })
     }
     return stars
+}
+
+/**
+ * Four-point "twinkle" sparkles scattered across the sky. Rendered as flat
+ * SVG fills (no blur filters), so they add sparkle without render cost.
+ */
+function generateSparkles(count: number, width: number, height: number) {
+    return Array.from({ length: count }, () => ({
+        left: Math.random() * (width - 60),
+        top: Math.random() * (height - 60),
+        size: 10 + Math.random() * 24,
+        opacity: 0.3 + Math.random() * 0.55,
+        gold: Math.random() < 0.45,
+        rotate: Math.floor(Math.random() * 90),
+    }))
 }
 
 /**
@@ -490,7 +515,8 @@ export async function POST(req: Request) {
               ? 1600
               : 980
 
-        const stars = generateStars(28, imageWidth, imageHeight)
+        const stars = generateStars(85, imageWidth, imageHeight)
+        const sparkles = generateSparkles(16, imageWidth, imageHeight)
 
         // ---- Story (9:16) rich layout data ----
         // Content column is maxContentWidth-capped to 980 but padded to 936
@@ -551,7 +577,7 @@ export async function POST(req: Request) {
         const showStoryKeywords = !hasRichDetail && keywords.length > 0
         const ctaText =
             truncate(String(cta ?? ""), 70) ||
-            "Ask your own question at dooduang.ai"
+            "Ask your own question at askingfate.com"
         // Gentle alternating tilt makes small spreads feel hand-laid.
         const storyCardTilt = (idx: number) =>
             storyCount > 1 && storyCount <= 3
@@ -606,22 +632,49 @@ export async function POST(req: Request) {
                         }}
                     />
 
-                    {/* Shining stars background */}
-                    {stars.map((star, idx) => (
-                        <div
-                            key={`star-${idx}`}
-                            style={{
-                                position: "absolute",
-                                left: star.left,
-                                top: star.top,
-                                width: star.size,
-                                height: star.size,
-                                borderRadius: "50%",
-                                background: "rgba(255, 255, 255, 1)",
-                                opacity: star.opacity,
-                            }}
-                        />
-                    ))}
+                    {/* Cosmic starfield — dots, soft halos and four-point
+                        twinkles flattened into ONE svg layer so Satori/resvg
+                        treat the whole sky as a single node */}
+                    <svg
+                        width={imageWidth}
+                        height={imageHeight}
+                        viewBox={`0 0 ${imageWidth} ${imageHeight}`}
+                        xmlns='http://www.w3.org/2000/svg'
+                        style={{ position: "absolute", top: 0, left: 0 }}
+                    >
+                        {stars.slice(0, 10).map((star, idx) => (
+                            <circle
+                                key={`halo-${idx}`}
+                                cx={star.left}
+                                cy={star.top}
+                                r={star.size * 3.2}
+                                fill='rgba(255,255,255,0.12)'
+                            />
+                        ))}
+                        {stars.map((star, idx) => (
+                            <circle
+                                key={`star-${idx}`}
+                                cx={star.left}
+                                cy={star.top}
+                                r={star.size / 2}
+                                fill={`rgba(${star.color}, 1)`}
+                                opacity={star.opacity}
+                            />
+                        ))}
+                        {sparkles.map((sparkle, idx) => (
+                            <path
+                                key={`sparkle-${idx}`}
+                                d='M12 0C12.7 7.3 16.7 11.3 24 12C16.7 12.7 12.7 16.7 12 24C11.3 16.7 7.3 12.7 0 12C7.3 11.3 11.3 7.3 12 0Z'
+                                fill={
+                                    sparkle.gold
+                                        ? "rgba(252,211,77,0.95)"
+                                        : "rgba(255,255,255,0.95)"
+                                }
+                                opacity={sparkle.opacity}
+                                transform={`translate(${Math.round(sparkle.left)} ${Math.round(sparkle.top)}) scale(${(sparkle.size / 24).toFixed(2)}) rotate(${sparkle.rotate} 12 12)`}
+                            />
+                        ))}
+                    </svg>
                     {/* Vignette to frame content */}
                     <div
                         style={{
@@ -644,23 +697,6 @@ export async function POST(req: Request) {
                             border: "1.5px solid rgba(250,204,21,0.26)",
                         }}
                     />
-                    {stars.slice(0, 6).map((star, idx) => (
-                        <div
-                            key={`glow-${idx}`}
-                            style={{
-                                position: "absolute",
-                                left: star.left,
-                                top: star.top,
-                                width: star.size * 6,
-                                height: star.size * 6,
-                                borderRadius: "50%",
-                                background:
-                                    "radial-gradient(circle, rgba(255,255,255,0.7), rgba(255,255,255,0))",
-                                opacity: 0.3,
-                                transform: "translate(-50%, -50%)",
-                            }}
-                        />
-                    ))}
                     {/* Signature star glyphs */}
                     <svg
                         width='200'
