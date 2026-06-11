@@ -371,7 +371,7 @@ export default function ReadingDownloadDialog({
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
                 side='bottom'
-                className='max-h-[88vh] overflow-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
+                className='max-h-[88vh] overflow-x-hidden overflow-y-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
             >
                 <Sparkle
                     className='absolute top-10 left-10 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
