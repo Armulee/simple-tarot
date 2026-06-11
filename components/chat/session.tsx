@@ -84,7 +84,7 @@ import ShareAccessDialog from "@/components/chat/share-access-dialog"
 import type { ChipId as HoroscopeCalendarChipId } from "@/components/chat/horoscope/calendar-tool"
 import { toast } from "sonner"
 import type { ReadingImageExportStatus } from "@/components/chat/tarot-interpretation"
-import { fetchShareImageBlob } from "@/lib/share-image-client"
+import { getShareImageBlob } from "@/lib/share-image-client"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
     Dialog,
@@ -5525,7 +5525,7 @@ export default function ChatSession({
         )
         if (message && isTarotReading) {
             try {
-                const blob = await fetchShareImageBlob(
+                const blob = await getShareImageBlob(
                     {
                         question: unmask(message.question),
                         cards:

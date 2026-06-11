@@ -16,8 +16,10 @@ import {
 import ShareImageMock from "@/components/share/share-image-mock"
 import { warmShareImagePipeline } from "@/lib/share-image-warmup"
 import {
-    fetchShareImageBlob,
+    getShareImageBlob,
+    peekShareImageBlob,
     type ShareImageProgress,
+    type ShareImageRequest,
 } from "@/lib/share-image-client"
 import { createShareVideo, SHARE_VIDEO_DURATION_MS } from "@/lib/share-video"
 
@@ -109,11 +111,11 @@ export default function ReadingDownloadDialog({
         null,
     )
 
-    const imageCacheRef = useRef<Map<string, Blob>>(new Map())
+    // Images live in the shared two-tier client cache (memory + Cache
+    // API); only the recorded videos stay component-local.
     const videoCacheRef = useRef<
         Map<string, { blob: Blob; ext: "mp4" | "webm" }>
     >(new Map())
-    const inFlightRef = useRef<Map<string, Promise<Blob>>>(new Map())
 
     const selectedStyle =
         DOWNLOAD_STYLES.find((style) => style.id === styleId) ??
@@ -174,12 +176,12 @@ export default function ReadingDownloadDialog({
         ],
     )
 
-    // The reading changed — every cached render is stale.
+    // The reading changed — stale cached entries are simply never keyed
+    // again (the shared cache keys on the full payload); only the local
+    // video cache and preview object URLs need resetting.
     useEffect(() => {
         void payloadKey
-        imageCacheRef.current.clear()
         videoCacheRef.current.clear()
-        inFlightRef.current.clear()
         setRealPreviewUrl((current) => {
             if (current) URL.revokeObjectURL(current)
             return null
@@ -190,44 +192,20 @@ export default function ReadingDownloadDialog({
         })
     }, [payloadKey])
 
-    const fetchShareImage = useCallback(
-        async ({
-            width,
-            height,
-            onProgress,
-        }: {
-            width: number
-            height: number
-            onProgress?: ShareImageProgress
-        }): Promise<Blob> => {
-            const key = `${width}x${height}`
-            const existing = inFlightRef.current.get(key)
-            if (existing) return existing
-
-            const promise = fetchShareImageBlob(
-                {
-                    question,
-                    cards,
-                    interpretation,
-                    headline,
-                    subtitle,
-                    keyMessage,
-                    detailedHtml,
-                    insights,
-                    cta: t("actions.shareCta"),
-                    width,
-                    height,
-                },
-                onProgress,
-            )
-
-            inFlightRef.current.set(key, promise)
-            try {
-                return await promise
-            } finally {
-                inFlightRef.current.delete(key)
-            }
-        },
+    const buildRequest = useCallback(
+        (style: ShareDownloadStyle): ShareImageRequest => ({
+            question,
+            cards,
+            interpretation,
+            headline,
+            subtitle,
+            keyMessage,
+            detailedHtml,
+            insights,
+            cta: t("actions.shareCta"),
+            width: style.width,
+            height: style.height,
+        }),
         [
             question,
             cards,
@@ -241,20 +219,16 @@ export default function ReadingDownloadDialog({
         ],
     )
 
-    /** Real server PNG for a style, from cache or fetched with progress. */
+    /** Real server PNG for a style, from the shared cache or rendered. */
     const getStyleImage = useCallback(
         async (
             style: ShareDownloadStyle,
             onProgress?: ShareImageProgress,
         ): Promise<Blob> => {
-            const cached = imageCacheRef.current.get(style.id)
-            if (cached) return cached
-            const blob = await fetchShareImage({
-                width: style.width,
-                height: style.height,
+            const blob = await getShareImageBlob(
+                buildRequest(style),
                 onProgress,
-            })
-            imageCacheRef.current.set(style.id, blob)
+            )
             if (style.id === selectedStyle.id) {
                 const nextUrl = URL.createObjectURL(blob)
                 setRealPreviewUrl((current) => {
@@ -264,16 +238,19 @@ export default function ReadingDownloadDialog({
             }
             return blob
         },
-        [fetchShareImage, selectedStyle.id],
+        [buildRequest, selectedStyle.id],
     )
 
     const handleSelectStyle = (id: ShareDownloadStyle["id"]) => {
         if (id === styleId) return
         setStyleId(id)
         // The cached real PNG / video belong to the previous style.
+        const style = DOWNLOAD_STYLES.find((entry) => entry.id === id)
         setRealPreviewUrl((current) => {
             if (current) URL.revokeObjectURL(current)
-            const cached = imageCacheRef.current.get(id)
+            const cached = style
+                ? peekShareImageBlob(buildRequest(style))
+                : null
             return cached ? URL.createObjectURL(cached) : null
         })
         setVideoUrl((current) => {
@@ -291,7 +268,7 @@ export default function ReadingDownloadDialog({
         setDownloadProgress(0)
         const emit = (status: ReadingImageExportStatus | null) =>
             onExportStatus?.(status)
-        if (!imageCacheRef.current.get(selectedStyle.id)) {
+        if (!peekShareImageBlob(buildRequest(selectedStyle))) {
             emit({ phase: "render", progress: 0 })
         }
         try {
@@ -317,7 +294,14 @@ export default function ReadingDownloadDialog({
             setDownloadPhase(null)
             setDownloadProgress(null)
         }
-    }, [selectedStyle, getStyleImage, filenameBase, onExportStatus, t])
+    }, [
+        selectedStyle,
+        getStyleImage,
+        buildRequest,
+        filenameBase,
+        onExportStatus,
+        t,
+    ])
 
     const handleVideoDownload = useCallback(async () => {
         setIsDownloading(true)
