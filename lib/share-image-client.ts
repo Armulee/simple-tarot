@@ -21,6 +21,8 @@ export type ShareImageRequest = {
     cta?: string
     width: number
     height: number
+    /** Render on a transparent canvas (for video compositing). */
+    transparent?: boolean
 }
 
 export type ShareImageProgress = (

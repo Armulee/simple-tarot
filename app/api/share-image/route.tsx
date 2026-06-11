@@ -609,6 +609,9 @@ export async function POST(req: Request) {
             width = 1080,
             height = 1920,
             branding = "AskingFate",
+            // Transparent canvas (no painted sky) — the video exporter
+            // composites this overlay onto the animated background.
+            transparent = false,
         } = await req.json()
 
         const cacheKey = JSON.stringify([
@@ -624,6 +627,7 @@ export async function POST(req: Request) {
             width,
             height,
             branding,
+            Boolean(transparent),
         ])
         const cached = renderedImageCache.get(cacheKey)
         if (cached && Date.now() - cached.at < RENDERED_CACHE_TTL_MS) {
@@ -721,8 +725,9 @@ export async function POST(req: Request) {
 
         // Each variant has its own painted artwork (moon, stars, gold
         // clouds and frame baked in); the procedural sky below is only
-        // the fallback when an asset is missing.
-        const useBgArt = Boolean(shareBgSrc)
+        // the fallback when an asset is missing. Transparent renders skip
+        // both and keep just the gold frame, for video compositing.
+        const useBgArt = Boolean(shareBgSrc) && !transparent
         const stars = generateStars(85, imageWidth, imageHeight)
         const sparkles = generateSparkles(16, imageWidth, imageHeight)
 
@@ -921,16 +926,55 @@ export async function POST(req: Request) {
                         paddingLeft: basePadding,
                         paddingBottom,
                         boxSizing: "border-box",
-                        background: useBgArt
-                            ? "#0a1232"
-                            : "radial-gradient(1500px 1000px at 50% -10%, rgba(64, 90, 176, 0.5) 0%, rgba(30, 45, 105, 0.32) 35%, rgba(7, 11, 34, 1) 75%), radial-gradient(1200px 900px at 85% 105%, rgba(45, 65, 140, 0.35) 0%, rgba(7, 11, 34, 1) 65%)",
+                        background: transparent
+                            ? "rgba(0,0,0,0)"
+                            : useBgArt
+                              ? "#0a1232"
+                              : "radial-gradient(1500px 1000px at 50% -10%, rgba(64, 90, 176, 0.5) 0%, rgba(30, 45, 105, 0.32) 35%, rgba(7, 11, 34, 1) 75%), radial-gradient(1200px 900px at 85% 105%, rgba(45, 65, 140, 0.35) 0%, rgba(7, 11, 34, 1) 65%)",
                         color: "#ffffff",
                         fontFamily: SANS_STACK,
                         position: "relative",
                         overflow: "hidden",
                     }}
                 >
-                    {useBgArt ? (
+                    {transparent ? (
+                        /* Video overlay: just the ornate gold frame — the
+                           animated sky shows through the alpha channel */
+                        <div
+                            style={{
+                                position: "absolute",
+                                inset: 0,
+                                display: "flex",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: 22,
+                                    left: 22,
+                                    right: 22,
+                                    bottom: 22,
+                                    borderRadius: 34,
+                                    border: "2px solid rgba(216,181,109,0.5)",
+                                }}
+                            />
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: 32,
+                                    left: 32,
+                                    right: 32,
+                                    bottom: 32,
+                                    borderRadius: 26,
+                                    border: "1px solid rgba(216,181,109,0.26)",
+                                }}
+                            />
+                            {cornerOrnament(0, { top: 34, left: 34 })}
+                            {cornerOrnament(90, { top: 34, right: 34 })}
+                            {cornerOrnament(180, { bottom: 34, right: 34 })}
+                            {cornerOrnament(270, { bottom: 34, left: 34 })}
+                        </div>
+                    ) : useBgArt ? (
                         /* Illustrated night-sky artwork — moon, stars, gold
                            clouds and frame are baked into the painting */
                         <img

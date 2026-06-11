@@ -34,6 +34,11 @@ export interface ShareImageMockProps {
     detailedHtml?: string
     insights?: string[]
     cta?: string
+    /**
+     * Loop this film behind the elements instead of the painted sky —
+     * previews the video export, whose overlay carries its own gold frame.
+     */
+    videoBackgroundSrc?: string
 }
 
 /**
@@ -55,6 +60,7 @@ export default function ShareImageMock({
     detailedHtml,
     insights,
     cta,
+    videoBackgroundSrc,
 }: ShareImageMockProps) {
     const isStory = aspect === "story"
     const isPost = aspect === "post"
@@ -619,14 +625,45 @@ export default function ShareImageMock({
             className={`relative w-full ${ratioClass} overflow-hidden text-white`}
             style={{ containerType: "inline-size", background: "#0a1232" }}
         >
-            <Image
-                src={`/assets/share/${aspect}-background.jpg`}
-                alt=''
-                fill
-                unoptimized
-                priority
-                className='object-cover'
-            />
+            {videoBackgroundSrc ? (
+                <>
+                    <video
+                        src={videoBackgroundSrc}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className='absolute inset-0 h-full w-full object-cover'
+                    />
+                    {/* The painted skies bake the gold frame in; the video
+                        overlay draws it, so the mock mirrors that here. */}
+                    <div
+                        className='pointer-events-none absolute z-10'
+                        style={{
+                            inset: s(22),
+                            borderRadius: s(34),
+                            border: "2px solid rgba(216,181,109,0.5)",
+                        }}
+                    />
+                    <div
+                        className='pointer-events-none absolute z-10'
+                        style={{
+                            inset: s(32),
+                            borderRadius: s(26),
+                            border: "1px solid rgba(216,181,109,0.26)",
+                        }}
+                    />
+                </>
+            ) : (
+                <Image
+                    src={`/assets/share/${aspect}-background.jpg`}
+                    alt=''
+                    fill
+                    unoptimized
+                    priority
+                    className='object-cover'
+                />
+            )}
             <div
                 className='relative z-10 flex h-full w-full flex-col'
                 style={{ padding: s(72), boxSizing: "border-box" }}

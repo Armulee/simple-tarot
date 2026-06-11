@@ -21,7 +21,11 @@ import {
     type ShareImageProgress,
     type ShareImageRequest,
 } from "@/lib/share-image-client"
-import { createShareVideo, SHARE_VIDEO_DURATION_MS } from "@/lib/share-video"
+import {
+    createShareVideo,
+    SHARE_VIDEO_BACKGROUND_SRC,
+    SHARE_VIDEO_DURATION_MS,
+} from "@/lib/share-video"
 
 export type ReadingImageExportStatus = {
     phase: "render" | "download" | "animate" | "done"
@@ -310,12 +314,14 @@ export default function ReadingDownloadDialog({
         try {
             let cached = videoCacheRef.current.get(selectedStyle.id)
             if (!cached) {
-                // Phase 1: real poster from the server (first ~25% of the
-                // bar); phase 2: the 15s canvas recording (remaining 75%).
+                // Phase 1: transparent overlay poster from the server
+                // (first ~25% of the bar) — frame, cards and text only,
+                // the cosmic film shows through; phase 2: the 15s canvas
+                // recording over the background video (remaining 75%).
                 setDownloadPhase("render")
                 setDownloadProgress(0)
-                const baseBlob = await getStyleImage(
-                    selectedStyle,
+                const overlayBlob = await getShareImageBlob(
+                    { ...buildRequest(selectedStyle), transparent: true },
                     (phase, progress) => {
                         setDownloadPhase(phase)
                         const scaled =
@@ -326,7 +332,7 @@ export default function ReadingDownloadDialog({
                 )
                 setDownloadPhase("animate")
                 cached = await createShareVideo({
-                    baseImageBlob: baseBlob,
+                    overlayBlob,
                     width: selectedStyle.width,
                     height: selectedStyle.height,
                     onProgress: (progress) => {
@@ -356,7 +362,7 @@ export default function ReadingDownloadDialog({
             setDownloadPhase(null)
             setDownloadProgress(null)
         }
-    }, [selectedStyle, getStyleImage, filenameBase, onExportStatus, t])
+    }, [selectedStyle, buildRequest, filenameBase, onExportStatus, t])
 
     const previewAspectClass =
         styleId === "story"
@@ -550,7 +556,7 @@ export default function ReadingDownloadDialog({
                                     playsInline
                                     className='absolute inset-0 h-full w-full object-contain'
                                 />
-                            ) : realPreviewUrl ? (
+                            ) : format === "image" && realPreviewUrl ? (
                                 <Image
                                     src={realPreviewUrl}
                                     alt={t("actions.downloadPreviewAlt")}
@@ -559,6 +565,8 @@ export default function ReadingDownloadDialog({
                                     className='object-contain'
                                 />
                             ) : (
+                                /* Video tab previews the elements live over
+                                   the looping cosmic film before recording */
                                 <ShareImageMock
                                     aspect={styleId}
                                     question={question}
@@ -570,6 +578,11 @@ export default function ReadingDownloadDialog({
                                     detailedHtml={detailedHtml}
                                     insights={insights}
                                     cta={t("actions.shareCta")}
+                                    videoBackgroundSrc={
+                                        format === "video"
+                                            ? SHARE_VIDEO_BACKGROUND_SRC
+                                            : undefined
+                                    }
                                 />
                             )}
                             {isDownloading && (
