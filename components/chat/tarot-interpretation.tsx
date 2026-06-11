@@ -14,6 +14,7 @@ import {
     type PromptAliasEntry,
 } from "@/lib/privacy/prompt-redaction"
 import { cn } from "@/lib/utils"
+import { warmShareImagePipeline } from "@/lib/share-image-warmup"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 import { useTranslations } from "next-intl"
 import { Download, Loader2, Share } from "lucide-react"
@@ -38,9 +39,17 @@ function triggerBlobDownload(filename: string, blob: Blob): void {
 
 export type ReadingImageExportStatus = {
     phase: "render" | "download" | "done"
-    /** 0..1 byte progress during the download phase; null = indeterminate. */
+    /** 0..1 overall progress; null = indeterminate. */
     progress: number | null
 }
+
+/**
+ * The server can't report paint progress, so the render phase advances on a
+ * smooth asymptotic clock toward this ceiling; real download bytes carry the
+ * bar from the ceiling to 100%.
+ */
+const RENDER_PROGRESS_CEILING = 0.72
+const RENDER_PROGRESS_TAU_S = 2.8
 
 async function fetchReadingShareImage({
     question,
@@ -67,26 +76,42 @@ async function fetchReadingShareImage({
     onStatus?: (status: ReadingImageExportStatus) => void
     signal?: AbortSignal
 }): Promise<Blob> {
-    onStatus?.({ phase: "render", progress: null })
-    const res = await fetch("/api/share-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            question,
-            cards,
-            interpretation,
-            headline,
-            subtitle,
-            keyMessage,
-            detailedHtml,
-            insights,
-            cta,
-            width: 1080,
-            height: 1920,
-            branding: "AskingFate",
-        }),
-        signal,
-    })
+    onStatus?.({ phase: "render", progress: 0 })
+    const startedAt = Date.now()
+    const ticker = window.setInterval(() => {
+        const elapsedS = (Date.now() - startedAt) / 1000
+        onStatus?.({
+            phase: "render",
+            progress:
+                RENDER_PROGRESS_CEILING *
+                (1 - Math.exp(-elapsedS / RENDER_PROGRESS_TAU_S)),
+        })
+    }, 120)
+
+    let res: Response
+    try {
+        res = await fetch("/api/share-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                question,
+                cards,
+                interpretation,
+                headline,
+                subtitle,
+                keyMessage,
+                detailedHtml,
+                insights,
+                cta,
+                width: 1080,
+                height: 1920,
+                branding: "AskingFate",
+            }),
+            signal,
+        })
+    } finally {
+        window.clearInterval(ticker)
+    }
     if (!res.ok) {
         throw new Error(`Share image request failed (${res.status})`)
     }
@@ -97,7 +122,7 @@ async function fetchReadingShareImage({
         return await res.blob()
     }
 
-    onStatus?.({ phase: "download", progress: 0 })
+    onStatus?.({ phase: "download", progress: RENDER_PROGRESS_CEILING })
     const reader = res.body.getReader()
     const chunks: BlobPart[] = []
     let received = 0
@@ -109,7 +134,10 @@ async function fetchReadingShareImage({
             received += value.length
             onStatus?.({
                 phase: "download",
-                progress: Math.min(received / total, 1),
+                progress:
+                    RENDER_PROGRESS_CEILING +
+                    (1 - RENDER_PROGRESS_CEILING) *
+                        Math.min(received / total, 1),
             })
         }
     }
@@ -299,6 +327,12 @@ export function TarotAssistantInterpretation({
     const isMultiCard = cardCount > 1
 
     const [activeCardIndex, setActiveCardIndex] = useState(0)
+
+    // Pre-warm the share-image renderer (fonts, artwork, WASM) so the first
+    // download starts painting immediately instead of paying the cold start.
+    useEffect(() => {
+        warmShareImagePipeline()
+    }, [])
     const [isImageDownloading, setIsImageDownloading] = useState(false)
     useEffect(() => {
         // Snap back to first card whenever the underlying spread changes

@@ -69,6 +69,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { warmShareImagePipeline } from "@/lib/share-image-warmup"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 import { MoreHorizontal } from "lucide-react"
@@ -108,6 +109,14 @@ export interface ActionSectionProps {
 
 const COMPACT_ACTION_BUTTON_PX = 32
 const COMPACT_ACTION_GAP_PX = 6
+
+/**
+ * The server can't report paint progress, so the render phase advances on a
+ * smooth asymptotic clock toward this ceiling; real download bytes carry the
+ * bar from the ceiling to 100%.
+ */
+const RENDER_PROGRESS_CEILING = 0.72
+const RENDER_PROGRESS_TAU_S = 2.8
 
 function getCompactVisibleActionCountFromWidth(availablePx: number, total: number) {
     if (total <= 0) return 0
@@ -249,6 +258,10 @@ export default function ActionSection({
         downloadStyles[0]
 
     useEffect(() => {
+        warmShareImagePipeline()
+    }, [])
+
+    useEffect(() => {
         if (typeof window === "undefined") return
         const handleResize = () => setViewportWidth(window.innerWidth)
         handleResize()
@@ -271,25 +284,38 @@ export default function ActionSection({
             if (existing) return existing
 
             const promise = (async () => {
-                const res = await fetch("/api/share-image", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        question,
-                        cards,
-                        interpretation,
-                        headline: propHeadline,
-                        subtitle: propSubtitle,
-                        keyMessage: propKeyMessage,
-                        detailedHtml: propDetailedHtml,
-                        insights: propInsights,
-                        cta: t("actions.shareCta"),
-                        width,
-                        height,
-                        branding: "AskingFate",
-                        type: "image",
-                    }),
-                })
+                const startedAt = Date.now()
+                const ticker = window.setInterval(() => {
+                    const elapsedS = (Date.now() - startedAt) / 1000
+                    onProgress?.(
+                        RENDER_PROGRESS_CEILING *
+                            (1 - Math.exp(-elapsedS / RENDER_PROGRESS_TAU_S)),
+                    )
+                }, 120)
+                let res: Response
+                try {
+                    res = await fetch("/api/share-image", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            question,
+                            cards,
+                            interpretation,
+                            headline: propHeadline,
+                            subtitle: propSubtitle,
+                            keyMessage: propKeyMessage,
+                            detailedHtml: propDetailedHtml,
+                            insights: propInsights,
+                            cta: t("actions.shareCta"),
+                            width,
+                            height,
+                            branding: "AskingFate",
+                            type: "image",
+                        }),
+                    })
+                } finally {
+                    window.clearInterval(ticker)
+                }
                 if (!res.ok) throw new Error("Preview failed")
 
                 const contentLength = res.headers.get("Content-Length")
@@ -314,7 +340,11 @@ export default function ActionSection({
                     if (value) {
                         chunks.push(value as BlobPart)
                         received += value.length
-                        onProgress?.(Math.min(received / total, 1))
+                        onProgress?.(
+                            RENDER_PROGRESS_CEILING +
+                                (1 - RENDER_PROGRESS_CEILING) *
+                                    Math.min(received / total, 1),
+                        )
                     }
                 }
 
@@ -1480,7 +1510,9 @@ export default function ActionSection({
     // Prefer the server-rendered preview so what the user sees matches the
     // downloaded image pixel-for-pixel; SharePreview is the loading skeleton.
     const previewPhase =
-        previewProgress !== null && previewProgress > 0 ? "download" : "render"
+        previewProgress !== null && previewProgress >= RENDER_PROGRESS_CEILING
+            ? "download"
+            : "render"
     const sharePreviewNode = (
         <>
             {previewUrl ? (

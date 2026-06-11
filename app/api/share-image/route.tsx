@@ -545,6 +545,74 @@ function cornerOrnament(
     )
 }
 
+/**
+ * One-time pipeline warm-up: loads fonts/logo/background into the module
+ * caches and renders a tiny throwaway canvas so Satori + the resvg WASM and
+ * the font parser are initialized before the first real request. The client
+ * pings GET /api/share-image as soon as a reading is on screen.
+ */
+let warmUpPromise: Promise<void> | null = null
+function warmUpPipeline(): Promise<void> {
+    if (!warmUpPromise) {
+        warmUpPromise = (async () => {
+            const [, , shareFonts] = await Promise.all([
+                readLogoAsBase64(),
+                readStoryBackground(),
+                loadShareFonts(),
+            ])
+            const probe = new ImageResponse(
+                (
+                    <div
+                        style={{
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            background: "#0a1232",
+                            color: "#ffffff",
+                            fontSize: 12,
+                        }}
+                    >
+                        Aก
+                    </div>
+                ),
+                {
+                    width: 32,
+                    height: 32,
+                    fonts: shareFonts.length > 0 ? shareFonts : undefined,
+                },
+            )
+            await probe.arrayBuffer()
+        })().catch((error) => {
+            console.error("share-image warm-up failed:", error)
+            warmUpPromise = null
+        })
+    }
+    return warmUpPromise
+}
+
+export async function GET() {
+    await warmUpPipeline()
+    return new Response(null, { status: 204 })
+}
+
+/**
+ * Tiny LRU of finished renders. Re-downloading the same reading (or the
+ * download right after the sheet preview) returns instantly instead of
+ * re-painting an identical image.
+ */
+const renderedImageCache = new Map<string, { buffer: ArrayBuffer; at: number }>()
+const RENDERED_CACHE_MAX = 6
+const RENDERED_CACHE_TTL_MS = 10 * 60 * 1000
+
+function pngResponse(buffer: ArrayBuffer): Response {
+    return new Response(buffer, {
+        headers: {
+            "Content-Type": "image/png",
+            "Content-Length": buffer.byteLength.toString(),
+        },
+    })
+}
+
 export async function POST(req: Request) {
     try {
         const {
@@ -561,6 +629,27 @@ export async function POST(req: Request) {
             height = 1920,
             branding = "AskingFate",
         } = await req.json()
+
+        const cacheKey = JSON.stringify([
+            question,
+            cards,
+            interpretation,
+            headline,
+            subtitle,
+            keyMessage,
+            detailedHtml,
+            insights,
+            cta,
+            width,
+            height,
+            branding,
+        ])
+        const cached = renderedImageCache.get(cacheKey)
+        if (cached && Date.now() - cached.at < RENDERED_CACHE_TTL_MS) {
+            renderedImageCache.delete(cacheKey)
+            renderedImageCache.set(cacheKey, { ...cached, at: cached.at })
+            return pngResponse(cached.buffer)
+        }
 
         const safeQuestion = String(question)
         const safeInterpretation = String(interpretation)
@@ -1793,12 +1882,13 @@ export async function POST(req: Request) {
         )
 
         const arrayBuffer = await imageResponse.arrayBuffer()
-        return new Response(arrayBuffer, {
-            headers: {
-                "Content-Type": "image/png",
-                "Content-Length": arrayBuffer.byteLength.toString(),
-            },
-        })
+        renderedImageCache.set(cacheKey, { buffer: arrayBuffer, at: Date.now() })
+        while (renderedImageCache.size > RENDERED_CACHE_MAX) {
+            const oldestKey = renderedImageCache.keys().next().value
+            if (oldestKey === undefined) break
+            renderedImageCache.delete(oldestKey)
+        }
+        return pngResponse(arrayBuffer)
     } catch (e) {
         console.error("Share image generation error:", e)
         return new Response(
