@@ -50,6 +50,7 @@ async function fetchReadingShareImage({
     subtitle,
     keyMessage,
     detailedHtml,
+    insights,
     cta,
     onStatus,
     signal,
@@ -61,6 +62,7 @@ async function fetchReadingShareImage({
     subtitle?: string
     keyMessage?: string
     detailedHtml?: string
+    insights?: string[]
     cta?: string
     onStatus?: (status: ReadingImageExportStatus) => void
     signal?: AbortSignal
@@ -77,6 +79,7 @@ async function fetchReadingShareImage({
             subtitle,
             keyMessage,
             detailedHtml,
+            insights,
             cta,
             width: 1080,
             height: 1920,
@@ -832,6 +835,16 @@ export function TarotAssistantInterpretation({
                                                                                 unmask(
                                                                                     message.detailedHtml,
                                                                                 ),
+                                                                            insights:
+                                                                                message.insights?.map(
+                                                                                    (
+                                                                                        i,
+                                                                                    ) =>
+                                                                                        unmask(
+                                                                                            i,
+                                                                                        ),
+                                                                                ) ??
+                                                                                [],
                                                                             cta: tReading(
                                                                                 "actions.shareCta",
                                                                             ),

@@ -282,6 +282,7 @@ export default function ActionSection({
                         subtitle: propSubtitle,
                         keyMessage: propKeyMessage,
                         detailedHtml: propDetailedHtml,
+                        insights: propInsights,
                         cta: t("actions.shareCta"),
                         width,
                         height,
@@ -338,6 +339,7 @@ export default function ActionSection({
             propSubtitle,
             propKeyMessage,
             propDetailedHtml,
+            propInsights,
             t,
         ],
     )

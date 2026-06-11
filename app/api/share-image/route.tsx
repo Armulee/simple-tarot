@@ -423,6 +423,107 @@ async function readLogoAsBase64() {
     return logoCache
 }
 
+
+const GOLD_SOFT = "rgba(232, 198, 106, 0.92)"
+const PANEL_BG = "rgba(10, 16, 44, 0.66)"
+const PANEL_BORDER = "1px solid rgba(216, 181, 109, 0.5)"
+const CRESCENT_PATH = "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
+const STAR_GLYPH_PATH =
+    "M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z"
+
+/** Centered gold "— ◆ LABEL ◆ —" heading used by every story section. */
+function sectionLabel(text: string, lineWidth = 84) {
+    return (
+        <div
+            style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 14,
+            }}
+        >
+            <div
+                style={{
+                    width: lineWidth,
+                    height: 1,
+                    background:
+                        "linear-gradient(90deg, rgba(216,181,109,0), rgba(216,181,109,0.65))",
+                }}
+            />
+            <div
+                style={{
+                    width: 7,
+                    height: 7,
+                    transform: "rotate(45deg)",
+                    background: GOLD_SOFT,
+                }}
+            />
+            <div
+                style={{
+                    fontSize: 21,
+                    fontWeight: 700,
+                    letterSpacing: 6,
+                    textTransform: "uppercase",
+                    color: GOLD_SOFT,
+                }}
+            >
+                {text}
+            </div>
+            <div
+                style={{
+                    width: 7,
+                    height: 7,
+                    transform: "rotate(45deg)",
+                    background: GOLD_SOFT,
+                }}
+            />
+            <div
+                style={{
+                    width: lineWidth,
+                    height: 1,
+                    background:
+                        "linear-gradient(90deg, rgba(216,181,109,0.65), rgba(216,181,109,0))",
+                }}
+            />
+        </div>
+    )
+}
+
+/** Art-deco corner flourish: two arcs + a small diamond, flat strokes only. */
+function cornerOrnament(
+    rotation: number,
+    position: { top?: number; bottom?: number; left?: number; right?: number },
+) {
+    return (
+        <svg
+            width='76'
+            height='76'
+            viewBox='0 0 76 76'
+            xmlns='http://www.w3.org/2000/svg'
+            style={{
+                position: "absolute",
+                ...position,
+                transform: `rotate(${rotation}deg)`,
+                opacity: 0.9,
+            }}
+        >
+            <path
+                d='M70 12 C44 14 14 44 12 70'
+                stroke='rgba(216,181,109,0.6)'
+                strokeWidth='1.5'
+                fill='none'
+            />
+            <path
+                d='M60 7 C38 11 11 38 7 60'
+                stroke='rgba(216,181,109,0.35)'
+                strokeWidth='1'
+                fill='none'
+            />
+            <path d='M16 9 L23 16 L16 23 L9 16 Z' fill='rgba(232,198,106,0.9)' />
+        </svg>
+    )
+}
+
 export async function POST(req: Request) {
     try {
         const {
@@ -433,6 +534,7 @@ export async function POST(req: Request) {
             subtitle = "",
             keyMessage = "",
             detailedHtml = "",
+            insights = [],
             cta = "",
             width = 1080,
             height = 1920,
@@ -526,25 +628,40 @@ export async function POST(req: Request) {
         const storyCount = storyCards.length
         const storyPerRow =
             storyCount <= 6 ? Math.max(storyCount, 1) : Math.ceil(storyCount / 2)
-        const storyCardGap = storyCount <= 4 ? 22 : 14
+        const storyCardGap = storyCount <= 4 ? 18 : 14
+        // Spreads up to 6 cards get framed panels with the card name (plus
+        // the per-card insight line for 1-3 cards, like the reference
+        // poster); bigger spreads fall back to bare gold-bordered tiles.
+        const usePanels = storyCount > 0 && storyCount <= 6
+        const storyPanelPad = storyCount <= 3 ? 14 : 10
+        const storyInsights = Array.isArray(insights)
+            ? insights.map((i) => String(i ?? ""))
+            : []
+        const showCardInsights =
+            storyCount > 0 &&
+            storyCount <= 3 &&
+            storyInsights.some((i) => i.trim().length > 0)
         const storyMaxCardW =
-            storyCount <= 2
-                ? 280
-                : storyCount === 3
-                  ? 250
-                  : storyCount === 4
-                    ? 208
-                    : 150
+            storyCount <= 1
+                ? 300
+                : storyCount === 2
+                  ? 256
+                  : storyCount === 3
+                    ? 228
+                    : storyCount === 4
+                      ? 190
+                      : 150
         const storyCardW = Math.round(
             Math.min(
                 (storyContentWidth - (storyPerRow - 1) * storyCardGap) /
-                    Math.max(storyPerRow, 1),
+                    Math.max(storyPerRow, 1) -
+                    (usePanels ? storyPanelPad * 2 + 2 : 0),
                 storyMaxCardW,
             ),
         )
         const storyCardH = Math.round(storyCardW * 1.728)
-        const showCardLabels = storyCount > 0 && storyCount <= 5
-        const cardLabelSize = storyCount <= 3 ? 22 : 17
+        const storyPanelW = storyCardW + storyPanelPad * 2 + 2
+        const cardLabelSize = storyCount <= 3 ? 24 : storyCount === 4 ? 19 : 15
 
         const storyHeadline = truncate(
             String(headline ?? "").trim() || String(keyMessage ?? "").trim(),
@@ -566,23 +683,24 @@ export async function POST(req: Request) {
             ]
         }
         const detailBudget =
-            storyCount >= 7 ? 400 : storyCount >= 5 ? 500 : 600
+            storyCount >= 7
+                ? 400
+                : storyCount >= 4
+                  ? 500
+                  : showCardInsights
+                    ? 460
+                    : 600
         storyBlocks = truncateRichBlocks(storyBlocks, detailBudget)
         const detailChars = storyBlocks.reduce(
             (sum, block) =>
                 sum + block.runs.reduce((s, run) => s + run.text.length, 0),
             0,
         )
-        const detailFontSize = detailChars > 460 ? 26 : 30
+        const detailFontSize = detailChars > 430 ? 26 : 29
         const showStoryKeywords = !hasRichDetail && keywords.length > 0
         const ctaText =
             truncate(String(cta ?? ""), 70) ||
             "Ask your own question at askingfate.com"
-        // Gentle alternating tilt makes small spreads feel hand-laid.
-        const storyCardTilt = (idx: number) =>
-            storyCount > 1 && storyCount <= 3
-                ? [-4, 0, 4][idx % 3] + (storyCount === 2 && idx === 1 ? 4 : 0)
-                : 0
 
         const imageResponse = new ImageResponse(
             (
@@ -598,7 +716,7 @@ export async function POST(req: Request) {
                         paddingBottom,
                         boxSizing: "border-box",
                         background:
-                            "radial-gradient(1600px 1000px at 20% 0%, rgba(30, 58, 138, 0.42) 0%, rgba(25, 45, 112, 0.3) 25%, rgba(15, 23, 42, 0.2) 40%, rgba(2, 6, 23, 1) 70%), radial-gradient(1400px 1000px at 80% 100%, rgba(30, 64, 175, 0.32) 0%, rgba(20, 40, 100, 0.2) 30%, rgba(2, 6, 23, 1) 65%)",
+                            "radial-gradient(1500px 1000px at 50% -10%, rgba(64, 90, 176, 0.5) 0%, rgba(30, 45, 105, 0.32) 35%, rgba(7, 11, 34, 1) 75%), radial-gradient(1200px 900px at 85% 105%, rgba(45, 65, 140, 0.35) 0%, rgba(7, 11, 34, 1) 65%)",
                         color: "#ffffff",
                         fontFamily: SANS_STACK,
                         position: "relative",
@@ -685,25 +803,56 @@ export async function POST(req: Request) {
                             pointerEvents: "none",
                         }}
                     />
-                    {/* Gold hairline frame */}
+                    {/* Ornate double gold frame with corner flourishes */}
                     <div
                         style={{
                             position: "absolute",
-                            top: 28,
-                            left: 28,
-                            right: 28,
-                            bottom: 28,
-                            borderRadius: 40,
-                            border: "1.5px solid rgba(250,204,21,0.26)",
+                            top: 22,
+                            left: 22,
+                            right: 22,
+                            bottom: 22,
+                            borderRadius: 34,
+                            border: "2px solid rgba(216,181,109,0.5)",
                         }}
                     />
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 32,
+                            left: 32,
+                            right: 32,
+                            bottom: 32,
+                            borderRadius: 26,
+                            border: "1px solid rgba(216,181,109,0.26)",
+                        }}
+                    />
+                    {cornerOrnament(0, { top: 34, left: 34 })}
+                    {cornerOrnament(90, { top: 34, right: 34 })}
+                    {cornerOrnament(180, { bottom: 34, right: 34 })}
+                    {cornerOrnament(270, { bottom: 34, left: 34 })}
+                    {/* Crescent moon */}
+                    <svg
+                        width='46'
+                        height='46'
+                        viewBox='0 0 24 24'
+                        fill='rgba(232,198,106,0.8)'
+                        xmlns='http://www.w3.org/2000/svg'
+                        style={{
+                            position: "absolute",
+                            top: 110,
+                            left: 92,
+                            transform: "rotate(-18deg)",
+                        }}
+                    >
+                        <path d={CRESCENT_PATH} />
+                    </svg>
                     {/* Signature star glyphs */}
                     <svg
                         width='200'
                         height='200'
                         viewBox='0 0 24 24'
                         fill='none'
-                        stroke='rgba(255,255,255,0.5)'
+                        stroke='rgba(232,198,106,0.55)'
                         strokeWidth='1.2'
                         strokeLinecap='round'
                         strokeLinejoin='round'
@@ -722,7 +871,7 @@ export async function POST(req: Request) {
                         height='260'
                         viewBox='0 0 24 24'
                         fill='none'
-                        stroke='rgba(56,189,248,0.35)'
+                        stroke='rgba(232,198,106,0.4)'
                         strokeWidth='0.8'
                         strokeLinecap='round'
                         strokeLinejoin='round'
@@ -795,33 +944,31 @@ export async function POST(req: Request) {
                             style={{
                                 display: "flex",
                                 alignItems: "center",
-                                justifyContent: "flex-end",
-                                gap: 16,
+                                justifyContent: "center",
+                                gap: 14,
                                 position: "relative",
-                                alignSelf: "flex-end",
-                                padding: "10px 16px",
+                                alignSelf: isHorizontal
+                                    ? "flex-end"
+                                    : "center",
+                                padding: "10px 26px",
                                 borderRadius: 999,
-                                background:
-                                    "linear-gradient(135deg, rgba(15,23,42,0.6), rgba(30,41,59,0.35))",
-                                border: "1px solid rgba(255,255,255,0.12)",
-                                boxShadow:
-                                    "0 6px 14px -8px rgba(56,189,248,0.45)",
+                                background: "rgba(10,16,44,0.55)",
+                                border: "1px solid rgba(216,181,109,0.4)",
                             }}
                         >
                             <img
                                 src={logoSrc}
                                 alt='AskingFate logo'
-                                width={56}
-                                height={56}
+                                width={50}
+                                height={50}
                             />
                             <div
                                 style={{
-                                    fontSize: 36,
-                                    fontWeight: 900,
-                                    letterSpacing: -0.5,
-                                    color: "rgba(255,255,255,1)",
-                                    textShadow:
-                                        "0 2px 8px rgba(234,179,8,0.35)",
+                                    fontFamily: SERIF_STACK,
+                                    fontSize: 38,
+                                    fontWeight: 700,
+                                    letterSpacing: 0.5,
+                                    color: "#ecd9a8",
                                 }}
                             >
                                 {String(branding || "AskingFate")}
@@ -1167,7 +1314,7 @@ export async function POST(req: Request) {
                                 style={{
                                     display: "flex",
                                     flexDirection: "column",
-                                    gap: 28,
+                                    gap: 26,
                                     width: "100%",
                                     flex: 1,
                                     minHeight: 0,
@@ -1180,109 +1327,77 @@ export async function POST(req: Request) {
                                         flexDirection: "column",
                                         alignItems: "center",
                                         textAlign: "center",
+                                        gap: 14,
                                         maxWidth: "100%",
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            fontSize: 22,
-                                            fontWeight: 600,
-                                            letterSpacing: 3,
-                                            textTransform: "uppercase",
-                                            color: "rgba(204,203,203,0.9)",
-                                            marginBottom: 12,
-                                        }}
-                                    >
-                                        Question
-                                    </div>
+                                    {sectionLabel("Question")}
                                     <div
                                         style={{
                                             fontFamily: SERIF_STACK,
                                             fontSize: 38,
                                             fontWeight: 800,
                                             lineHeight: 1.25,
-                                            textShadow:
-                                                "0 2px 10px rgba(56,189,248,0.3)",
-                                            color: "rgba(255,255,255,0.98)",
+                                            color: "#f6ecd2",
                                             textAlign: "center",
                                             maxWidth: "100%",
                                             wordBreak: "break-word",
                                             overflowWrap: "break-word",
+                                            textShadow:
+                                                "0 2px 10px rgba(7,11,34,0.8)",
                                         }}
                                     >
                                         {`"${displayQuestion}"`}
                                     </div>
                                 </div>
 
-                                {/* Cards — the full spread */}
+                                {/* Cards — the full spread in framed panels */}
                                 {storyCards.length > 0 ? (
                                     <div
                                         style={{
                                             display: "flex",
                                             flexDirection: "column",
-                                            gap: 14,
+                                            gap: 18,
                                             alignItems: "center",
                                         }}
                                     >
-                                        <div
-                                            style={{
-                                                fontSize: 22,
-                                                letterSpacing: 3,
-                                                textTransform: "uppercase",
-                                                color: "rgba(255,255,255,0.65)",
-                                            }}
-                                        >
-                                            Your cards
-                                        </div>
+                                        {sectionLabel("Your cards")}
                                         <div
                                             style={{
                                                 display: "flex",
                                                 gap: storyCardGap,
                                                 flexWrap: "wrap",
-                                                alignItems: "flex-start",
+                                                alignItems: "stretch",
                                                 justifyContent: "center",
                                                 maxWidth: "100%",
                                             }}
                                         >
-                                            {storyCards.map((c, idx) => (
-                                                <div
-                                                    key={`card-${c.slug}-${idx}`}
-                                                    style={{
-                                                        display: "flex",
-                                                        flexDirection:
-                                                            "column",
-                                                        gap: 10,
-                                                        alignItems: "center",
-                                                    }}
-                                                >
+                                            {storyCards.map((c, idx) => {
+                                                const insight =
+                                                    showCardInsights
+                                                        ? truncate(
+                                                              storyInsights[
+                                                                  idx
+                                                              ] ?? "",
+                                                              90,
+                                                          )
+                                                        : ""
+                                                const cardBox = (
                                                     <div
                                                         style={{
                                                             width: storyCardW,
                                                             height: storyCardH,
-                                                            borderRadius: 16,
-                                                            transform: `rotate(${storyCardTilt(idx)}deg)`,
+                                                            borderRadius: 12,
                                                             position:
                                                                 "relative",
                                                             overflow:
                                                                 "hidden",
-                                                            boxShadow:
-                                                                "0 12px 28px -10px rgba(234,179,8,0.55), 0 4px 10px rgba(139,92,246,0.3)",
-                                                            border: "2px solid rgba(255,255,255,0.2)",
+                                                            border: "1px solid rgba(216,181,109,0.55)",
                                                             display: "flex",
                                                             background:
-                                                                "rgba(10,8,26,0.4)",
+                                                                "rgba(7,11,34,0.5)",
                                                         }}
                                                     >
-                                                        <div
-                                                            style={{
-                                                                position:
-                                                                    "absolute",
-                                                                inset: -60,
-                                                                background:
-                                                                    "radial-gradient(circle at 30% 20%, rgba(99,102,241,0.3), rgba(99,102,241,0.0) 50%), radial-gradient(circle at 70% 80%, rgba(234,179,8,0.22), rgba(234,179,8,0.0) 55%)",
-                                                                opacity: 0.8,
-                                                            }}
-                                                        />
                                                         <img
                                                             src={c.src}
                                                             style={{
@@ -1295,39 +1410,77 @@ export async function POST(req: Request) {
                                                                     c.isReversed
                                                                         ? "rotate(180deg)"
                                                                         : "rotate(0deg)",
-                                                                borderRadius: 14,
-                                                            }}
-                                                        />
-                                                        <div
-                                                            style={{
-                                                                position:
-                                                                    "absolute",
-                                                                inset: 0,
-                                                                background:
-                                                                    "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 100%)",
-                                                                borderRadius: 14,
                                                             }}
                                                         />
                                                     </div>
-                                                    {showCardLabels ? (
+                                                )
+                                                return usePanels ? (
+                                                    <div
+                                                        key={`card-${c.slug}-${idx}`}
+                                                        style={{
+                                                            display: "flex",
+                                                            flexDirection:
+                                                                "column",
+                                                            alignItems:
+                                                                "center",
+                                                            gap: 10,
+                                                            width: storyPanelW,
+                                                            padding:
+                                                                storyPanelPad,
+                                                            paddingBottom:
+                                                                storyPanelPad +
+                                                                4,
+                                                            borderRadius: 18,
+                                                            background:
+                                                                PANEL_BG,
+                                                            border: PANEL_BORDER,
+                                                        }}
+                                                    >
+                                                        {cardBox}
                                                         <div
                                                             style={{
+                                                                fontFamily:
+                                                                    SERIF_STACK,
                                                                 fontSize:
                                                                     cardLabelSize,
-                                                                color: "rgba(255,255,255,0.72)",
+                                                                fontWeight: 700,
+                                                                color: GOLD_SOFT,
                                                                 textAlign:
                                                                     "center",
+                                                                lineHeight: 1.25,
                                                                 maxWidth:
-                                                                    storyCardW +
-                                                                    8,
-                                                                lineHeight: 1.3,
+                                                                    storyCardW,
                                                             }}
                                                         >
                                                             {c.name}
                                                         </div>
-                                                    ) : null}
-                                                </div>
-                                            ))}
+                                                        {insight ? (
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 17,
+                                                                    lineHeight: 1.45,
+                                                                    color: "rgba(255,255,255,0.72)",
+                                                                    textAlign:
+                                                                        "center",
+                                                                    maxWidth:
+                                                                        storyCardW,
+                                                                }}
+                                                            >
+                                                                {insight}
+                                                            </div>
+                                                        ) : null}
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        key={`card-${c.slug}-${idx}`}
+                                                        style={{
+                                                            display: "flex",
+                                                        }}
+                                                    >
+                                                        {cardBox}
+                                                    </div>
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 ) : null}
@@ -1338,87 +1491,42 @@ export async function POST(req: Request) {
                                         style={{
                                             display: "flex",
                                             flexDirection: "column",
-                                            borderRadius: 32,
-                                            padding: "36px 44px",
-                                            background:
-                                                "linear-gradient(135deg, rgba(250,204,21,0.16) 0%, rgba(180,83,9,0.10) 35%, rgba(30,41,59,0.55) 100%)",
-                                            border: "1px solid rgba(250,204,21,0.35)",
-                                            boxShadow:
-                                                "0 14px 32px -14px rgba(250,204,21,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
-                                            position: "relative",
+                                            alignItems: "center",
+                                            textAlign: "center",
+                                            gap: 14,
+                                            borderRadius: 24,
+                                            padding: "28px 44px 32px",
+                                            background: PANEL_BG,
+                                            border: PANEL_BORDER,
                                             maxWidth: "100%",
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <div
+                                        <svg
+                                            width='30'
+                                            height='30'
+                                            viewBox='0 0 24 24'
+                                            fill='rgba(232,198,106,0.9)'
+                                            xmlns='http://www.w3.org/2000/svg'
                                             style={{
-                                                position: "absolute",
-                                                top: -80,
-                                                right: -80,
-                                                width: 260,
-                                                height: 260,
-                                                borderRadius: 9999,
-                                                background:
-                                                    "radial-gradient(circle at center, rgba(250,204,21,0.22), rgba(250,204,21,0) 70%)",
-                                            }}
-                                        />
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 14,
-                                                marginBottom: 18,
+                                                transform: "rotate(-18deg)",
                                             }}
                                         >
-                                            <svg
-                                                width='26'
-                                                height='26'
-                                                viewBox='0 0 24 24'
-                                                fill='rgba(252,211,77,0.9)'
-                                                stroke='rgba(252,211,77,0.95)'
-                                                strokeWidth='1'
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                xmlns='http://www.w3.org/2000/svg'
-                                            >
-                                                <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
-                                            </svg>
-                                            <div
-                                                style={{
-                                                    fontSize: 22,
-                                                    fontWeight: 700,
-                                                    letterSpacing: 6,
-                                                    textTransform: "uppercase",
-                                                    color: "rgba(252,211,77,0.95)",
-                                                }}
-                                            >
-                                                Key message
-                                            </div>
-                                            <svg
-                                                width='26'
-                                                height='26'
-                                                viewBox='0 0 24 24'
-                                                fill='rgba(252,211,77,0.9)'
-                                                stroke='rgba(252,211,77,0.95)'
-                                                strokeWidth='1'
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                xmlns='http://www.w3.org/2000/svg'
-                                            >
-                                                <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
-                                            </svg>
-                                        </div>
+                                            <path d={CRESCENT_PATH} />
+                                        </svg>
+                                        {sectionLabel("Key message", 60)}
                                         <div
                                             style={{
                                                 fontFamily: SERIF_STACK,
                                                 fontSize: headlineFontSize,
                                                 fontWeight: 800,
                                                 lineHeight: 1.25,
-                                                color: "rgba(255,255,255,1)",
-                                                textShadow:
-                                                    "0 2px 10px rgba(250,204,21,0.3)",
+                                                color: "#f8eed6",
+                                                textAlign: "center",
                                                 wordBreak: "break-word",
                                                 overflowWrap: "break-word",
+                                                textShadow:
+                                                    "0 2px 12px rgba(216,181,109,0.25)",
                                             }}
                                         >
                                             {storyHeadline}
@@ -1426,10 +1534,10 @@ export async function POST(req: Request) {
                                         {storySubtitle ? (
                                             <div
                                                 style={{
-                                                    marginTop: 14,
-                                                    fontSize: 28,
+                                                    fontSize: 26,
                                                     lineHeight: 1.5,
-                                                    color: "rgba(255,255,255,0.8)",
+                                                    color: "rgba(255,255,255,0.72)",
+                                                    textAlign: "center",
                                                     wordBreak: "break-word",
                                                     overflowWrap: "break-word",
                                                 }}
@@ -1449,73 +1557,25 @@ export async function POST(req: Request) {
                                         style={{
                                             display: "flex",
                                             flexDirection: "column",
-                                            borderRadius: 32,
-                                            padding: "36px 44px",
-                                            background:
-                                                "linear-gradient(150deg, rgba(30,41,59,0.72) 0%, rgba(99,102,241,0.22) 45%, rgba(34,211,238,0.12) 100%)",
-                                            boxShadow:
-                                                "0 16px 32px -16px rgba(56,189,248,0.5), inset 0 1px 0 rgba(255,255,255,0.16)",
-                                            border: "1px solid rgba(255,255,255,0.16)",
-                                            position: "relative",
+                                            gap: 18,
+                                            borderRadius: 24,
+                                            padding: "26px 40px 30px",
+                                            background: PANEL_BG,
+                                            border: PANEL_BORDER,
                                             maxWidth: "100%",
                                             flex: 1,
                                             minHeight: 0,
                                             overflow: "hidden",
                                         }}
                                     >
-                                        <div
-                                            style={{
-                                                position: "absolute",
-                                                top: 0,
-                                                left: 0,
-                                                width: 140,
-                                                height: 140,
-                                                borderRadius: "32px 0 0 0",
-                                                background:
-                                                    "radial-gradient(circle at top left, rgba(139,92,246,0.2), transparent 70%)",
-                                                opacity: 0.7,
-                                            }}
-                                        />
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 14,
-                                                marginBottom: 20,
-                                            }}
-                                        >
-                                            <svg
-                                                width='24'
-                                                height='24'
-                                                viewBox='0 0 24 24'
-                                                fill='none'
-                                                stroke='rgba(165,180,252,0.95)'
-                                                strokeWidth='1.6'
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                xmlns='http://www.w3.org/2000/svg'
-                                            >
-                                                <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
-                                            </svg>
-                                            <div
-                                                style={{
-                                                    fontSize: 22,
-                                                    fontWeight: 700,
-                                                    letterSpacing: 6,
-                                                    textTransform: "uppercase",
-                                                    color: "rgba(255,255,255,0.65)",
-                                                }}
-                                            >
-                                                The reading
-                                            </div>
-                                        </div>
+                                        {sectionLabel("The reading", 60)}
                                         {showStoryKeywords && (
                                             <div
                                                 style={{
                                                     display: "flex",
                                                     flexWrap: "wrap",
-                                                    gap: 14,
-                                                    marginBottom: 22,
+                                                    gap: 12,
+                                                    justifyContent: "center",
                                                 }}
                                             >
                                                 {keywords.map(
@@ -1524,13 +1584,13 @@ export async function POST(req: Request) {
                                                             key={`keyword-${idx}`}
                                                             style={{
                                                                 padding:
-                                                                    "8px 22px",
+                                                                    "7px 20px",
                                                                 borderRadius: 9999,
                                                                 background:
-                                                                    "rgba(255,255,255,0.1)",
-                                                                border: "1px solid rgba(255,255,255,0.2)",
-                                                                color: "rgba(255,255,255,0.95)",
-                                                                fontSize: 26,
+                                                                    "rgba(216,181,109,0.1)",
+                                                                border: "1px solid rgba(216,181,109,0.4)",
+                                                                color: GOLD_SOFT,
+                                                                fontSize: 24,
                                                                 fontWeight: 500,
                                                                 whiteSpace:
                                                                     "nowrap",
@@ -1581,7 +1641,7 @@ export async function POST(req: Request) {
                                                                 style={{
                                                                     whiteSpace:
                                                                         "pre",
-                                                                    color: "rgba(252,211,77,0.95)",
+                                                                    color: GOLD_SOFT,
                                                                     fontWeight: 700,
                                                                     marginRight: 14,
                                                                 }}
@@ -1604,8 +1664,8 @@ export async function POST(req: Request) {
                                                                                 whiteSpace:
                                                                                     "pre-wrap",
                                                                                 color: run.gold
-                                                                                    ? "#fcd34d"
-                                                                                    : "rgba(255,255,255,0.94)",
+                                                                                    ? "#e8c66a"
+                                                                                    : "rgba(255,255,255,0.93)",
                                                                                 fontWeight:
                                                                                     run.bold ||
                                                                                     run.gold
@@ -1635,79 +1695,38 @@ export async function POST(req: Request) {
                                 <div
                                     style={{
                                         display: "flex",
-                                        flexDirection: "column",
                                         alignItems: "center",
-                                        gap: 18,
+                                        justifyContent: "center",
+                                        gap: 14,
+                                        alignSelf: "center",
+                                        padding: "15px 42px",
+                                        borderRadius: 9999,
+                                        border: "1.5px solid rgba(216,181,109,0.65)",
+                                        background: "rgba(216,181,109,0.1)",
+                                        color: "#ecd9a8",
+                                        fontSize: 26,
+                                        fontWeight: 600,
                                     }}
                                 >
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 16,
-                                        }}
+                                    <svg
+                                        width='22'
+                                        height='22'
+                                        viewBox='0 0 24 24'
+                                        fill='rgba(232,198,106,0.95)'
+                                        xmlns='http://www.w3.org/2000/svg'
                                     >
-                                        <div
-                                            style={{
-                                                width: 150,
-                                                height: 1,
-                                                background:
-                                                    "linear-gradient(90deg, rgba(250,204,21,0), rgba(250,204,21,0.55))",
-                                            }}
-                                        />
-                                        <svg
-                                            width='18'
-                                            height='18'
-                                            viewBox='0 0 24 24'
-                                            fill='rgba(252,211,77,0.9)'
-                                            stroke='rgba(252,211,77,0.95)'
-                                            strokeWidth='1'
-                                            strokeLinecap='round'
-                                            strokeLinejoin='round'
-                                            xmlns='http://www.w3.org/2000/svg'
-                                        >
-                                            <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
-                                        </svg>
-                                        <div
-                                            style={{
-                                                width: 150,
-                                                height: 1,
-                                                background:
-                                                    "linear-gradient(90deg, rgba(250,204,21,0.55), rgba(250,204,21,0))",
-                                            }}
-                                        />
-                                    </div>
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 14,
-                                            padding: "16px 42px",
-                                            borderRadius: 9999,
-                                            background:
-                                                "linear-gradient(100deg, #b45309 0%, #f59e0b 28%, #fcd34d 50%, #f59e0b 72%, #b45309 100%)",
-                                            boxShadow:
-                                                "0 10px 24px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.5)",
-                                            color: "#221303",
-                                            fontSize: 27,
-                                            fontWeight: 700,
-                                        }}
+                                        <path d={STAR_GLYPH_PATH} />
+                                    </svg>
+                                    {ctaText}
+                                    <svg
+                                        width='22'
+                                        height='22'
+                                        viewBox='0 0 24 24'
+                                        fill='rgba(232,198,106,0.95)'
+                                        xmlns='http://www.w3.org/2000/svg'
                                     >
-                                        <svg
-                                            width='26'
-                                            height='26'
-                                            viewBox='0 0 24 24'
-                                            fill='rgba(34,19,3,0.9)'
-                                            stroke='rgba(34,19,3,0.9)'
-                                            strokeWidth='1'
-                                            strokeLinecap='round'
-                                            strokeLinejoin='round'
-                                            xmlns='http://www.w3.org/2000/svg'
-                                        >
-                                            <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
-                                        </svg>
-                                        {ctaText}
-                                    </div>
+                                        <path d={STAR_GLYPH_PATH} />
+                                    </svg>
                                 </div>
                             </div>
                         )}
