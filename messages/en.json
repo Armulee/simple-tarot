@@ -738,6 +738,11 @@
       }
     }
   },
+  "ShareImageProgress": {
+    "render": "Painting your reading\u2026",
+    "download": "Downloading your image\u2026",
+    "done": "Saved to your device"
+  },
   "QuestionInput": {
     "label": "Your question",
     "placeholder": "Type your question...",
@@ -1593,6 +1598,7 @@
         "share": "Share",
         "downloadReadingText": "Download reading as a text file",
         "downloadReadingImage": "Download reading as an image",
+        "shareCta": "Ask your own question at dooduang.ai",
         "copyResult": "Copy Interpretation",
         "askFollowUp": "Ask Follow-up",
         "askFollowUpPrompt": "Can you expand on this reading for me?",

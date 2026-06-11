@@ -36,6 +36,12 @@ function triggerBlobDownload(filename: string, blob: Blob): void {
     }
 }
 
+export type ReadingImageExportStatus = {
+    phase: "render" | "download" | "done"
+    /** 0..1 byte progress during the download phase; null = indeterminate. */
+    progress: number | null
+}
+
 async function fetchReadingShareImage({
     question,
     cards,
@@ -44,6 +50,8 @@ async function fetchReadingShareImage({
     subtitle,
     keyMessage,
     detailedHtml,
+    cta,
+    onStatus,
     signal,
 }: {
     question?: string
@@ -53,8 +61,11 @@ async function fetchReadingShareImage({
     subtitle?: string
     keyMessage?: string
     detailedHtml?: string
+    cta?: string
+    onStatus?: (status: ReadingImageExportStatus) => void
     signal?: AbortSignal
 }): Promise<Blob> {
+    onStatus?.({ phase: "render", progress: null })
     const res = await fetch("/api/share-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,6 +77,7 @@ async function fetchReadingShareImage({
             subtitle,
             keyMessage,
             detailedHtml,
+            cta,
             width: 1080,
             height: 1920,
             branding: "AskingFate",
@@ -75,7 +87,32 @@ async function fetchReadingShareImage({
     if (!res.ok) {
         throw new Error(`Share image request failed (${res.status})`)
     }
-    return await res.blob()
+
+    const total = Number(res.headers.get("Content-Length"))
+    if (!res.body || !Number.isFinite(total) || total <= 0) {
+        onStatus?.({ phase: "download", progress: null })
+        return await res.blob()
+    }
+
+    onStatus?.({ phase: "download", progress: 0 })
+    const reader = res.body.getReader()
+    const chunks: BlobPart[] = []
+    let received = 0
+    while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        if (value) {
+            chunks.push(value as BlobPart)
+            received += value.length
+            onStatus?.({
+                phase: "download",
+                progress: Math.min(received / total, 1),
+            })
+        }
+    }
+    return new Blob(chunks, {
+        type: res.headers.get("Content-Type") || "image/png",
+    })
 }
 
 const INTERPRETATION_FILLER_PREFIXES = [
@@ -195,6 +232,14 @@ export type TarotAssistantInterpretationProps = {
     /** Called when the headline row image export fails (network/blob/anchor error). */
     onReadingTextDownloadFailed?: (messageId: string) => void
     /**
+     * Live share-image export progress (render → download → done). The chat
+     * session mirrors this into the composer status strip; `null` clears it.
+     */
+    onReadingImageExportStatus?: (
+        messageId: string,
+        status: ReadingImageExportStatus | null,
+    ) => void
+    /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
      * original PII the user typed, for every user-facing render and share.
      */
@@ -226,6 +271,7 @@ export function TarotAssistantInterpretation({
     onShare,
     onReadingTextDownloaded,
     onReadingTextDownloadFailed,
+    onReadingImageExportStatus,
     unmask,
     privacyAliases,
 }: TarotAssistantInterpretationProps) {
@@ -786,16 +832,38 @@ export function TarotAssistantInterpretation({
                                                                                 unmask(
                                                                                     message.detailedHtml,
                                                                                 ),
+                                                                            cta: tReading(
+                                                                                "actions.shareCta",
+                                                                            ),
+                                                                            onStatus:
+                                                                                (
+                                                                                    status,
+                                                                                ) =>
+                                                                                    onReadingImageExportStatus?.(
+                                                                                        message.id,
+                                                                                        status,
+                                                                                    ),
                                                                         },
                                                                     )
                                                                 triggerBlobDownload(
                                                                     filename,
                                                                     blob,
                                                                 )
+                                                                onReadingImageExportStatus?.(
+                                                                    message.id,
+                                                                    {
+                                                                        phase: "done",
+                                                                        progress: 1,
+                                                                    },
+                                                                )
                                                                 onReadingTextDownloaded?.(
                                                                     message.id,
                                                                 )
                                                             } catch {
+                                                                onReadingImageExportStatus?.(
+                                                                    message.id,
+                                                                    null,
+                                                                )
                                                                 onReadingTextDownloadFailed?.(
                                                                     message.id,
                                                                 )

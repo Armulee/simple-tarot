@@ -751,6 +751,11 @@
       }
     }
   },
+  "ShareImageProgress": {
+    "render": "กำลังวาดภาพคำทำนายของคุณ\u2026",
+    "download": "กำลังดาวน์โหลดรูปภาพ\u2026",
+    "done": "บันทึกลงเครื่องแล้ว"
+  },
   "QuestionInput": {
     "label": "คำถามของคุณ",
     "placeholder": "พิมพ์คำถามของคุณ...",
@@ -1606,6 +1611,7 @@
         "share": "แชร์",
         "downloadReadingText": "ดาวน์โหลดการอ่านเป็นไฟล์ข้อความ",
         "downloadReadingImage": "ดาวน์โหลดการอ่านเป็นรูปภาพ",
+        "shareCta": "ถามคำถามของคุณเองได้ที่ dooduang.ai",
         "copyResult": "คัดลอกคำทำนาย",
         "askFollowUp": "ถามต่อ",
         "askFollowUpPrompt": "ช่วยขยายความคำทำนายนี้เพิ่มเติมได้ไหม",

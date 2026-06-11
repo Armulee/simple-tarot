@@ -295,34 +295,107 @@ function generateStars(count: number, width: number, height: number) {
     return stars
 }
 
-async function readImageAsBase64(slug: string) {
-    try {
-        const filePath = join(
-            process.cwd(),
-            "public",
-            "assets",
-            "rider-waite-tarot",
-            `${slug}.png`,
-        )
-        const buffer = await readFile(filePath)
-        const base64 = buffer.toString("base64")
-        return `data:image/png;base64,${base64}`
-    } catch (error) {
-        console.error(`Error reading image for slug ${slug}:`, error)
-        return null
+/**
+ * Per-instance caches: card art, logo and fonts are immutable build assets,
+ * so re-reading + re-encoding them per request only burns render time.
+ */
+const cardImageCache = new Map<string, string | null>()
+let logoCache: string | null | undefined
+let fontsPromise: Promise<ShareFont[]> | null = null
+
+type ShareFont = {
+    name: string
+    data: Buffer
+    weight: 400 | 700
+    style: "normal"
+}
+
+const SHARE_FONT_FILES: Array<[string, string, 400 | 700]> = [
+    ["Noto Sans", "noto-sans-400.ttf", 400],
+    ["Noto Sans", "noto-sans-700.ttf", 700],
+    ["Noto Sans Thai", "noto-sans-thai-400.ttf", 400],
+    ["Noto Sans Thai", "noto-sans-thai-700.ttf", 700],
+    ["Noto Sans Lao", "noto-sans-lao-400.ttf", 400],
+    ["Noto Sans Lao", "noto-sans-lao-700.ttf", 700],
+    ["Playfair Display", "playfair-display-700.ttf", 700],
+    ["Noto Serif Thai", "noto-serif-thai-700.ttf", 700],
+]
+
+/**
+ * Bundled fonts keep Satori from fetching glyph subsets from Google Fonts on
+ * every render — that network round-trip dominated generation time.
+ */
+function loadShareFonts(): Promise<ShareFont[]> {
+    if (!fontsPromise) {
+        fontsPromise = Promise.all(
+            SHARE_FONT_FILES.map(async ([name, file, weight]) => ({
+                name,
+                data: await readFile(
+                    join(process.cwd(), "public", "fonts", "share", file),
+                ),
+                weight,
+                style: "normal" as const,
+            })),
+        ).catch((error) => {
+            console.error("Error loading share fonts:", error)
+            fontsPromise = null
+            return []
+        })
     }
+    return fontsPromise
+}
+
+const SANS_STACK = "Noto Sans, Noto Sans Thai, Noto Sans Lao"
+const SERIF_STACK = "Playfair Display, Noto Serif Thai, Noto Sans Thai, Noto Sans Lao"
+
+async function readImageAsBase64(slug: string) {
+    if (cardImageCache.has(slug)) return cardImageCache.get(slug) ?? null
+    let src: string | null = null
+    try {
+        // Prefer the pre-shrunk share variants (~80KB JPEG vs multi-MB PNG
+        // scans) — decoding the originals was the other big render cost.
+        const buffer = await readFile(
+            join(
+                process.cwd(),
+                "public",
+                "assets",
+                "rider-waite-tarot-share",
+                `${slug}.jpg`,
+            ),
+        )
+        src = `data:image/jpeg;base64,${buffer.toString("base64")}`
+    } catch {
+        try {
+            const buffer = await readFile(
+                join(
+                    process.cwd(),
+                    "public",
+                    "assets",
+                    "rider-waite-tarot",
+                    `${slug}.png`,
+                ),
+            )
+            src = `data:image/png;base64,${buffer.toString("base64")}`
+        } catch (error) {
+            console.error(`Error reading image for slug ${slug}:`, error)
+            src = null
+        }
+    }
+    cardImageCache.set(slug, src)
+    return src
 }
 
 async function readLogoAsBase64() {
+    if (logoCache !== undefined) return logoCache
     try {
         const filePath = join(process.cwd(), "public", "assets", "logo.png")
         const buffer = await readFile(filePath)
-        const base64 = buffer.toString("base64")
-        return `data:image/png;base64,${base64}`
+        logoCache = `data:image/png;base64,${buffer.toString("base64")}`
     } catch (error) {
         console.error("Error reading logo:", error)
-        return null
+        logoCache = null
     }
+    return logoCache
 }
 
 export async function POST(req: Request) {
@@ -335,6 +408,7 @@ export async function POST(req: Request) {
             subtitle = "",
             keyMessage = "",
             detailedHtml = "",
+            cta = "",
             width = 1080,
             height = 1920,
             branding = "AskingFate",
@@ -381,8 +455,11 @@ export async function POST(req: Request) {
             (card): card is NonNullable<typeof card> => card !== null,
         )
 
-        // Load logo from disk
-        const logoBase64 = await readLogoAsBase64()
+        // Load logo + bundled fonts (both cached per instance)
+        const [logoBase64, shareFonts] = await Promise.all([
+            readLogoAsBase64(),
+            loadShareFonts(),
+        ])
         const logoSrc = logoBase64 || `${origin}/assets/logo.png`
 
         const imageWidth = Number(width) || 1080
@@ -413,7 +490,7 @@ export async function POST(req: Request) {
               ? 1600
               : 980
 
-        const stars = generateStars(50, imageWidth, imageHeight)
+        const stars = generateStars(28, imageWidth, imageHeight)
 
         // ---- Story (9:16) rich layout data ----
         // Content column is maxContentWidth-capped to 980 but padded to 936
@@ -463,7 +540,7 @@ export async function POST(req: Request) {
             ]
         }
         const detailBudget =
-            storyCount >= 7 ? 440 : storyCount >= 5 ? 540 : 640
+            storyCount >= 7 ? 400 : storyCount >= 5 ? 500 : 600
         storyBlocks = truncateRichBlocks(storyBlocks, detailBudget)
         const detailChars = storyBlocks.reduce(
             (sum, block) =>
@@ -472,6 +549,14 @@ export async function POST(req: Request) {
         )
         const detailFontSize = detailChars > 460 ? 26 : 30
         const showStoryKeywords = !hasRichDetail && keywords.length > 0
+        const ctaText =
+            truncate(String(cta ?? ""), 70) ||
+            "Ask your own question at dooduang.ai"
+        // Gentle alternating tilt makes small spreads feel hand-laid.
+        const storyCardTilt = (idx: number) =>
+            storyCount > 1 && storyCount <= 3
+                ? [-4, 0, 4][idx % 3] + (storyCount === 2 && idx === 1 ? 4 : 0)
+                : 0
 
         const imageResponse = new ImageResponse(
             (
@@ -487,10 +572,9 @@ export async function POST(req: Request) {
                         paddingBottom,
                         boxSizing: "border-box",
                         background:
-                            "radial-gradient(1600px 1000px at 20% 0%, rgba(30, 58, 138, 0.4) 0%, rgba(25, 45, 112, 0.3) 25%, rgba(15, 23, 42, 0.2) 40%, rgba(2, 6, 23, 1) 70%), radial-gradient(1400px 1000px at 80% 100%, rgba(30, 64, 175, 0.3) 0%, rgba(20, 40, 100, 0.2) 30%, rgba(2, 6, 23, 1) 65%), radial-gradient(1000px 800px at 50% 50%, rgba(37, 99, 235, 0.15) 0%, rgba(2, 6, 23, 0.9) 50%)",
+                            "radial-gradient(1600px 1000px at 20% 0%, rgba(30, 58, 138, 0.42) 0%, rgba(25, 45, 112, 0.3) 25%, rgba(15, 23, 42, 0.2) 40%, rgba(2, 6, 23, 1) 70%), radial-gradient(1400px 1000px at 80% 100%, rgba(30, 64, 175, 0.32) 0%, rgba(20, 40, 100, 0.2) 30%, rgba(2, 6, 23, 1) 65%)",
                         color: "#ffffff",
-                        fontFamily:
-                            "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial",
+                        fontFamily: SANS_STACK,
                         position: "relative",
                         overflow: "hidden",
                     }}
@@ -521,20 +605,6 @@ export async function POST(req: Request) {
                             opacity: 0.55,
                         }}
                     />
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            width: 1200,
-                            height: 1200,
-                            borderRadius: 9999,
-                            background:
-                                "radial-gradient(circle at center, rgba(30, 58, 138, 0.12), rgba(2, 6, 23, 0.00) 60%)",
-                            opacity: 0.4,
-                        }}
-                    />
 
                     {/* Shining stars background */}
                     {stars.map((star, idx) => (
@@ -562,7 +632,19 @@ export async function POST(req: Request) {
                             pointerEvents: "none",
                         }}
                     />
-                    {stars.slice(0, 12).map((star, idx) => (
+                    {/* Gold hairline frame */}
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: 28,
+                            left: 28,
+                            right: 28,
+                            bottom: 28,
+                            borderRadius: 40,
+                            border: "1.5px solid rgba(250,204,21,0.26)",
+                        }}
+                    />
+                    {stars.slice(0, 6).map((star, idx) => (
                         <div
                             key={`glow-${idx}`}
                             style={{
@@ -619,8 +701,11 @@ export async function POST(req: Request) {
                         <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
                     </svg>
 
-                    {/* background card aura */}
-                    {parsedCards.slice(0, 3).map((c, idx) => {
+                    {/* background card aura — horizontal layouts only; the
+                        story layout shows the full spread, so the ghosts only
+                        cost render time behind its panels */}
+                    {isHorizontal &&
+                        parsedCards.slice(0, 3).map((c, idx) => {
                         const positions: Array<{
                             top?: number
                             bottom?: number
@@ -684,7 +769,7 @@ export async function POST(req: Request) {
                                     "linear-gradient(135deg, rgba(15,23,42,0.6), rgba(30,41,59,0.35))",
                                 border: "1px solid rgba(255,255,255,0.12)",
                                 boxShadow:
-                                    "0 10px 30px -15px rgba(56,189,248,0.5)",
+                                    "0 6px 14px -8px rgba(56,189,248,0.45)",
                             }}
                         >
                             <img
@@ -700,7 +785,7 @@ export async function POST(req: Request) {
                                     letterSpacing: -0.5,
                                     color: "rgba(255,255,255,1)",
                                     textShadow:
-                                        "0 2px 20px rgba(234,179,8,0.4), 0 0 30px rgba(56,189,248,0.3), 0 4px 8px rgba(0,0,0,0.3)",
+                                        "0 2px 8px rgba(234,179,8,0.35)",
                                 }}
                             >
                                 {String(branding || "AskingFate")}
@@ -868,8 +953,7 @@ export async function POST(req: Request) {
                                         </div>
                                         <div
                                             style={{
-                                                fontFamily:
-                                                    "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                                fontFamily: SERIF_STACK,
                                                 fontSize: 36,
                                                 fontWeight: 900,
                                                 lineHeight: 1.2,
@@ -961,8 +1045,7 @@ export async function POST(req: Request) {
                                             >
                                                 <div
                                                     style={{
-                                                        fontFamily:
-                                                            "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                                        fontFamily: SERIF_STACK,
                                                         fontSize: 36,
                                                         fontWeight: 600,
                                                         color: "rgba(255,255,255,1)",
@@ -1078,13 +1161,12 @@ export async function POST(req: Request) {
                                     </div>
                                     <div
                                         style={{
-                                            fontFamily:
-                                                "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                            fontFamily: SERIF_STACK,
                                             fontSize: 38,
                                             fontWeight: 800,
                                             lineHeight: 1.25,
                                             textShadow:
-                                                "0 4px 20px rgba(56,189,248,0.3), 0 2px 8px rgba(139,92,246,0.2)",
+                                                "0 2px 10px rgba(56,189,248,0.3)",
                                             color: "rgba(255,255,255,0.98)",
                                             textAlign: "center",
                                             maxWidth: "100%",
@@ -1142,12 +1224,13 @@ export async function POST(req: Request) {
                                                             width: storyCardW,
                                                             height: storyCardH,
                                                             borderRadius: 16,
+                                                            transform: `rotate(${storyCardTilt(idx)}deg)`,
                                                             position:
                                                                 "relative",
                                                             overflow:
                                                                 "hidden",
                                                             boxShadow:
-                                                                "0 20px 60px -18px rgba(234,179,8,0.65), 0 8px 22px rgba(139,92,246,0.35), 0 0 0 2px rgba(255,255,255,0.15)",
+                                                                "0 12px 28px -10px rgba(234,179,8,0.55), 0 4px 10px rgba(139,92,246,0.3)",
                                                             border: "2px solid rgba(255,255,255,0.2)",
                                                             display: "flex",
                                                             background:
@@ -1225,7 +1308,7 @@ export async function POST(req: Request) {
                                                 "linear-gradient(135deg, rgba(250,204,21,0.16) 0%, rgba(180,83,9,0.10) 35%, rgba(30,41,59,0.55) 100%)",
                                             border: "1px solid rgba(250,204,21,0.35)",
                                             boxShadow:
-                                                "0 24px 80px -30px rgba(250,204,21,0.5), inset 0 1px 0 rgba(255,255,255,0.18)",
+                                                "0 14px 32px -14px rgba(250,204,21,0.45), inset 0 1px 0 rgba(255,255,255,0.18)",
                                             position: "relative",
                                             maxWidth: "100%",
                                             overflow: "hidden",
@@ -1291,14 +1374,13 @@ export async function POST(req: Request) {
                                         </div>
                                         <div
                                             style={{
-                                                fontFamily:
-                                                    "ui-serif, Georgia, Cambria, Times New Roman, Times, serif",
+                                                fontFamily: SERIF_STACK,
                                                 fontSize: headlineFontSize,
                                                 fontWeight: 800,
                                                 lineHeight: 1.25,
                                                 color: "rgba(255,255,255,1)",
                                                 textShadow:
-                                                    "0 4px 24px rgba(250,204,21,0.35), 0 2px 10px rgba(0,0,0,0.4)",
+                                                    "0 2px 10px rgba(250,204,21,0.3)",
                                                 wordBreak: "break-word",
                                                 overflowWrap: "break-word",
                                             }}
@@ -1336,7 +1418,7 @@ export async function POST(req: Request) {
                                             background:
                                                 "linear-gradient(150deg, rgba(30,41,59,0.72) 0%, rgba(99,102,241,0.22) 45%, rgba(34,211,238,0.12) 100%)",
                                             boxShadow:
-                                                "0 30px 90px -35px rgba(56,189,248,0.65), 0 0 0 1px rgba(255,255,255,0.12), inset 0 1px 0 rgba(255,255,255,0.16)",
+                                                "0 16px 32px -16px rgba(56,189,248,0.5), inset 0 1px 0 rgba(255,255,255,0.16)",
                                             border: "1px solid rgba(255,255,255,0.16)",
                                             position: "relative",
                                             maxWidth: "100%",
@@ -1497,10 +1579,6 @@ export async function POST(req: Request) {
                                                                                     run.italic
                                                                                         ? "italic"
                                                                                         : "normal",
-                                                                                textShadow:
-                                                                                    run.gold
-                                                                                        ? "0 0 18px rgba(250,204,21,0.45)"
-                                                                                        : "0 2px 8px rgba(0,0,0,0.2)",
                                                                             }}
                                                                         >
                                                                             {
@@ -1516,6 +1594,85 @@ export async function POST(req: Request) {
                                         </div>
                                     </div>
                                 ) : null}
+
+                                {/* CTA — invite the viewer to ask their own */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: 18,
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 16,
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: 150,
+                                                height: 1,
+                                                background:
+                                                    "linear-gradient(90deg, rgba(250,204,21,0), rgba(250,204,21,0.55))",
+                                            }}
+                                        />
+                                        <svg
+                                            width='18'
+                                            height='18'
+                                            viewBox='0 0 24 24'
+                                            fill='rgba(252,211,77,0.9)'
+                                            stroke='rgba(252,211,77,0.95)'
+                                            strokeWidth='1'
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            xmlns='http://www.w3.org/2000/svg'
+                                        >
+                                            <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
+                                        </svg>
+                                        <div
+                                            style={{
+                                                width: 150,
+                                                height: 1,
+                                                background:
+                                                    "linear-gradient(90deg, rgba(250,204,21,0.55), rgba(250,204,21,0))",
+                                            }}
+                                        />
+                                    </div>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 14,
+                                            padding: "16px 42px",
+                                            borderRadius: 9999,
+                                            background:
+                                                "linear-gradient(100deg, #b45309 0%, #f59e0b 28%, #fcd34d 50%, #f59e0b 72%, #b45309 100%)",
+                                            boxShadow:
+                                                "0 10px 24px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.5)",
+                                            color: "#221303",
+                                            fontSize: 27,
+                                            fontWeight: 700,
+                                        }}
+                                    >
+                                        <svg
+                                            width='26'
+                                            height='26'
+                                            viewBox='0 0 24 24'
+                                            fill='rgba(34,19,3,0.9)'
+                                            stroke='rgba(34,19,3,0.9)'
+                                            strokeWidth='1'
+                                            strokeLinecap='round'
+                                            strokeLinejoin='round'
+                                            xmlns='http://www.w3.org/2000/svg'
+                                        >
+                                            <path d='M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z' />
+                                        </svg>
+                                        {ctaText}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -1526,6 +1683,7 @@ export async function POST(req: Request) {
             {
                 width: imageWidth,
                 height: imageHeight,
+                fonts: shareFonts.length > 0 ? shareFonts : undefined,
             },
         )
 

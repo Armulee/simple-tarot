@@ -160,6 +160,7 @@ export default function ActionSection({
     compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
+    const tShareProgress = useTranslations("ShareImageProgress")
     const {
         question: contextQuestion,
         selectedCards,
@@ -187,7 +188,7 @@ export default function ActionSection({
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [, setPreviewError] = useState<string | null>(null)
     const [isPreviewLoading, setIsPreviewLoading] = useState(false)
-    const [, setPreviewProgress] = useState<number | null>(null)
+    const [previewProgress, setPreviewProgress] = useState<number | null>(null)
     const [, setVideoPreviewUrl] = useState<string | null>(null)
     const [isVideoGenerating, setIsVideoGenerating] = useState(false)
     const [, setVideoProgress] = useState<number | null>(null)
@@ -281,6 +282,7 @@ export default function ActionSection({
                         subtitle: propSubtitle,
                         keyMessage: propKeyMessage,
                         detailedHtml: propDetailedHtml,
+                        cta: t("actions.shareCta"),
                         width,
                         height,
                         branding: "AskingFate",
@@ -336,6 +338,7 @@ export default function ActionSection({
             propSubtitle,
             propKeyMessage,
             propDetailedHtml,
+            t,
         ],
     )
 
@@ -1474,23 +1477,54 @@ export default function ActionSection({
               : "aspect-video"
     // Prefer the server-rendered preview so what the user sees matches the
     // downloaded image pixel-for-pixel; SharePreview is the loading skeleton.
-    const sharePreviewNode = previewUrl ? (
-        <div className={`relative w-full ${previewAspectClass}`}>
-            <Image
-                src={previewUrl}
-                alt='Share preview'
-                fill
-                unoptimized
-                className='object-contain'
-            />
-        </div>
-    ) : (
-        <SharePreview
-            question={question}
-            cards={cards}
-            interpretation={interpretation}
-            aspectRatio={previewAspect}
-        />
+    const previewPhase =
+        previewProgress !== null && previewProgress > 0 ? "download" : "render"
+    const sharePreviewNode = (
+        <>
+            {previewUrl ? (
+                <div className={`relative w-full ${previewAspectClass}`}>
+                    <Image
+                        src={previewUrl}
+                        alt='Share preview'
+                        fill
+                        unoptimized
+                        className='object-contain'
+                    />
+                </div>
+            ) : (
+                <SharePreview
+                    question={question}
+                    cards={cards}
+                    interpretation={interpretation}
+                    aspectRatio={previewAspect}
+                />
+            )}
+            {isPreviewLoading && (
+                <div className='absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/55 px-6 backdrop-blur-[2px]'>
+                    <p className='text-center text-xs font-medium tracking-wide text-amber-200/95'>
+                        {tShareProgress(previewPhase)}
+                        {previewProgress !== null &&
+                            ` · ${Math.round(previewProgress * 100)}%`}
+                    </p>
+                    <div className='h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-white/15'>
+                        <div
+                            className={`h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 transition-[width] duration-300 ease-out ${
+                                previewProgress === null
+                                    ? "w-1/3 animate-pulse"
+                                    : ""
+                            }`}
+                            style={
+                                previewProgress !== null
+                                    ? {
+                                          width: `${Math.max(6, Math.round(previewProgress * 100))}%`,
+                                      }
+                                    : undefined
+                            }
+                        />
+                    </div>
+                </div>
+            )}
+        </>
     )
 
     if (variant === "compact") {

@@ -83,6 +83,7 @@ import MessageList from "@/components/chat/message-list"
 import ShareAccessDialog from "@/components/chat/share-access-dialog"
 import type { ChipId as HoroscopeCalendarChipId } from "@/components/chat/horoscope/calendar-tool"
 import { toast } from "sonner"
+import type { ReadingImageExportStatus } from "@/components/chat/tarot-interpretation"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
     Dialog,
@@ -93,7 +94,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowDown, EyeOff, Star } from "lucide-react"
+import { ArrowDown, Check, EyeOff, Loader2, Star } from "lucide-react"
 import {
     CARD_UI_TEXT,
     isPickForMeIntent,
@@ -774,6 +775,8 @@ export default function ChatSession({
     const tReadingTypes = useTranslations("Reading.types")
     const tHoroscope = useTranslations("HoroscopeChat")
     const tActionTrigger = useTranslations("ActionTrigger")
+    const tOriginContext = useTranslations("Chat.originContext")
+    const tShareProgress = useTranslations("ShareImageProgress")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -5528,6 +5531,12 @@ export default function ChatSession({
         }
     }
 
+    const [readingImageExport, setReadingImageExport] = useState<{
+        messageId: string
+        status: ReadingImageExportStatus
+    } | null>(null)
+    const readingImageExportClearRef = useRef<number | null>(null)
+
     const handleReadingTextDownloaded = (id: string) => {
         setNotice(id, "Downloaded.")
     }
@@ -5535,6 +5544,27 @@ export default function ChatSession({
     const handleReadingTextDownloadFailed = (id: string) => {
         setNotice(id, "Download failed.")
     }
+
+    const handleReadingImageExportStatus = useCallback(
+        (messageId: string, status: ReadingImageExportStatus | null) => {
+            if (readingImageExportClearRef.current !== null) {
+                window.clearTimeout(readingImageExportClearRef.current)
+                readingImageExportClearRef.current = null
+            }
+            if (!status) {
+                setReadingImageExport(null)
+                return
+            }
+            setReadingImageExport({ messageId, status })
+            if (status.phase === "done") {
+                readingImageExportClearRef.current = window.setTimeout(() => {
+                    setReadingImageExport(null)
+                    readingImageExportClearRef.current = null
+                }, 2200)
+            }
+        },
+        [],
+    )
 
     const handleReport = (id: string, text: string) => {
         const unmaskedText = unmask(text)
@@ -6629,6 +6659,66 @@ export default function ChatSession({
                 onStop={handleStopStreaming}
                 isLoading={isChatLoading}
                 centered
+                statusStrip={
+                    readingImageExport ? (
+                        <div className='w-full space-y-2 animate-fade-up'>
+                            <div className='flex items-center justify-between gap-3 min-w-0'>
+                                <p className='flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200/95 truncate'>
+                                    {readingImageExport.status.phase ===
+                                    "done" ? (
+                                        <Check
+                                            className='size-3.5 shrink-0'
+                                            aria-hidden
+                                        />
+                                    ) : (
+                                        <Loader2
+                                            className='size-3.5 shrink-0 animate-spin'
+                                            aria-hidden
+                                        />
+                                    )}
+                                    {tShareProgress(
+                                        readingImageExport.status.phase,
+                                    )}
+                                </p>
+                                {readingImageExport.status.progress !==
+                                    null && (
+                                    <span className='shrink-0 text-[11px] tabular-nums text-white/60'>
+                                        {Math.round(
+                                            readingImageExport.status
+                                                .progress * 100,
+                                        )}
+                                        %
+                                    </span>
+                                )}
+                            </div>
+                            <div className='h-1.5 w-full overflow-hidden rounded-full bg-white/10'>
+                                <div
+                                    className={`h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 transition-[width] duration-300 ease-out ${
+                                        readingImageExport.status.progress ===
+                                        null
+                                            ? "w-1/3 animate-pulse"
+                                            : ""
+                                    }`}
+                                    style={
+                                        readingImageExport.status.progress !==
+                                        null
+                                            ? {
+                                                  width: `${Math.max(
+                                                      6,
+                                                      Math.round(
+                                                          readingImageExport
+                                                              .status
+                                                              .progress * 100,
+                                                      ),
+                                                  )}%`,
+                                              }
+                                            : undefined
+                                    }
+                                />
+                            </div>
+                        </div>
+                    ) : null
+                }
                 placeholder={
                     isHoroscopeIntakeActive
                         ? tHoroscope("composerBirthPlaceholder")
@@ -6836,6 +6926,7 @@ export default function ChatSession({
                 onShare={handleShare}
                 onReadingTextDownloaded={handleReadingTextDownloaded}
                 onReadingTextDownloadFailed={handleReadingTextDownloadFailed}
+                onReadingImageExportStatus={handleReadingImageExportStatus}
                 onReadAloud={handleReadAloud}
                 unmask={unmask}
                 privacyAliases={privacyAliases}

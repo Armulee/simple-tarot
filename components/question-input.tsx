@@ -81,6 +81,7 @@ export default function QuestionInput({
     composerSettings,
     composerFollowUps,
     actionTrigger,
+    statusStrip,
     disclaimerText,
     showDisclaimer = true,
     error,
@@ -108,6 +109,12 @@ export default function QuestionInput({
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
+    /**
+     * Transient status display (e.g. share-image download progress). When
+     * set, it takes over the composer chrome row that normally hosts the
+     * follow-up suggestion strip / action trigger.
+     */
+    statusStrip?: React.ReactNode
     disclaimerText?: string
     showDisclaimer?: boolean
     error?: React.ReactNode
@@ -140,7 +147,8 @@ export default function QuestionInput({
     const showBottomChrome =
         actionTrigger != null ||
         composerFollowUps != null ||
-        composerSettings != null
+        composerSettings != null ||
+        statusStrip != null
 
     const handleStartReading = () => {
         const currentValue =
@@ -388,7 +396,7 @@ export default function QuestionInput({
                     <div
                         className={`flex flex-col transition-[max-width] duration-500 ease-in-out ${inputWrapperClassName}`}
                     >
-                        {followUpRow ?? actionTrigger}
+                        {statusStrip ?? followUpRow ?? actionTrigger}
                         {inputContent}
                     </div>
                     {showDisclaimer && disclaimerText && (
