@@ -399,28 +399,37 @@ export default function ReadingDownloadDialog({
                     className='pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[90px] animate-pulse'
                     style={{ animationDelay: "0.8s" }}
                 />
-                <SheetHeader>
-                    <SheetTitle>
+                <SheetHeader className='items-center text-center'>
+                    <SheetTitle className='font-serif text-xl tracking-wide text-[#f3e5bf]'>
                         {t(
                             format === "video"
                                 ? "actions.downloadSheetTitleVideo"
                                 : "actions.downloadSheetTitleImage",
                         )}
                     </SheetTitle>
-                    <SheetDescription>
+                    {/* Gold diamond rule, echoing the poster's section labels */}
+                    <div
+                        aria-hidden
+                        className='mx-auto flex items-center gap-2'
+                    >
+                        <span className='h-px w-12 bg-gradient-to-r from-transparent to-amber-300/60' />
+                        <span className='h-1.5 w-1.5 rotate-45 bg-amber-300/80' />
+                        <span className='h-px w-12 bg-gradient-to-l from-transparent to-amber-300/60' />
+                    </div>
+                    <SheetDescription className='text-white/55'>
                         {t("actions.downloadSheetDesc")}
                     </SheetDescription>
-                    <div className='mt-3 flex justify-center'>
-                        <div className='inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white'>
+                    <div className='mt-2 flex justify-center'>
+                        <div className='inline-flex h-10 items-center justify-center rounded-full border border-amber-300/20 bg-white/5 p-1 text-white'>
                             {(["image", "video"] as const).map((value) => (
                                 <button
                                     key={value}
                                     type='button'
                                     onClick={() => setFormat(value)}
-                                    className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                                    className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-5 py-1.5 text-sm font-medium transition-all ${
                                         format === value
-                                            ? "bg-white/15 text-white shadow"
-                                            : "text-white/70"
+                                            ? "bg-gradient-to-r from-amber-400/90 via-yellow-300/90 to-amber-400/90 text-[#241a05] shadow-[0_2px_14px_-2px_rgba(252,211,77,0.55)]"
+                                            : "text-white/65 hover:text-white/90"
                                     }`}
                                 >
                                     {t(
@@ -429,7 +438,13 @@ export default function ReadingDownloadDialog({
                                             : "actions.downloadTabImage",
                                     )}
                                     {value === "video" && (
-                                        <span className='ml-1.5 rounded-full bg-yellow-400/15 px-1.5 py-0.5 text-[10px] font-semibold text-yellow-200'>
+                                        <span
+                                            className={`ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                                                format === "video"
+                                                    ? "bg-[#241a05]/15 text-[#241a05]"
+                                                    : "bg-yellow-400/15 text-yellow-200"
+                                            }`}
+                                        >
                                             {Math.round(
                                                 SHARE_VIDEO_DURATION_MS /
                                                     1000,
@@ -442,24 +457,25 @@ export default function ReadingDownloadDialog({
                         </div>
                     </div>
                 </SheetHeader>
-                <div className='px-4 pb-4 space-y-5'>
-                    <div className='space-y-2'>
-                        <div className='flex items-center justify-between text-sm'>
-                            <span className='font-medium text-white'>
+                <div className='mx-auto w-full max-w-xl space-y-4 px-4 pb-4'>
+                    <div className='space-y-1.5'>
+                        <div className='flex items-baseline justify-between'>
+                            <span className='text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200/80'>
                                 {t("actions.downloadStylesTitle")}
                             </span>
-                            <span className='text-xs text-muted-foreground'>
+                            <span className='text-[11px] text-white/40'>
                                 {t("actions.downloadStylesHint")}
                             </span>
                         </div>
-                        <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                        {/* All styles on one line — compact shape-icon chips */}
+                        <div className='grid grid-cols-4 gap-1.5'>
                             {DOWNLOAD_STYLES.map((style) => {
                                 const active = styleId === style.id
                                 // Largest box of this aspect ratio that fits
-                                // the 56×52 icon frame — a quick shape cue.
+                                // the 34×30 icon frame — a quick shape cue.
                                 const scale = Math.min(
-                                    56 / style.width,
-                                    52 / style.height,
+                                    34 / style.width,
+                                    30 / style.height,
                                 )
                                 const boxW = Math.round(style.width * scale)
                                 const boxH = Math.round(style.height * scale)
@@ -471,57 +487,59 @@ export default function ReadingDownloadDialog({
                                             handleSelectStyle(style.id)
                                         }
                                         aria-pressed={active}
-                                        className={`flex flex-col items-center gap-2 rounded-lg border p-3 text-center transition ${
+                                        className={`flex flex-col items-center gap-1 rounded-xl border px-1 py-2 text-center transition-all duration-200 ${
                                             active
-                                                ? "border-yellow-400/60 bg-yellow-400/10"
-                                                : "border-white/10 bg-white/5 hover:border-yellow-400/30"
+                                                ? "border-amber-300/70 bg-gradient-to-b from-amber-300/15 to-amber-400/5 shadow-[0_4px_18px_-6px_rgba(252,211,77,0.45)]"
+                                                : "border-white/10 bg-white/[0.04] hover:border-amber-300/35 hover:bg-white/[0.07]"
                                         }`}
                                     >
-                                        <div className='flex h-[56px] w-full items-center justify-center'>
+                                        <div className='flex h-[30px] w-full items-center justify-center'>
                                             <div
-                                                className={`flex items-center justify-center rounded-[3px] border-2 transition ${
+                                                className={`rounded-[2px] border-[1.5px] transition ${
                                                     active
-                                                        ? "border-yellow-300/90 bg-yellow-300/10"
+                                                        ? "border-amber-300 bg-amber-300/15 shadow-[0_0_10px_-1px_rgba(252,211,77,0.6)]"
                                                         : "border-white/40 bg-white/5"
                                                 }`}
                                                 style={{
                                                     width: boxW,
                                                     height: boxH,
                                                 }}
-                                            >
-                                                <span
-                                                    className={`text-[9px] font-semibold leading-none ${
-                                                        active
-                                                            ? "text-yellow-200"
-                                                            : "text-white/70"
-                                                    }`}
-                                                >
-                                                    {styleRatios[style.id]}
-                                                </span>
-                                            </div>
+                                            />
                                         </div>
-                                        <div className='text-xs font-medium text-white'>
+                                        <div
+                                            className={`text-[11px] font-medium leading-none ${
+                                                active
+                                                    ? "text-amber-100"
+                                                    : "text-white/80"
+                                            }`}
+                                        >
                                             {styleLabels[style.id]}
                                         </div>
-                                        <div className='text-[11px] text-white/55'>
-                                            {styleResolutions[style.id]}
+                                        <div
+                                            className={`text-[9px] leading-none ${
+                                                active
+                                                    ? "text-amber-200/80"
+                                                    : "text-white/40"
+                                            }`}
+                                        >
+                                            {styleRatios[style.id]}
                                         </div>
                                     </button>
                                 )
                             })}
                         </div>
                     </div>
-                    <div className='space-y-2'>
-                        <div className='flex items-center justify-between text-sm'>
-                            <span className='font-medium text-white'>
+                    <div className='space-y-1.5'>
+                        <div className='flex items-baseline justify-between'>
+                            <span className='text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200/80'>
                                 {t("actions.downloadPreviewTitle")}
                             </span>
-                            <span className='text-xs text-muted-foreground'>
+                            <span className='text-[11px] text-white/40'>
                                 {styleSizes[styleId]}
                             </span>
                         </div>
                         <div
-                            className={`relative mx-auto w-full overflow-hidden rounded-lg border border-white/10 bg-black/30 ${previewAspectClass}`}
+                            className={`relative mx-auto w-full overflow-hidden rounded-xl bg-black/30 ring-1 ring-amber-300/30 shadow-[0_10px_40px_-12px_rgba(252,211,77,0.3)] ${previewAspectClass}`}
                         >
                             {format === "video" && videoUrl ? (
                                 <video
@@ -582,30 +600,32 @@ export default function ReadingDownloadDialog({
                         </div>
                     </div>
                 </div>
-                <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
-                    <button
-                        type='button'
-                        className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
-                        onClick={() => onOpenChange(false)}
-                    >
-                        {t("actions.downloadCancel")}
-                    </button>
-                    <button
-                        type='button'
-                        className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
-                        onClick={() =>
-                            format === "video"
-                                ? handleVideoDownload()
-                                : handleImageDownload()
-                        }
-                        disabled={isDownloading}
-                    >
-                        {t(
-                            format === "video"
-                                ? "actions.downloadVideoButton"
-                                : "actions.downloadButton",
-                        )}
-                    </button>
+                <SheetFooter className='sticky bottom-0 z-10 border-t border-amber-300/15 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3'>
+                    <div className='mx-auto flex w-full max-w-xl gap-2'>
+                        <button
+                            type='button'
+                            className='rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm text-white/75 transition hover:border-white/30 hover:text-white'
+                            onClick={() => onOpenChange(false)}
+                        >
+                            {t("actions.downloadCancel")}
+                        </button>
+                        <button
+                            type='button'
+                            className='flex-1 rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 px-5 py-2.5 text-sm font-semibold text-[#241a05] shadow-[0_6px_24px_-6px_rgba(252,211,77,0.6)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60'
+                            onClick={() =>
+                                format === "video"
+                                    ? handleVideoDownload()
+                                    : handleImageDownload()
+                            }
+                            disabled={isDownloading}
+                        >
+                            {t(
+                                format === "video"
+                                    ? "actions.downloadVideoButton"
+                                    : "actions.downloadButton",
+                            )}
+                        </button>
+                    </div>
                 </SheetFooter>
             </SheetContent>
         </Sheet>
