@@ -84,6 +84,7 @@ import ShareAccessDialog from "@/components/chat/share-access-dialog"
 import type { ChipId as HoroscopeCalendarChipId } from "@/components/chat/horoscope/calendar-tool"
 import { toast } from "sonner"
 import type { ReadingImageExportStatus } from "@/components/chat/tarot-interpretation"
+import { fetchShareImageBlob } from "@/lib/share-image-client"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
     Dialog,
@@ -775,8 +776,8 @@ export default function ChatSession({
     const tReadingTypes = useTranslations("Reading.types")
     const tHoroscope = useTranslations("HoroscopeChat")
     const tActionTrigger = useTranslations("ActionTrigger")
-    const tOriginContext = useTranslations("Chat.originContext")
     const tShareProgress = useTranslations("ShareImageProgress")
+    const tReadingActions = useTranslations("ReadingPage.interpretation")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -5511,6 +5512,106 @@ export default function ChatSession({
 
     const handleShare = async (id: string, text: string) => {
         const unmaskedText = unmask(text)
+
+        // Tarot readings share the rendered story poster rather than the
+        // plain text; live progress goes to the composer status strip.
+        const message = messages.find((m) => m.id === id)
+        const isTarotReading = Boolean(
+            message &&
+                ((message.cards?.length ?? 0) > 0 ||
+                    message.detailedHtml ||
+                    message.headline ||
+                    message.keyMessage),
+        )
+        if (message && isTarotReading) {
+            try {
+                const blob = await fetchShareImageBlob(
+                    {
+                        question: unmask(message.question),
+                        cards:
+                            message.cards?.map((card) => card.meaning) ?? [],
+                        interpretation: unmaskedText,
+                        headline: unmask(message.headline),
+                        subtitle: unmask(message.subtitle),
+                        keyMessage: unmask(message.keyMessage),
+                        detailedHtml: unmask(message.detailedHtml),
+                        insights:
+                            message.insights?.map((i) => unmask(i)) ?? [],
+                        cta: tReadingActions("actions.shareCta"),
+                        width: 1080,
+                        height: 1920,
+                    },
+                    (phase, progress) =>
+                        handleReadingImageExportStatus(id, {
+                            phase,
+                            progress,
+                        }),
+                )
+                const file = new File([blob], "askingfate-reading.png", {
+                    type: "image/png",
+                })
+                if (
+                    typeof navigator.canShare === "function" &&
+                    navigator.canShare({ files: [file] })
+                ) {
+                    await navigator.share({
+                        title: "AskingFate",
+                        files: [file],
+                    })
+                    handleReadingImageExportStatus(id, {
+                        phase: "done",
+                        progress: 1,
+                    })
+                    setNotice(id, "Shared.")
+                    return
+                }
+                // Desktop fallback: put the image on the clipboard so it
+                // can be pasted straight into any chat or post.
+                if (
+                    typeof ClipboardItem !== "undefined" &&
+                    navigator.clipboard?.write
+                ) {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            [blob.type || "image/png"]: blob,
+                        }),
+                    ])
+                    handleReadingImageExportStatus(id, {
+                        phase: "done",
+                        progress: 1,
+                    })
+                    setNotice(id, "Image copied.")
+                    return
+                }
+                // Last resort: save the file so it can be shared manually.
+                const url = URL.createObjectURL(blob)
+                try {
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = "askingfate-reading.png"
+                    a.rel = "noopener"
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                } finally {
+                    URL.revokeObjectURL(url)
+                }
+                handleReadingImageExportStatus(id, {
+                    phase: "done",
+                    progress: 1,
+                })
+                setNotice(id, "Image saved.")
+                return
+            } catch (error) {
+                handleReadingImageExportStatus(id, null)
+                if ((error as DOMException)?.name === "AbortError") {
+                    setNotice(id, "Share canceled.")
+                    return
+                }
+                // Image render/share failed — fall back to text below.
+            }
+        }
+
         try {
             if (navigator.share) {
                 await navigator.share({

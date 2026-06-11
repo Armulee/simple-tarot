@@ -15,6 +15,10 @@ import {
 } from "@/components/ui/sheet"
 import ShareImageMock from "@/components/share/share-image-mock"
 import { warmShareImagePipeline } from "@/lib/share-image-warmup"
+import {
+    fetchShareImageBlob,
+    type ShareImageProgress,
+} from "@/lib/share-image-client"
 import { createShareVideo, SHARE_VIDEO_DURATION_MS } from "@/lib/share-video"
 
 export type ReadingImageExportStatus = {
@@ -22,14 +26,6 @@ export type ReadingImageExportStatus = {
     /** 0..1 overall progress; null = indeterminate. */
     progress: number | null
 }
-
-/**
- * The server can't report paint progress, so the render phase advances on a
- * smooth asymptotic clock toward this ceiling; real download bytes carry the
- * bar from the ceiling to 100%.
- */
-const RENDER_PROGRESS_CEILING = 0.72
-const RENDER_PROGRESS_TAU_S = 2.8
 
 export type ShareDownloadStyle = {
     id: "story" | "post" | "square" | "landscape"
@@ -202,83 +198,28 @@ export default function ReadingDownloadDialog({
         }: {
             width: number
             height: number
-            onProgress?: (
-                phase: "render" | "download",
-                progress: number | null,
-            ) => void
+            onProgress?: ShareImageProgress
         }): Promise<Blob> => {
             const key = `${width}x${height}`
             const existing = inFlightRef.current.get(key)
             if (existing) return existing
 
-            const promise = (async () => {
-                const startedAt = Date.now()
-                const ticker = window.setInterval(() => {
-                    const elapsedS = (Date.now() - startedAt) / 1000
-                    onProgress?.(
-                        "render",
-                        RENDER_PROGRESS_CEILING *
-                            (1 -
-                                Math.exp(-elapsedS / RENDER_PROGRESS_TAU_S)),
-                    )
-                }, 120)
-                let res: Response
-                try {
-                    res = await fetch("/api/share-image", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            question,
-                            cards,
-                            interpretation,
-                            headline,
-                            subtitle,
-                            keyMessage,
-                            detailedHtml,
-                            insights,
-                            cta: t("actions.shareCta"),
-                            width,
-                            height,
-                            branding: "AskingFate",
-                        }),
-                    })
-                } finally {
-                    window.clearInterval(ticker)
-                }
-                if (!res.ok) {
-                    throw new Error(
-                        `Share image request failed (${res.status})`,
-                    )
-                }
-
-                const total = Number(res.headers.get("Content-Length"))
-                if (!res.body || !Number.isFinite(total) || total <= 0) {
-                    onProgress?.("download", null)
-                    return await res.blob()
-                }
-
-                const reader = res.body.getReader()
-                const chunks: BlobPart[] = []
-                let received = 0
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    if (value) {
-                        chunks.push(value as BlobPart)
-                        received += value.length
-                        onProgress?.(
-                            "download",
-                            RENDER_PROGRESS_CEILING +
-                                (1 - RENDER_PROGRESS_CEILING) *
-                                    Math.min(received / total, 1),
-                        )
-                    }
-                }
-                onProgress?.("download", 1)
-                return new Blob(chunks, {
-                    type: res.headers.get("Content-Type") || "image/png",
-                })
-            })()
+            const promise = fetchShareImageBlob(
+                {
+                    question,
+                    cards,
+                    interpretation,
+                    headline,
+                    subtitle,
+                    keyMessage,
+                    detailedHtml,
+                    insights,
+                    cta: t("actions.shareCta"),
+                    width,
+                    height,
+                },
+                onProgress,
+            )
 
             inFlightRef.current.set(key, promise)
             try {
@@ -304,10 +245,7 @@ export default function ReadingDownloadDialog({
     const getStyleImage = useCallback(
         async (
             style: ShareDownloadStyle,
-            onProgress?: (
-                phase: "render" | "download",
-                progress: number | null,
-            ) => void,
+            onProgress?: ShareImageProgress,
         ): Promise<Blob> => {
             const cached = imageCacheRef.current.get(style.id)
             if (cached) return cached
