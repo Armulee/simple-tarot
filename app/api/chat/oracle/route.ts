@@ -53,6 +53,8 @@ The user is NOT asking for analysis. They are asking for a MESSAGE.
 Answer the question DIRECTLY in the \`message\` field BEFORE doing any interpretation.
 The interpretation goes in \`deeperMeaning\`. Never the reverse.
 
+ALWAYS answer the user's CURRENT question — the one in the "Current user question" block. Conversation history and session context are background only: use them to understand what a vague question refers to ("who?", "what about that?", "tell me more"), never answer a previous question from them. If the current question changes topic, drop the old topic.
+
 When you see questions like:
 - "วิญญาณในห้องอยากบอกอะไร" / "What does the spirit in my room want to say?"
 - "จักรวาลอยากบอกอะไร" / "What does the universe want to tell me?"
@@ -324,25 +326,25 @@ function buildPrompt(body: z.infer<typeof requestSchema>) {
     const lang = detectQuestionLanguage(body.question)
     const historyBlock =
         Array.isArray(body.history) && body.history.length > 0
-            ? `\nRecent conversation (oldest first):\n${body.history
+            ? `\nRecent conversation (oldest first — background only):\n${body.history
                   .slice(-10)
                   .map((m) => `- ${m.role}: ${m.text}`)
                   .join("\n")}\n`
             : ""
     const contextBlock = body.contextSummary?.trim()
-        ? `\nSession context summary:\n${body.contextSummary.trim()}\n`
+        ? `\nSession context summary (background only):\n${body.contextSummary.trim()}\n`
         : ""
     const followUpHint = body.isFollowUp
         ? "\nThis is a follow-up to the previous turn — let the new reading dance with what was just said, not repeat it.\n"
         : ""
 
     return `User language detected: ${lang}. Reply in ${lang}.
-
-User question:
+${historyBlock}${contextBlock}${followUpHint}
+Current user question (ANSWER THIS — the history above is background only: use it to work out what an ambiguous question refers to, never answer an older question from it):
 """
 ${body.question.trim()}
 """
-${historyBlock}${contextBlock}${followUpHint}
+
 Return ONLY the oracle reading JSON.`
 }
 
