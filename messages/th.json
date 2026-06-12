@@ -378,7 +378,7 @@
     },
     "selectedCards": "คุณเลือกไพ่แล้ว {selectedCount}/{cardsToSelect} ใบ",
     "consulting": "กำลังปรึกษา",
-    "thinkingActive": "ลำดับความคิด",
+    "thinkingActive": "กำลังคิด",
     "thinkingComplete": "วิเคราะห์เสร็จสมบูรณ์",
     "thinkingCompleteTimed": "ปรึกษาเชิงลึก {seconds} วินาที",
     "thinkingToggle": "แสดงกระบวนการคิด",
