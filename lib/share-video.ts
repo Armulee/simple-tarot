@@ -1,6 +1,7 @@
 /**
  * Client-side share-video generator. Plays the hand-crafted cosmic
- * background film (public/assets/share/video-background.mp4) on a canvas,
+ * background film for the chosen aspect
+ * (public/assets/share/video-background-{aspect}.mp4) on a canvas,
  * composites the transparent server-rendered poster overlay on top —
  * the same elements the static images carry — and records the canvas in
  * real time with MediaRecorder. Progress maps 1:1 to elapsed recording
@@ -10,7 +11,20 @@
 export const SHARE_VIDEO_DURATION_MS = 15_000
 const SHARE_VIDEO_FPS = 30
 const SHARE_VIDEO_BITRATE = 7_000_000
-export const SHARE_VIDEO_BACKGROUND_SRC = "/assets/share/video-background.mp4"
+
+export type ShareVideoAspect = "story" | "post" | "square" | "landscape"
+
+/** One film per export aspect, shot at the matching resolution. */
+const SHARE_VIDEO_BACKGROUNDS: Record<ShareVideoAspect, string> = {
+    story: "/assets/share/video-background-story.mp4",
+    post: "/assets/share/video-background-post.mp4",
+    square: "/assets/share/video-background-square.mp4",
+    landscape: "/assets/share/video-background-landscape.mp4",
+}
+
+export function getShareVideoBackgroundSrc(aspect: ShareVideoAspect): string {
+    return SHARE_VIDEO_BACKGROUNDS[aspect]
+}
 
 /** MP4 records natively on Safari/new Chrome; WebM is the broad fallback. */
 const MIME_CANDIDATES: Array<{ mime: string; ext: "mp4" | "webm" }> = [
@@ -31,10 +45,13 @@ export function pickShareVideoFormat(): { mime: string; ext: "mp4" | "webm" } {
 }
 
 /** Load the looping cosmic background film, ready to play silently. */
-function loadBackgroundVideo(signal?: AbortSignal): Promise<HTMLVideoElement> {
+function loadBackgroundVideo(
+    src: string,
+    signal?: AbortSignal,
+): Promise<HTMLVideoElement> {
     return new Promise((resolve, reject) => {
         const video = document.createElement("video")
-        video.src = SHARE_VIDEO_BACKGROUND_SRC
+        video.src = src
         video.muted = true
         video.loop = true
         video.playsInline = true
@@ -78,6 +95,7 @@ function drawVideoCover(
 
 export async function createShareVideo({
     overlayBlob,
+    aspect,
     width,
     height,
     signal,
@@ -85,6 +103,8 @@ export async function createShareVideo({
 }: {
     /** Transparent poster render — frame, cards and text, no sky. */
     overlayBlob: Blob
+    /** Picks the background film shot for this export's resolution. */
+    aspect: ShareVideoAspect
     width: number
     height: number
     signal?: AbortSignal
@@ -92,7 +112,7 @@ export async function createShareVideo({
 }): Promise<{ blob: Blob; ext: "mp4" | "webm" }> {
     const [overlay, background] = await Promise.all([
         createImageBitmap(overlayBlob),
-        loadBackgroundVideo(signal),
+        loadBackgroundVideo(getShareVideoBackgroundSrc(aspect), signal),
     ])
     const canvas = document.createElement("canvas")
     canvas.width = width

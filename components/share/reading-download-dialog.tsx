@@ -23,7 +23,7 @@ import {
 } from "@/lib/share-image-client"
 import {
     createShareVideo,
-    SHARE_VIDEO_BACKGROUND_SRC,
+    getShareVideoBackgroundSrc,
     SHARE_VIDEO_DURATION_MS,
 } from "@/lib/share-video"
 
@@ -333,6 +333,7 @@ export default function ReadingDownloadDialog({
                 setDownloadPhase("animate")
                 cached = await createShareVideo({
                     overlayBlob,
+                    aspect: selectedStyle.id,
                     width: selectedStyle.width,
                     height: selectedStyle.height,
                     onProgress: (progress) => {
@@ -580,7 +581,9 @@ export default function ReadingDownloadDialog({
                                     cta={t("actions.shareCta")}
                                     videoBackgroundSrc={
                                         format === "video"
-                                            ? SHARE_VIDEO_BACKGROUND_SRC
+                                            ? getShareVideoBackgroundSrc(
+                                                  styleId,
+                                              )
                                             : undefined
                                     }
                                 />
