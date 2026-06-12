@@ -1590,7 +1590,14 @@
         "selectInSheet": "Select {platform} in the share sheet",
         "imageCopied": "Image copied — paste it into {platform}",
         "imageSaved": "Image saved — attach it in {platform}",
-        "imageError": "Couldn't prepare the image. Please try again."
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "Regenerate Reading",

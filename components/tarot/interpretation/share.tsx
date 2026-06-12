@@ -43,6 +43,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { Share2 } from "lucide-react"
 import { shareLinkCache } from "@/lib/share-cache"
 import { getShareImageBlob } from "@/lib/share-image-client"
+import { createShareVideo } from "@/lib/share-video"
 import Link from "next/link"
 import { useTarot } from "@/contexts/tarot-context"
 import {
@@ -117,6 +118,19 @@ export default function ShareSection({
     const maxStars = starsPerVisit * maxGrantsPerDay
     const [unavailableOpen, setUnavailableOpen] = useState(false)
     const [unavailableLabel, setUnavailableLabel] = useState<string>("")
+    const [shareFormat, setShareFormat] = useState<"image" | "video">("image")
+
+    // The 15s recording is generated once and cached; the progress
+    // listener lives in a ref so a tap that joins an in-flight
+    // generation (e.g. pre-started by the toggle) still gets updates.
+    const videoCacheRef = useRef<{ blob: Blob; ext: "mp4" | "webm" } | null>(
+        null,
+    )
+    const videoPromiseRef = useRef<Promise<{
+        blob: Blob
+        ext: "mp4" | "webm"
+    }> | null>(null)
+    const videoProgressRef = useRef<((progress: number) => void) | null>(null)
 
     // Load earned stars from database on mount
     useEffect(() => {
@@ -459,9 +473,161 @@ export default function ShareSection({
         [question, cards, interpretation, t, tInterp],
     )
 
+    /**
+     * Story-poster overlay + 15s recording over the cosmic film, shared
+     * across all platform taps. Overlay render maps to the first 25% of
+     * progress, the realtime recording to the rest.
+     */
+    const getShareVideo = useCallback(() => {
+        if (videoCacheRef.current) {
+            return Promise.resolve(videoCacheRef.current)
+        }
+        if (!videoPromiseRef.current) {
+            videoPromiseRef.current = (async () => {
+                const overlayBlob = await getShareImageBlob(
+                    {
+                        question: question || undefined,
+                        cards,
+                        interpretation: interpretation || undefined,
+                        cta: tInterp("actions.shareCta"),
+                        width: 1080,
+                        height: 1920,
+                        transparent: true,
+                    },
+                    (phase, progress) =>
+                        videoProgressRef.current?.((progress ?? 0) * 0.25),
+                )
+                const video = await createShareVideo({
+                    overlayBlob,
+                    aspect: "story",
+                    width: 1080,
+                    height: 1920,
+                    onProgress: (progress) =>
+                        videoProgressRef.current?.(0.25 + progress * 0.75),
+                })
+                videoCacheRef.current = video
+                return video
+            })()
+            videoPromiseRef.current.catch(() => {
+                videoPromiseRef.current = null
+            })
+        }
+        return videoPromiseRef.current
+    }, [question, cards, interpretation, tInterp])
+
+    /** Video format: every platform goes through the OS share sheet —
+     *  no web intent accepts a video file. */
+    const sharePlatformVideo = useCallback(
+        async (option: ShareOption) => {
+            const loadingId = toast.loading(t("videoPreparing"), {
+                position: "top-center",
+                style: GOLD_TOAST_STYLE,
+            })
+            videoProgressRef.current = (progress) => {
+                toast.loading(
+                    `${t("videoPreparing")} ${Math.round(progress * 100)}%`,
+                    {
+                        id: loadingId,
+                        position: "top-center",
+                        style: GOLD_TOAST_STYLE,
+                    },
+                )
+            }
+            try {
+                const { blob, ext } = await getShareVideo()
+                videoProgressRef.current = null
+                toast.dismiss(loadingId)
+                const file = new File([blob], `askingfate-reading.${ext}`, {
+                    type:
+                        blob.type ||
+                        (ext === "mp4" ? "video/mp4" : "video/webm"),
+                })
+                if (
+                    typeof navigator !== "undefined" &&
+                    typeof navigator.canShare === "function" &&
+                    typeof navigator.share === "function" &&
+                    navigator.canShare({ files: [file] })
+                ) {
+                    const hintId = toast(
+                        t("selectInSheet", { platform: option.label }),
+                        {
+                            position: "top-center",
+                            duration: 8000,
+                            style: GOLD_TOAST_STYLE,
+                        },
+                    )
+                    try {
+                        await navigator.share({
+                            title: "AskingFate",
+                            files: [file],
+                        })
+                    } catch (error) {
+                        toast.dismiss(hintId)
+                        const name = (error as DOMException)?.name
+                        if (name === "AbortError") return
+                        if (name === "NotAllowedError") {
+                            // The recording outlived the tap's activation
+                            // window; it's cached now, so one more tap
+                            // shares instantly.
+                            toast(
+                                t("videoReady", { platform: option.label }),
+                                {
+                                    position: "top-center",
+                                    duration: 8000,
+                                    style: GOLD_TOAST_STYLE,
+                                },
+                            )
+                            return
+                        }
+                        throw error
+                    }
+                    return
+                }
+                // No file share sheet (desktop): save it — the clipboard
+                // can't hold video.
+                const url = URL.createObjectURL(blob)
+                try {
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = `askingfate-reading.${ext}`
+                    a.rel = "noopener"
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                } finally {
+                    URL.revokeObjectURL(url)
+                }
+                toast(t("videoSaved", { platform: option.label }), {
+                    position: "top-center",
+                    duration: 8000,
+                    style: GOLD_TOAST_STYLE,
+                })
+            } catch (error) {
+                console.error("Video share error:", error)
+                videoProgressRef.current = null
+                toast.dismiss(loadingId)
+                toast.error(t("videoError"), { position: "top-center" })
+            }
+        },
+        [getShareVideo, t],
+    )
+
+    /** Pre-render the recording while the user is still picking a
+     *  platform, so the tap can usually share from cache. */
+    const handleFormatChange = (value: "image" | "video") => {
+        setShareFormat(value)
+        if (value === "video") {
+            void getShareVideo().catch(() => {})
+        }
+    }
+
     /** One click handler for every variant and platform mode. */
     const handleOptionClick = useCallback(
         async (option: ShareOption) => {
+            if (shareFormat === "video") {
+                await sharePlatformVideo(option)
+                return
+            }
             if (option.mode === "file") {
                 await sharePlatformImage(option)
                 return
@@ -502,7 +668,32 @@ export default function ShareSection({
                 setUnavailableOpen(true)
             }
         },
-        [ensureShareLink, question, sharePlatformImage],
+        [ensureShareLink, question, shareFormat, sharePlatformImage, sharePlatformVideo],
+    )
+
+    /** Image/video segmented pill — top-right of the section header. */
+    const formatToggle = (
+        <div
+            role='group'
+            aria-label={t("formatLabel")}
+            className='inline-flex items-center rounded-full border border-amber-300/25 bg-white/5 p-0.5'
+        >
+            {(["image", "video"] as const).map((value) => (
+                <button
+                    key={value}
+                    type='button'
+                    onClick={() => handleFormatChange(value)}
+                    aria-pressed={shareFormat === value}
+                    className={`whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
+                        shareFormat === value
+                            ? "bg-gradient-to-r from-amber-400/90 via-yellow-300/90 to-amber-400/90 text-[#241a05] shadow-[0_2px_10px_-2px_rgba(252,211,77,0.55)]"
+                            : "text-white/65 hover:text-white/90"
+                    }`}
+                >
+                    {t(value === "video" ? "formatVideo" : "formatImage")}
+                </button>
+            ))}
+        </div>
     )
 
     const shareOptions = useMemo<ShareOption[]>(
@@ -691,7 +882,7 @@ export default function ShareSection({
                     className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90'
                 />
                 <div className='relative py-4'>
-                    <div className='mb-6 flex items-center gap-2.5'>
+                    <div className='mb-6 flex items-start gap-2.5'>
                         <div className='min-w-0 flex-1 px-4'>
                             <p className='text-sm font-semibold uppercase tracking-wider text-white/88'>
                                 {t("title")}
@@ -709,6 +900,7 @@ export default function ShareSection({
                                 </Link>
                             </p>
                         </div>
+                        <div className='shrink-0 pr-4'>{formatToggle}</div>
                     </div>
 
                     <div
@@ -779,11 +971,11 @@ export default function ShareSection({
             <div className='relative'>
                 {/* Header with padding */}
                 <div className='px-6 pt-6 pb-4'>
-                    <div className='mb-6 flex animate-fade-up items-center gap-3'>
+                    <div className='mb-6 flex animate-fade-up items-start gap-3'>
                         <div className='rounded-full bg-white/10 p-2 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15'>
                             <Share2 className='h-5 w-5 text-cyan-200/90 transition-transform duration-300 group-hover:scale-110 group-hover:text-white' />
                         </div>
-                        <div>
+                        <div className='min-w-0 flex-1'>
                             <h3 className='font-serif text-lg font-semibold text-white/90 transition-colors duration-300 group-hover:text-white'>
                                 {t("title")}
                             </h3>
@@ -800,6 +992,7 @@ export default function ShareSection({
                                 </Link>
                             </p>
                         </div>
+                        <div className='shrink-0'>{formatToggle}</div>
                     </div>
                 </div>
 
