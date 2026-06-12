@@ -740,6 +740,12 @@
       }
     }
   },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
   "QuestionInput": {
     "label": "Your question",
     "placeholder": "Type your question...",
@@ -1581,7 +1587,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "Email"
+        "email": "Email",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "Regenerate Reading",
@@ -1595,6 +1613,7 @@
         "share": "Share",
         "downloadReadingText": "Download reading as a text file",
         "downloadReadingImage": "Download reading as an image",
+        "shareCta": "Ask your own question at askingfate.com",
         "copyResult": "Copy Interpretation",
         "askFollowUp": "Ask Follow-up",
         "askFollowUpPrompt": "Can you expand on this reading for me?",
@@ -1614,6 +1633,7 @@
         "downloadBrandingTitle": "Branding",
         "downloadBrandingHint": "Preview includes branding",
         "downloadStyleStory": "Story",
+        "downloadStylePost": "Post",
         "downloadStyleSquare": "Square",
         "downloadStyleLandscape": "Landscape",
         "downloadTabImage": "Image",

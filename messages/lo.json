@@ -752,6 +752,12 @@
       }
     }
   },
+  "ShareImageProgress": {
+    "render": "ກຳລັງແຕ້ມຮູບຄຳທຳນາຍຂອງເຈົ້າ…",
+    "download": "ກຳລັງດາວໂຫຼດຮູບພາບ…",
+    "animate": "ກຳລັງບັນທຶກອະນິເມຊັນຈັກກະວານຂອງເຈົ້າ…",
+    "done": "ບັນທຶກລົງເຄື່ອງແລ້ວ"
+  },
   "QuestionInput": {
     "label": "ຄຳຖາມຂອງທ່ານ",
     "placeholder": "ພິມຄຳຖາມຂອງທ່ານ...",
@@ -1590,7 +1596,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "ອີເມວ"
+        "email": "ອີເມວ",
+        "imagePreparing": "ກຳລັງກະກຽມຮູບພາບຄຳທຳນາຍຂອງທ່ານ…",
+        "selectInSheet": "ເລືອກ {platform} ໃນໜ້າຕ່າງແບ່ງປັນ",
+        "imageCopied": "ສຳເນົາຮູບແລ້ວ — ນຳໄປວາງໃນ {platform} ໄດ້ເລີຍ",
+        "imageSaved": "ບັນທຶກຮູບແລ້ວ — ແນບຮູບໃນ {platform} ໄດ້ເລີຍ",
+        "imageError": "ບໍ່ສາມາດກະກຽມຮູບພາບໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+        "formatLabel": "ຮູບແບບການແບ່ງປັນ",
+        "formatImage": "ຮູບພາບ",
+        "formatVideo": "ວິດີໂອ",
+        "videoPreparing": "ກຳລັງບັນທຶກວິດີໂອຄຳທຳນາຍຂອງທ່ານ…",
+        "videoReady": "ວິດີໂອພ້ອມແລ້ວ — ແຕະ {platform} ອີກຄັ້ງເພື່ອແບ່ງປັນ",
+        "videoSaved": "ບັນທຶກວິດີໂອແລ້ວ — ແນບວິດີໂອໃນ {platform} ໄດ້ເລີຍ",
+        "videoError": "ບໍ່ສາມາດກະກຽມວິດີໂອໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ"
       },
       "buttons": {
         "regenerate": "ສ້າງຄຳທຳນາຍໃໝ່",
@@ -1604,6 +1622,7 @@
         "share": "ແຊຣ໌",
         "downloadReadingText": "ດາວໂຫຼດການອ່ານເປັນໄຟລ໌ຂໍ້ຄວາມ",
         "downloadReadingImage": "ດາວໂຫຼດການອ່ານເປັນຮູບພາບ",
+        "shareCta": "ຖາມຄຳຖາມຂອງເຈົ້າເອງໄດ້ທີ່ askingfate.com",
         "copyResult": "ຄັດລອກຄຳທຳນາຍ",
         "askFollowUp": "ຖາມຕໍ່",
         "askFollowUpPrompt": "ຊ່ວຍຂະຫຍາຍຄຳທຳນາຍນີ້ໃຫ້ເພີ່ມເຕີມໄດ້ບໍ?",
@@ -1623,6 +1642,7 @@
         "downloadBrandingTitle": "ແບຣນ",
         "downloadBrandingHint": "ພຣີວິວລວມແບຣນ",
         "downloadStyleStory": "ສະຕໍຣີ",
+        "downloadStylePost": "ໂພສ",
         "downloadStyleSquare": "ສີ່ຫຼ່ຽມຈັດຕຸລັດ",
         "downloadStyleLandscape": "ແນວນອນ",
         "downloadTabImage": "ຮູບພາບ",

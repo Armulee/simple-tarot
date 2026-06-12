@@ -17,54 +17,14 @@ import { cn } from "@/lib/utils"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
 import { useTranslations } from "next-intl"
 import { Download, Loader2, Share } from "lucide-react"
+import ReadingDownloadDialog, {
+    type ReadingImageExportStatus,
+} from "@/components/share/reading-download-dialog"
 
 const TAROT_READING_EXPORT_ICON_BTN =
     "group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:scale-105 hover:border-accent/40 hover:shadow-[0_12px_32px_-10px_rgba(139,92,246,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 
-function triggerBlobDownload(filename: string, blob: Blob): void {
-    const url = URL.createObjectURL(blob)
-    try {
-        const a = document.createElement("a")
-        a.href = url
-        a.download = filename
-        a.rel = "noopener"
-        document.body.appendChild(a)
-        a.click()
-        a.remove()
-    } finally {
-        URL.revokeObjectURL(url)
-    }
-}
-
-async function fetchReadingShareImage({
-    question,
-    cards,
-    interpretation,
-    signal,
-}: {
-    question?: string
-    cards: string[]
-    interpretation: string
-    signal?: AbortSignal
-}): Promise<Blob> {
-    const res = await fetch("/api/share-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            question,
-            cards,
-            interpretation,
-            width: 1080,
-            height: 1920,
-            branding: "AskingFate",
-        }),
-        signal,
-    })
-    if (!res.ok) {
-        throw new Error(`Share image request failed (${res.status})`)
-    }
-    return await res.blob()
-}
+export type { ReadingImageExportStatus }
 
 const INTERPRETATION_FILLER_PREFIXES = [
     /^(?:i\s+(?:feel|sense|believe|think)\s+(?:that\s+)*)/i,
@@ -183,6 +143,14 @@ export type TarotAssistantInterpretationProps = {
     /** Called when the headline row image export fails (network/blob/anchor error). */
     onReadingTextDownloadFailed?: (messageId: string) => void
     /**
+     * Live share-image export progress (render → download → done). The chat
+     * session mirrors this into the composer status strip; `null` clears it.
+     */
+    onReadingImageExportStatus?: (
+        messageId: string,
+        status: ReadingImageExportStatus | null,
+    ) => void
+    /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
      * original PII the user typed, for every user-facing render and share.
      */
@@ -214,6 +182,7 @@ export function TarotAssistantInterpretation({
     onShare,
     onReadingTextDownloaded,
     onReadingTextDownloadFailed,
+    onReadingImageExportStatus,
     unmask,
     privacyAliases,
 }: TarotAssistantInterpretationProps) {
@@ -238,7 +207,10 @@ export function TarotAssistantInterpretation({
     const isMultiCard = cardCount > 1
 
     const [activeCardIndex, setActiveCardIndex] = useState(0)
-    const [isImageDownloading, setIsImageDownloading] = useState(false)
+
+    // The download dialog (formats, aspect options, preview) pre-warms the
+    // share-image renderer itself on mount.
+    const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
     useEffect(() => {
         // Snap back to first card whenever the underlying spread changes
         // (e.g. when a new message streams or regenerate runs).
@@ -606,6 +578,10 @@ export function TarotAssistantInterpretation({
                             conclusion={unmask(message.followUpConclusion)}
                             spreadType={message.spreadType ?? undefined}
                             cardsFull={message.cards}
+                            headline={unmaskedHeadline}
+                            subtitle={unmaskedSubtitle}
+                            keyMessage={unmaskedKeyMessage}
+                            detailedHtml={unmask(message.detailedHtml)}
                             assistantText={unmask(
                                 messages
                                     .slice(0, messageIndex)
@@ -720,65 +696,13 @@ export function TarotAssistantInterpretation({
                                                     <button
                                                         type='button'
                                                         disabled={
-                                                            !readingExportText ||
-                                                            isImageDownloading
+                                                            !readingExportText
                                                         }
-                                                        onClick={async () => {
-                                                            if (
-                                                                !readingExportText ||
-                                                                isImageDownloading
-                                                            )
-                                                                return
-                                                            const safeId =
-                                                                message.id
-                                                                    .replace(
-                                                                        /[^a-zA-Z0-9-_]/g,
-                                                                        "",
-                                                                    )
-                                                                    .slice(
-                                                                        0,
-                                                                        32,
-                                                                    ) ||
-                                                                "reading"
-                                                            const filename = `askingfate-reading-${safeId}.png`
-                                                            setIsImageDownloading(
+                                                        onClick={() =>
+                                                            setDownloadDialogOpen(
                                                                 true,
                                                             )
-                                                            try {
-                                                                const blob =
-                                                                    await fetchReadingShareImage(
-                                                                        {
-                                                                            question:
-                                                                                unmaskedQuestion,
-                                                                            cards:
-                                                                                message.cards?.map(
-                                                                                    (
-                                                                                        card,
-                                                                                    ) =>
-                                                                                        card.meaning,
-                                                                                ) ??
-                                                                                [],
-                                                                            interpretation:
-                                                                                readingExportText,
-                                                                        },
-                                                                    )
-                                                                triggerBlobDownload(
-                                                                    filename,
-                                                                    blob,
-                                                                )
-                                                                onReadingTextDownloaded?.(
-                                                                    message.id,
-                                                                )
-                                                            } catch {
-                                                                onReadingTextDownloadFailed?.(
-                                                                    message.id,
-                                                                )
-                                                            } finally {
-                                                                setIsImageDownloading(
-                                                                    false,
-                                                                )
-                                                            }
-                                                        }}
+                                                        }
                                                         className={cn(
                                                             TAROT_READING_EXPORT_ICON_BTN,
                                                             "disabled:pointer-events-none disabled:opacity-40 disabled:hover:scale-100",
@@ -789,24 +713,59 @@ export function TarotAssistantInterpretation({
                                                         title={tReading(
                                                             "actions.downloadReadingImage",
                                                         )}
-                                                        aria-busy={
-                                                            isImageDownloading
-                                                        }
                                                     >
                                                         <span
                                                             aria-hidden
                                                             className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
                                                         />
-                                                        {isImageDownloading ? (
-                                                            <Loader2 className='relative z-10 h-4.5 w-4.5 shrink-0 animate-spin drop-shadow-sm' />
-                                                        ) : (
-                                                            <Download className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
-                                                        )}
+                                                        <Download className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Download options dialog: image or 15s
+                                        animated video, in story / square /
+                                        landscape, with a live preview of the
+                                        exact file the user will save. */}
+                                    <ReadingDownloadDialog
+                                        open={downloadDialogOpen}
+                                        onOpenChange={setDownloadDialogOpen}
+                                        question={unmaskedQuestion}
+                                        cards={
+                                            message.cards?.map(
+                                                (card) => card.meaning,
+                                            ) ?? []
+                                        }
+                                        interpretation={readingExportText}
+                                        headline={unmaskedHeadline}
+                                        subtitle={unmaskedSubtitle}
+                                        keyMessage={unmaskedKeyMessage}
+                                        detailedHtml={unmask(
+                                            message.detailedHtml,
+                                        )}
+                                        insights={
+                                            message.insights?.map((i) =>
+                                                unmask(i),
+                                            ) ?? []
+                                        }
+                                        onExportStatus={(status) => {
+                                            onReadingImageExportStatus?.(
+                                                message.id,
+                                                status,
+                                            )
+                                            if (status?.phase === "done") {
+                                                onReadingTextDownloaded?.(
+                                                    message.id,
+                                                )
+                                            } else if (status === null) {
+                                                onReadingTextDownloadFailed?.(
+                                                    message.id,
+                                                )
+                                            }
+                                        }}
+                                    />
 
                                     {/* "Detailed" key-takeaways: sanitized,
                                         AI-authored HTML paragraphs (no

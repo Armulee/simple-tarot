@@ -4,7 +4,6 @@ import {
     useState,
     useCallback,
     useEffect,
-    useMemo,
     useRef,
     cloneElement,
     isValidElement,
@@ -28,14 +27,13 @@ import {
     FaXmark,
     FaCopy,
 } from "react-icons/fa6"
-import { Sparkle, Star } from "lucide-react"
+import { Star } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Settings } from "lucide-react"
 import { useTarot } from "@/contexts/tarot-context"
-import Image from "next/image"
 import { useStars } from "@/contexts/stars-context"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
-import SharePreview from "@/components/tarot/share-preview"
+import ReadingDownloadDialog from "@/components/share/reading-download-dialog"
 import {
     tarotInterpretationSchema,
     type TarotInterpretation,
@@ -58,10 +56,8 @@ import {
     Sheet,
     SheetContent,
     SheetDescription,
-    SheetFooter,
     SheetHeader,
     SheetTitle,
-    SheetTrigger,
 } from "@/components/ui/sheet"
 import {
     DropdownMenu,
@@ -97,6 +93,11 @@ export interface ActionSectionProps {
         isReversed: boolean
     }>
     assistantText?: string
+    /** Rich tarot fields forwarded to the share-image renderer (story layout). */
+    headline?: string
+    subtitle?: string
+    keyMessage?: string
+    detailedHtml?: string
     /** When set (e.g. from layout: row width − pill width − gap), drives how many icons show in `compact`. */
     compactAvailableWidthPx?: number
 }
@@ -148,6 +149,10 @@ export default function ActionSection({
     spreadType: propSpreadType,
     cardsFull: propCardsFull,
     assistantText: propAssistantText,
+    headline: propHeadline,
+    subtitle: propSubtitle,
+    keyMessage: propKeyMessage,
+    detailedHtml: propDetailedHtml,
     compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
@@ -169,26 +174,7 @@ export default function ActionSection({
     const [copiedText, setCopiedText] = useState(false)
     const { user, session } = useAuth()
     const { spendStars, stars } = useStars()
-    const [isDownloading, setIsDownloading] = useState(false)
     const [downloadOpen, setDownloadOpen] = useState(false)
-    const [downloadFormat, setDownloadFormat] = useState<"image" | "video">(
-        "image",
-    )
-    const [downloadStyleId, setDownloadStyleId] = useState("story")
-    const [, setPreviewUrl] = useState<string | null>(null)
-    const [, setPreviewError] = useState<string | null>(null)
-    const [isPreviewLoading, setIsPreviewLoading] = useState(false)
-    const [, setPreviewProgress] = useState<number | null>(null)
-    const [, setVideoPreviewUrl] = useState<string | null>(null)
-    const [isVideoGenerating, setIsVideoGenerating] = useState(false)
-    const [, setVideoProgress] = useState<number | null>(null)
-    const previewBlobRef = useRef<{ styleId: string; blob: Blob } | null>(null)
-    const previewCacheRef = useRef<Map<string, Blob>>(new Map())
-    const videoCacheRef = useRef<Map<string, Blob>>(new Map())
-    const inFlightRef = useRef<Map<string, Promise<Blob>>>(new Map())
-    const [thumbnailUrls, setThumbnailUrls] = useState<Record<string, string>>(
-        {},
-    )
     const [showReport, setShowReport] = useState(false)
     const [reportReason, setReportReason] = useState("")
     const [reportDetails, setReportDetails] = useState("")
@@ -208,36 +194,6 @@ export default function ActionSection({
         }>
     >([])
 
-    const downloadStyles = useMemo(
-        () => [
-            {
-                id: "story",
-                label: t("actions.downloadStyleStory"),
-                size: "1080 × 1920",
-                width: 1080,
-                height: 1920,
-            },
-            {
-                id: "square",
-                label: t("actions.downloadStyleSquare"),
-                size: "1080 × 1080",
-                width: 1080,
-                height: 1080,
-            },
-            {
-                id: "landscape",
-                label: t("actions.downloadStyleLandscape"),
-                size: "1920 × 1080",
-                width: 1920,
-                height: 1080,
-            },
-        ],
-        [t],
-    )
-    const selectedStyle =
-        downloadStyles.find((style) => style.id === downloadStyleId) ||
-        downloadStyles[0]
-
     useEffect(() => {
         if (typeof window === "undefined") return
         const handleResize = () => setViewportWidth(window.innerWidth)
@@ -245,255 +201,6 @@ export default function ActionSection({
         window.addEventListener("resize", handleResize)
         return () => window.removeEventListener("resize", handleResize)
     }, [])
-
-    const fetchShareImage = useCallback(
-        async ({
-            width,
-            height,
-            onProgress,
-        }: {
-            width: number
-            height: number
-            onProgress?: (progress: number | null) => void
-        }) => {
-            const key = `${width}x${height}`
-            const existing = inFlightRef.current.get(key)
-            if (existing) return existing
-
-            const promise = (async () => {
-                const res = await fetch("/api/share-image", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        question,
-                        cards,
-                        interpretation,
-                        width,
-                        height,
-                        branding: "AskingFate",
-                        type: "image",
-                    }),
-                })
-                if (!res.ok) throw new Error("Preview failed")
-
-                const contentLength = res.headers.get("Content-Length")
-                if (!res.body || !contentLength) {
-                    onProgress?.(null)
-                    return await res.blob()
-                }
-
-                const total = Number(contentLength)
-                if (!Number.isFinite(total) || total <= 0) {
-                    onProgress?.(null)
-                    return await res.blob()
-                }
-
-                const reader = res.body.getReader()
-                const chunks: BlobPart[] = []
-                let received = 0
-
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    if (value) {
-                        chunks.push(value as BlobPart)
-                        received += value.length
-                        onProgress?.(Math.min(received / total, 1))
-                    }
-                }
-
-                onProgress?.(1)
-                return new Blob(chunks, {
-                    type: res.headers.get("Content-Type") || "image/png",
-                })
-            })()
-
-            inFlightRef.current.set(key, promise)
-            try {
-                return await promise
-            } finally {
-                inFlightRef.current.delete(key)
-            }
-        },
-        [question, cards, interpretation],
-    )
-
-    const createShareVideo = useCallback(
-        async ({
-            style,
-            signal,
-            onProgress,
-        }: {
-            style: { id: string; width: number; height: number }
-            signal?: AbortSignal
-            onProgress?: (progress: number) => void
-        }) => {
-            const cachedImage = previewCacheRef.current.get(style.id) || null
-            const baseBlob =
-                cachedImage ||
-                (await fetchShareImage({
-                    width: style.width,
-                    height: style.height,
-                }))
-
-            const baseImage =
-                typeof createImageBitmap === "function"
-                    ? await createImageBitmap(baseBlob)
-                    : await new Promise<HTMLImageElement>((resolve, reject) => {
-                          const img = new window.Image()
-                          img.onload = () => resolve(img)
-                          img.onerror = () =>
-                              reject(new Error("Failed to load image"))
-                          img.src = URL.createObjectURL(baseBlob)
-                      })
-
-            const canvas = document.createElement("canvas")
-            canvas.width = style.width
-            canvas.height = style.height
-            const ctx = canvas.getContext("2d")
-            if (!ctx) throw new Error("Canvas not supported")
-
-            const starCount = Math.round(
-                Math.max(120, (style.width * style.height) / 20000),
-            )
-            const stars = Array.from({ length: starCount }, () => ({
-                x: Math.random() * style.width,
-                y: Math.random() * style.height,
-                size: 1.4 + Math.random() * 1.6,
-                alpha: 0.35 + Math.random() * 0.6,
-                twinkleSpeed: 0.6 + Math.random() * 1.8,
-                twinkleOffset: Math.random() * Math.PI * 2,
-            }))
-            const glowOrbs = [
-                {
-                    x: style.width * 0.2,
-                    y: style.height * 0.2,
-                    radius: Math.min(style.width, style.height) * 0.35,
-                    color: "rgba(56,189,248,0.15)",
-                    speed: 0.6,
-                    phase: 0,
-                },
-                {
-                    x: style.width * 0.8,
-                    y: style.height * 0.7,
-                    radius: Math.min(style.width, style.height) * 0.4,
-                    color: "rgba(234,179,8,0.12)",
-                    speed: 0.4,
-                    phase: 2,
-                },
-            ]
-
-            const stream = canvas.captureStream(30)
-            const mimeType = MediaRecorder.isTypeSupported(
-                "video/webm;codecs=vp9",
-            )
-                ? "video/webm;codecs=vp9"
-                : "video/webm"
-            const recorder = new MediaRecorder(stream, {
-                mimeType,
-                videoBitsPerSecond: 4_000_000,
-            })
-            const chunks: BlobPart[] = []
-
-            const durationMs = 6000
-            const start = performance.now()
-
-            const donePromise = new Promise<Blob>((resolve, reject) => {
-                recorder.ondataavailable = (event) => {
-                    if (event.data && event.data.size > 0) {
-                        chunks.push(event.data)
-                    }
-                }
-                recorder.onerror = () => {
-                    reject(new Error("Video recording failed"))
-                }
-                recorder.onstop = () => {
-                    resolve(
-                        new Blob(chunks, {
-                            type: recorder.mimeType || "video/webm",
-                        }),
-                    )
-                }
-
-                const render = (now: number) => {
-                    if (signal?.aborted) {
-                        recorder.stop()
-                        reject(new Error("Video generation aborted"))
-                        return
-                    }
-
-                    const elapsed = now - start
-                    const t = Math.min(elapsed / durationMs, 1)
-
-                    ctx.clearRect(0, 0, style.width, style.height)
-                    ctx.drawImage(baseImage as CanvasImageSource, 0, 0)
-
-                    glowOrbs.forEach((orb) => {
-                        const drift =
-                            Math.sin(t * Math.PI * 2 * orb.speed + orb.phase) *
-                            30
-                        const gx = orb.x + drift
-                        const gy = orb.y - drift * 0.6
-                        const gradient = ctx.createRadialGradient(
-                            gx,
-                            gy,
-                            0,
-                            gx,
-                            gy,
-                            orb.radius,
-                        )
-                        gradient.addColorStop(0, orb.color)
-                        gradient.addColorStop(1, "rgba(0,0,0,0)")
-                        ctx.fillStyle = gradient
-                        ctx.beginPath()
-                        ctx.arc(gx, gy, orb.radius, 0, Math.PI * 2)
-                        ctx.fill()
-                    })
-
-                    ctx.save()
-                    ctx.globalCompositeOperation = "screen"
-                    stars.forEach((star) => {
-                        const twinkle =
-                            0.5 +
-                            0.5 *
-                                Math.sin(
-                                    t * Math.PI * 2 * star.twinkleSpeed +
-                                        star.twinkleOffset,
-                                )
-                        const alpha = star.alpha * twinkle
-                        ctx.fillStyle = `rgba(255,255,255,${alpha})`
-                        ctx.beginPath()
-                        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
-                        ctx.fill()
-                        ctx.fillStyle = `rgba(255,255,255,${alpha * 0.5})`
-                        ctx.beginPath()
-                        ctx.arc(star.x, star.y, star.size * 2.4, 0, Math.PI * 2)
-                        ctx.fill()
-                    })
-                    ctx.restore()
-
-                    onProgress?.(t)
-                    if (t < 1) {
-                        requestAnimationFrame(render)
-                    } else {
-                        recorder.stop()
-                    }
-                }
-
-                recorder.start()
-                requestAnimationFrame(render)
-            })
-
-            const blob = await donePromise
-            if (baseImage instanceof HTMLImageElement) {
-                URL.revokeObjectURL(baseImage.src)
-            } else if (typeof (baseImage as ImageBitmap).close === "function") {
-                ;(baseImage as ImageBitmap).close()
-            }
-            return blob
-        },
-        [fetchShareImage],
-    )
 
     const loadVersions = useCallback(async () => {
         try {
@@ -558,323 +265,6 @@ export default function ActionSection({
         },
         [readingId, contentType],
     )
-
-    useEffect(() => {
-        if (!downloadOpen) {
-            setPreviewError(null)
-            setIsPreviewLoading(false)
-            setPreviewProgress(null)
-            setIsVideoGenerating(false)
-            setVideoProgress(null)
-            setPreviewUrl((current) => {
-                if (current) URL.revokeObjectURL(current)
-                return null
-            })
-            setVideoPreviewUrl((current) => {
-                if (current) URL.revokeObjectURL(current)
-                return null
-            })
-            previewBlobRef.current = null
-            setThumbnailUrls((current) => {
-                Object.values(current).forEach((url) =>
-                    URL.revokeObjectURL(url),
-                )
-                return {}
-            })
-        }
-    }, [downloadOpen])
-
-    useEffect(() => {
-        if (!downloadOpen) return
-        setPreviewUrl((current) => {
-            if (current) URL.revokeObjectURL(current)
-            return null
-        })
-        setVideoPreviewUrl((current) => {
-            if (current) URL.revokeObjectURL(current)
-            return null
-        })
-        previewBlobRef.current = null
-        setPreviewProgress(null)
-        setVideoProgress(null)
-        setThumbnailUrls((current) => {
-            Object.values(current).forEach((url) => URL.revokeObjectURL(url))
-            return {}
-        })
-        previewCacheRef.current.clear()
-        videoCacheRef.current.clear()
-        inFlightRef.current.clear()
-    }, [downloadOpen, question, cards, interpretation])
-
-    useEffect(() => {
-        if (!downloadOpen) return
-
-        let isActive = true
-
-        const fetchPreview = async () => {
-            setIsPreviewLoading(true)
-            setPreviewError(null)
-            setPreviewProgress(0)
-            try {
-                const cachedBlob = previewCacheRef.current.get(selectedStyle.id)
-                if (cachedBlob) {
-                    const nextUrl = URL.createObjectURL(cachedBlob)
-                    setPreviewUrl((current) => {
-                        if (current) URL.revokeObjectURL(current)
-                        return nextUrl
-                    })
-                    previewBlobRef.current = {
-                        styleId: selectedStyle.id,
-                        blob: cachedBlob,
-                    }
-                    setPreviewProgress(1)
-                    return
-                }
-                const blob = await fetchShareImage({
-                    width: selectedStyle.width,
-                    height: selectedStyle.height,
-                    onProgress: (progress) => {
-                        if (!isActive) return
-                        setPreviewProgress(progress)
-                    },
-                })
-                if (!isActive) return
-                previewCacheRef.current.set(selectedStyle.id, blob)
-                const nextUrl = URL.createObjectURL(blob)
-                setPreviewUrl((current) => {
-                    if (current) URL.revokeObjectURL(current)
-                    return nextUrl
-                })
-                previewBlobRef.current = {
-                    styleId: selectedStyle.id,
-                    blob,
-                }
-            } catch (error) {
-                if (!isActive) return
-                console.error("Preview error:", error)
-                setPreviewError(t("actions.downloadPreviewError"))
-                setPreviewProgress(null)
-            } finally {
-                if (isActive) setIsPreviewLoading(false)
-            }
-        }
-
-        void fetchPreview()
-
-        return () => {
-            isActive = false
-        }
-    }, [
-        downloadOpen,
-        downloadStyleId,
-        question,
-        cards,
-        interpretation,
-        selectedStyle.height,
-        selectedStyle.width,
-        selectedStyle.id,
-        fetchShareImage,
-        t,
-    ])
-
-    useEffect(() => {
-        if (!downloadOpen) return
-
-        let cancelled = false
-
-        const loadThumbnails = async () => {
-            await Promise.all(
-                downloadStyles.map(async (style) => {
-                    if (cancelled) return
-                    let blob = previewCacheRef.current.get(style.id) || null
-                    if (!blob) {
-                        try {
-                            blob = await fetchShareImage({
-                                width: style.width,
-                                height: style.height,
-                            })
-                            if (cancelled) return
-                            previewCacheRef.current.set(style.id, blob)
-                        } catch (error) {
-                            if (cancelled) return
-                            console.error("Thumbnail error:", error)
-                            return
-                        }
-                    }
-
-                    const url = URL.createObjectURL(blob)
-                    setThumbnailUrls((current) => {
-                        const next = { ...current }
-                        if (next[style.id]) {
-                            URL.revokeObjectURL(next[style.id])
-                        }
-                        next[style.id] = url
-                        return next
-                    })
-                }),
-            )
-        }
-
-        void loadThumbnails()
-
-        return () => {
-            cancelled = true
-        }
-    }, [
-        downloadOpen,
-        question,
-        cards,
-        interpretation,
-        downloadStyles,
-        fetchShareImage,
-    ])
-
-    useEffect(() => {
-        if (!downloadOpen || downloadFormat !== "video") return
-
-        const controller = new AbortController()
-        let active = true
-
-        const ensureVideoPreview = async () => {
-            const cached = videoCacheRef.current.get(selectedStyle.id)
-            if (cached) {
-                const nextUrl = URL.createObjectURL(cached)
-                setVideoPreviewUrl((current) => {
-                    if (current) URL.revokeObjectURL(current)
-                    return nextUrl
-                })
-                return
-            }
-
-            try {
-                setIsVideoGenerating(true)
-                setVideoProgress(0)
-                const blob = await createShareVideo({
-                    style: {
-                        id: selectedStyle.id,
-                        width: selectedStyle.width,
-                        height: selectedStyle.height,
-                    },
-                    signal: controller.signal,
-                    onProgress: (progress) => {
-                        if (!active) return
-                        setVideoProgress(progress)
-                    },
-                })
-                if (!active) return
-                videoCacheRef.current.set(selectedStyle.id, blob)
-                const nextUrl = URL.createObjectURL(blob)
-                setVideoPreviewUrl((current) => {
-                    if (current) URL.revokeObjectURL(current)
-                    return nextUrl
-                })
-            } catch (error) {
-                if (!active || controller.signal.aborted) return
-                console.error("Video preview error:", error)
-                toast.error(t("actions.downloadVideoError"))
-                setVideoProgress(null)
-            } finally {
-                if (active) setIsVideoGenerating(false)
-            }
-        }
-
-        void ensureVideoPreview()
-
-        return () => {
-            active = false
-            controller.abort()
-        }
-    }, [
-        downloadOpen,
-        downloadFormat,
-        selectedStyle.id,
-        selectedStyle.width,
-        selectedStyle.height,
-        createShareVideo,
-        t,
-    ])
-
-    const handleDownload = useCallback(async () => {
-        try {
-            setIsDownloading(true)
-            const cachedPreview = previewBlobRef.current
-            let blob: Blob | null = null
-            if (cachedPreview?.styleId === selectedStyle.id) {
-                blob = cachedPreview.blob
-            } else {
-                blob = previewCacheRef.current.get(selectedStyle.id) || null
-            }
-
-            if (!blob) {
-                blob = await fetchShareImage({
-                    width: selectedStyle.width,
-                    height: selectedStyle.height,
-                })
-            }
-
-            const ts = new Date().toISOString().replace(/[:.]/g, "-")
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement("a")
-            a.href = url
-            a.download = `reading-${selectedStyle.id}-${ts}.png`
-            document.body.appendChild(a)
-            a.click()
-            a.remove()
-            URL.revokeObjectURL(url)
-        } catch (e) {
-            console.error("Download error:", e)
-            toast.error(t("actions.downloadError"))
-        } finally {
-            setIsDownloading(false)
-        }
-    }, [
-        selectedStyle.height,
-        selectedStyle.id,
-        selectedStyle.width,
-        t,
-        fetchShareImage,
-    ])
-
-    const handleVideoDownload = useCallback(async () => {
-        try {
-            setIsVideoGenerating(true)
-            setVideoProgress(0)
-            let blob = videoCacheRef.current.get(selectedStyle.id) || null
-            if (!blob) {
-                blob = await createShareVideo({
-                    style: {
-                        id: selectedStyle.id,
-                        width: selectedStyle.width,
-                        height: selectedStyle.height,
-                    },
-                    onProgress: (progress) => setVideoProgress(progress),
-                })
-                videoCacheRef.current.set(selectedStyle.id, blob)
-            }
-
-            const ts = new Date().toISOString().replace(/[:.]/g, "-")
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement("a")
-            a.href = url
-            a.download = `reading-${selectedStyle.id}-${ts}.webm`
-            document.body.appendChild(a)
-            a.click()
-            a.remove()
-            URL.revokeObjectURL(url)
-        } catch (error) {
-            console.error("Video download error:", error)
-            toast.error(t("actions.downloadVideoError"))
-        } finally {
-            setIsVideoGenerating(false)
-            setVideoProgress(null)
-        }
-    }, [
-        selectedStyle.id,
-        selectedStyle.width,
-        selectedStyle.height,
-        createShareVideo,
-        t,
-    ])
 
     const { submit, object } = useObject({
         api: "/api/interpret-cards/question",
@@ -1430,6 +820,21 @@ export default function ActionSection({
         void action.onClick?.()
     }
 
+    const downloadDialogNode = (
+        <ReadingDownloadDialog
+            open={downloadOpen}
+            onOpenChange={setDownloadOpen}
+            question={question || undefined}
+            cards={cards}
+            interpretation={interpretation || undefined}
+            headline={propHeadline}
+            subtitle={propSubtitle}
+            keyMessage={propKeyMessage}
+            detailedHtml={propDetailedHtml}
+            insights={propInsights}
+        />
+    )
+
     if (variant === "compact") {
         return (
             <div className='relative'>
@@ -1487,197 +892,7 @@ export default function ActionSection({
                     )}
                 </div>
 
-                <Sheet open={downloadOpen} onOpenChange={setDownloadOpen}>
-                    <SheetContent
-                        side='bottom'
-                        className='max-h-[85vh] overflow-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
-                    >
-                        <Sparkle
-                            className='absolute top-10 left-10 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                            style={{ animationDelay: "0.6s" }}
-                        />
-                        <Sparkle
-                            className='absolute top-20 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                            style={{ animationDelay: "1.4s" }}
-                        />
-                        <Sparkle
-                            className='absolute bottom-14 left-16 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                            style={{ animationDelay: "2.3s" }}
-                        />
-                        <Sparkle
-                            className='absolute bottom-20 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                            style={{ animationDelay: "3.1s" }}
-                        />
-                        <div className='pointer-events-none absolute inset-0 opacity-40'>
-                            <div className='cosmic-stars-layer-3' />
-                            <div className='cosmic-stars-layer-4' />
-                            <div className='cosmic-stars-layer-5' />
-                        </div>
-                        <div className='pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl animate-pulse' />
-                        <div
-                            className='pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[90px] animate-pulse'
-                            style={{ animationDelay: "0.8s" }}
-                        />
-                        <SheetHeader>
-                            <SheetTitle>
-                                {t(
-                                    downloadFormat === "video"
-                                        ? "actions.downloadSheetTitleVideo"
-                                        : "actions.downloadSheetTitleImage",
-                                )}
-                            </SheetTitle>
-                            <SheetDescription>
-                                {t("actions.downloadSheetDesc")}
-                            </SheetDescription>
-                            <div className='mt-4 flex justify-center'>
-                                <div className='inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white'>
-                                    <button
-                                        type='button'
-                                        onClick={() =>
-                                            setDownloadFormat("image")
-                                        }
-                                        className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                                            downloadFormat === "image"
-                                                ? "bg-white/15 text-white shadow"
-                                                : "text-white/70"
-                                        }`}
-                                    >
-                                        {t("actions.downloadTabImage")}
-                                    </button>
-                                    <button
-                                        type='button'
-                                        onClick={() =>
-                                            setDownloadFormat("video")
-                                        }
-                                        className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                                            downloadFormat === "video"
-                                                ? "bg-white/15 text-white shadow"
-                                                : "text-white/70"
-                                        }`}
-                                    >
-                                        {t("actions.downloadTabVideo")}
-                                    </button>
-                                </div>
-                            </div>
-                        </SheetHeader>
-                        <div className='px-4 pb-4 space-y-5'>
-                            <div className='space-y-2'>
-                                <div className='flex items-center justify-between text-sm'>
-                                    <span className='font-medium'>
-                                        {t("actions.downloadStylesTitle")}
-                                    </span>
-                                    <span className='text-xs text-muted-foreground'>
-                                        {t("actions.downloadStylesHint")}
-                                    </span>
-                                </div>
-                                <div className='grid grid-cols-3 gap-2'>
-                                    {downloadStyles.map((style) => (
-                                        <button
-                                            key={style.id}
-                                            type='button'
-                                            onClick={() =>
-                                                setDownloadStyleId(style.id)
-                                            }
-                                            className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
-                                                downloadStyleId === style.id
-                                                    ? "border-primary bg-primary/10"
-                                                    : "border-border/60 bg-muted/30 hover:bg-muted/50"
-                                            }`}
-                                        >
-                                            <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
-                                                {thumbnailUrls[style.id] ? (
-                                                    <div className='relative h-full w-full'>
-                                                        <Image
-                                                            src={
-                                                                thumbnailUrls[
-                                                                    style.id
-                                                                ]
-                                                            }
-                                                            alt={`${style.label} preview`}
-                                                            fill
-                                                            unoptimized
-                                                            className='object-contain'
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div className='flex h-full w-full items-center justify-center'>
-                                                        <div
-                                                            className='h-full rounded-sm bg-muted/60'
-                                                            style={{
-                                                                aspectRatio: `${style.width}/${style.height}`,
-                                                                maxWidth:
-                                                                    "100%",
-                                                            }}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className='mt-2 text-xs font-medium text-foreground'>
-                                                {style.label}
-                                            </div>
-                                            <div className='text-[11px] text-muted-foreground'>
-                                                {style.size}
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className='space-y-2'>
-                                <div className='flex items-center justify-between text-sm'>
-                                    <span className='font-medium'>
-                                        {t("actions.downloadPreviewTitle")}
-                                    </span>
-                                    <span className='text-xs text-muted-foreground'>
-                                        {selectedStyle.size}
-                                    </span>
-                                </div>
-                                <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                    <SharePreview
-                                        question={question}
-                                        cards={cards}
-                                        interpretation={interpretation}
-                                        aspectRatio={
-                                            downloadStyleId === "story"
-                                                ? "story"
-                                                : downloadStyleId === "square"
-                                                  ? "square"
-                                                  : "landscape"
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
-                            <button
-                                type='button'
-                                className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
-                                onClick={() => setDownloadOpen(false)}
-                            >
-                                {t("actions.downloadCancel")}
-                            </button>
-                            <button
-                                type='button'
-                                className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
-                                onClick={() =>
-                                    downloadFormat === "video"
-                                        ? handleVideoDownload()
-                                        : handleDownload()
-                                }
-                                disabled={
-                                    downloadFormat === "video"
-                                        ? isVideoGenerating
-                                        : isDownloading || isPreviewLoading
-                                }
-                            >
-                                {t(
-                                    downloadFormat === "video"
-                                        ? "actions.downloadVideoButton"
-                                        : "actions.downloadButton",
-                                )}
-                            </button>
-                        </SheetFooter>
-                    </SheetContent>
-                </Sheet>
+                {downloadDialogNode}
 
                 <Sheet open={versionsOpen} onOpenChange={setVersionsOpen}>
                     <SheetContent
@@ -1897,11 +1112,6 @@ export default function ActionSection({
     if (variant === "embedded") {
         return (
             <div className='relative'>
-                {isDownloading && (
-                    <div className='fixed bottom-0 left-0 right-0 z-50 animate-slide-up bg-black/60 backdrop-blur-sm p-4 text-center text-white'>
-                        Preparing your {"content"}...
-                    </div>
-                )}
                 <div
                     ref={navGuardRef}
                     style={{
@@ -1938,274 +1148,30 @@ export default function ActionSection({
                             return (
                                 <SwiperSlide key={action.id}>
                                     {action.id === "download" ? (
-                                        <Sheet
-                                            open={downloadOpen}
-                                            onOpenChange={setDownloadOpen}
+                                        <button
+                                            type='button'
+                                            onClick={() =>
+                                                setDownloadOpen(true)
+                                            }
+                                            className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
+                                            style={{
+                                                animationDelay: `${index * 50}ms`,
+                                                animationFillMode: "both",
+                                            }}
                                         >
-                                            <SheetTrigger asChild>
-                                                <button
-                                                    type='button'
-                                                    className='group flex flex-col items-center gap-1.5 py-2 transition-all duration-300 hover:shadow-lg w-full'
-                                                    style={{
-                                                        animationDelay: `${index * 50}ms`,
-                                                        animationFillMode:
-                                                            "both",
-                                                    }}
-                                                >
-                                                    <div
-                                                        className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                                        style={{
-                                                            background:
-                                                                action.bg,
-                                                        }}
-                                                    >
-                                                        {renderIcon(
-                                                            action.icon,
-                                                        )}
-                                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                                    </div>
-                                                    <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
-                                                        {labelText}
-                                                    </span>
-                                                </button>
-                                            </SheetTrigger>
-                                            <SheetContent
-                                                side='bottom'
-                                                className='max-h-[85vh] overflow-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
+                                            <div
+                                                className='relative w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                                style={{
+                                                    background: action.bg,
+                                                }}
                                             >
-                                                <Sparkle
-                                                    className='absolute top-10 left-10 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                    style={{
-                                                        animationDelay: "0.6s",
-                                                    }}
-                                                />
-                                                <Sparkle
-                                                    className='absolute top-20 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                    style={{
-                                                        animationDelay: "1.4s",
-                                                    }}
-                                                />
-                                                <Sparkle
-                                                    className='absolute bottom-14 left-16 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                    style={{
-                                                        animationDelay: "2.3s",
-                                                    }}
-                                                />
-                                                <Sparkle
-                                                    className='absolute bottom-20 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                    style={{
-                                                        animationDelay: "3.1s",
-                                                    }}
-                                                />
-                                                <div className='pointer-events-none absolute inset-0 opacity-40'>
-                                                    <div className='cosmic-stars-layer-3' />
-                                                    <div className='cosmic-stars-layer-4' />
-                                                    <div className='cosmic-stars-layer-5' />
-                                                </div>
-                                                <div className='pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl animate-pulse' />
-                                                <div
-                                                    className='pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[90px] animate-pulse'
-                                                    style={{
-                                                        animationDelay: "0.8s",
-                                                    }}
-                                                />
-                                                <SheetHeader>
-                                                    <SheetTitle>
-                                                        {t(
-                                                            downloadFormat ===
-                                                                "video"
-                                                                ? "actions.downloadSheetTitleVideo"
-                                                                : "actions.downloadSheetTitleImage",
-                                                        )}
-                                                    </SheetTitle>
-                                                    <SheetDescription>
-                                                        {t(
-                                                            "actions.downloadSheetDesc",
-                                                        )}
-                                                    </SheetDescription>
-                                                    <div className='mt-4 flex justify-center'>
-                                                        <div className='inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white'>
-                                                            <button
-                                                                type='button'
-                                                                onClick={() =>
-                                                                    setDownloadFormat(
-                                                                        "image",
-                                                                    )
-                                                                }
-                                                                className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                                                                    downloadFormat ===
-                                                                    "image"
-                                                                        ? "bg-white/15 text-white shadow"
-                                                                        : "text-white/70"
-                                                                }`}
-                                                            >
-                                                                {t(
-                                                                    "actions.downloadTabImage",
-                                                                )}
-                                                            </button>
-                                                            <button
-                                                                type='button'
-                                                                onClick={() =>
-                                                                    setDownloadFormat(
-                                                                        "video",
-                                                                    )
-                                                                }
-                                                                className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                                                                    downloadFormat ===
-                                                                    "video"
-                                                                        ? "bg-white/15 text-white shadow"
-                                                                        : "text-white/70"
-                                                                }`}
-                                                            >
-                                                                {t(
-                                                                    "actions.downloadTabVideo",
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </SheetHeader>
-                                                <div className='px-4 pb-4 space-y-5'>
-                                                    <div className='space-y-2'>
-                                                        <div className='flex items-center justify-between text-sm'>
-                                                            <span className='font-medium'>
-                                                                {t(
-                                                                    "actions.downloadStylesTitle",
-                                                                )}
-                                                            </span>
-                                                            <span className='text-xs text-muted-foreground'>
-                                                                {t(
-                                                                    "actions.downloadStylesHint",
-                                                                )}
-                                                            </span>
-                                                        </div>
-                                                        <div className='grid grid-cols-3 gap-2'>
-                                                            {downloadStyles.map(
-                                                                (style) => (
-                                                                    <button
-                                                                        key={
-                                                                            style.id
-                                                                        }
-                                                                        type='button'
-                                                                        onClick={() =>
-                                                                            setDownloadStyleId(
-                                                                                style.id,
-                                                                            )
-                                                                        }
-                                                                        className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
-                                                                            downloadStyleId ===
-                                                                            style.id
-                                                                                ? "border-primary/60 bg-white/10"
-                                                                                : "border-white/10 bg-white/5 hover:border-primary/40"
-                                                                        }`}
-                                                                    >
-                                                                        <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
-                                                                            {thumbnailUrls[
-                                                                                style
-                                                                                    .id
-                                                                            ] ? (
-                                                                                <div className='relative h-full w-full'>
-                                                                                    <Image
-                                                                                        src={
-                                                                                            thumbnailUrls[
-                                                                                                style
-                                                                                                    .id
-                                                                                            ]
-                                                                                        }
-                                                                                        alt={
-                                                                                            style.label
-                                                                                        }
-                                                                                        fill
-                                                                                        unoptimized
-                                                                                        className='object-contain'
-                                                                                    />
-                                                                                </div>
-                                                                            ) : (
-                                                                                <div className='flex h-full w-full items-center justify-center'>
-                                                                                    <div className='h-full rounded-sm bg-muted/60' />
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                        <div className='mt-2 text-xs font-medium text-foreground'>
-                                                                            {
-                                                                                style.label
-                                                                            }
-                                                                        </div>
-                                                                        <div className='text-[11px] text-muted-foreground'>
-                                                                            {
-                                                                                style.size
-                                                                            }
-                                                                        </div>
-                                                                    </button>
-                                                                ),
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className='space-y-2'>
-                                                        <div className='flex items-center justify-between text-sm'>
-                                                            <span className='font-medium'>
-                                                                {t(
-                                                                    "actions.downloadBrandingTitle",
-                                                                )}
-                                                            </span>
-                                                            <span className='text-xs text-muted-foreground'>
-                                                                {t(
-                                                                    "actions.downloadBrandingHint",
-                                                                )}
-                                                            </span>
-                                                        </div>
-                                                        <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                                            <SharePreview
-                                                                question={
-                                                                    question
-                                                                }
-                                                                cards={cards}
-                                                                interpretation={
-                                                                    interpretation
-                                                                }
-                                                                aspectRatio={
-                                                                    downloadStyleId ===
-                                                                    "story"
-                                                                        ? "story"
-                                                                        : downloadStyleId ===
-                                                                            "square"
-                                                                          ? "square"
-                                                                          : "landscape"
-                                                                }
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
-                                                        <button
-                                                            type='button'
-                                                            onClick={() =>
-                                                                setDownloadOpen(
-                                                                    false,
-                                                                )
-                                                            }
-                                                            className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
-                                                        >
-                                                            {t(
-                                                                "actions.cancel",
-                                                            )}
-                                                        </button>
-                                                        <button
-                                                            type='button'
-                                                            onClick={
-                                                                handleDownload
-                                                            }
-                                                            disabled={
-                                                                isDownloading
-                                                            }
-                                                            className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
-                                                        >
-                                                            {t(
-                                                                "actions.downloadButton",
-                                                            )}
-                                                        </button>
-                                                    </SheetFooter>
-                                                </div>
-                                            </SheetContent>
-                                        </Sheet>
+                                                {renderIcon(action.icon)}
+                                                <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                            </div>
+                                            <span className='text-[10px] text-white/70 leading-snug text-wrap text-pretty text-center'>
+                                                {labelText}
+                                            </span>
+                                        </button>
                                     ) : action.id === "versions" ? (
                                         <Popover>
                                             <PopoverTrigger asChild>
@@ -2328,6 +1294,8 @@ export default function ActionSection({
                         })}
                     </Swiper>
                 </div>
+
+                {downloadDialogNode}
 
                 {/* Report dialog */}
                 <AlertDialog open={showReport} onOpenChange={setShowReport}>
@@ -2495,12 +1463,6 @@ export default function ActionSection({
 
     return (
         <div className='relative overflow-hidden group bg-white/[0.03] backdrop-blur-sm rounded-2xl border border-white/5 hover:bg-white/[0.06] hover:border-primary/20 transition-all duration-300'>
-            {/* Slide-up loader for download */}
-            {isDownloading && (
-                <div className='fixed bottom-0 left-0 right-0 z-50 animate-slide-up bg-black/60 backdrop-blur-sm p-4 text-center text-white'>
-                    Preparing your {"content"}...
-                </div>
-            )}
 
             {/* Content */}
             <div className='relative'>
@@ -2552,281 +1514,28 @@ export default function ActionSection({
                         {actionOptions.map((action, index) => (
                             <SwiperSlide key={action.id}>
                                 {action.id === "download" ? (
-                                    <Sheet
-                                        open={downloadOpen}
-                                        onOpenChange={setDownloadOpen}
+                                    <button
+                                        type='button'
+                                        onClick={() => setDownloadOpen(true)}
+                                        className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
+                                        style={{
+                                            animationDelay: `${index * 50}ms`,
+                                            animationFillMode: "both",
+                                        }}
                                     >
-                                        <SheetTrigger asChild>
-                                            <button
-                                                type='button'
-                                                className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
-                                                style={{
-                                                    animationDelay: `${index * 50}ms`,
-                                                    animationFillMode: "both",
-                                                }}
-                                            >
-                                                <div
-                                                    className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
-                                                    style={{
-                                                        background: action.bg,
-                                                    }}
-                                                >
-                                                    {action.icon}
-                                                    <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
-                                                </div>
-                                                {variant === "full" && (
-                                                    <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
-                                                        {action.label}
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </SheetTrigger>
-                                        <SheetContent
-                                            side='bottom'
-                                            className='max-h-[85vh] overflow-auto border border-yellow-400/20 bg-gradient-to-br from-[#0a0a1a]/95 via-[#0d0b1f]/90 to-[#0a0a1a]/95 shadow-[0_12px_40px_-12px_rgba(234,179,8,0.35)] backdrop-blur-xl'
+                                        <div
+                                            className='relative w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-110'
+                                            style={{ background: action.bg }}
                                         >
-                                            <Sparkle
-                                                className='absolute top-10 left-10 w-3 h-3 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                style={{
-                                                    animationDelay: "0.6s",
-                                                }}
-                                            />
-                                            <Sparkle
-                                                className='absolute top-20 right-16 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                style={{
-                                                    animationDelay: "1.4s",
-                                                }}
-                                            />
-                                            <Sparkle
-                                                className='absolute bottom-14 left-16 w-3.5 h-3.5 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                style={{
-                                                    animationDelay: "2.3s",
-                                                }}
-                                            />
-                                            <Sparkle
-                                                className='absolute bottom-20 right-20 w-2 h-2 rounded-full fill-yellow-400 opacity-50 animate-ping'
-                                                style={{
-                                                    animationDelay: "3.1s",
-                                                }}
-                                            />
-                                            <div className='pointer-events-none absolute inset-0 opacity-40'>
-                                                <div className='cosmic-stars-layer-3' />
-                                                <div className='cosmic-stars-layer-4' />
-                                                <div className='cosmic-stars-layer-5' />
-                                            </div>
-                                            <div className='pointer-events-none absolute -top-20 -left-20 h-64 w-64 rounded-full bg-gradient-to-br from-yellow-300/20 via-yellow-500/10 to-transparent blur-3xl animate-pulse' />
-                                            <div
-                                                className='pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-gradient-to-tl from-yellow-400/20 via-yellow-600/10 to-transparent blur-[90px] animate-pulse'
-                                                style={{
-                                                    animationDelay: "0.8s",
-                                                }}
-                                            />
-                                            <SheetHeader>
-                                                <SheetTitle>
-                                                    {t(
-                                                        downloadFormat ===
-                                                            "video"
-                                                            ? "actions.downloadSheetTitleVideo"
-                                                            : "actions.downloadSheetTitleImage",
-                                                    )}
-                                                </SheetTitle>
-                                                <SheetDescription>
-                                                    {t(
-                                                        "actions.downloadSheetDesc",
-                                                    )}
-                                                </SheetDescription>
-                                                <div className='mt-4 flex justify-center'>
-                                                    <div className='inline-flex h-10 items-center justify-center rounded-full bg-white/5 border border-white/10 p-1 text-white'>
-                                                        <button
-                                                            type='button'
-                                                            onClick={() =>
-                                                                setDownloadFormat(
-                                                                    "image",
-                                                                )
-                                                            }
-                                                            className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                                                                downloadFormat ===
-                                                                "image"
-                                                                    ? "bg-white/15 text-white shadow"
-                                                                    : "text-white/70"
-                                                            }`}
-                                                        >
-                                                            {t(
-                                                                "actions.downloadTabImage",
-                                                            )}
-                                                        </button>
-                                                        <button
-                                                            type='button'
-                                                            onClick={() =>
-                                                                setDownloadFormat(
-                                                                    "video",
-                                                                )
-                                                            }
-                                                            className={`inline-flex items-center justify-center whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
-                                                                downloadFormat ===
-                                                                "video"
-                                                                    ? "bg-white/15 text-white shadow"
-                                                                    : "text-white/70"
-                                                            }`}
-                                                        >
-                                                            {t(
-                                                                "actions.downloadTabVideo",
-                                                            )}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </SheetHeader>
-                                            <div className='px-4 pb-4 space-y-5'>
-                                                <div className='space-y-2'>
-                                                    <div className='flex items-center justify-between text-sm'>
-                                                        <span className='font-medium'>
-                                                            {t(
-                                                                "actions.downloadStylesTitle",
-                                                            )}
-                                                        </span>
-                                                        <span className='text-xs text-muted-foreground'>
-                                                            {t(
-                                                                "actions.downloadStylesHint",
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <div className='grid grid-cols-3 gap-2'>
-                                                        {downloadStyles.map(
-                                                            (style) => (
-                                                                <button
-                                                                    key={
-                                                                        style.id
-                                                                    }
-                                                                    type='button'
-                                                                    onClick={() =>
-                                                                        setDownloadStyleId(
-                                                                            style.id,
-                                                                        )
-                                                                    }
-                                                                    className={`flex h-36 flex-col rounded-lg border p-2 text-left transition ${
-                                                                        downloadStyleId ===
-                                                                        style.id
-                                                                            ? "border-primary bg-primary/10"
-                                                                            : "border-border/60 bg-muted/30 hover:bg-muted/50"
-                                                                    }`}
-                                                                >
-                                                                    <div className='h-16 w-full overflow-hidden rounded-md border border-border/40 bg-muted/40'>
-                                                                        {thumbnailUrls[
-                                                                            style
-                                                                                .id
-                                                                        ] ? (
-                                                                            <div className='relative h-full w-full'>
-                                                                                <Image
-                                                                                    src={
-                                                                                        thumbnailUrls[
-                                                                                            style
-                                                                                                .id
-                                                                                        ]
-                                                                                    }
-                                                                                    alt={`${style.label} preview`}
-                                                                                    fill
-                                                                                    unoptimized
-                                                                                    className='object-contain'
-                                                                                />
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div className='flex h-full w-full items-center justify-center'>
-                                                                                <div
-                                                                                    className='h-full rounded-sm bg-muted/60'
-                                                                                    style={{
-                                                                                        aspectRatio: `${style.width}/${style.height}`,
-                                                                                        maxWidth:
-                                                                                            "100%",
-                                                                                    }}
-                                                                                />
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className='mt-2 text-xs font-medium text-foreground'>
-                                                                        {
-                                                                            style.label
-                                                                        }
-                                                                    </div>
-                                                                    <div className='text-[11px] text-muted-foreground'>
-                                                                        {
-                                                                            style.size
-                                                                        }
-                                                                    </div>
-                                                                </button>
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className='space-y-2'>
-                                                    <div className='flex items-center justify-between text-sm'>
-                                                        <span className='font-medium'>
-                                                            {t(
-                                                                "actions.downloadPreviewTitle",
-                                                            )}
-                                                        </span>
-                                                        <span className='text-xs text-muted-foreground'>
-                                                            {selectedStyle.size}
-                                                        </span>
-                                                    </div>
-                                                    <div className='relative w-full max-w-[430px] mx-auto overflow-hidden rounded-lg border bg-muted/20'>
-                                                        <SharePreview
-                                                            question={question}
-                                                            cards={cards}
-                                                            interpretation={
-                                                                interpretation
-                                                            }
-                                                            aspectRatio={
-                                                                downloadStyleId ===
-                                                                "story"
-                                                                    ? "story"
-                                                                    : downloadStyleId ===
-                                                                        "square"
-                                                                      ? "square"
-                                                                      : "landscape"
-                                                            }
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <SheetFooter className='sticky bottom-0 z-10 gap-2 border-t border-white/10 bg-gradient-to-t from-[#0a0a1a]/95 via-[#0a0a1a]/90 to-transparent px-4 pb-4 pt-3 sm:flex-row sm:justify-end'>
-                                                <button
-                                                    type='button'
-                                                    className='w-full rounded-md border border-border/60 bg-background px-4 py-2 text-sm hover:bg-muted/40 sm:w-auto'
-                                                    onClick={() =>
-                                                        setDownloadOpen(false)
-                                                    }
-                                                >
-                                                    {t(
-                                                        "actions.downloadCancel",
-                                                    )}
-                                                </button>
-                                                <button
-                                                    type='button'
-                                                    className='w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto'
-                                                    onClick={() =>
-                                                        downloadFormat ===
-                                                        "video"
-                                                            ? handleVideoDownload()
-                                                            : handleDownload()
-                                                    }
-                                                    disabled={
-                                                        downloadFormat ===
-                                                        "video"
-                                                            ? isVideoGenerating
-                                                            : isDownloading ||
-                                                              isPreviewLoading
-                                                    }
-                                                >
-                                                    {t(
-                                                        downloadFormat ===
-                                                            "video"
-                                                            ? "actions.downloadVideoButton"
-                                                            : "actions.downloadButton",
-                                                    )}
-                                                </button>
-                                            </SheetFooter>
-                                        </SheetContent>
-                                    </Sheet>
+                                            {action.icon}
+                                            <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+                                        </div>
+                                        {variant === "full" && (
+                                            <span className='text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-300 text-center leading-tight'>
+                                                {action.label}
+                                            </span>
+                                        )}
+                                    </button>
                                 ) : action.id === "versions" ? (
                                     versions.length > 0 ? (
                                         <Popover>
@@ -2951,6 +1660,8 @@ export default function ActionSection({
                 </div>
             </div>
             {/* Removed inline star deduction note; using toast instead */}
+
+            {downloadDialogNode}
 
             {/* Report dialog */}
             <AlertDialog open={showReport} onOpenChange={setShowReport}>

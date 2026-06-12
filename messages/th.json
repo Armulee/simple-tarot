@@ -753,6 +753,12 @@
       }
     }
   },
+  "ShareImageProgress": {
+    "render": "กำลังวาดภาพคำทำนายของคุณ…",
+    "download": "กำลังดาวน์โหลดรูปภาพ…",
+    "animate": "กำลังบันทึกแอนิเมชันจักรวาลของคุณ…",
+    "done": "บันทึกลงเครื่องแล้ว"
+  },
   "QuestionInput": {
     "label": "คำถามของคุณ",
     "placeholder": "พิมพ์คำถามของคุณ...",
@@ -1594,7 +1600,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "อีเมล"
+        "email": "อีเมล",
+        "imagePreparing": "กำลังเตรียมรูปภาพคำทำนายของคุณ…",
+        "selectInSheet": "เลือก {platform} ในหน้าต่างแชร์",
+        "imageCopied": "คัดลอกรูปแล้ว — นำไปวางใน {platform} ได้เลย",
+        "imageSaved": "บันทึกรูปแล้ว — แนบรูปใน {platform} ได้เลย",
+        "imageError": "ไม่สามารถเตรียมรูปภาพได้ กรุณาลองใหม่อีกครั้ง",
+        "formatLabel": "รูปแบบการแชร์",
+        "formatImage": "รูปภาพ",
+        "formatVideo": "วิดีโอ",
+        "videoPreparing": "กำลังบันทึกวิดีโอคำทำนายของคุณ…",
+        "videoReady": "วิดีโอพร้อมแล้ว — แตะ {platform} อีกครั้งเพื่อแชร์",
+        "videoSaved": "บันทึกวิดีโอแล้ว — แนบวิดีโอใน {platform} ได้เลย",
+        "videoError": "ไม่สามารถเตรียมวิดีโอได้ กรุณาลองใหม่อีกครั้ง"
       },
       "buttons": {
         "regenerate": "สร้างคำทำนายใหม่",
@@ -1608,6 +1626,7 @@
         "share": "แชร์",
         "downloadReadingText": "ดาวน์โหลดการอ่านเป็นไฟล์ข้อความ",
         "downloadReadingImage": "ดาวน์โหลดการอ่านเป็นรูปภาพ",
+        "shareCta": "ถามคำถามของคุณเองได้ที่ askingfate.com",
         "copyResult": "คัดลอกคำทำนาย",
         "askFollowUp": "ถามต่อ",
         "askFollowUpPrompt": "ช่วยขยายความคำทำนายนี้เพิ่มเติมได้ไหม",
@@ -1627,6 +1646,7 @@
         "downloadBrandingTitle": "แบรนด์",
         "downloadBrandingHint": "พรีวิวรวมแบรนด์",
         "downloadStyleStory": "สตอรี่",
+        "downloadStylePost": "โพสต์",
         "downloadStyleSquare": "สี่เหลี่ยมจัตุรัส",
         "downloadStyleLandscape": "แนวนอน",
         "downloadTabImage": "รูปภาพ",

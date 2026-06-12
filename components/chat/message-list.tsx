@@ -23,7 +23,10 @@ import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
-import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
+import {
+    TarotAssistantInterpretation,
+    type ReadingImageExportStatus,
+} from "@/components/chat/tarot-interpretation"
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import PaywallBlock from "@/components/chat/paywall-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
@@ -306,6 +309,10 @@ type MessageListProps = {
     onShare: (id: string, text: string) => void
     onReadingTextDownloaded?: (messageId: string) => void
     onReadingTextDownloadFailed?: (messageId: string) => void
+    onReadingImageExportStatus?: (
+        messageId: string,
+        status: ReadingImageExportStatus | null,
+    ) => void
     onReadAloud: (id: string, text: string) => void
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
@@ -374,6 +381,7 @@ export default function MessageList({
     onShare,
     onReadingTextDownloaded,
     onReadingTextDownloadFailed,
+    onReadingImageExportStatus,
     unmask,
     privacyAliases,
     lastAssistantMessageRef,
@@ -752,6 +760,9 @@ export default function MessageList({
                                         }
                                         onReadingTextDownloadFailed={
                                             onReadingTextDownloadFailed
+                                        }
+                                        onReadingImageExportStatus={
+                                            onReadingImageExportStatus
                                         }
                                         unmask={unmask}
                                         privacyAliases={privacyAliases}
