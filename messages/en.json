@@ -1585,7 +1585,12 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "Email"
+        "email": "Email",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again."
       },
       "buttons": {
         "regenerate": "Regenerate Reading",

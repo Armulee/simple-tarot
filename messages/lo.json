@@ -1594,7 +1594,12 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "ອີເມວ"
+        "email": "ອີເມວ",
+        "imagePreparing": "ກຳລັງກະກຽມຮູບພາບຄຳທຳນາຍຂອງທ່ານ…",
+        "selectInSheet": "ເລືອກ {platform} ໃນໜ້າຕ່າງແບ່ງປັນ",
+        "imageCopied": "ສຳເນົາຮູບແລ້ວ — ນຳໄປວາງໃນ {platform} ໄດ້ເລີຍ",
+        "imageSaved": "ບັນທຶກຮູບແລ້ວ — ແນບຮູບໃນ {platform} ໄດ້ເລີຍ",
+        "imageError": "ບໍ່ສາມາດກະກຽມຮູບພາບໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ"
       },
       "buttons": {
         "regenerate": "ສ້າງຄຳທຳນາຍໃໝ່",

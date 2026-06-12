@@ -1598,7 +1598,12 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "อีเมล"
+        "email": "อีเมล",
+        "imagePreparing": "กำลังเตรียมรูปภาพคำทำนายของคุณ…",
+        "selectInSheet": "เลือก {platform} ในหน้าต่างแชร์",
+        "imageCopied": "คัดลอกรูปแล้ว — นำไปวางใน {platform} ได้เลย",
+        "imageSaved": "บันทึกรูปแล้ว — แนบรูปใน {platform} ได้เลย",
+        "imageError": "ไม่สามารถเตรียมรูปภาพได้ กรุณาลองใหม่อีกครั้ง"
       },
       "buttons": {
         "regenerate": "สร้างคำทำนายใหม่",
