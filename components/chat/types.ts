@@ -250,6 +250,11 @@ export type ChatMessage = {
     sourceAspectKey?: string
     /** Event data for rendering a compact card at the top of the response */
     sourceAspectEvent?: SourceAspectEvent
+    /**
+     * Horoscope explanation replies: the aspect events whose planets the
+     * paragraph actually mentions, rendered as cards under the text.
+     */
+    explainAspectEvents?: SourceAspectEvent[]
     /** Cached interpretations per astrology system for instant restore when switching back */
     interpretationCache?: Record<
         string,

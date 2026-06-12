@@ -7,15 +7,17 @@
  * line. Deltas are JSON-escaped so they never contain a raw newline, which
  * makes the client parser a trivial split on "\n".
  *
+ *   {"t":"m","d":"...JSON-encoded metadata object..."}
  *   {"t":"r","d":"...reasoning delta..."}
  *   {"t":"c","d":"...content delta..."}
  *   {"t":"e","d":"...error message..."}
  *
- * `t` = type: "r" reasoning, "c" content, "e" error.
- * `d` = delta string.
+ * `t` = type: "m" metadata (one optional event, sent first), "r" reasoning,
+ * "c" content, "e" error.
+ * `d` = delta string ("m" carries a JSON-encoded payload).
  */
 
-export type ReasoningStreamEventType = "r" | "c" | "e"
+export type ReasoningStreamEventType = "r" | "c" | "e" | "m"
 
 export interface ReasoningStreamEvent {
     t: ReasoningStreamEventType
@@ -41,15 +43,30 @@ function encodeEvent(event: ReasoningStreamEvent): string {
  * Server: turn a `streamText()` result into an NDJSON `Response` that keeps the
  * reasoning and content channels separate. Iterates the full stream so we can
  * pick out `reasoning-delta` vs `text-delta` parts as DeepSeek V4 emits them.
+ *
+ * `options.metadata` (when provided) is JSON-encoded and sent as a single
+ * leading "m" event, so the client can attach structured extras (e.g. the
+ * aspect events grounding an explanation) to the streamed message.
  */
 export function createReasoningStreamResponse(
     result: ReasoningStreamSource,
+    options?: { metadata?: unknown },
 ): Response {
     const encoder = new TextEncoder()
 
     const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
             try {
+                if (options?.metadata !== undefined) {
+                    controller.enqueue(
+                        encoder.encode(
+                            encodeEvent({
+                                t: "m",
+                                d: JSON.stringify(options.metadata),
+                            }),
+                        ),
+                    )
+                }
                 for await (const part of result.fullStream) {
                     switch (part.type) {
                         case "reasoning-delta":

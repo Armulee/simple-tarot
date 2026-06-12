@@ -3,6 +3,7 @@ import { z } from "zod"
 
 import {
     buildGeneralAstrologyContext,
+    type AspectCardEvent,
     type GeneralAstrologyContext,
 } from "@/lib/chat/general-astrology-context"
 import { createReasoningStreamResponse } from "@/lib/chat/reasoning-stream"
@@ -82,7 +83,7 @@ ${PRIVACY_REDACTION_PROMPT_RULE}
 HOW TO REASON (silently, before writing):
 - <recommended_date_astrology> is the real aspect picture around the previously recommended date. <comparison_date_astrology> (when present) is the picture around the date/period the user proposed instead.
 - Compare them honestly: find the 1-2 decisive differences — supportive flow vs friction/pressure aspects — and translate each into practical, everyday "how the day behaves" language for the user's situation (their previous question tells you the domain: resigning, signing, launching…).
-- You MAY name the planets of the decisive contacts in plain words (e.g. "Saturn pressing your Moon", "Jupiter easing your Sun") — at most two such references. NO degrees, NO zodiac sign names, NO technical aspect terms (conjunction/square/trine/orb/transit).
+- NAME the planets of the 1-2 decisive contacts in plain words, using BOTH planets of each contact exactly as they appear in the data, translated naturally into the user's language (e.g. "Saturn pressing your Moon", "ดาวเสาร์กดดาวจันทร์ของคุณ") — the app renders matching aspect cards under your reply for the planets you name. At most two contacts. NO degrees, NO zodiac sign names, NO technical aspect terms (conjunction/square/trine/orb/transit).
 - If the user's proposed date genuinely doesn't look bad in the data, say so honestly — then explain what makes the recommended window comparatively stronger. Never invent doom to win the argument.
 - If no astrology data blocks are provided, explain the general logic of the recommendation from the previous reading's summary instead — without pretending to cite planetary data.
 
@@ -186,6 +187,19 @@ export async function POST(req: Request) {
               ])
             : [null, null]
 
+        // Card-ready events for every contact the model can talk about
+        // (both dates, deduped) — the client matches the planets the final
+        // paragraph actually mentions and renders their aspect cards.
+        const seenAspectKeys = new Set<string>()
+        const aspectEvents: AspectCardEvent[] = []
+        for (const context of [recommendedContext, comparisonContext]) {
+            for (const event of context?.aspectEvents ?? []) {
+                if (seenAspectKeys.has(event.aspectKey)) continue
+                seenAspectKeys.add(event.aspectKey)
+                aspectEvents.push(event)
+            }
+        }
+
         const result = streamText({
             model: MODEL,
             // The whole point of this route is the model REASONING over the
@@ -200,11 +214,14 @@ export async function POST(req: Request) {
                     comparisonDateIso: comparisonIso,
                     groundedRecommended: Boolean(recommendedContext),
                     groundedComparison: Boolean(comparisonContext),
+                    aspectEventCount: aspectEvents.length,
                 })
             },
         })
 
-        return createReasoningStreamResponse(result)
+        return createReasoningStreamResponse(result, {
+            metadata: aspectEvents.length ? { aspectEvents } : undefined,
+        })
     } catch (error) {
         console.error("Error generating horoscope explanation:", error)
         return new Response("Failed to generate explanation", { status: 500 })

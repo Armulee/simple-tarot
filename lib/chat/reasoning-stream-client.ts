@@ -16,6 +16,8 @@ export async function readReasoningStream(
     handlers: {
         onReasoning?: (accumulated: string, delta: string) => void
         onContent?: (accumulated: string, delta: string) => void
+        /** One optional leading "m" event with JSON-decoded structured extras. */
+        onMetadata?: (metadata: unknown) => void
     } = {},
 ): Promise<{ reasoning: string; content: string }> {
     if (!response.body) throw new Error("Response has no body")
@@ -42,6 +44,12 @@ export async function readReasoningStream(
         } else if (event.t === "c") {
             content += event.d
             handlers.onContent?.(content, event.d)
+        } else if (event.t === "m") {
+            try {
+                handlers.onMetadata?.(JSON.parse(event.d))
+            } catch {
+                // Malformed metadata never blocks the text channels.
+            }
         } else if (event.t === "e") {
             throw new Error(event.d || "reasoning stream error")
         }

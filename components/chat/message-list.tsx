@@ -1025,6 +1025,23 @@ export default function MessageList({
                                             ) : null}
                                         </div>
                                         {!message.isLoading &&
+                                            (message.explainAspectEvents
+                                                ?.length ?? 0) > 0 && (
+                                                <div className='w-full md:max-w-[85%] mt-2 flex gap-2 overflow-x-auto pb-1 animate-fade-in'>
+                                                    {message.explainAspectEvents!.map(
+                                                        (event) => (
+                                                            <SourceAspectCard
+                                                                key={
+                                                                    event.aspectKey
+                                                                }
+                                                                event={event}
+                                                                tPanel={tPanel}
+                                                            />
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
+                                        {!message.isLoading &&
                                             message.supportBlock && (
                                                 <div className='w-full md:max-w-[85%] animate-fade-in'>
                                                     <SupportBlock

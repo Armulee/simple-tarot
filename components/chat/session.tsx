@@ -7,6 +7,7 @@ import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { parsePartialJson } from "ai"
 import { useStars } from "@/contexts/stars-context"
 import { readReasoningStream } from "@/lib/chat/reasoning-stream-client"
+import { matchMentionedAspectEvents } from "@/lib/chat/aspect-mention"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
 import QuestionInput from "@/components/question-input"
@@ -4907,12 +4908,37 @@ export default function ChatSession({
                 throw new Error("Failed to generate horoscope explanation")
             }
 
+            // The route sends the card-ready events it grounded on as leading
+            // stream metadata; after the text settles we keep only the
+            // contacts the paragraph actually mentions.
+            let candidateAspectEvents: SourceAspectEvent[] = []
             const { content } = await readReasoningStream(response, {
+                onMetadata: (metadata) => {
+                    const events = (
+                        metadata as {
+                            aspectEvents?: SourceAspectEvent[]
+                        } | null
+                    )?.aspectEvents
+                    if (Array.isArray(events)) {
+                        candidateAspectEvents = events.filter(
+                            (event) =>
+                                typeof event?.aspectKey === "string" &&
+                                typeof event?.transitPlanet === "string" &&
+                                typeof event?.natalPlanet === "string",
+                        )
+                    }
+                },
                 onReasoning: (accumulated) => onReasoning?.(accumulated),
                 onContent: (accumulated) => onChunk?.(accumulated),
             })
 
-            return content
+            return {
+                content,
+                aspectEvents: matchMentionedAspectEvents(
+                    content,
+                    candidateAspectEvents,
+                ),
+            }
         },
         [
             ensureBirthTimeDefaults,
@@ -5402,37 +5428,44 @@ export default function ChatSession({
                         historyOverride: history,
                     })
                 } else if (useHoroscopeExplain) {
-                    const assistantText = await streamHoroscopeExplain({
-                        question: trimmed,
-                        comparisonDateIso:
-                            nextDecision.comparisonDateIso ?? null,
-                        historyOverride: history,
-                        onChunk: (partial) => {
-                            setMessages((prev) =>
-                                prev.map((m) =>
-                                    m.id === assistantLoadingId
-                                        ? { ...m, text: partial }
-                                        : m,
-                                ),
-                            )
-                        },
-                        onReasoning: (reasoning) => {
-                            setMessages((prev) =>
-                                prev.map((m) =>
-                                    m.id === assistantLoadingId
-                                        ? { ...m, reasoningText: reasoning }
-                                        : m,
-                                ),
-                            )
-                        },
-                    })
+                    const { content: explainText, aspectEvents } =
+                        await streamHoroscopeExplain({
+                            question: trimmed,
+                            comparisonDateIso:
+                                nextDecision.comparisonDateIso ?? null,
+                            historyOverride: history,
+                            onChunk: (partial) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? { ...m, text: partial }
+                                            : m,
+                                    ),
+                                )
+                            },
+                            onReasoning: (reasoning) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? {
+                                                  ...m,
+                                                  reasoningText: reasoning,
+                                              }
+                                            : m,
+                                    ),
+                                )
+                            },
+                        })
                     setConsulting(false)
                     setMessages((prev) =>
                         prev.map((m) =>
                             m.id === assistantLoadingId
                                 ? {
                                       ...m,
-                                      text: assistantText || m.text,
+                                      text: explainText || m.text,
+                                      explainAspectEvents: aspectEvents.length
+                                          ? aspectEvents
+                                          : undefined,
                                       isLoading: false,
                                       streamStopped: false,
                                   }
@@ -6110,37 +6143,44 @@ export default function ChatSession({
                         historyOverride: history,
                     })
                 } else if (useHoroscopeExplain) {
-                    const assistantText = await streamHoroscopeExplain({
-                        question: trimmed,
-                        comparisonDateIso:
-                            nextDecision.comparisonDateIso ?? null,
-                        historyOverride: history,
-                        onChunk: (partial) => {
-                            setMessages((prev) =>
-                                prev.map((m) =>
-                                    m.id === assistantLoadingId
-                                        ? { ...m, text: partial }
-                                        : m,
-                                ),
-                            )
-                        },
-                        onReasoning: (reasoning) => {
-                            setMessages((prev) =>
-                                prev.map((m) =>
-                                    m.id === assistantLoadingId
-                                        ? { ...m, reasoningText: reasoning }
-                                        : m,
-                                ),
-                            )
-                        },
-                    })
+                    const { content: explainText, aspectEvents } =
+                        await streamHoroscopeExplain({
+                            question: trimmed,
+                            comparisonDateIso:
+                                nextDecision.comparisonDateIso ?? null,
+                            historyOverride: history,
+                            onChunk: (partial) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? { ...m, text: partial }
+                                            : m,
+                                    ),
+                                )
+                            },
+                            onReasoning: (reasoning) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? {
+                                                  ...m,
+                                                  reasoningText: reasoning,
+                                              }
+                                            : m,
+                                    ),
+                                )
+                            },
+                        })
                     setConsulting(false)
                     setMessages((prev) =>
                         prev.map((m) =>
                             m.id === assistantLoadingId
                                 ? {
                                       ...m,
-                                      text: assistantText || m.text,
+                                      text: explainText || m.text,
+                                      explainAspectEvents: aspectEvents.length
+                                          ? aspectEvents
+                                          : undefined,
                                       isLoading: false,
                                       streamStopped: false,
                                   }
