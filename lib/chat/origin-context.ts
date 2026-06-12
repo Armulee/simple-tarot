@@ -251,48 +251,86 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
  *
  * - calendar-day context + no date in the question → daily verdict anchored
  *   to the attached ISO date (transit + natal aspects for that day).
+ * - calendar-day context + a RELATIVE "today" reference ("วันนี้ / today /
+ *   tonight") → the resolved range comes back as the wall-clock today; in
+ *   this UI those words mean the ATTACHED day, so the single-day range is
+ *   re-anchored onto it. (An absolute date equal to today written out in
+ *   full would also re-anchor — attaching a different day while spelling
+ *   out today's date is a contradiction we resolve in the attachment's
+ *   favor.)
  * - birth-chart context + no anchor → natal strategy (answer from the user's
  *   natal placements immediately).
  *
- * A date or window written in the question itself always wins (`hasOwnTimeAnchor`)
- * — the context only fills the gap when the current question carries no
- * anchor of its own. Planet-focused (technical) and "when will…" (timing)
- * questions keep their strategy; the attachment never rewrites those.
+ * Absolute dates/windows written in the question win otherwise, and
+ * planet-focused (technical) / "when will…" (timing) questions keep their
+ * strategy; the attachment never rewrites those.
  */
 export function resolveOriginContextStrategyOverride({
     originContext,
     replyStrategy,
-    hasOwnTimeAnchor,
+    questionRange,
+    currentDateIso,
 }: {
     originContext:
         | { kind: string; isoDate?: string | null }
         | null
         | undefined
     replyStrategy: string
-    hasOwnTimeAnchor: boolean
+    questionRange:
+        | { startDateIso: string; endDateIso: string }
+        | null
+        | undefined
+    /** Wall-clock "today" (UTC, YYYY-MM-DD) the LLM resolved relative dates against. */
+    currentDateIso?: string | null
 }): OriginContextStrategyOverride | null {
-    if (!originContext || hasOwnTimeAnchor) return null
+    if (!originContext) return null
 
-    if (
-        originContext.kind === "calendar-day" &&
-        typeof originContext.isoDate === "string" &&
-        ISO_DATE_RE.test(originContext.isoDate) &&
-        (replyStrategy === "natal" ||
-            replyStrategy === "general" ||
-            replyStrategy === "daily")
-    ) {
-        return {
+    if (originContext.kind === "calendar-day") {
+        const attachedIso =
+            typeof originContext.isoDate === "string" &&
+            ISO_DATE_RE.test(originContext.isoDate)
+                ? originContext.isoDate
+                : null
+        if (!attachedIso) return null
+
+        const dailyOnAttachedDay: OriginContextStrategyOverride = {
             replyStrategy: "daily",
             questionRange: {
-                startDateIso: originContext.isoDate,
-                endDateIso: originContext.isoDate,
+                startDateIso: attachedIso,
+                endDateIso: attachedIso,
                 durationDays: 1,
                 granularity: "hourly",
             },
         }
+
+        if (
+            !questionRange &&
+            (replyStrategy === "natal" ||
+                replyStrategy === "general" ||
+                replyStrategy === "daily")
+        ) {
+            return dailyOnAttachedDay
+        }
+
+        if (
+            questionRange &&
+            replyStrategy === "daily" &&
+            currentDateIso &&
+            questionRange.startDateIso === currentDateIso &&
+            questionRange.endDateIso === currentDateIso &&
+            attachedIso !== currentDateIso
+        ) {
+            return dailyOnAttachedDay
+        }
+
+        return null
     }
 
-    if (originContext.kind === "birth-chart" && replyStrategy === "general") {
+    if (
+        originContext.kind === "birth-chart" &&
+        !questionRange &&
+        replyStrategy === "general"
+    ) {
         return { replyStrategy: "natal", questionRange: null }
     }
 
