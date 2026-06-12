@@ -80,6 +80,18 @@ export const chatDecisionSchema = z.object({
         .describe(
             "Only for horoscope. When set to 'calendar', the client renders the interactive calendar tool (date picker + topic chips) instead of streaming an immediate reading. Use for prompts like 'show my calendar / year ahead / 12 months overview'.",
         ),
+    horoscopeExplain: z
+        .boolean()
+        .optional()
+        .describe(
+            "Only for chat. True when the user is questioning the REASONING behind a previous horoscope/timing recommendation ('why that date?', 'ทำไมไม่ควรลาออกสิ้นเดือน') — the client streams a data-grounded explanation paragraph instead of re-running the reading.",
+        ),
+    comparisonDateIso: z
+        .string()
+        .optional()
+        .describe(
+            "Only when horoscopeExplain. The alternative date/period the user proposes, resolved to YYYY-MM-DD against the current date ('สิ้นเดือน' / 'end of the month' → last day of the current month). Omit when they propose none.",
+        ),
 })
 
 export type ChatDecisionSchema = z.infer<typeof chatDecisionSchema>

@@ -150,6 +150,7 @@ export async function buildGeneralAstrologyContext({
     system,
     locale = "en",
     targetDateIso,
+    activityWindowDays = ACTIVITY_WINDOW_DAYS,
 }: {
     birth: GeneralAstrologyBirth
     system?: "western_tropical" | "vedic_sidereal" | "both"
@@ -160,6 +161,12 @@ export async function buildGeneralAstrologyContext({
      * aspect window. Defaults to today when omitted/invalid.
      */
     targetDateIso?: string | null
+    /**
+     * How many days of activities to collect from the anchor date. The
+     * default (30) paints a month-long mood; pass 1 for a sharp single-day
+     * picture (e.g. when comparing two candidate dates).
+     */
+    activityWindowDays?: number
 }): Promise<GeneralAstrologyContext | null> {
     try {
         const parsedTarget = targetDateIso
@@ -176,13 +183,14 @@ export async function buildGeneralAstrologyContext({
                 anchor.getUTCDate(),
             ),
         )
-        const endUtc = addUtcDays(anchorUtc, ACTIVITY_WINDOW_DAYS)
+        const windowDays = Math.max(1, Math.round(activityWindowDays))
+        const endUtc = addUtcDays(anchorUtc, windowDays)
         const questionRange: QuestionTimeRange = {
             startDate: anchorUtc,
             endDate: endUtc,
             startDateIso: toIsoDate(anchorUtc),
             endDateIso: toIsoDate(endUtc),
-            durationDays: ACTIVITY_WINDOW_DAYS,
+            durationDays: windowDays,
             source: "default_30d",
             granularity: "daily",
         }
@@ -192,8 +200,7 @@ export async function buildGeneralAstrologyContext({
             endDate: addUtcDays(endUtc, ASPECT_PADDING_DAYS),
             startDateIso: toIsoDate(addUtcDays(anchorUtc, -ASPECT_PADDING_DAYS)),
             endDateIso: toIsoDate(addUtcDays(endUtc, ASPECT_PADDING_DAYS)),
-            durationDays:
-                ACTIVITY_WINDOW_DAYS + ASPECT_PADDING_DAYS * 2,
+            durationDays: windowDays + ASPECT_PADDING_DAYS * 2,
         }
 
         const codexTransitPromise = getCodexTransitWindow(questionRange)

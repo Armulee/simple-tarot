@@ -336,6 +336,15 @@ export type ChatDecision = {
      * counts.
      */
     horoscopeMode?: "calendar"
+    /**
+     * When type === "chat": the user is questioning the REASONING behind a
+     * previous horoscope/timing recommendation. The client streams a
+     * data-grounded explanation paragraph (/api/horoscope/explain) instead
+     * of re-running the reading or the inner-energy reflection.
+     */
+    horoscopeExplain?: boolean
+    /** When horoscopeExplain: the alternative date the user proposed, resolved to YYYY-MM-DD. */
+    comparisonDateIso?: string
 }
 
 /**

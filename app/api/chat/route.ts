@@ -114,6 +114,15 @@ Use it to detect follow-up questions:
 - If the user's message is clearly about a NEW, UNRELATED topic, classify normally and set isFollowUp to false.
 - Short vague questions like "really?", "who?", "how?", "why?", "tell me more" after a reading are almost always follow-ups — use the session context to determine which feature they relate to.
 
+HOROSCOPE "WHY" FOLLOW-UPS (explanation requests):
+
+When the previous reading was a HOROSCOPE (timing/daily/natal) and the user is now QUESTIONING or asking for the REASONING behind its recommendation — "why that date?", "why do you think that?", "ทำไมถึงเป็นวันนั้น", "why shouldn't I resign at the end of the month?", "ทำไมไม่ควรลาออกสิ้นเดือน", "what's wrong with next week?", "are you sure?" — do NOT classify as "horoscope" (that re-runs the reading and repeats the same verdict). Instead set:
+- type: "chat"
+- isFollowUp: true
+- horoscopeExplain: true
+- comparisonDateIso: when the user proposes an alternative time, resolve it to YYYY-MM-DD using the current date shown below — "สิ้นเดือน" / "end of the month" → the LAST day of the current month; "next week" / "สัปดาห์หน้า" → next Monday; "early October" → the 1st of that month. Omit when no alternative is proposed.
+Only justification/challenge questions take this path. A follow-up that asks for a NEW reading or window ("then read October for me", "อาทิตย์หน้าดวงเป็นยังไง") is still "horoscope".
+
 PAGE CONTEXT (attached context strip):
 
 The "Session context" may begin with "Page context (where the user started this chat):" — the user attached this from the /calendar page, the /birthchart page, or the inline calendar tool. Unless the user has locked a different mode:
@@ -130,11 +139,14 @@ Return JSON only:
 "spreadReason":"short reason",
 "supportTopic":"pricing"|"contact"|"...",
 "supportCardSlug":"seven-of-cups",
-"horoscopeMode":"calendar"
+"horoscopeMode":"calendar",
+"horoscopeExplain":true|false,
+"comparisonDateIso":"2026-06-30"
 }
 
 If type is NOT "draw", omit spreadType and spreadReason.
 If type is NOT "support", omit supportTopic and supportCardSlug.
+Omit horoscopeExplain and comparisonDateIso unless this is a horoscope "why" follow-up (see the rule above); comparisonDateIso only when the user proposed an alternative time.
 
 CRITICAL LANGUAGE RULE:
 Use the user's language to help classification accuracy.
@@ -252,6 +264,7 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
+Current date (UTC): ${new Date().toISOString().slice(0, 10)} — use it to resolve relative dates (e.g. comparisonDateIso for "end of the month").
 ${savedBirthBlock}${storedChartBlock}${anonymousHoroscopeRule}${planTierRule}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 

@@ -4782,6 +4782,149 @@ export default function ChatSession({
         [messages],
     )
 
+    /**
+     * Streams the horoscope "why" explanation (/api/horoscope/explain) as a
+     * plain paragraph. The route computes real single-day aspect pictures for
+     * the previously recommended date and the user's proposed alternative,
+     * then a reasoning model compares them and explains the recommendation
+     * instead of re-running the reading.
+     */
+    const streamHoroscopeExplain = useCallback(
+        async ({
+            question,
+            comparisonDateIso,
+            historyOverride,
+            onChunk,
+            onReasoning,
+        }: {
+            question: string
+            comparisonDateIso?: string | null
+            historyOverride?: { role: string; text: string }[]
+            onChunk?: (text: string) => void
+            onReasoning?: (reasoning: string) => void
+        }) => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+            }
+            abortControllerRef.current = new AbortController()
+
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                activeOriginContextRef.current,
+                buildSessionContextSummary(messages),
+            )
+
+            // The reading being questioned: walk back to the latest horoscope
+            // verdict and pull its recommended date + summary.
+            let recommendedDateIso: string | null = null
+            let previousQuestion: string | null = null
+            let previousReadingSummary: string | null = null
+            for (let i = messages.length - 1; i >= 0; i -= 1) {
+                const m = messages[i]
+                if (m.role !== "assistant" || !m.dailyVerdict) continue
+                const verdict = m.dailyVerdict as {
+                    timingWindow?: { startDateIso?: string }
+                    targetDateIso?: string
+                    headline?: string
+                    keyMessage?: { headline?: string; subtitle?: string }
+                }
+                const chartRange = (
+                    m.chartData as {
+                        questionRange?: { startDateIso?: string }
+                    } | null
+                )?.questionRange
+                recommendedDateIso =
+                    verdict.timingWindow?.startDateIso ??
+                    verdict.targetDateIso ??
+                    chartRange?.startDateIso ??
+                    null
+                previousQuestion = m.question ?? null
+                previousReadingSummary =
+                    [
+                        verdict.headline,
+                        verdict.keyMessage?.headline,
+                        verdict.keyMessage?.subtitle,
+                    ]
+                        .filter(Boolean)
+                        .join(" — ") || null
+                break
+            }
+
+            // Same birth resolution as the general reply: signed-in profile
+            // first, locally saved birth as fallback. Without birth data the
+            // route explains from the previous reading's summary alone.
+            const profileBirth = profileToHoroscopeBirthData(
+                user ? profile : null,
+            )
+            const resolvedBirth = ensureBirthTimeDefaults(
+                profileBirth
+                    ? applyEphemerisLocationTimeDefaults(profileBirth)
+                    : loadBirthFromStorage(),
+            )
+            const birthPayload =
+                resolvedBirth && hasBirthDate(resolvedBirth)
+                    ? {
+                          day: resolvedBirth.day as number,
+                          month: resolvedBirth.month as number,
+                          year: resolvedBirth.year as number,
+                          hour: resolvedBirth.hour,
+                          minute: resolvedBirth.minute,
+                          timeHint: resolvedBirth.timeHint,
+                          timezone: resolvedBirth.timezone ?? 0,
+                          lat: resolvedBirth.lat ?? 0,
+                          lng: resolvedBirth.lng ?? 0,
+                          country: resolvedBirth.country,
+                          state: resolvedBirth.state,
+                          usedLocationFallback:
+                              resolvedBirth.usedLocationFallback,
+                      }
+                    : null
+
+            const response = await fetch("/api/horoscope/explain", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    locale,
+                    history,
+                    contextSummary: contextSummary || undefined,
+                    previousQuestion,
+                    previousReadingSummary,
+                    recommendedDateIso,
+                    comparisonDateIso: comparisonDateIso ?? undefined,
+                    system: horoscopeSystem,
+                    birth: birthPayload,
+                }),
+                signal: abortControllerRef.current.signal,
+            })
+
+            if (!response.ok || !response.body) {
+                throw new Error("Failed to generate horoscope explanation")
+            }
+
+            const { content } = await readReasoningStream(response, {
+                onReasoning: (accumulated) => onReasoning?.(accumulated),
+                onContent: (accumulated) => onChunk?.(accumulated),
+            })
+
+            return content
+        },
+        [
+            ensureBirthTimeDefaults,
+            hasBirthDate,
+            horoscopeSystem,
+            locale,
+            messages,
+            profile,
+            user,
+        ],
+    )
+
     const handleStopStreaming = useCallback(() => {
         if (generalReplyTargetMessageIdRef.current) {
             finalizeGeneralReplyStream()
@@ -5235,11 +5378,19 @@ export default function ChatSession({
                 // structured "inner energy reflection" rendered by
                 // InnerEnergyHero. Oracle answers go through /api/chat/oracle
                 // for a premium-feel symbolic oracle card rendered by
-                // OracleHero. Bridge replies (draw / horoscope) and support
-                // acknowledgments keep the lightweight text stream from
-                // /api/chat/respond.
+                // OracleHero. Horoscope "why" follow-ups stream a
+                // data-grounded explanation paragraph from
+                // /api/horoscope/explain. Bridge replies (draw / horoscope)
+                // and support acknowledgments keep the lightweight text
+                // stream from /api/chat/respond.
+                const useHoroscopeExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.horoscopeExplain) &&
+                    !supportBlock
                 const useGeneralReplyStream =
-                    nextDecision.type === "chat" && !supportBlock
+                    nextDecision.type === "chat" &&
+                    !supportBlock &&
+                    !useHoroscopeExplain
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -5250,6 +5401,45 @@ export default function ChatSession({
                         isFollowUp: nextDecision.isFollowUp,
                         historyOverride: history,
                     })
+                } else if (useHoroscopeExplain) {
+                    const assistantText = await streamHoroscopeExplain({
+                        question: trimmed,
+                        comparisonDateIso:
+                            nextDecision.comparisonDateIso ?? null,
+                        historyOverride: history,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: assistantText || m.text,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
                 } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
@@ -5358,6 +5548,7 @@ export default function ChatSession({
             startGeneralReplyStream,
             startOracleReplyStream,
             streamAssistantResponse,
+            streamHoroscopeExplain,
             locale,
         ],
     )
@@ -5898,10 +6089,16 @@ export default function ChatSession({
                 )
 
                 // See runDecisionFlowFromMessages — same branching:
-                // structured inner-energy reflection / oracle reading vs.
-                // plain text bridge.
+                // structured inner-energy reflection / oracle reading /
+                // horoscope "why" explanation vs. plain text bridge.
+                const useHoroscopeExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.horoscopeExplain) &&
+                    !supportBlock
                 const useGeneralReplyStream =
-                    nextDecision.type === "chat" && !supportBlock
+                    nextDecision.type === "chat" &&
+                    !supportBlock &&
+                    !useHoroscopeExplain
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -5912,6 +6109,45 @@ export default function ChatSession({
                         isFollowUp: nextDecision.isFollowUp,
                         historyOverride: history,
                     })
+                } else if (useHoroscopeExplain) {
+                    const assistantText = await streamHoroscopeExplain({
+                        question: trimmed,
+                        comparisonDateIso:
+                            nextDecision.comparisonDateIso ?? null,
+                        historyOverride: history,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: assistantText || m.text,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
                 } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
@@ -6021,6 +6257,7 @@ export default function ChatSession({
             startGeneralReplyStream,
             startOracleReplyStream,
             streamAssistantResponse,
+            streamHoroscopeExplain,
         ],
     )
 
