@@ -6,6 +6,7 @@ import {
     type QuestionTopic,
 } from "@/lib/astrology/question-intent"
 import type { QuestionTimeRangePayload } from "@/lib/astrology/question-time-range"
+import { resolveOriginContextStrategyOverride } from "@/lib/chat/origin-context"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -143,6 +144,21 @@ const requestSchema = z.object({
     locale: z.string().optional(),
     profile: profileSchema,
     planTier: z.enum(["free", "basic", "pro"]).optional(),
+    /**
+     * Page context attached via the composer's context strip (/calendar day,
+     * /birthchart, or the inline calendar tool). When the message itself has
+     * no time anchor, a calendar-day context anchors the reading to that day
+     * (daily verdict) and a birth-chart context routes to the natal strategy.
+     */
+    originContext: z
+        .object({
+            kind: z.enum(["calendar-day", "birth-chart"]),
+            label: z.string().optional(),
+            isoDate: z.string().optional(),
+            summary: z.string().optional(),
+        })
+        .nullable()
+        .optional(),
 })
 
 const FALLBACK_CLASSIFICATION: z.infer<typeof classificationSchema> = {
@@ -228,6 +244,35 @@ function detectOtherPersonIntent(
     }
 
     return false
+}
+
+type ExtractedPayload = z.infer<typeof extractSchema>
+type OriginContextPayload = z.infer<typeof requestSchema>["originContext"]
+
+/**
+ * Applies the context-strip strategy override (see
+ * resolveOriginContextStrategyOverride): an attached calendar day anchors
+ * anchor-less questions to a daily verdict for that date; an attached birth
+ * chart routes anchor-less general questions to the natal strategy.
+ */
+function applyOriginContextOverride(
+    extracted: ExtractedPayload,
+    originContext: OriginContextPayload,
+): ExtractedPayload {
+    const override = resolveOriginContextStrategyOverride({
+        originContext,
+        replyStrategy: extracted.classification.replyStrategy,
+        hasOwnTimeAnchor: Boolean(extracted.classification.questionRange),
+    })
+    if (!override) return extracted
+    return {
+        ...extracted,
+        classification: {
+            ...extracted.classification,
+            replyStrategy: override.replyStrategy,
+            questionRange: override.questionRange,
+        },
+    }
 }
 
 /**
@@ -406,13 +451,27 @@ The asker is asking about an ANONYMOUS third party identified only by a birth da
                 prompt: `User locale: ${locale}
 Current date (UTC): ${currentDateIso}
 ${payload.profile?.name ? `Asker's name: ${payload.profile.name}` : "Asker's name: (not provided)"}
-Message:
+${
+    payload.originContext
+        ? `Attached page context: the user attached ${
+              payload.originContext.kind === "calendar-day"
+                  ? `a calendar day (${payload.originContext.isoDate ?? payload.originContext.label ?? "unknown date"})`
+                  : "their birth chart"
+          } to this message. If the message references "this day", "that date", "วันนั้น", "วันที่เลือก", or similar, it means this attachment. A date or window written in the message itself still wins over the attachment.
+`
+        : ""
+}Message:
 ${payload.message}`,
             })
             extracted = extraction.object
         } catch {
             extracted = fallbackExtracted
         }
+
+        extracted = applyOriginContextOverride(
+            extracted,
+            payload.originContext ?? null,
+        )
 
         const otherPerson = detectOtherPersonIntent(
             extracted.mentionedPerson,

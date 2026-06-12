@@ -3,6 +3,7 @@ import {
     sanitizeMessagesForPersistence,
     sanitizePromptForPersistence,
 } from "@/lib/privacy/prompt-redaction"
+import { normalizeOriginContext } from "@/lib/chat/origin-context"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
 import { readAndVerifyDid } from "@/lib/server/did"
 import {
@@ -86,6 +87,12 @@ export async function PATCH(
         }
         if (typeof body?.showCardDraw === "boolean") {
             update.show_card_draw = body.showCardDraw
+        }
+        // The composer's context strip is consumed by the message it was
+        // attached to — the client clears it (null) after a successful send
+        // so a reload doesn't resurrect the strip.
+        if (body && "originContext" in body) {
+            update.origin_context = normalizeOriginContext(body.originContext)
         }
 
         const { error } = await supabaseAdmin

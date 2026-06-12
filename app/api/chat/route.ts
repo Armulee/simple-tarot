@@ -114,6 +114,13 @@ Use it to detect follow-up questions:
 - If the user's message is clearly about a NEW, UNRELATED topic, classify normally and set isFollowUp to false.
 - Short vague questions like "really?", "who?", "how?", "why?", "tell me more" after a reading are almost always follow-ups — use the session context to determine which feature they relate to.
 
+PAGE CONTEXT (attached context strip):
+
+The "Session context" may begin with "Page context (where the user started this chat):" — the user attached this from the /calendar page, the /birthchart page, or the inline calendar tool. Unless the user has locked a different mode:
+- If it contains "Selected day: ..." (an attached calendar day), the user is asking about THAT day. Classify life/fortune/outcome questions ("how will my career be", "ความรักจะเป็นยังไง") as "horoscope" — the attached day IS the timeframe even when the message itself has no date.
+- If it contains a birth chart ("Born ...", "Key placements: ..."), classify self/fortune questions as "horoscope" so the reading answers from their natal chart.
+- Page context never applies to product/support questions, tarot-card knowledge questions, or an explicit request to draw cards — classify those normally.
+
 Return JSON only:
 
 {

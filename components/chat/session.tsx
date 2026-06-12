@@ -923,6 +923,21 @@ export default function ChatSession({
     useEffect(() => {
         originContextRef.current = originContext
     }, [originContext])
+    // The context that applies to the IN-FLIGHT question turn. The strip is
+    // consumed by the message it was attached to (cleared right after send),
+    // so every AI call within a turn reads this captured value instead of the
+    // live strip state — regenerate/edit set it from the target message's
+    // originContextSnapshot, new sends capture it before clearing the strip.
+    const activeOriginContextRef = useRef<OriginContext | null>(
+        initialSession?.originContext ?? null,
+    )
+    // Bump to clear the inline calendar tool's selection (X button on the
+    // OriginContextStrip, or the strip being consumed by a sent message).
+    const [calendarToolResetSignal, setCalendarToolResetSignal] = useState(0)
+    const handleClearOriginContext = useCallback(() => {
+        setOriginContext(null)
+        setCalendarToolResetSignal((n) => n + 1)
+    }, [])
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>([])
     const unmask = useCallback(
         (text?: string | null): string => {
@@ -2866,12 +2881,14 @@ export default function ChatSession({
             decision: currentDecision,
             showInsufficientStars: currentShowInsufficientStars,
             showCardDraw: currentShowCardDraw,
+            originContext: currentOriginContext,
         }: {
             question: string
             messages: ChatMessage[]
             decision: ChatDecision | null
             showInsufficientStars: boolean
             showCardDraw: boolean
+            originContext: OriginContext | null
         }) => {
             if (!sessionId) return
             const headers: Record<string, string> = {
@@ -2889,6 +2906,9 @@ export default function ChatSession({
                     decision: currentDecision,
                     showInsufficientStars: currentShowInsufficientStars,
                     showCardDraw: currentShowCardDraw,
+                    // Persist the live strip (null once consumed) so a reload
+                    // doesn't resurrect a context that was already used.
+                    originContext: currentOriginContext,
                 }),
             })
         },
@@ -3248,6 +3268,7 @@ export default function ChatSession({
                 decision,
                 showInsufficientStars,
                 showCardDraw,
+                originContext,
             })
         }, 400)
         return () => {
@@ -3263,6 +3284,7 @@ export default function ChatSession({
         persistSession,
         showInsufficientStars,
         showCardDraw,
+        originContext,
     ])
 
     const heroText = consulting
@@ -3499,7 +3521,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
+                activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
 
@@ -3610,7 +3632,6 @@ export default function ChatSession({
             hasBirthDate,
             locale,
             messages,
-            originContext,
             profile,
             submitGeneralReply,
             user,
@@ -3642,7 +3663,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
+                activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
 
@@ -3668,7 +3689,7 @@ export default function ChatSession({
                 locale,
             })
         },
-        [locale, messages, originContext, submitOracleReply],
+        [locale, messages, submitOracleReply],
     )
 
     const runHoroscopeReading = useCallback(
@@ -4328,6 +4349,13 @@ export default function ChatSession({
             try {
                 const appendUserMessage = options.appendUserMessage !== false
                 if (appendUserMessage) {
+                    // A directly-appended message starts a new question turn:
+                    // capture the strip for this turn, stamp it on the
+                    // message, then consume (clear) the strip.
+                    const turnOriginContext =
+                        options.preparedUserMessage?.originContextSnapshot ??
+                        originContextRef.current
+                    activeOriginContextRef.current = turnOriginContext
                     const preparedUserMessage = options.preparedUserMessage
                     setMessages((prev) => [
                         ...prev,
@@ -4335,9 +4363,10 @@ export default function ChatSession({
                             id: `user-${Date.now()}`,
                             role: "user",
                             text: trimmed,
-                            originContextSnapshot: originContextRef.current,
+                            originContextSnapshot: turnOriginContext,
                         },
                     ])
+                    if (turnOriginContext) handleClearOriginContext()
                 }
 
                 const profilePayload = profile
@@ -4381,6 +4410,10 @@ export default function ChatSession({
                         locale,
                         profile: profilePayload,
                         planTier: subscription?.tier ?? "free",
+                        // Context strip attached to this turn: anchors the
+                        // reading to the attached calendar day (daily verdict)
+                        // or routes to the natal strategy for a birth chart.
+                        originContext: activeOriginContextRef.current,
                     }),
                 })
 
@@ -4587,6 +4620,7 @@ export default function ChatSession({
             lastQuestion,
             locale,
             ensureBirthTimeDefaults,
+            handleClearOriginContext,
             runHoroscopeReading,
             spendStars,
             tHoroscope,
@@ -4615,7 +4649,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
+                activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
             let modeForApi =
@@ -4680,7 +4714,6 @@ export default function ChatSession({
             interpretationMode,
             storedBirthChart,
             user,
-            originContext,
             planTier,
         ],
     )
@@ -4717,7 +4750,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
+                activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
             const response = await fetch("/api/chat/respond", {
@@ -4746,7 +4779,7 @@ export default function ChatSession({
 
             return content
         },
-        [messages, originContext],
+        [messages],
     )
 
     const handleStopStreaming = useCallback(() => {
@@ -5078,6 +5111,10 @@ export default function ChatSession({
                     rawText: lastUserMsg.displayText,
                 }
             }
+            // Regenerate/edit re-applies the context strip captured on the
+            // target message; messages sent without a strip get none.
+            activeOriginContextRef.current =
+                lastUserMsg?.originContextSnapshot ?? null
 
             setEditingMessageId(null)
             setEditingDraft("")
@@ -5379,6 +5416,9 @@ export default function ChatSession({
         try {
             const prepared = await prepareUserSubmission(trimmed, {
                 messageId: target.id,
+                // Editing keeps the context the message was originally sent
+                // with — the live strip (if any) stays for the next message.
+                originContextSnapshot: target.originContextSnapshot ?? null,
             })
             const editedUserMessage: ChatMessage = {
                 ...target,
@@ -5479,14 +5519,6 @@ export default function ChatSession({
         },
         [locale],
     )
-    // Bump to clear the inline calendar tool's selection (in response to
-    // the X button on the OriginContextStrip).
-    const [calendarToolResetSignal, setCalendarToolResetSignal] = useState(0)
-    const handleClearOriginContext = useCallback(() => {
-        setOriginContext(null)
-        setCalendarToolResetSignal((n) => n + 1)
-    }, [])
-
     const handleAskAspectDetail = async (
         question: string,
         aspectKey: string,
@@ -5686,12 +5718,26 @@ export default function ChatSession({
                 preparedUserMessage?: ChatMessage
                 /** Prior conversation turns for /api/chat when user msg was already appended (avoids stale closure). */
                 decisionHistory?: { role: "user" | "assistant"; text: string }[]
+                /** Origin context (context strip) for this turn. Callers that appended the user message themselves pass the captured snapshot here. */
+                turnOriginContext?: OriginContext | null
             } = {},
         ) => {
             const trimmed = value.trim()
             if (!trimmed) return
 
             const shouldAppendUserMessage = options.appendUserMessage !== false
+            // Resolve the context strip value that applies to this question
+            // turn. A turn that appends a fresh user message consumes the
+            // live strip; callers that already appended the message pass the
+            // snapshot explicitly (undefined = keep the in-flight value).
+            const turnOriginContext =
+                options.turnOriginContext !== undefined
+                    ? options.turnOriginContext
+                    : (options.preparedUserMessage?.originContextSnapshot ??
+                      (shouldAppendUserMessage
+                          ? originContextRef.current
+                          : activeOriginContextRef.current))
+            activeOriginContextRef.current = turnOriginContext
             setQuestion("")
             setConsulting(true)
             setLastQuestion(trimmed)
@@ -5710,9 +5756,11 @@ export default function ChatSession({
                         id: `user-${Date.now()}`,
                         role: "user",
                         text: trimmed,
-                        originContextSnapshot: originContextRef.current,
+                        originContextSnapshot: turnOriginContext,
                     },
                 ])
+                // The strip is consumed by the message it was attached to.
+                if (turnOriginContext) handleClearOriginContext()
             }
 
             const pending = pendingAspectDetailRef.current
@@ -5965,6 +6013,7 @@ export default function ChatSession({
             fetchDecision,
             freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
+            handleClearOriginContext,
             handleHoroscopeInput,
             hasBirthDate,
             messages,
@@ -5987,9 +6036,23 @@ export default function ChatSession({
             hasBootstrapped.current = true
             void startDecisionFlow(messages[0].text, {
                 appendUserMessage: false,
+                turnOriginContext:
+                    messages[0].originContextSnapshot ??
+                    originContextRef.current,
             })
+            // The first message consumed the page context it was created
+            // with (/calendar, /birthchart) — drop the strip now that the
+            // turn has captured it.
+            if (originContextRef.current) handleClearOriginContext()
         }
-    }, [sessionId, decision, messages, startDecisionFlow, settingsLoaded])
+    }, [
+        sessionId,
+        decision,
+        messages,
+        startDecisionFlow,
+        settingsLoaded,
+        handleClearOriginContext,
+    ])
 
     // Rehydrate raw prompts from sessionStorage so the UI shows the user's
     // original wording while the persisted/text fields stay redacted.
@@ -6123,7 +6186,14 @@ export default function ChatSession({
      * this device, in `sessionStorage`, so the UI can keep displaying it.
      */
     const prepareUserSubmission = useCallback(
-        async (rawValue: string, options: { messageId?: string } = {}) => {
+        async (
+            rawValue: string,
+            options: {
+                messageId?: string
+                /** Snapshot for the message; defaults to the live strip. Pass explicitly when the strip was already consumed/cleared for this turn. */
+                originContextSnapshot?: OriginContext | null
+            } = {},
+        ) => {
             const result = await sanitizePromptOnClient(rawValue, {
                 sessionId: sessionId ?? "",
                 locale,
@@ -6143,7 +6213,10 @@ export default function ChatSession({
                 role: "user",
                 text: result.sanitized,
                 isSanitizing: false,
-                originContextSnapshot: originContextRef.current,
+                originContextSnapshot:
+                    options.originContextSnapshot !== undefined
+                        ? options.originContextSnapshot
+                        : originContextRef.current,
                 ...(privacyStorageKey && {
                     displayText: rawValue,
                     privacyStorageKey,
@@ -6190,6 +6263,22 @@ export default function ChatSession({
         if (!trimmed) return
         setQuestion("")
 
+        // Capture the context strip for this turn, then consume it: the
+        // strip belongs to the message it was attached to and disappears
+        // once that message is sent. Mid-flow messages (birth-details
+        // intake, pending horoscope question) continue the previous question
+        // turn, so they keep that turn's context unless a new strip was
+        // attached meanwhile.
+        const liveOriginContext = originContextRef.current
+        const isContinuationTurn =
+            isHoroscopeIntakeActive ||
+            Boolean(horoscopeQuestion || horoscopeBirth)
+        if (!isContinuationTurn || liveOriginContext) {
+            activeOriginContextRef.current = liveOriginContext
+        }
+        const turnOriginContext = activeOriginContextRef.current
+        if (liveOriginContext) handleClearOriginContext()
+
         const userId = `user-${Date.now()}`
         let decisionHistory: { role: "user" | "assistant"; text: string }[] = []
 
@@ -6206,7 +6295,7 @@ export default function ChatSession({
                     text: trimmed,
                     displayText: trimmed,
                     isSanitizing: true,
-                    originContextSnapshot: originContextRef.current,
+                    originContextSnapshot: turnOriginContext,
                 },
             ]
         })
@@ -6214,6 +6303,7 @@ export default function ChatSession({
         try {
             const prepared = await prepareUserSubmission(trimmed, {
                 messageId: userId,
+                originContextSnapshot: turnOriginContext,
             })
             setMessages((prev) =>
                 prev.map((m) =>
@@ -6239,6 +6329,7 @@ export default function ChatSession({
             await startDecisionFlow(prepared.sanitized, {
                 appendUserMessage: false,
                 decisionHistory,
+                turnOriginContext,
             })
         } catch {
             setMessages((prev) =>

@@ -228,6 +228,78 @@ export function buildCalendarDayOriginContext(
 }
 
 // ---------------------------------------------------------------------------
+// Context-strip strategy override (horoscope routing)
+// ---------------------------------------------------------------------------
+
+export type OriginContextStrategyOverride = {
+    replyStrategy: "daily" | "natal"
+    questionRange: {
+        startDateIso: string
+        endDateIso: string
+        durationDays: number
+        granularity: "hourly"
+    } | null
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * Deterministic strategy override for the composer's context strip. The
+ * extract LLM classifies from the message text alone, so a question with no
+ * time anchor ("how will my career be?") resolves to natal/general even when
+ * the user attached a calendar day. The attachment IS the missing anchor:
+ *
+ * - calendar-day context + no date in the question → daily verdict anchored
+ *   to the attached ISO date (transit + natal aspects for that day).
+ * - birth-chart context + no anchor → natal strategy (answer from the user's
+ *   natal placements immediately).
+ *
+ * A date or window written in the question itself always wins (`hasOwnTimeAnchor`)
+ * — the context only fills the gap when the current question carries no
+ * anchor of its own. Planet-focused (technical) and "when will…" (timing)
+ * questions keep their strategy; the attachment never rewrites those.
+ */
+export function resolveOriginContextStrategyOverride({
+    originContext,
+    replyStrategy,
+    hasOwnTimeAnchor,
+}: {
+    originContext:
+        | { kind: string; isoDate?: string | null }
+        | null
+        | undefined
+    replyStrategy: string
+    hasOwnTimeAnchor: boolean
+}): OriginContextStrategyOverride | null {
+    if (!originContext || hasOwnTimeAnchor) return null
+
+    if (
+        originContext.kind === "calendar-day" &&
+        typeof originContext.isoDate === "string" &&
+        ISO_DATE_RE.test(originContext.isoDate) &&
+        (replyStrategy === "natal" ||
+            replyStrategy === "general" ||
+            replyStrategy === "daily")
+    ) {
+        return {
+            replyStrategy: "daily",
+            questionRange: {
+                startDateIso: originContext.isoDate,
+                endDateIso: originContext.isoDate,
+                durationDays: 1,
+                granularity: "hourly",
+            },
+        }
+    }
+
+    if (originContext.kind === "birth-chart" && replyStrategy === "general") {
+        return { replyStrategy: "natal", questionRange: null }
+    }
+
+    return null
+}
+
+// ---------------------------------------------------------------------------
 // Summary merge
 // ---------------------------------------------------------------------------
 
