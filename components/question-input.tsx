@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
 import { useTarot } from "@/contexts/tarot-context"
+import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/use-auth"
 import {
     AvatarChatToggle,
@@ -543,7 +544,10 @@ export default function QuestionInput({
     if (showBottomChrome) {
         return (
             <div
-                className={`border-t border-white/10 bg-[#07060f]/80 backdrop-blur ${wrapperClassName}`}
+                className={cn(
+                    "border-t border-white/10 bg-[#07060f]/80 backdrop-blur",
+                    wrapperClassName,
+                )}
             >
                 <div
                     ref={containerRef}

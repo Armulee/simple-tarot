@@ -176,11 +176,11 @@ export function AvatarExperience({
             />
         </div>
 
-        {/* Same fixed-bottom composer bar the homepage uses; fades up after the
-            intro clip. */}
+        {/* Fixed-bottom composer; no background container on the avatar page so
+            the character shows through. Fades up after the intro clip. */}
         <div
             className={cn(
-                "fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-opacity duration-1000",
+                "fixed bottom-0 left-0 right-0 z-30 w-full pt-4 transition-opacity duration-1000",
                 composerVisible ? "opacity-100" : "pointer-events-none opacity-0",
             )}
         >
@@ -265,6 +265,7 @@ export function AvatarExperience({
                         onScrollToDraw: () => {},
                     }}
                     showDisclaimer={false}
+                    wrapperClassName="border-transparent bg-transparent backdrop-blur-none"
                     inputWrapperClassName="w-full"
                 />
             )}
