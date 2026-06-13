@@ -15,7 +15,7 @@ export const talkReplySchema = z.object({
     reply: z
         .string()
         .describe(
-            "A warm, gentle, plain-text reply that talks WITH the user like a thoughtful companion — NOT a reading, prediction, horoscope, or mystical reflection. Acknowledge what they said and, when they reference something from earlier, answer from the conversation history. 2-4 short sentences, broken into short paragraphs separated by a blank line when it helps. Plain text only: no markdown, no headings, no card/planet/astrology jargon. SAME language as the user's message; write like a native speaker.",
+            "A calm, mysterious, plain-text reply in Astra's voice — a fortune teller simply talking with the user, NOT a reading, prediction, horoscope, or mystical 'inner energy' reflection. Composed, serene, softly spoken; never chatty, peppy, or coachy. Acknowledge what they said and, when they reference something from earlier, answer from the conversation history. 2-4 short sentences, broken into short paragraphs separated by a blank line only when it helps. Plain text only: no markdown, no headings, no card/planet/astrology jargon. SAME language as the user's message; write like a native speaker.",
         ),
     suggestions: z
         .array(z.string())
