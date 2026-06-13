@@ -3346,6 +3346,16 @@ export default function ChatSession({
     const applyInterpretationModeOverride = useCallback(
         (decision: ChatDecision): ChatDecision => {
             if (interpretationMode === "auto") return decision
+            // "Why" explanations are chat-type answers ABOUT a previous
+            // reading. Keep them even when a reading mode is locked — otherwise
+            // the lock would re-trigger a fresh draw/horoscope instead of
+            // explaining the one the user is questioning.
+            if (
+                decision.type === "chat" &&
+                (decision.tarotExplain || decision.horoscopeExplain)
+            ) {
+                return decision
+            }
             // The "chat" interpretation mode is the merged chat+support mode:
             // the AI may pick either `chat` (plain knowledge answer) or
             // `support` (inline tool block for product topics like pricing,
@@ -4951,6 +4961,112 @@ export default function ChatSession({
         ],
     )
 
+    /**
+     * Streams the tarot "why" explanation (/api/tarot/explain) as a plain
+     * paragraph. Walks back to the latest tarot reading, sends its cards +
+     * conclusion, and a reasoning model explains why that spread led there
+     * instead of doing a new draw.
+     */
+    const streamTarotExplain = useCallback(
+        async ({
+            question,
+            historyOverride,
+            onChunk,
+            onReasoning,
+        }: {
+            question: string
+            historyOverride?: { role: string; text: string }[]
+            onChunk?: (text: string) => void
+            onReasoning?: (reasoning: string) => void
+        }) => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+            }
+            abortControllerRef.current = new AbortController()
+
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                activeOriginContextRef.current,
+                buildSessionContextSummary(messages),
+            )
+
+            // The reading being questioned: latest completed tarot reading
+            // bubble (variant "box" with drawn cards + interpretation text).
+            let previousQuestion: string | null = null
+            let cards: string[] = []
+            let readingType: string | null = null
+            let previousInterpretation: string | null = null
+            for (let i = messages.length - 1; i >= 0; i -= 1) {
+                const m = messages[i]
+                if (
+                    m.role !== "assistant" ||
+                    m.variant !== "box" ||
+                    !m.cards?.length ||
+                    !m.text?.trim()
+                ) {
+                    continue
+                }
+                previousQuestion = m.question ?? null
+                cards = m.cards.map((c) => {
+                    const card = c as {
+                        meaning?: string
+                        name?: string
+                        isReversed?: boolean
+                    }
+                    if (card.meaning) return card.meaning
+                    return card.isReversed
+                        ? `${card.name} (Reversed)`
+                        : (card.name ?? "")
+                })
+                readingType = m.spreadType ?? null
+                previousInterpretation =
+                    [
+                        m.headline,
+                        m.subtitle,
+                        m.text,
+                        m.nextStep,
+                    ]
+                        .map((part) => part?.trim())
+                        .filter(Boolean)
+                        .join("\n") || null
+                break
+            }
+
+            const response = await fetch("/api/tarot/explain", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    locale,
+                    history,
+                    contextSummary: contextSummary || undefined,
+                    previousQuestion,
+                    cards,
+                    readingType,
+                    previousInterpretation,
+                }),
+                signal: abortControllerRef.current.signal,
+            })
+
+            if (!response.ok || !response.body) {
+                throw new Error("Failed to generate tarot explanation")
+            }
+
+            const { content } = await readReasoningStream(response, {
+                onReasoning: (accumulated) => onReasoning?.(accumulated),
+                onContent: (accumulated) => onChunk?.(accumulated),
+            })
+
+            return content
+        },
+        [locale, messages],
+    )
+
     const handleStopStreaming = useCallback(() => {
         if (generalReplyTargetMessageIdRef.current) {
             finalizeGeneralReplyStream()
@@ -5413,10 +5529,15 @@ export default function ChatSession({
                     nextDecision.type === "chat" &&
                     Boolean(nextDecision.horoscopeExplain) &&
                     !supportBlock
+                const useTarotExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.tarotExplain) &&
+                    !supportBlock
                 const useGeneralReplyStream =
                     nextDecision.type === "chat" &&
                     !supportBlock &&
-                    !useHoroscopeExplain
+                    !useHoroscopeExplain &&
+                    !useTarotExplain
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -5466,6 +5587,43 @@ export default function ChatSession({
                                       explainAspectEvents: aspectEvents.length
                                           ? aspectEvents
                                           : undefined,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                } else if (useTarotExplain) {
+                    const tarotExplainText = await streamTarotExplain({
+                        question: trimmed,
+                        historyOverride: history,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: tarotExplainText || m.text,
                                       isLoading: false,
                                       streamStopped: false,
                                   }
@@ -5582,6 +5740,7 @@ export default function ChatSession({
             startOracleReplyStream,
             streamAssistantResponse,
             streamHoroscopeExplain,
+            streamTarotExplain,
             locale,
         ],
     )
@@ -6128,10 +6287,15 @@ export default function ChatSession({
                     nextDecision.type === "chat" &&
                     Boolean(nextDecision.horoscopeExplain) &&
                     !supportBlock
+                const useTarotExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.tarotExplain) &&
+                    !supportBlock
                 const useGeneralReplyStream =
                     nextDecision.type === "chat" &&
                     !supportBlock &&
-                    !useHoroscopeExplain
+                    !useHoroscopeExplain &&
+                    !useTarotExplain
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -6181,6 +6345,43 @@ export default function ChatSession({
                                       explainAspectEvents: aspectEvents.length
                                           ? aspectEvents
                                           : undefined,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                } else if (useTarotExplain) {
+                    const tarotExplainText = await streamTarotExplain({
+                        question: trimmed,
+                        historyOverride: history,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: tarotExplainText || m.text,
                                       isLoading: false,
                                       streamStopped: false,
                                   }
@@ -6298,6 +6499,7 @@ export default function ChatSession({
             startOracleReplyStream,
             streamAssistantResponse,
             streamHoroscopeExplain,
+            streamTarotExplain,
         ],
     )
 

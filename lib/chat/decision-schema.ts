@@ -92,6 +92,12 @@ export const chatDecisionSchema = z.object({
         .describe(
             "Only when horoscopeExplain. The alternative date/period the user proposes, resolved to YYYY-MM-DD against the current date ('สิ้นเดือน' / 'end of the month' → last day of the current month). Omit when they propose none.",
         ),
+    tarotExplain: z
+        .boolean()
+        .optional()
+        .describe(
+            "Only for chat. True when the user is questioning the REASONING behind a previous TAROT reading ('why did the cards say that?', 'ทำไมไพ่ถึงบอกแบบนี้', 'how did you conclude that?') — the client streams a paragraph explaining the previous reading from the drawn cards instead of doing a new draw. Not for clarification follow-ups that want more/new info ('who?', 'tell me more') — those stay 'draw'.",
+        ),
 })
 
 export type ChatDecisionSchema = z.infer<typeof chatDecisionSchema>

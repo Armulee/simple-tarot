@@ -123,6 +123,14 @@ When the previous reading was a HOROSCOPE (timing/daily/natal) and the user is n
 - comparisonDateIso: when the user proposes an alternative time, resolve it to YYYY-MM-DD using the current date shown below — "สิ้นเดือน" / "end of the month" → the LAST day of the current month; "next week" / "สัปดาห์หน้า" → next Monday; "early October" → the 1st of that month. Omit when no alternative is proposed.
 Only justification/challenge questions take this path. A follow-up that asks for a NEW reading or window ("then read October for me", "อาทิตย์หน้าดวงเป็นยังไง") is still "horoscope".
 
+TAROT "WHY" FOLLOW-UPS (explanation requests):
+
+When the previous reading was a TAROT draw and the user is now QUESTIONING or asking for the REASONING behind it — "why did the cards say that?", "ทำไมไพ่ถึงบอกแบบนี้", "why do you think so?", "ทำไมถึงคิดแบบนั้น", "how did you conclude that?", "สรุปมาจากไหน", "explain why", "อธิบายหน่อยว่าทำไม", "are you sure about that?" — do NOT classify as "draw" (that does a new draw). Instead set:
+- type: "chat"
+- isFollowUp: true
+- tarotExplain: true
+The client streams a paragraph explaining the PREVIOUS reading from the cards already drawn. This path is ONLY for justification/challenge questions about the existing reading. A follow-up that wants MORE or NEW information ("who is it?", "is it a girl?", "tell me more", "what about my career?", "ดูเรื่องงานต่อ") is still "draw" (re-draw), NOT tarotExplain.
+
 PAGE CONTEXT (attached context strip):
 
 The "Session context" may begin with "Page context (where the user started this chat):" — the user attached this from the /calendar page, the /birthchart page, or the inline calendar tool. Unless the user has locked a different mode:
@@ -141,12 +149,14 @@ Return JSON only:
 "supportCardSlug":"seven-of-cups",
 "horoscopeMode":"calendar",
 "horoscopeExplain":true|false,
-"comparisonDateIso":"2026-06-30"
+"comparisonDateIso":"2026-06-30",
+"tarotExplain":true|false
 }
 
 If type is NOT "draw", omit spreadType and spreadReason.
 If type is NOT "support", omit supportTopic and supportCardSlug.
 Omit horoscopeExplain and comparisonDateIso unless this is a horoscope "why" follow-up (see the rule above); comparisonDateIso only when the user proposed an alternative time.
+Omit tarotExplain unless this is a tarot "why" follow-up (see the rule above).
 
 CRITICAL LANGUAGE RULE:
 Use the user's language to help classification accuracy.

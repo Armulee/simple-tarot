@@ -350,6 +350,12 @@ export type ChatDecision = {
     horoscopeExplain?: boolean
     /** When horoscopeExplain: the alternative date the user proposed, resolved to YYYY-MM-DD. */
     comparisonDateIso?: string
+    /**
+     * When type === "chat": the user is questioning the REASONING behind a
+     * previous TAROT reading. The client streams a paragraph explaining the
+     * prior reading from the drawn cards instead of doing a new draw.
+     */
+    tarotExplain?: boolean
 }
 
 /**
