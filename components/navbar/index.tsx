@@ -38,6 +38,9 @@ export function Navbar({ locale }: { locale: string }) {
         return /^[A-Za-z0-9_-]{12}$/.test(id) ? id : null
     }, [pathname])
     const isChatSessionPage = !!sessionId
+    // The avatar page shows a full-bleed character behind the navbar, so the
+    // bar is transparent there (no card background / border / blur).
+    const isAvatarPage = pathname === "/avatar" || pathname.startsWith("/avatar/")
 
     const [sessionTopic, setSessionTopic] = useState<string>("")
     const [isEditingTopic, setIsEditingTopic] = useState(false)
@@ -125,7 +128,13 @@ export function Navbar({ locale }: { locale: string }) {
     // const initial = displayName.charAt(0).toUpperCase()
 
     return (
-        <nav className='fixed top-0 left-[var(--app-sidebar-w)] right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20 transition-[left] duration-300 ease-in-out'>
+        <nav
+            className={`fixed top-0 left-[var(--app-sidebar-w)] right-0 z-50 transition-[left] duration-300 ease-in-out ${
+                isAvatarPage
+                    ? "bg-transparent"
+                    : "bg-card/5 backdrop-blur-sm border-b border-border/20"
+            }`}
+        >
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: Mobile menu button / Desktop brand */}

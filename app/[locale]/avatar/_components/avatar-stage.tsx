@@ -39,12 +39,13 @@ export function AvatarStage({
 
     return (
         <div className="absolute inset-0 overflow-hidden bg-[#05050f]">
-            {/* Idle / greeting clip — plays instantly on arrival, loops. */}
+            {/* Idle / greeting clip — plays once on arrival, then freezes on its
+                last frame as the idle pose (a non-looping <video> holds the
+                final frame). */}
             <video
                 src={introSrc}
                 autoPlay
                 muted
-                loop
                 playsInline
                 className={cn(
                     "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",

@@ -9,8 +9,22 @@ import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import QuestionInput from "@/components/question-input"
-import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
+import {
+    type InterpretationMode,
+    loadInterpretationModeFromStorage,
+} from "@/lib/interpretation-mode-storage"
 import type { ComposerTarget } from "@/components/chat/avatar-chat-toggle"
+import { CARD_UI_TEXT, normalizeLocale } from "@/components/chat/card-ui"
+import {
+    loadAutoPickFromStorage,
+    saveAutoPickToStorage,
+} from "@/lib/auto-pick-storage"
+import {
+    loadComposerSuggestionsEnabledFromStorage,
+    saveComposerSuggestionsEnabledToStorage,
+} from "@/lib/composer-suggestions-storage"
+import { loadBirthFromStorage } from "@/lib/birth-storage"
+import type { HoroscopeBirthData } from "@/types/horoscope"
 import {
     newComposerSessionId,
     persistInitialQuestion,
@@ -42,12 +56,40 @@ export function AvatarExperience({
     const session = useAvatarSession()
 
     const [question, setQuestion] = useState("")
+    // Default to "auto" like the chat session composer.
     const [interpretationMode, setInterpretationMode] =
-        useState<InterpretationMode>("tarot")
+        useState<InterpretationMode>("auto")
     // On the avatar page the toggle defaults to "avatar".
     const [composerTarget, setComposerTarget] = useState<ComposerTarget>("avatar")
     const [composerVisible, setComposerVisible] = useState(false)
     const autoRevealedRef = useRef(false)
+
+    // Composer settings menu state (mirrors the home composer so the avatar
+    // page shows the same set of buttons).
+    const [autoPickOn, setAutoPickOn] = useState(false)
+    const [composerSuggestionsEnabled, setComposerSuggestionsEnabled] =
+        useState(true)
+    const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(null)
+
+    useEffect(() => {
+        setInterpretationMode(loadInterpretationModeFromStorage())
+        setAutoPickOn(loadAutoPickFromStorage())
+        setComposerSuggestionsEnabled(loadComposerSuggestionsEnabledFromStorage())
+        setSavedBirth(loadBirthFromStorage())
+    }, [])
+
+    const handleToggleAutoPick = () => {
+        setAutoPickOn((prev) => {
+            const next = !prev
+            saveAutoPickToStorage(next)
+            return next
+        })
+    }
+
+    const handleComposerSuggestionsEnabledChange = (enabled: boolean) => {
+        setComposerSuggestionsEnabled(enabled)
+        saveComposerSuggestionsEnabledToStorage(enabled)
+    }
 
     const { status, phase } = session
 
@@ -197,6 +239,25 @@ export function AvatarExperience({
                         onInterpretationModeChange={setInterpretationMode}
                         composerTarget={composerTarget}
                         onComposerTargetChange={setComposerTarget}
+                        composerSettings={{
+                            showAutoPick: true,
+                            autoPickOn,
+                            onToggleAutoPick: handleToggleAutoPick,
+                            showComposerSuggestionsToggle: true,
+                            composerSuggestionsEnabled,
+                            onComposerSuggestionsEnabledChange:
+                                handleComposerSuggestionsEnabledChange,
+                            exposeBirthDrawInMenu: false,
+                            savedBirth,
+                            onBirthInfoClick: () => {
+                                router.push(`/${locale}/profile`)
+                            },
+                            showDrawTrigger: false,
+                            showInsufficientStars: false,
+                            cardsToSelect: 0,
+                            cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
+                            onScrollToDraw: () => {},
+                        }}
                         showDisclaimer={false}
                         centered
                     />
