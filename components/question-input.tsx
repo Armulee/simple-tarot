@@ -465,15 +465,6 @@ export default function QuestionInput({
                         onInterpretationModeChange)) && (
                     <div className='mt-2 flex items-center justify-between gap-2'>
                         <div className='flex items-center gap-2'>
-                            {composerTarget !== undefined &&
-                                onComposerTargetChange && (
-                                    <AvatarChatToggle
-                                        value={composerTarget}
-                                        onChange={onComposerTargetChange}
-                                    />
-                                )}
-                        </div>
-                        <div className='flex items-center gap-2'>
                             {enableCharacterMention ? (
                                 <CharacterComposerButton
                                     onAddMedia={handleAddMedia}
@@ -489,6 +480,15 @@ export default function QuestionInput({
                             {composerSettings ? (
                                 <ComposerSettingsMenu {...composerSettings} />
                             ) : null}
+                        </div>
+                        <div className='flex items-center gap-2'>
+                            {composerTarget !== undefined &&
+                                onComposerTargetChange && (
+                                    <AvatarChatToggle
+                                        value={composerTarget}
+                                        onChange={onComposerTargetChange}
+                                    />
+                                )}
                         </div>
                     </div>
                 )}
