@@ -15,7 +15,7 @@ import "swiper/css"
 import "swiper/css/free-mode"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useLocale } from "next-intl"
 import { useTarot } from "@/contexts/tarot-context"
 import { useAuth } from "@/hooks/use-auth"
@@ -149,6 +149,7 @@ export default function QuestionInput({
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
     const router = useRouter()
+    const pathname = usePathname()
     const locale = useLocale()
     const { user } = useAuth()
     const {
@@ -181,6 +182,16 @@ export default function QuestionInput({
         composerFollowUps != null ||
         composerSettings != null ||
         statusStrip != null
+
+    // Switching the toggle to "avatar" routes to /avatar instantly (unless we're
+    // already on an /avatar route). Chat keeps the user where they are.
+    const handleComposerTargetChange = (next: ComposerTarget) => {
+        onComposerTargetChange?.(next)
+        const onAvatarRoute = /(^|\/)avatar(\/|$)/.test(pathname ?? "")
+        if (next === "avatar" && !onAvatarRoute) {
+            router.push(`/${locale}/avatar`)
+        }
+    }
 
     const handleAvatarSubmit = async (value: string) => {
         // On the /avatar page the parent handles the reveal in place.
@@ -486,7 +497,7 @@ export default function QuestionInput({
                                 onComposerTargetChange && (
                                     <AvatarChatToggle
                                         value={composerTarget}
-                                        onChange={onComposerTargetChange}
+                                        onChange={handleComposerTargetChange}
                                     />
                                 )}
                         </div>
