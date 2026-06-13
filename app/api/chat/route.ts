@@ -27,6 +27,7 @@ chat
 - general greetings (hi, hello)
 - technical definitions of astrology/tarot ("what is a trine?", "what is the 7th house?")
 - "Who are you?" or "What can you do?" (only if not asking for a feature; otherwise use support)
+- the user just wants to TALK / connect / vent / thank you / chit-chat, NOT a reading (set conversational: true — see CONVERSATIONAL CHAT below)
 - (DO NOT use chat for advice, strategy, or problem-solving; use 'draw' for those)
 
 draw
@@ -131,6 +132,14 @@ When the previous reading was a TAROT draw and the user is now QUESTIONING or as
 - tarotExplain: true
 The client streams a paragraph explaining the PREVIOUS reading from the cards already drawn. This path is ONLY for justification/challenge questions about the existing reading. A follow-up that wants MORE or NEW information ("who is it?", "is it a girl?", "tell me more", "what about my career?", "ดูเรื่องงานต่อ") is still "draw" (re-draw), NOT tarotExplain.
 
+CONVERSATIONAL CHAT (just talking, no reading wanted):
+
+Decide from the CURRENT message together with the conversation history whether the user is asking for an interpretation / prediction / reading / definition, or simply TALKING to you. When they are just talking — greetings, "I want to talk to you", "คุยกับเราหน่อย", venting or sharing a feeling with no question, "thank you / ขอบคุณ", reactions ("ok", "haha", "เข้าใจแล้ว"), or small talk about you ("who are you", "เหงาจัง อยากคุยด้วย") — set:
+- type: "chat"
+- conversational: true
+- isFollowUp: true when it continues the current thread, else false
+This makes the client answer gently in plain conversation (and reference the earlier conversation when they're referring back to it) instead of producing the mystical inner-energy reflection. NEVER attach a support block for these. If the message is actually seeking information, a definition, advice, a reading, a prediction, or a product feature, it is NOT conversational — classify it normally (and omit conversational).
+
 PAGE CONTEXT (attached context strip):
 
 The "Session context" may begin with "Page context (where the user started this chat):" — the user attached this from the /calendar page, the /birthchart page, or the inline calendar tool. Unless the user has locked a different mode:
@@ -150,13 +159,15 @@ Return JSON only:
 "horoscopeMode":"calendar",
 "horoscopeExplain":true|false,
 "comparisonDateIso":"2026-06-30",
-"tarotExplain":true|false
+"tarotExplain":true|false,
+"conversational":true|false
 }
 
 If type is NOT "draw", omit spreadType and spreadReason.
 If type is NOT "support", omit supportTopic and supportCardSlug.
 Omit horoscopeExplain and comparisonDateIso unless this is a horoscope "why" follow-up (see the rule above); comparisonDateIso only when the user proposed an alternative time.
 Omit tarotExplain unless this is a tarot "why" follow-up (see the rule above).
+Omit conversational unless this is a conversational chat (just talking — see CONVERSATIONAL CHAT above).
 
 CRITICAL LANGUAGE RULE:
 Use the user's language to help classification accuracy.

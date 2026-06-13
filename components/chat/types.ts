@@ -356,6 +356,13 @@ export type ChatDecision = {
      * prior reading from the drawn cards instead of doing a new draw.
      */
     tarotExplain?: boolean
+    /**
+     * When type === "chat": the user is just talking (greeting, venting,
+     * "I want to talk to you") and does not want a reading/prediction. The
+     * client answers with a gentle plain-text conversation (no inner-energy
+     * reflection, no support block).
+     */
+    conversational?: boolean
 }
 
 /**

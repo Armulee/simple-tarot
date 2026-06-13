@@ -98,6 +98,12 @@ export const chatDecisionSchema = z.object({
         .describe(
             "Only for chat. True when the user is questioning the REASONING behind a previous TAROT reading ('why did the cards say that?', 'ทำไมไพ่ถึงบอกแบบนี้', 'how did you conclude that?') — the client streams a paragraph explaining the previous reading from the drawn cards instead of doing a new draw. Not for clarification follow-ups that want more/new info ('who?', 'tell me more') — those stay 'draw'.",
         ),
+    conversational: z
+        .boolean()
+        .optional()
+        .describe(
+            "Only for chat. True when the user is just TALKING (greeting, venting, 'I want to talk to you', thanks, chit-chat) and is NOT asking for a reading, prediction, interpretation, definition, or product feature. The client answers with a gentle plain-text conversation (no mystical reflection, no support block). False/omit for knowledge questions and anything seeking interpretation.",
+        ),
 })
 
 export type ChatDecisionSchema = z.infer<typeof chatDecisionSchema>

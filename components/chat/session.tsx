@@ -27,6 +27,10 @@ import {
     type StreamingGeneralReply,
 } from "@/lib/chat/general-reply-schema"
 import {
+    streamingTalkReplySchema,
+    type StreamingTalkReply,
+} from "@/lib/chat/talk-schema"
+import {
     streamingOracleReadingSchema,
     type StreamingOracleReading,
 } from "@/lib/chat/oracle-reading-schema"
@@ -1158,6 +1162,7 @@ export default function ChatSession({
     const horoscopeTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeVerdictTargetMessageIdRef = useRef<string | null>(null)
     const generalReplyTargetMessageIdRef = useRef<string | null>(null)
+    const talkReplyTargetMessageIdRef = useRef<string | null>(null)
     const oracleReplyTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeIsRefetchRef = useRef(false)
     const horoscopeRefetchSystemRef = useRef<
@@ -1413,6 +1418,66 @@ export default function ChatSession({
                 )
             }
             generalReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+    })
+
+    const {
+        submit: submitTalkReply,
+        object: talkReplyObject,
+        stop: stopTalkReply,
+    } = useObject({
+        api: "/api/chat/talk",
+        schema: streamingTalkReplySchema,
+        onFinish: ({ object }: { object: StreamingTalkReply | undefined }) => {
+            const targetId = talkReplyTargetMessageIdRef.current
+            if (!targetId) return
+            if (object) {
+                setMessages((prev) =>
+                    prev.map((m) => {
+                        if (m.id !== targetId) return m
+                        const followUpSuggestions =
+                            object.suggestions
+                                ?.map((s) =>
+                                    typeof s === "string" ? s.trim() : "",
+                                )
+                                .filter(Boolean)
+                                .slice(0, 4) ?? m.followUpSuggestions
+                        return {
+                            ...m,
+                            text: object.reply?.trim() || m.text,
+                            followUpSuggestions,
+                            isLoading: false,
+                            streamStopped: false,
+                        }
+                    }),
+                )
+            }
+            talkReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+        onError: (e: Error) => {
+            console.error("[chat/talk] stream error:", e)
+            const targetId = talkReplyTargetMessageIdRef.current
+            if (targetId && e?.name !== "AbortError") {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === targetId
+                            ? {
+                                  ...m,
+                                  text:
+                                      m.text ||
+                                      "Sorry, something went wrong. Please try again.",
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            talkReplyTargetMessageIdRef.current = null
             consultingLoadingIdRef.current = null
             setConsulting(false)
         },
@@ -2577,6 +2642,23 @@ export default function ChatSession({
         })
     }, [generalReplyObject])
 
+    // Stream the conversational "talk" reply text into the plain bubble as it
+    // arrives. generalReply stays undefined so the message renders as plain
+    // text (not the inner-energy hero).
+    useEffect(() => {
+        const targetId = talkReplyTargetMessageIdRef.current
+        if (!targetId || !talkReplyObject) return
+        const partial = (talkReplyObject as StreamingTalkReply).reply
+        if (typeof partial !== "string" || !partial) return
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === targetId && m.text !== partial
+                    ? { ...m, text: partial }
+                    : m,
+            ),
+        )
+    }, [talkReplyObject])
+
     useEffect(() => {
         const targetId = oracleReplyTargetMessageIdRef.current
         if (!targetId || !oracleReplyObject) return
@@ -2814,6 +2896,36 @@ export default function ChatSession({
         stopGeneralReply()
         return true
     }, [generalReplyObject, stopGeneralReply])
+
+    const finalizeTalkReplyStream = useCallback(() => {
+        const targetId = talkReplyTargetMessageIdRef.current
+        if (!targetId) return false
+
+        setMessages((prev) =>
+            prev.map((m) => {
+                if (m.id !== targetId) return m
+                const partial = (talkReplyObject as StreamingTalkReply | undefined)
+                const followUpSuggestions =
+                    partial?.suggestions
+                        ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+                        .filter(Boolean)
+                        .slice(0, 4) ?? m.followUpSuggestions
+                return {
+                    ...m,
+                    text: partial?.reply?.trim() || m.text || "",
+                    followUpSuggestions,
+                    isLoading: false,
+                    streamStopped: true,
+                }
+            }),
+        )
+
+        talkReplyTargetMessageIdRef.current = null
+        consultingLoadingIdRef.current = null
+        setConsulting(false)
+        stopTalkReply()
+        return true
+    }, [talkReplyObject, stopTalkReply])
 
     const finalizeOracleReplyStream = useCallback(() => {
         const targetId = oracleReplyTargetMessageIdRef.current
@@ -3647,6 +3759,61 @@ export default function ChatSession({
             submitGeneralReply,
             user,
         ],
+    )
+
+    /**
+     * Kicks off the conversational "talk" reply via /api/chat/talk. The
+     * assistant message stays a plain bubble (generalReply undefined) and is
+     * progressively filled by the live-sync effect watching talkReplyObject.
+     * Used when the user is just chatting, not asking for a reading.
+     */
+    const startTalkReplyStream = useCallback(
+        ({
+            question,
+            assistantLoadingId,
+            isFollowUp,
+            historyOverride,
+        }: {
+            question: string
+            assistantLoadingId: string
+            isFollowUp?: boolean
+            historyOverride?: { role: string; text: string }[]
+        }) => {
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                activeOriginContextRef.current,
+                buildSessionContextSummary(messages),
+            )
+
+            talkReplyTargetMessageIdRef.current = assistantLoadingId
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              variant: "plain" as const,
+                              // Plain text bubble — NOT the inner-energy hero.
+                              generalReply: undefined,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            submitTalkReply({
+                question,
+                isFollowUp,
+                history,
+                contextSummary: contextSummary || undefined,
+                locale,
+            })
+        },
+        [locale, messages, submitTalkReply],
     )
 
     /**
@@ -5073,6 +5240,11 @@ export default function ChatSession({
             return
         }
 
+        if (talkReplyTargetMessageIdRef.current) {
+            finalizeTalkReplyStream()
+            return
+        }
+
         if (oracleReplyTargetMessageIdRef.current) {
             finalizeOracleReplyStream()
             return
@@ -5102,6 +5274,7 @@ export default function ChatSession({
     }, [
         finalizeConsultingStream,
         finalizeGeneralReplyStream,
+        finalizeTalkReplyStream,
         finalizeHoroscopeStream,
         finalizeOracleReplyStream,
         finalizeTarotInterpretationStream,
@@ -5533,11 +5706,18 @@ export default function ChatSession({
                     nextDecision.type === "chat" &&
                     Boolean(nextDecision.tarotExplain) &&
                     !supportBlock
+                const useTalkReply =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.conversational) &&
+                    !supportBlock &&
+                    !useHoroscopeExplain &&
+                    !useTarotExplain
                 const useGeneralReplyStream =
                     nextDecision.type === "chat" &&
                     !supportBlock &&
                     !useHoroscopeExplain &&
-                    !useTarotExplain
+                    !useTarotExplain &&
+                    !useTalkReply
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -5631,6 +5811,13 @@ export default function ChatSession({
                         ),
                     )
                     consultingLoadingIdRef.current = null
+                } else if (useTalkReply) {
+                    startTalkReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
                 } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
@@ -5737,6 +5924,7 @@ export default function ChatSession({
             isInterpreting,
             normalizeDrawDecision,
             startGeneralReplyStream,
+            startTalkReplyStream,
             startOracleReplyStream,
             streamAssistantResponse,
             streamHoroscopeExplain,
@@ -6291,11 +6479,18 @@ export default function ChatSession({
                     nextDecision.type === "chat" &&
                     Boolean(nextDecision.tarotExplain) &&
                     !supportBlock
+                const useTalkReply =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.conversational) &&
+                    !supportBlock &&
+                    !useHoroscopeExplain &&
+                    !useTarotExplain
                 const useGeneralReplyStream =
                     nextDecision.type === "chat" &&
                     !supportBlock &&
                     !useHoroscopeExplain &&
-                    !useTarotExplain
+                    !useTarotExplain &&
+                    !useTalkReply
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -6389,6 +6584,13 @@ export default function ChatSession({
                         ),
                     )
                     consultingLoadingIdRef.current = null
+                } else if (useTalkReply) {
+                    startTalkReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
                 } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
@@ -6496,6 +6698,7 @@ export default function ChatSession({
             messages,
             normalizeDrawDecision,
             startGeneralReplyStream,
+            startTalkReplyStream,
             startOracleReplyStream,
             streamAssistantResponse,
             streamHoroscopeExplain,
