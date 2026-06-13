@@ -895,7 +895,11 @@
     "removeAttachment": "ລຶບໄຟລ໌ແນບ",
     "placeholder": "ພິມຄຳຖາມຂອງທ່ານ...",
     "followUpSuggestionLabel": "ຄຳແນະນຳຕໍ່ຄຳຖາມ",
-    "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ"
+    "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ",
+    "avatarMode": "ແມ່ໝໍ",
+    "chatMode": "ແຊທ",
+    "avatarModeAria": "ສົ່ງໃຫ້ແມ່ໝໍເວົ້າ",
+    "chatModeAria": "ສົ່ງເປັນຂໍ້ຄວາມແຊທ"
   },
   "Prompts": {
     "title": "ແຮງບັນດານໃຈສຳລັບຄຳຖາມ",

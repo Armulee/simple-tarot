@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { useTranslations } from "next-intl"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import { Link } from "@/i18n/navigation"
@@ -9,6 +10,11 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import QuestionInput from "@/components/question-input"
 import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
+import type { ComposerTarget } from "@/components/chat/avatar-chat-toggle"
+import {
+    newComposerSessionId,
+    persistInitialQuestion,
+} from "@/lib/avatar/composer-handoff"
 import { useAuth } from "@/contexts/auth-context"
 import { useAvatarSession } from "./use-avatar-session"
 import { AvatarStage } from "./avatar-stage"
@@ -23,15 +29,25 @@ const COMPOSER_FADE_DELAY_MS = 3000
  * intro clip. Logged-in only — a signed-out visitor still sees the greeting
  * clip, with a sign-in call to action in place of the composer.
  */
-export function AvatarExperience() {
+export function AvatarExperience({
+    initialQuestion,
+}: {
+    /** When arriving via /avatar/{ref}, the question opens as the first reveal. */
+    initialQuestion?: string
+}) {
     const t = useTranslations("Avatar")
+    const locale = useLocale()
+    const router = useRouter()
     const { user, loading: authLoading } = useAuth()
     const session = useAvatarSession()
 
     const [question, setQuestion] = useState("")
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>("tarot")
+    // On the avatar page the toggle defaults to "avatar".
+    const [composerTarget, setComposerTarget] = useState<ComposerTarget>("avatar")
     const [composerVisible, setComposerVisible] = useState(false)
+    const autoRevealedRef = useRef(false)
 
     const { status, phase } = session
 
@@ -52,6 +68,15 @@ export function AvatarExperience() {
         }
     }, [phase, status, t])
 
+    // Auto-open the initial question (from /avatar/{ref}) once, after sign-in is
+    // confirmed. The intro clip still plays during the brief warm-up.
+    useEffect(() => {
+        if (!initialQuestion || autoRevealedRef.current) return
+        if (authLoading || !user) return
+        autoRevealedRef.current = true
+        void session.submit(initialQuestion)
+    }, [initialQuestion, authLoading, user, session])
+
     const busy = phase === "shuffling" || phase === "revealing"
     const showFreeLabel = Boolean(status && !status.freeRevealUsed)
 
@@ -71,9 +96,23 @@ export function AvatarExperience() {
         }
     }, [session.errorCode, t])
 
-    const handleSubmit = async (value: string) => {
-        await session.submit(value)
+    // Avatar mode: reveal in place (we're already on the avatar page).
+    const handleAvatarSubmit = async (value: string) => {
         setQuestion("")
+        await session.submit(value)
+    }
+
+    // Chat mode (user toggled to chat): hand off to the text chat, keeping
+    // talking "in text", mirroring how the home composer creates a session.
+    const handleChatSubmit = async (value: string) => {
+        setQuestion("")
+        const id = newComposerSessionId()
+        const ok = await persistInitialQuestion({
+            id,
+            question: value,
+            userId: user?.id ?? null,
+        })
+        router.push(ok ? `/${locale}/${id}` : `/${locale}`)
     }
 
     const loggedOut = !authLoading && !user
@@ -150,11 +189,14 @@ export function AvatarExperience() {
                     <QuestionInput
                         value={question}
                         onChange={setQuestion}
-                        onSubmit={handleSubmit}
+                        onSubmit={handleChatSubmit}
+                        onAvatarSubmit={handleAvatarSubmit}
                         isLoading={busy}
                         placeholder={t("askPlaceholder")}
                         interpretationMode={interpretationMode}
                         onInterpretationModeChange={setInterpretationMode}
+                        composerTarget={composerTarget}
+                        onComposerTargetChange={setComposerTarget}
                         showDisclaimer={false}
                         centered
                     />

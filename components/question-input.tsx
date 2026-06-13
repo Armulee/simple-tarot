@@ -16,7 +16,17 @@ import "swiper/css/free-mode"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { useRouter } from "next/navigation"
+import { useLocale } from "next-intl"
 import { useTarot } from "@/contexts/tarot-context"
+import { useAuth } from "@/hooks/use-auth"
+import {
+    AvatarChatToggle,
+    type ComposerTarget,
+} from "@/components/chat/avatar-chat-toggle"
+import {
+    newComposerSessionId,
+    persistInitialQuestion,
+} from "@/lib/avatar/composer-handoff"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
@@ -75,6 +85,9 @@ export default function QuestionInput({
     centered = false,
     interpretationMode,
     onInterpretationModeChange,
+    composerTarget,
+    onComposerTargetChange,
+    onAvatarSubmit,
     composerSettings,
     composerFollowUps,
     actionTrigger,
@@ -104,6 +117,15 @@ export default function QuestionInput({
     centered?: boolean
     interpretationMode?: InterpretationMode
     onInterpretationModeChange?: (mode: InterpretationMode) => void
+    /** Avatar/chat toggle state. When set, the toggle renders in the bottom row. */
+    composerTarget?: ComposerTarget
+    onComposerTargetChange?: (target: ComposerTarget) => void
+    /**
+     * Override for avatar-mode submit (used on the /avatar page to reveal in
+     * place). When omitted, avatar-mode submit creates a session and navigates
+     * to /avatar/{ref} with the question as the initial message.
+     */
+    onAvatarSubmit?: (value: string) => void | Promise<void>
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
@@ -127,6 +149,8 @@ export default function QuestionInput({
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
     const router = useRouter()
+    const locale = useLocale()
+    const { user } = useAuth()
     const {
         setQuestion: setContextQuestion,
         setCurrentStep,
@@ -158,11 +182,36 @@ export default function QuestionInput({
         composerSettings != null ||
         statusStrip != null
 
+    const handleAvatarSubmit = async (value: string) => {
+        // On the /avatar page the parent handles the reveal in place.
+        if (onAvatarSubmit) {
+            void onAvatarSubmit(value)
+            return
+        }
+        // Elsewhere: persist the question as a session and hand off to /avatar,
+        // mirroring how the text chat creates a session reference in the URL.
+        const id = newComposerSessionId()
+        const ok = await persistInitialQuestion({
+            id,
+            question: value,
+            userId: user?.id ?? null,
+        })
+        const target = ok ? `/${locale}/avatar/${id}` : `/${locale}/avatar`
+        try {
+            router.prefetch(target)
+        } catch {}
+        router.push(target)
+    }
+
     const handleStartReading = () => {
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
             setAttachments([])
+            if (composerTarget === "avatar") {
+                void handleAvatarSubmit(currentValue)
+                return
+            }
             if (onSubmit) {
                 void onSubmit(currentValue)
                 return
@@ -411,23 +460,38 @@ export default function QuestionInput({
                         )}
                     </Button>
                 </div>
-                {interpretationMode !== undefined &&
-                    onInterpretationModeChange && (
-                        <div className='mt-2 flex items-center justify-start gap-2'>
+                {((composerTarget !== undefined && onComposerTargetChange) ||
+                    (interpretationMode !== undefined &&
+                        onInterpretationModeChange)) && (
+                    <div className='mt-2 flex items-center justify-between gap-2'>
+                        <div className='flex items-center gap-2'>
+                            {composerTarget !== undefined &&
+                                onComposerTargetChange && (
+                                    <AvatarChatToggle
+                                        value={composerTarget}
+                                        onChange={onComposerTargetChange}
+                                    />
+                                )}
+                        </div>
+                        <div className='flex items-center gap-2'>
                             {enableCharacterMention ? (
                                 <CharacterComposerButton
                                     onAddMedia={handleAddMedia}
                                 />
                             ) : null}
-                            <InterpretationModeSelector
-                                value={interpretationMode}
-                                onChange={onInterpretationModeChange}
-                            />
+                            {interpretationMode !== undefined &&
+                                onInterpretationModeChange && (
+                                    <InterpretationModeSelector
+                                        value={interpretationMode}
+                                        onChange={onInterpretationModeChange}
+                                    />
+                                )}
                             {composerSettings ? (
                                 <ComposerSettingsMenu {...composerSettings} />
                             ) : null}
                         </div>
-                    )}
+                    </div>
+                )}
             </div>
         </div>
     )

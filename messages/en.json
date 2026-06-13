@@ -982,7 +982,11 @@
     "removeAttachment": "Remove attachment",
     "placeholder": "Type your question...",
     "followUpSuggestionLabel": "Suggested follow-ups",
-    "dismissFollowUpStrip": "Dismiss suggestions and composer shortcuts"
+    "dismissFollowUpStrip": "Dismiss suggestions and composer shortcuts",
+    "avatarMode": "Avatar",
+    "chatMode": "Chat",
+    "avatarModeAria": "Send to the talking avatar",
+    "chatModeAria": "Send as text chat"
   },
   "Prompts": {
     "title": "An inspiring prompts",

@@ -1029,7 +1029,11 @@
     "removeAttachment": "ลบไฟล์แนบ",
     "placeholder": "พิมพ์คำถามของคุณ...",
     "followUpSuggestionLabel": "คำถามต่อยอดที่แนะนำ",
-    "dismissFollowUpStrip": "ปิดคำแนะและทางลัดด้านล่าง"
+    "dismissFollowUpStrip": "ปิดคำแนะและทางลัดด้านล่าง",
+    "avatarMode": "แม่หมอ",
+    "chatMode": "แชท",
+    "avatarModeAria": "ส่งให้แม่หมอพูด",
+    "chatModeAria": "ส่งเป็นข้อความแชท"
   },
   "Prompts": {
     "title": "แรงบันดาลใจสำหรับคำถาม",
