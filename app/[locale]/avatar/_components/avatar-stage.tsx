@@ -48,7 +48,7 @@ export function AvatarStage({
                 muted
                 playsInline
                 className={cn(
-                    "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+                    "absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700",
                     connected ? "opacity-0" : "opacity-100",
                 )}
             />
@@ -59,7 +59,7 @@ export function AvatarStage({
                 autoPlay
                 playsInline
                 className={cn(
-                    "absolute inset-0 h-full w-full object-cover transition-opacity duration-700",
+                    "absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700",
                     connected ? "opacity-100" : "opacity-0",
                 )}
             />

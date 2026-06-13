@@ -161,8 +161,10 @@ export function AvatarExperience({
 
     return (
       <div className="relative w-full">
-        <section className="relative flex h-[calc(100dvh-64px)] w-full flex-col overflow-hidden">
-            {/* Full-page character. */}
+        {/* Character fills the whole viewport, extending up behind the
+            transparent navbar so the avatar's head is never cut off. -mt-16
+            cancels the layout's pt-16 (navbar height). */}
+        <div className="relative -mt-16 h-[100dvh] w-full overflow-hidden">
             <AvatarStage
                 videoRef={session.videoRef}
                 phase={session.phase}
@@ -172,103 +174,106 @@ export function AvatarExperience({
                 cardReversed={session.card?.isReversed ?? false}
                 remainingSeconds={session.remainingSeconds}
             />
+        </div>
 
-            {/* Foreground UI, fades up after the intro clip. */}
-            <div
-                className={cn(
-                    "relative z-10 mt-auto flex w-full flex-col items-center gap-3 px-4 pb-6 transition-opacity duration-1000",
-                    composerVisible ? "opacity-100" : "pointer-events-none opacity-0",
-                )}
-            >
-                {/* Status / expectation-setting line. */}
-                {!loggedOut && showFreeLabel && (
-                    <div className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-center text-xs text-amber-100 backdrop-blur-sm">
-                        {t("freeRevealLabel")}
-                    </div>
-                )}
-
-                {/* In-character closing after a reveal. */}
-                {phase === "ended" && (
-                    <div className="max-w-md rounded-xl border border-primary/25 bg-black/50 p-3 text-center text-sm text-white/90 backdrop-blur-sm">
-                        {t("closingLine")}
-                        {status && !status.eligible && (
-                            <div className="mt-2">
-                                <Button asChild size="sm">
-                                    <Link href="/stars">{t("buyWishes")}</Link>
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Errors in brand voice. */}
-                {phase === "error" && errorMessage && (
-                    <div className="max-w-md rounded-xl border border-amber-300/30 bg-black/50 p-3 text-center text-sm text-amber-100 backdrop-blur-sm">
-                        {errorMessage}
-                        {session.errorCode === "NO_WISHES" && (
-                            <div className="mt-2">
-                                <Button asChild size="sm" variant="secondary">
-                                    <Link href="/stars">{t("buyWishes")}</Link>
-                                </Button>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {loggedOut ? (
-                    <div className="flex flex-col items-center gap-3 rounded-2xl border border-primary/25 bg-black/50 px-6 py-5 text-center backdrop-blur-md">
-                        <p className="text-sm text-white/90">{t("gateBody")}</p>
-                        <div className="flex gap-3">
-                            <Button asChild size="sm">
-                                <Link href="/signin">{t("signIn")}</Link>
-                            </Button>
-                            <Button asChild size="sm" variant="outline">
-                                <Link href="/signup">{t("signUp")}</Link>
-                            </Button>
+        {/* Same fixed-bottom composer bar the homepage uses; fades up after the
+            intro clip. */}
+        <div
+            className={cn(
+                "fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-opacity duration-1000",
+                composerVisible ? "opacity-100" : "pointer-events-none opacity-0",
+            )}
+        >
+            {/* Status / closing / error, centered above the composer. */}
+            {(showFreeLabel || phase === "ended" || (phase === "error" && errorMessage)) && (
+                <div className="mx-auto mb-2 flex w-full max-w-3xl flex-col items-center gap-2 px-4">
+                    {!loggedOut && showFreeLabel && (
+                        <div className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1.5 text-center text-xs text-amber-100">
+                            {t("freeRevealLabel")}
                         </div>
+                    )}
+                    {phase === "ended" && (
+                        <div className="max-w-md rounded-xl border border-primary/25 bg-black/50 p-3 text-center text-sm text-white/90">
+                            {t("closingLine")}
+                            {status && !status.eligible && (
+                                <div className="mt-2">
+                                    <Button asChild size="sm">
+                                        <Link href="/stars">{t("buyWishes")}</Link>
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {phase === "error" && errorMessage && (
+                        <div className="max-w-md rounded-xl border border-amber-300/30 bg-black/50 p-3 text-center text-sm text-amber-100">
+                            {errorMessage}
+                            {session.errorCode === "NO_WISHES" && (
+                                <div className="mt-2">
+                                    <Button asChild size="sm" variant="secondary">
+                                        <Link href="/stars">{t("buyWishes")}</Link>
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {loggedOut ? (
+                <div className="mx-auto mb-4 flex max-w-md flex-col items-center gap-3 rounded-2xl border border-primary/25 bg-black/50 px-6 py-5 text-center">
+                    <p className="text-sm text-white/90">{t("gateBody")}</p>
+                    <div className="flex gap-3">
+                        <Button asChild size="sm">
+                            <Link href="/signin">{t("signIn")}</Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline">
+                            <Link href="/signup">{t("signUp")}</Link>
+                        </Button>
                     </div>
-                ) : (
-                    <QuestionInput
-                        value={question}
-                        onChange={setQuestion}
-                        onSubmit={handleChatSubmit}
-                        onAvatarSubmit={handleAvatarSubmit}
-                        isLoading={busy}
-                        placeholder={t("askPlaceholder")}
-                        interpretationMode={interpretationMode}
-                        onInterpretationModeChange={setInterpretationMode}
-                        composerTarget={composerTarget}
-                        onComposerTargetChange={setComposerTarget}
-                        composerSettings={{
-                            showAutoPick: true,
-                            autoPickOn,
-                            onToggleAutoPick: handleToggleAutoPick,
-                            showComposerSuggestionsToggle: true,
-                            composerSuggestionsEnabled,
-                            onComposerSuggestionsEnabledChange:
-                                handleComposerSuggestionsEnabledChange,
-                            exposeBirthDrawInMenu: false,
-                            savedBirth,
-                            onBirthInfoClick: () => {
-                                router.push(`/${locale}/profile`)
-                            },
-                            showDrawTrigger: false,
-                            showInsufficientStars: false,
-                            cardsToSelect: 0,
-                            cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
-                            onScrollToDraw: () => {},
-                        }}
-                        showDisclaimer={false}
-                        centered
-                    />
-                )}
-            </div>
-        </section>
+                </div>
+            ) : (
+                <QuestionInput
+                    value={question}
+                    onChange={setQuestion}
+                    onSubmit={handleChatSubmit}
+                    onAvatarSubmit={handleAvatarSubmit}
+                    isLoading={busy}
+                    centered
+                    className="w-full"
+                    placeholder={t("askPlaceholder")}
+                    interpretationMode={interpretationMode}
+                    onInterpretationModeChange={setInterpretationMode}
+                    composerTarget={composerTarget}
+                    onComposerTargetChange={setComposerTarget}
+                    composerSettings={{
+                        showAutoPick: true,
+                        autoPickOn,
+                        onToggleAutoPick: handleToggleAutoPick,
+                        showComposerSuggestionsToggle: true,
+                        composerSuggestionsEnabled,
+                        onComposerSuggestionsEnabledChange:
+                            handleComposerSuggestionsEnabledChange,
+                        exposeBirthDrawInMenu: false,
+                        savedBirth,
+                        onBirthInfoClick: () => {
+                            router.push(`/${locale}/profile`)
+                        },
+                        showDrawTrigger: false,
+                        showInsufficientStars: false,
+                        cardsToSelect: 0,
+                        cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
+                        onScrollToDraw: () => {},
+                    }}
+                    showDisclaimer={false}
+                    inputWrapperClassName="w-full"
+                />
+            )}
+        </div>
 
         {/* Persisted transcript (re-readable result cards) — flows below the
             full-page stage so it can be scrolled to and shared. */}
         {session.transcript.length > 0 && (
-            <section className="mx-auto w-full max-w-2xl space-y-3 px-4 py-8">
+            <section className="mx-auto w-full max-w-2xl space-y-3 px-4 pb-40 pt-8">
                 <h2 className="text-sm font-semibold text-muted-foreground">
                     {t("transcriptTitle")}
                 </h2>
