@@ -111,16 +111,17 @@ function getChatResponsePrompt({
         : "Saved birth profile: not available."
 
     return `
-${contextBlock}Recent conversation:
+${contextBlock}Recent conversation (background only):
 ${historyText}
 
-User message:
+Current user message (reply to THIS message only):
 ${question}
 
 Response mode: ${type}
 Is follow-up: ${isFollowUp ? "yes" : "no"}
 ${type === "support" && supportTopic ? `Support topic: ${supportTopic}\n` : ""}${savedBirthBlock}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history.
+ANSWER TARGET: The conversation and session context above are background only — use them to understand what an ambiguous message refers to and to keep continuity. Never re-answer an older question from the history; if history and the current message conflict, the current message wins.
 
 Write the user-facing response now.
 `

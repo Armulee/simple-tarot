@@ -250,6 +250,11 @@ export type ChatMessage = {
     sourceAspectKey?: string
     /** Event data for rendering a compact card at the top of the response */
     sourceAspectEvent?: SourceAspectEvent
+    /**
+     * Horoscope explanation replies: the aspect events whose planets the
+     * paragraph actually mentions, rendered as cards under the text.
+     */
+    explainAspectEvents?: SourceAspectEvent[]
     /** Cached interpretations per astrology system for instant restore when switching back */
     interpretationCache?: Record<
         string,
@@ -336,6 +341,28 @@ export type ChatDecision = {
      * counts.
      */
     horoscopeMode?: "calendar"
+    /**
+     * When type === "chat": the user is questioning the REASONING behind a
+     * previous horoscope/timing recommendation. The client streams a
+     * data-grounded explanation paragraph (/api/horoscope/explain) instead
+     * of re-running the reading or the inner-energy reflection.
+     */
+    horoscopeExplain?: boolean
+    /** When horoscopeExplain: the alternative date the user proposed, resolved to YYYY-MM-DD. */
+    comparisonDateIso?: string
+    /**
+     * When type === "chat": the user is questioning the REASONING behind a
+     * previous TAROT reading. The client streams a paragraph explaining the
+     * prior reading from the drawn cards instead of doing a new draw.
+     */
+    tarotExplain?: boolean
+    /**
+     * When type === "chat": the user is just talking (greeting, venting,
+     * "I want to talk to you") and does not want a reading/prediction. The
+     * client answers with a gentle plain-text conversation (no inner-energy
+     * reflection, no support block).
+     */
+    conversational?: boolean
 }
 
 /**

@@ -12,6 +12,15 @@ import { SwipeUpOverlay } from "./swipe-up-overlay"
 
 const MIN_HOLD_MS = 200
 
+// How many extra slides Swiper keeps positioned on each side of the active
+// card for loop mode. Swiper v12's freeMode momentum clamps a fling to the
+// edge of this buffer (it only auto-recenters mid-momentum for centeredSlides,
+// which this spread doesn't use), so a small buffer makes the deck hard-stop
+// every few cards. A generous buffer lets a whole fling glide before the next
+// touch transparently recenters the loop. Kept well under the loop-disable
+// threshold (deck length must exceed slidesPerView + 1 + this value).
+const LOOP_BUFFER_SLIDES = 30
+
 type BasicCard = {
     name: string
     isReversed: boolean
@@ -629,7 +638,7 @@ export function LinearCardSpread({
                         }}
                         modules={[FreeMode, Mousewheel]}
                         loop={true}
-                        loopAdditionalSlides={6}
+                        loopAdditionalSlides={LOOP_BUFFER_SLIDES}
                         freeMode={{
                             enabled: true,
                             momentum: true,

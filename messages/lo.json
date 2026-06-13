@@ -377,7 +377,7 @@
     },
     "selectedCards": "ທ່ານເລືອກໄພ່ແລ້ວ {selectedCount}/{cardsToSelect} ໃບ",
     "consulting": "ກຳລັງປຶກສາ",
-    "thinkingActive": "ລຳດັບຄວາມຄິດ",
+    "thinkingActive": "ກຳລັງຄິດ",
     "thinkingComplete": "ວິເຄາະສຳເລັດແລ້ວ",
     "thinkingCompleteTimed": "ປຶກສາເຊິ່ງເລິກ {seconds} ວິນາທີ",
     "thinkingToggle": "ສະແດງຂັ້ນຕອນການຄິດ",

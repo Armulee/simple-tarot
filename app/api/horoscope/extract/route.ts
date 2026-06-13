@@ -6,6 +6,7 @@ import {
     type QuestionTopic,
 } from "@/lib/astrology/question-intent"
 import type { QuestionTimeRangePayload } from "@/lib/astrology/question-time-range"
+import { resolveOriginContextStrategyOverride } from "@/lib/chat/origin-context"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -143,6 +144,21 @@ const requestSchema = z.object({
     locale: z.string().optional(),
     profile: profileSchema,
     planTier: z.enum(["free", "basic", "pro"]).optional(),
+    /**
+     * Page context attached via the composer's context strip (/calendar day,
+     * /birthchart, or the inline calendar tool). When the message itself has
+     * no time anchor, a calendar-day context anchors the reading to that day
+     * (daily verdict) and a birth-chart context routes to the natal strategy.
+     */
+    originContext: z
+        .object({
+            kind: z.enum(["calendar-day", "birth-chart"]),
+            label: z.string().optional(),
+            isoDate: z.string().optional(),
+            summary: z.string().optional(),
+        })
+        .nullable()
+        .optional(),
 })
 
 const FALLBACK_CLASSIFICATION: z.infer<typeof classificationSchema> = {
@@ -230,6 +246,39 @@ function detectOtherPersonIntent(
     return false
 }
 
+type ExtractedPayload = z.infer<typeof extractSchema>
+type OriginContextPayload = z.infer<typeof requestSchema>["originContext"]
+
+/**
+ * Applies the context-strip strategy override (see
+ * resolveOriginContextStrategyOverride): an attached calendar day anchors
+ * anchor-less questions — and relative "today" phrasings the LLM resolved to
+ * the wall-clock today — to a daily verdict for the attached date; an
+ * attached birth chart routes anchor-less general questions to the natal
+ * strategy.
+ */
+function applyOriginContextOverride(
+    extracted: ExtractedPayload,
+    originContext: OriginContextPayload,
+    currentDateIso: string,
+): ExtractedPayload {
+    const override = resolveOriginContextStrategyOverride({
+        originContext,
+        replyStrategy: extracted.classification.replyStrategy,
+        questionRange: extracted.classification.questionRange,
+        currentDateIso,
+    })
+    if (!override) return extracted
+    return {
+        ...extracted,
+        classification: {
+            ...extracted.classification,
+            replyStrategy: override.replyStrategy,
+            questionRange: override.questionRange,
+        },
+    }
+}
+
 /**
  * Build a transit "moment" hint from the resolved questionRange. Downstream
  * routes still accept a `transit` payload for backwards compat with users who
@@ -263,6 +312,12 @@ export async function POST(req: Request) {
         const locale = payload.locale || "en"
         const planTier = payload.planTier ?? "free"
         const currentDateIso = new Date().toISOString().slice(0, 10)
+        const attachedDayIso =
+            payload.originContext?.kind === "calendar-day" &&
+            typeof payload.originContext.isoDate === "string" &&
+            ISO_DATE_RE.test(payload.originContext.isoDate)
+                ? payload.originContext.isoDate
+                : null
 
         const fallbackExtracted: z.infer<typeof extractSchema> = {
             mentionedPerson: null,
@@ -347,7 +402,21 @@ Resolve the date(s) the question is bound to. Today is ${currentDateIso} (UTC).
 Set questionRange = null when replyStrategy is "natal", "technical", or "general" — those aren't anchored to the asker's calendar window. For daily/timing/timeline you MUST return a concrete questionRange.
 
 If the user wrote a Buddhist Era year (e.g. 2568), convert to Gregorian (2025) before returning.
-
+${
+    attachedDayIso
+        ? `
+=============================
+ATTACHED CALENDAR DAY — RELATIVE DATE ANCHOR OVERRIDE
+=============================
+The user attached the calendar day ${attachedDayIso} to this message (the "Attached page context" in the prompt). For THIS message only:
+- ${attachedDayIso} — not ${currentDateIso} — is the anchor for ALL RELATIVE date references: "today / tonight / this day / วันนี้ / คืนนี้ / วันนั้น / ມື້ນີ້" mean ${attachedDayIso}; "tomorrow / พรุ่งนี้ / ມື້ອື່ນ" means the day after ${attachedDayIso}; "this week / this month / สัปดาห์นี้ / เดือนนี้" mean the week / month containing ${attachedDayIso}.
+- A message with NO date wording at all ("how will my career be?", "ความรักเป็นยังไง") is also about ${attachedDayIso}: replyStrategy "daily", questionRange = ${attachedDayIso} → ${attachedDayIso}, 1 day, hourly.
+- Absolute dates written out in the message ("19 พค", "2026-03-12", "March 12") still mean themselves and win over the attachment.
+- technical (planet-focused) and timing ("when will I…") questions keep their normal strategy and ranges.
+Worked example: attached day 2026-06-16 + "วันนี้จะเปนไง" → replyStrategy "daily", questionRange { startDateIso: "2026-06-16", endDateIso: "2026-06-16", durationDays: 1, granularity: "hourly" }.
+`
+        : ""
+}
 =============================
 DECISION 2c — Topic and signals
 =============================
@@ -406,13 +475,28 @@ The asker is asking about an ANONYMOUS third party identified only by a birth da
                 prompt: `User locale: ${locale}
 Current date (UTC): ${currentDateIso}
 ${payload.profile?.name ? `Asker's name: ${payload.profile.name}` : "Asker's name: (not provided)"}
-Message:
+${
+    payload.originContext
+        ? `Attached page context: the user attached ${
+              payload.originContext.kind === "calendar-day"
+                  ? `a calendar day (${payload.originContext.isoDate ?? payload.originContext.label ?? "unknown date"})`
+                  : "their birth chart"
+          } to this message. If the message references "this day", "that date", "วันนั้น", "วันที่เลือก", or similar, it means this attachment. A date or window written in the message itself still wins over the attachment.
+`
+        : ""
+}Message:
 ${payload.message}`,
             })
             extracted = extraction.object
         } catch {
             extracted = fallbackExtracted
         }
+
+        extracted = applyOriginContextOverride(
+            extracted,
+            payload.originContext ?? null,
+            currentDateIso,
+        )
 
         const otherPerson = detectOtherPersonIntent(
             extracted.mentionedPerson,

@@ -121,23 +121,29 @@ ${conversationContextText}
 
 `
                 : ""
-        }<main_question>${previousQuestion}</main_question>
+        }<previous_question>${previousQuestion}</previous_question>
 
 <previous_interpretation>
 ${previousInterpretation}
 </previous_interpretation>
 
-<follow_up_question>${question}</follow_up_question>
+<current_question>${question}</current_question>
 
 <cards>${cards}</cards>
 
+<answer_target>
+ANSWER THE CURRENT QUESTION ONLY: every output field (headline, subtitle, keyMessage, detailedHtml, perCard, nextStep, interpretation, conclusion, cardInsights) must answer <current_question> — the user's LATEST message. Never answer <previous_question> or any older question that appears in <session_context>.
+HISTORY IS FOR DISAMBIGUATION ONLY: when <current_question> is vague or leans on context ("who?", "what about him?", "so should I wait?", "really?"), use <previous_question>, <previous_interpretation>, and <session_context> to work out what the user is really asking — then answer THAT current question.
+ON CONFLICT, CURRENT WINS: if the current question changes topic or contradicts the history, follow the current question and drop the old topic entirely.
+</answer_target>
+
 <follow_up_rules>
-REFERENCE ONLY: <previous_interpretation> and session context exist so you understand topic continuity and what the user is clarifying. They are NOT the answer and NOT evidence for this draw.
+REFERENCE ONLY: <previous_question>, <previous_interpretation>, and session context exist so you understand topic continuity and what the user is clarifying. They are NOT the answer and NOT evidence for this draw.
 GROUND TRUTH: The authoritative source for this reading is ONLY the current spread in <cards> (and any <card_energies> / <reading_direction> blocks added below). headline, subtitle, perCard, nextStep, keyMessage, interpretation, conclusion, detailedHtml, and cardInsights must follow from THIS draw.
 NO PARROTING: Do NOT copy, quote, or closely paraphrase <previous_interpretation>. Do NOT recycle the prior verdict or advice as if it were new—if the cards align, say so in fresh words tied to the current symbols.
-NO META CALLBACKS: Do NOT say things like "last time", "as before", "continuing from the earlier reading", or "like we said" unless the follow-up question explicitly asks about the prior reading.
-STYLE: Answer the follow-up directly. No card names. No Markdown in the "interpretation" or "conclusion" fields. Same language as the follow-up question.
-DETAILED HTML: For the "detailedHtml" field, produce a SHORT (1-3 paragraphs) decorated HTML fragment that magnifies the key takeaways of this follow-up. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. FORBIDDEN: any heading tag (<h1>–<h6>) — the headline field already plays that role and the UI prints a small "Detailed" label above this block. Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases, and an <ul>/<ol> list only when a short list (2-4 items) genuinely helps the user scan the message. No other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Output the HTML fragment directly and write it in the SAME language as the follow-up question.
+NO META CALLBACKS: Do NOT say things like "last time", "as before", "continuing from the earlier reading", or "like we said" unless the current question explicitly asks about the prior reading.
+STYLE: Answer the current question directly. No card names. No Markdown in the "interpretation" or "conclusion" fields. Same language as the current question.
+DETAILED HTML: For the "detailedHtml" field, produce a SHORT (1-3 paragraphs) decorated HTML fragment that magnifies the key takeaways of this follow-up. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. FORBIDDEN: any heading tag (<h1>–<h6>) — the headline field already plays that role and the UI prints a small "Detailed" label above this block. Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases, and an <ul>/<ol> list only when a short list (2-4 items) genuinely helps the user scan the message. No other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Output the HTML fragment directly and write it in the SAME language as the current question.
 Output JSON only.
 </follow_up_rules>`
     }
@@ -181,18 +187,19 @@ These examples show format only. Always respond in the SAME language as the user
 </format_examples>
 
 <user_session>
-<user_question>${question}</user_question>
 ${
     conversationContextText
-        ? `<session_main_point>${userMainPoint || "N/A"}</session_main_point>
-
-<session_context>
+        ? `<session_context>
 ${conversationContextText}
 </session_context>
 
+<session_main_point>${userMainPoint || "N/A"}</session_main_point>
+
 `
         : ""
-}<cards_drawn>
+}<user_question>${question}</user_question>
+
+<cards_drawn>
 ${cards}
 </cards_drawn>
 
@@ -211,7 +218,7 @@ ${typeInstructions}
 4. DO NOT use Markdown (**, __, etc) in the "interpretation" or "conclusion" fields.
 5. CRITICAL: Respond in the SAME language as the user's question. Infer from the question text only. If the question is in English, write in English. If in Thai, write in Thai. Support any language—always match the question.
 6. When writing Thai, write like a real Thai person texting a friend. Avoid formal/translated phrasing like "ฉันรู้สึกว่า", "การรักษาความยุติธรรม", "ผลลัพธ์จะสะท้อนกลับมา". Use casual, natural Thai instead.
-7. Use session context to support continuity, but keep the latest question as the top priority.
+7. ANSWER TARGET: Answer ONLY the <user_question> above — the user's LATEST message. <session_context> and <session_main_point> are background: use them to resolve ambiguous references in the question (pronouns, "him", "that job", "should I wait?") and to keep continuity of tone. Never answer an older question that appears in the context; if the context and the current question conflict or change topic, the current question wins.
 8. TONE: Treat this as a reading of patterns, tendencies, and energy — never a fixed prophecy. Stay clear about which way the cards lean, but always frame it as a leaning, signal, or tendency. PREFER: likely, tends to, leans toward, the signals point to, the energy here suggests, the pattern shows, there's a real possibility (Thai: น่าจะ, มีแนวโน้ม, สัญญาณบอกว่า, พลังงานช่วงนี้, ดูเหมือนว่า, มีโอกาส). AVOID: definitely, absolutely, certainly, guaranteed, no doubt, 100%, will-as-fixed-future, must (Thai: แน่นอน, รับรอง, ชัวร์, ฟันธง, ต้องเป็น). Never speak like a judge declaring an absolute truth.
 9. The "detailedHtml" field is a SHORT, decorated rich-text block (1-3 paragraphs total) that magnifies the message of the reading. It renders BELOW the "headline"/"subtitle" key-message box and ABOVE the cards, so it MUST NOT carry its own heading — the headline field already plays that role. Follow these rules strictly:
    - ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. No other tags, attributes, classes, inline styles, scripts, links, or images.
@@ -485,7 +492,7 @@ ${neverMentionRule}
 - intensity: exactly one of "low", "medium", or "high". Use "high" only for the 1-2 strongest aspects most relevant to the question. Use "medium" for supporting aspects. Use "low" for subtle or background influences.
 - interpretation: 4-8 short sentences answering the question.
 ${conclusionInstruction}
-- suggestions: EXACTLY 3–4 very short, casual follow-up prompts the user could ask next (single line each; conversational tone, not long formal questions).
+- suggestions: EXACTLY 3–4 follow-up QUESTIONS the user would tap to ask next, written in the user's own voice and ending like a question ("...ไหม" / "...เมื่อไหร่" / "...?"). They are NOT advice or to-do items and NOT a restatement of the conclusion — never tell the user what to do; ask what they'd want to know next. Single line each, casual, all differing in angle.
 - relevance: an array of up to 5 dominant life-areas that this reading actually covers, used to render a proportional relevance bar above the answer.
 - relevance items must contain { label, pct } only. Integer pcts MUST sum to exactly 100. Sort the array descending by pct.
 - relevance.label MUST be one of the canonical domains, written in the SAME language as the output: Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน. Do NOT invent new labels.

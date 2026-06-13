@@ -365,7 +365,7 @@
     },
     "selectedCards": "You have selected {selectedCount}/{cardsToSelect} cards",
     "consulting": "Consulting",
-    "thinkingActive": "Chain of thoughts",
+    "thinkingActive": "Thinking",
     "thinkingComplete": "Consultation Complete",
     "thinkingCompleteTimed": "Deep consult for {seconds} sec",
     "thinkingToggle": "Show reasoning",

@@ -47,8 +47,8 @@ test("normalizes payload and builds prompt block", () => {
     })
 
     const block = buildConversationContextPromptBlock(normalized)
-    assert.ok(block.includes("Session context:"))
-    assert.ok(block.includes("Main point to preserve:"))
+    assert.ok(block.includes("Session context (background only"))
+    assert.ok(block.includes("User's current focus"))
 })
 
 test("drops unrelated history for a new question", () => {

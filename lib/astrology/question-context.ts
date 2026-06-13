@@ -120,11 +120,103 @@ function hasFollowUpCue(value: string) {
     )
 }
 
+const TOPIC_BUCKETS: Record<string, string[]> = {
+    career: [
+        "work",
+        "job",
+        "jobs",
+        "career",
+        "boss",
+        "office",
+        "business",
+        "promotion",
+        "งาน",
+        "เจ้านาย",
+        "หัวหน้า",
+        "ธุรกิจ",
+        "อาชีพ",
+    ],
+    love: [
+        "love",
+        "relationship",
+        "partner",
+        "boyfriend",
+        "girlfriend",
+        "crush",
+        "marriage",
+        "รัก",
+        "แฟน",
+        "ความสัมพันธ์",
+        "แต่งงาน",
+    ],
+    money: [
+        "money",
+        "finance",
+        "financial",
+        "wealth",
+        "debt",
+        "invest",
+        "investment",
+        "salary",
+        "เงิน",
+        "หนี้",
+        "ลงทุน",
+    ],
+    health: ["health", "sick", "illness", "doctor", "สุขภาพ", "ป่วย", "หมอ"],
+    family: [
+        "family",
+        "mother",
+        "father",
+        "parents",
+        "ครอบครัว",
+        "แม่",
+        "พ่อ",
+        "ลูก",
+    ],
+    study: [
+        "study",
+        "school",
+        "exam",
+        "university",
+        "เรียน",
+        "สอบ",
+        "มหาลัย",
+        "โรงเรียน",
+    ],
+}
+
+function tokenMatchesBucketWord(token: string, word: string) {
+    if (token === word) return true
+    if (isThaiToken(word)) {
+        // Thai has no word spacing, so bucket words usually live inside a
+        // longer unsegmented token (e.g. "งาน" inside "งานปีนี้จะดีไหม").
+        return token.includes(word)
+    }
+    return (
+        (word.length >= 4 && token.includes(word)) ||
+        (token.length >= 4 && word.includes(token))
+    )
+}
+
+function topicBucketsOf(tokens: string[]): Set<string> {
+    const buckets = new Set<string>()
+    for (const [bucket, words] of Object.entries(TOPIC_BUCKETS)) {
+        if (
+            tokens.some((token) =>
+                words.some((word) => tokenMatchesBucketWord(token, word)),
+            )
+        ) {
+            buckets.add(bucket)
+        }
+    }
+    return buckets
+}
+
 function hasKeywordOverlap(questionKeywords: string[], target: string) {
     if (questionKeywords.length === 0) return false
     const targetKeywords = extractKeywords(target)
     if (targetKeywords.length === 0) return false
-    return questionKeywords.some((key) =>
+    const lexical = questionKeywords.some((key) =>
         targetKeywords.some(
             (token) =>
                 token === key ||
@@ -132,6 +224,17 @@ function hasKeywordOverlap(questionKeywords: string[], target: string) {
                 (token.length >= 4 && key.includes(token)),
         ),
     )
+    if (lexical) return true
+    // Same-thread synonyms the lexical check can't see (e.g. "work" ↔ "job"):
+    // shared topic buckets count as overlap so an ambiguous current question
+    // keeps its same-topic history for disambiguation.
+    const questionBuckets = topicBucketsOf(questionKeywords)
+    if (questionBuckets.size === 0) return false
+    const targetBuckets = topicBucketsOf(targetKeywords)
+    for (const bucket of targetBuckets) {
+        if (questionBuckets.has(bucket)) return true
+    }
+    return false
 }
 
 function shorten(value: string, max = MAX_LINE) {
@@ -174,16 +277,33 @@ export function buildConversationContextFromMessages(
     const current = cleanText(currentQuestion ?? "")
     const questionKeywords = extractKeywords(current)
     const followUp = hasFollowUpCue(current)
-    const userTimeline = current
-        ? allUsers
-              .filter((line) => hasKeywordOverlap(questionKeywords, line))
-              .slice(-MAX_RELEVANT_ITEMS)
-        : allUsers
-    const assistantTimeline = current
-        ? allAssistants
-              .filter((line) => hasKeywordOverlap(questionKeywords, line))
-              .slice(-MAX_RELEVANT_ITEMS)
-        : allAssistants
+    let userTimeline = allUsers
+    let assistantTimeline = allAssistants
+    if (current) {
+        const keptUsers: string[] = []
+        const keptAssistants: string[] = []
+        let lastUserKept = false
+        for (const message of filtered) {
+            const line = shorten(cleanText(message.text ?? ""))
+            if (!line) continue
+            if (message.role === "user") {
+                lastUserKept = hasKeywordOverlap(questionKeywords, line)
+                if (lastUserKept) keptUsers.push(line)
+            } else if (message.role === "assistant") {
+                // An assistant reply belongs to the user message it answered,
+                // so it stays in the thread when that message stayed — or when
+                // it overlaps the current question on its own.
+                if (
+                    lastUserKept ||
+                    hasKeywordOverlap(questionKeywords, line)
+                ) {
+                    keptAssistants.push(line)
+                }
+            }
+        }
+        userTimeline = keptUsers.slice(-MAX_RELEVANT_ITEMS)
+        assistantTimeline = keptAssistants.slice(-MAX_RELEVANT_ITEMS)
+    }
     const includeFallbackContext =
         followUp &&
         userTimeline.length === 0 &&
@@ -284,9 +404,9 @@ export function buildConversationContextPromptBlock(
     context: ConversationContextPayload | null
 ) {
     if (!context) return ""
-    return `Session context:
+    return `Session context (background only — use it to understand what an ambiguous current question refers to; NEVER answer an old question from it):
 ${context.contextText}
-Main point to preserve:
+User's current focus (anchored on the latest question):
 ${context.userMainPoint || "N/A"}`
 }
 
