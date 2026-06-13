@@ -15,8 +15,9 @@ import "swiper/css"
 import "swiper/css/free-mode"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useLocale } from "next-intl"
+import { usePathname } from "@/i18n/navigation"
 import { useTarot } from "@/contexts/tarot-context"
 import { useAuth } from "@/hooks/use-auth"
 import {
@@ -183,13 +184,34 @@ export default function QuestionInput({
         composerSettings != null ||
         statusStrip != null
 
-    // Switching the toggle to "avatar" routes to /avatar instantly (unless we're
-    // already on an /avatar route). Chat keeps the user where they are.
+    // The toggle navigates instantly:
+    //  - "avatar": go to /avatar, remembering the originating chat session
+    //    (if any) so we can return to it.
+    //  - "chat" (while on /avatar): go back to the chat session we came from,
+    //    or home if we didn't arrive from one.
+    // `pathname` here is locale-less (e.g. "/avatar", "/avatar/x", "/a1B2c3D4e5F6").
     const handleComposerTargetChange = (next: ComposerTarget) => {
         onComposerTargetChange?.(next)
-        const onAvatarRoute = /(^|\/)avatar(\/|$)/.test(pathname ?? "")
+        const path = pathname ?? ""
+        const onAvatarRoute = path === "/avatar" || path.startsWith("/avatar/")
+
         if (next === "avatar" && !onAvatarRoute) {
-            router.push(`/${locale}/avatar`)
+            const segments = path.split("/").filter(Boolean)
+            const fromSession =
+                segments.length === 1 && /^[A-Za-z0-9_-]{12}$/.test(segments[0])
+                    ? segments[0]
+                    : null
+            router.push(
+                fromSession
+                    ? `/${locale}/avatar?from=${fromSession}`
+                    : `/${locale}/avatar`,
+            )
+        } else if (next === "chat" && onAvatarRoute) {
+            const from =
+                typeof window !== "undefined"
+                    ? new URLSearchParams(window.location.search).get("from")
+                    : null
+            router.push(from ? `/${locale}/${from}` : `/${locale}`)
         }
     }
 

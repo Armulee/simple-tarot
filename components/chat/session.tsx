@@ -1174,6 +1174,11 @@ export default function ChatSession({
     // homepage → session decision respects the locked interpretation mode
     // instead of racing with the default "auto".
     const [settingsLoaded, setSettingsLoaded] = useState(false)
+    // Avatar/chat toggle in the composer (default "chat" here; switching to
+    // avatar routes to /avatar and remembers this session to return to).
+    const [composerTarget, setComposerTarget] = useState<"avatar" | "chat">(
+        "chat",
+    )
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         null,
     )
@@ -8112,6 +8117,12 @@ export default function ChatSession({
                     isHoroscopeIntakeActive ? undefined : setInterpretationMode
                 }
                 enableCharacterMention={!isHoroscopeIntakeActive}
+                composerTarget={
+                    isHoroscopeIntakeActive ? undefined : composerTarget
+                }
+                onComposerTargetChange={
+                    isHoroscopeIntakeActive ? undefined : setComposerTarget
+                }
                 composerSettings={
                     isHoroscopeIntakeActive
                         ? null
