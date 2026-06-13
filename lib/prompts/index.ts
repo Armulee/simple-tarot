@@ -492,7 +492,7 @@ ${neverMentionRule}
 - intensity: exactly one of "low", "medium", or "high". Use "high" only for the 1-2 strongest aspects most relevant to the question. Use "medium" for supporting aspects. Use "low" for subtle or background influences.
 - interpretation: 4-8 short sentences answering the question.
 ${conclusionInstruction}
-- suggestions: EXACTLY 3–4 very short, casual follow-up prompts the user could ask next (single line each; conversational tone, not long formal questions).
+- suggestions: EXACTLY 3–4 follow-up QUESTIONS the user would tap to ask next, written in the user's own voice and ending like a question ("...ไหม" / "...เมื่อไหร่" / "...?"). They are NOT advice or to-do items and NOT a restatement of the conclusion — never tell the user what to do; ask what they'd want to know next. Single line each, casual, all differing in angle.
 - relevance: an array of up to 5 dominant life-areas that this reading actually covers, used to render a proportional relevance bar above the answer.
 - relevance items must contain { label, pct } only. Integer pcts MUST sum to exactly 100. Sort the array descending by pct.
 - relevance.label MUST be one of the canonical domains, written in the SAME language as the output: Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน. Do NOT invent new labels.

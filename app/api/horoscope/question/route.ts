@@ -408,7 +408,7 @@ CRITICAL: When citing time periods, use dates in the SAME language as your outpu
 
 If the prompt includes a <calendar_recommendation> block, that block is the source of truth for any recommended single day. Follow its topCandidate date exactly and use the transit data only to explain why that day stands out.
 
-Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 very short, casual follow-up prompts the user could ask next — single line each, like quick texts, not long formal questions).`,
+Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 follow-up QUESTIONS the user would tap to ask next — written in the user's own voice and ending like a question, e.g. "...ไหม" / "...เมื่อไหร่" / "...?"). suggestions are NOT advice or to-do items and NOT a restatement of the conclusion; never tell the user what to do — ask what they'd want to know next. Single line each, casual, all differing in angle.`,
             prompt,
             temperature: 0.6,
         })
