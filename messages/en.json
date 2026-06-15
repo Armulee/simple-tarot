@@ -632,6 +632,17 @@
     "mentionNotFound": "Character not found",
     "signInRequired": "Sign in to add characters"
   },
+  "Synastry": {
+    "you": "You",
+    "them": "Them",
+    "compatibility": "Compatibility",
+    "comparison": "How you compare",
+    "interpretation": "Your answer",
+    "intakeTitle": "Their birth details",
+    "intakeDescription": "I need their birth date to read your compatibility.",
+    "analyze": "Read compatibility",
+    "analyzing": "Reading…"
+  },
   "InterpretationMode": {
     "auto": "Auto",
     "tarot": "Tarot",

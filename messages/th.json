@@ -679,6 +679,17 @@
     "mentionNotFound": "ไม่พบตัวละคร",
     "signInRequired": "เข้าสู่ระบบเพื่อเพิ่มตัวละคร"
   },
+  "Synastry": {
+    "you": "คุณ",
+    "them": "อีกฝ่าย",
+    "compatibility": "ความเข้ากัน",
+    "comparison": "เปรียบเทียบกัน",
+    "interpretation": "คำตอบของคุณ",
+    "intakeTitle": "ข้อมูลวันเกิดของอีกฝ่าย",
+    "intakeDescription": "ขอวันเกิดของอีกฝ่ายเพื่อดูดวงความเข้ากัน",
+    "analyze": "ดูความเข้ากัน",
+    "analyzing": "กำลังดู…"
+  },
   "InterpretationMode": {
     "auto": "อัตโนมัติ",
     "tarot": "ไพ่ทาโรต์",

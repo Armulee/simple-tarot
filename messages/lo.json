@@ -545,6 +545,17 @@
     "mentionNotFound": "ບໍ່ພົບຕົວລະຄອນ",
     "signInRequired": "ເຂົ້າສູ່ລະບົບເພື່ອເພີ່ມຕົວລະຄອນ"
   },
+  "Synastry": {
+    "you": "ທ່ານ",
+    "them": "ອີກຝ່າຍ",
+    "compatibility": "ຄວາມເຂົ້າກັນ",
+    "comparison": "ປຽບທຽບກັນ",
+    "interpretation": "ຄຳຕອບຂອງທ່ານ",
+    "intakeTitle": "ຂໍ້ມູນວັນເກີດຂອງອີກຝ່າຍ",
+    "intakeDescription": "ຕ້ອງການວັນເກີດຂອງອີກຝ່າຍເພື່ອເບິ່ງຄວາມເຂົ້າກັນ",
+    "analyze": "ເບິ່ງຄວາມເຂົ້າກັນ",
+    "analyzing": "ກຳລັງເບິ່ງ…"
+  },
   "InterpretationMode": {
     "auto": "ອັດຕະໂນມັດ",
     "tarot": "ໄພ່ທາໂຣດ",
