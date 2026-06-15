@@ -193,7 +193,7 @@ export default function MentionTextarea({
                             seg.mention ? (
                                 <mark
                                     key={i}
-                                    className='rounded bg-pink-500/30 text-transparent'
+                                    className='rounded bg-pink-500/30 px-1 -mx-1 text-transparent box-decoration-clone'
                                 >
                                     {seg.text}
                                 </mark>
