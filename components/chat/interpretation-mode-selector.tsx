@@ -10,11 +10,12 @@ import {
     saveInterpretationModeToStorage,
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
-import { FaStar, FaMessage, FaWandMagicSparkles } from "react-icons/fa6"
+import { FaStar, FaMessage, FaWandMagicSparkles, FaHeart } from "react-icons/fa6"
 import { TbPlayCardStarFilled } from "react-icons/tb"
 import { PiSparkleFill } from "react-icons/pi"
 import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/hooks/use-auth"
+import { useActiveSubscription } from "@/hooks/use-active-subscription"
 
 const MODE_ICONS = {
     auto: PiSparkleFill,
@@ -22,6 +23,7 @@ const MODE_ICONS = {
     tarot: TbPlayCardStarFilled,
     horoscope: FaStar,
     oracle: FaWandMagicSparkles,
+    synastry: FaHeart,
 } as const
 
 const MODE_THEME = {
@@ -65,6 +67,14 @@ const MODE_THEME = {
         activeText: "text-amber-300",
         flare: "shadow-[0_0_18px_4px_rgba(252,211,77,0.6)]",
     },
+    synastry: {
+        border: "border-pink-400/40 hover:border-pink-400/60",
+        text: "text-pink-300 hover:text-pink-200",
+        icon: "text-pink-400",
+        activeBg: "bg-pink-500/20",
+        activeText: "text-pink-400",
+        flare: "shadow-[0_0_18px_4px_rgba(244,114,182,0.55)]",
+    },
 } as const
 
 type InterpretationModeSelectorProps = {
@@ -78,7 +88,10 @@ export default function InterpretationModeSelector({
 }: InterpretationModeSelectorProps) {
     const t = useTranslations("InterpretationMode")
     const { user } = useAuth()
+    const { subscription } = useActiveSubscription()
     const isAuthenticated = Boolean(user)
+    const isPaid =
+        subscription?.tier === "basic" || subscription?.tier === "pro"
     const [open, setOpen] = useState(false)
     const [flare, setFlare] = useState(false)
     const isFirstRender = useRef(true)
@@ -99,16 +112,7 @@ export default function InterpretationModeSelector({
         setOpen(false)
     }
 
-    const label =
-        value === "auto"
-            ? t("auto")
-            : value === "tarot"
-              ? t("tarot")
-              : value === "horoscope"
-                ? t("horoscope")
-                : value === "oracle"
-                  ? t("oracle")
-                  : t("chat")
+    const label = t(value)
 
     const IconComponent = MODE_ICONS[value]
     const theme = MODE_THEME[value]
@@ -144,6 +148,7 @@ export default function InterpretationModeSelector({
                             "chat",
                             "tarot",
                             "horoscope",
+                            "synastry",
                             "oracle",
                         ] as const
                     ).map(
@@ -152,22 +157,26 @@ export default function InterpretationModeSelector({
                             const mt = MODE_THEME[mode]
                             const horoscopeLocked =
                                 mode === "horoscope" && !isAuthenticated
+                            const synastryLocked =
+                                mode === "synastry" && !isPaid
+                            const locked = horoscopeLocked || synastryLocked
+                            const lockedReason = horoscopeLocked
+                                ? t("horoscopeLoginRequired")
+                                : synastryLocked
+                                  ? t("synastryPaidOnly")
+                                  : undefined
                             return (
                                 <button
                                     key={mode}
                                     type='button'
-                                    disabled={horoscopeLocked}
-                                    title={
-                                        horoscopeLocked
-                                            ? t("horoscopeLoginRequired")
-                                            : undefined
-                                    }
+                                    disabled={locked}
+                                    title={lockedReason}
                                     onClick={() => {
-                                        if (horoscopeLocked) return
+                                        if (locked) return
                                         handleSelect(mode)
                                     }}
                                     className={`flex w-full flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
-                                        horoscopeLocked
+                                        locked
                                             ? "cursor-not-allowed opacity-45"
                                             : ""
                                     } ${
@@ -180,9 +189,9 @@ export default function InterpretationModeSelector({
                                         <Icon className='size-4 shrink-0' />
                                         {t(mode)}
                                     </span>
-                                    {horoscopeLocked ? (
+                                    {lockedReason ? (
                                         <span className='pl-6 text-[11px] leading-tight text-white/45'>
-                                            {t("horoscopeLoginRequired")}
+                                            {lockedReason}
                                         </span>
                                     ) : null}
                                 </button>

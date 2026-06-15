@@ -551,6 +551,8 @@
     "horoscope": "ດວງຊະຕາ",
     "chat": "ແຊັດ",
     "oracle": "ຈິດສຳພັດ",
+    "synastry": "ຄວາມເຂົ້າກັນ",
+    "synastryPaidOnly": "ອັບເກຣດເພື່ອໃຊ້ການເບິ່ງຄວາມເຂົ້າກັນ",
     "horoscopeLoginRequired": "ເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ດວງຊະຕາ",
     "composerSettingsAriaLabel": "ການຕັ້ງຄ່າການອ່ານ",
     "composerSettingsPanelTitle": "ການຕັ້ງຄ່າ",

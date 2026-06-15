@@ -638,6 +638,8 @@
     "horoscope": "Horoscope",
     "chat": "Chat",
     "oracle": "Spiritual",
+    "synastry": "Synastry",
+    "synastryPaidOnly": "Upgrade to use Synastry",
     "horoscopeLoginRequired": "Sign in to use horoscope",
     "composerSettingsAriaLabel": "Reading settings",
     "composerSettingsPanelTitle": "Settings",

@@ -685,6 +685,8 @@
     "horoscope": "ดวงชะตา",
     "chat": "แชท",
     "oracle": "จิตสัมผัส",
+    "synastry": "ความเข้ากัน",
+    "synastryPaidOnly": "อัปเกรดเพื่อใช้ดูความเข้ากัน",
     "horoscopeLoginRequired": "ลงชื่อเข้าใช้เพื่อใช้ดวงชะตา",
     "composerSettingsAriaLabel": "การตั้งค่าการอ่าน",
     "composerSettingsPanelTitle": "การตั้งค่า",

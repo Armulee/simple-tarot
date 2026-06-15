@@ -12,6 +12,8 @@ export const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
     horoscope:
         "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
     oracle: "border-amber-300/40 focus:border-amber-300/70 focus:ring-amber-300/30",
+    synastry:
+        "border-pink-400/30 focus:border-pink-400/60 focus:ring-pink-400/30",
 }
 
 export const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
@@ -20,4 +22,5 @@ export const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
     tarot: "shadow-[0_10px_30px_-10px_rgba(168,85,247,0.3)]",
     horoscope: "shadow-[0_10px_30px_-10px_rgba(96,165,250,0.3)]",
     oracle: "shadow-[0_10px_30px_-10px_rgba(252,211,77,0.35)]",
+    synastry: "shadow-[0_10px_30px_-10px_rgba(244,114,182,0.3)]",
 }
