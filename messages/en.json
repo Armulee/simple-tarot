@@ -641,7 +641,9 @@
     "intakeTitle": "Their birth details",
     "intakeDescription": "I need their birth date to read your compatibility.",
     "analyze": "Read compatibility",
-    "analyzing": "Reading…"
+    "analyzing": "Reading…",
+    "needYourBirth": "Add your own birth details first to read compatibility.",
+    "error": "Couldn't read your compatibility. Please try again."
   },
   "InterpretationMode": {
     "auto": "Auto",

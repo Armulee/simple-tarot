@@ -23,6 +23,9 @@ import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
+import SynastryReading from "@/components/chat/synastry-reading"
+import SynastryIntakeCard from "@/components/chat/synastry-intake-card"
+import type { SynastryPersonBirth } from "@/lib/chat/synastry-schema"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
 import {
     TarotAssistantInterpretation,
@@ -244,6 +247,10 @@ type MessageListProps = {
     assistantReactions: Record<string, "like" | "dislike" | null>
     messageNotices: Record<string, string>
     isHoroscopeIntakeActive?: boolean
+    onSynastryIntakeSubmit?: (
+        messageId: string,
+        personB: SynastryPersonBirth,
+    ) => void
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -366,6 +373,7 @@ export default function MessageList({
     onCancelEdit,
     onSendEditAt,
     onCalendarChipClick,
+    onSynastryIntakeSubmit,
     onCalendarSelectionChange,
     calendarToolResetSignal,
     onAskAspectDetail,
@@ -394,6 +402,7 @@ export default function MessageList({
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
+    const tSynastry = useTranslations("Synastry")
     const consultingBase = t("consulting")
     const thinkingLabels = useMemo(
         () => ({
@@ -780,6 +789,35 @@ export default function MessageList({
                                         />
                                     </div>
                                 ) : null}
+                                {message.variant === "synastry" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        {message.synastryReading ? (
+                                            <SynastryReading
+                                                reading={message.synastryReading}
+                                            />
+                                        ) : (
+                                            <div className='flex items-center gap-2 rounded-2xl border border-pink-400/20 bg-white/[0.04] px-4 py-3 text-sm text-white/70'>
+                                                <Loader2 className='size-4 shrink-0 animate-spin text-pink-300' />
+                                                {tSynastry("analyzing")}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+                                {message.variant === "synastry-intake" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <SynastryIntakeCard
+                                            initialName={
+                                                message.synastryPersonName
+                                            }
+                                            onSubmit={(personB) =>
+                                                onSynastryIntakeSubmit?.(
+                                                    message.id,
+                                                    personB,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                ) : null}
                                 {message.variant === "horoscope-calendar" ? (
                                     <div className='w-full md:max-w-[85%]'>
                                         <HoroscopeCalendarTool
@@ -809,8 +847,10 @@ export default function MessageList({
                                         />
                                     </div>
                                 ) : message.variant === "box" ||
+                                  message.variant === "oracle" ||
+                                  message.variant === "synastry" ||
                                   message.variant ===
-                                      "oracle" ? null : message.variant ===
+                                      "synastry-intake" ? null : message.variant ===
                                   "horoscope" ? (
                                     <>
                                         {message.sourceAspectEvent && (

@@ -21,6 +21,7 @@ draw
 horoscope
 support
 oracle
+synastry
 
 Definitions:
 
@@ -49,6 +50,12 @@ oracle
 - introspective questions about hidden meaning, signs, omens, dreams, intuition, "the universe", "the cosmos", "higher self", "soul lessons", "synchronicity", "destiny calling"
 - Use oracle when the question is clearly mystical/symbolic AND there is no time anchor (otherwise horoscope), no card/spread request (otherwise draw), no product question (otherwise support), and no purely factual/knowledge ask (otherwise chat). Oracle is the fallback for spiritual-but-not-mechanism questions.
 - DO NOT use oracle for: "what does the Tower card mean" (that's chat/knowledge), "is today a good day to start a business" (that's horoscope), "draw me a card" (that's draw).
+
+synastry
+- relationship COMPATIBILITY between the asker and ONE other specific person: "are we compatible?", "will it work out with @Name?", "do my partner and I match?", "เราสองคนเข้ากันไหม", "ฉันกับ @คน จะไปกันรอดไหม", "ดวงเนื้อคู่"
+- the question compares the asker to a SPECIFIC other person — named, @mentioned, a relationship word (partner, boyfriend, girlfriend, husband, wife, crush, แฟน, สามี, ภรรยา), or given by birth date — NOT a generic "will I find love" (that's draw) and NOT a solo timing question (that's horoscope)
+- set synastryPersonName to the other person's name/handle when one is present (e.g. the name inside an @mention); omit it when only a birth date is given
+- DO NOT use synastry for: "will I find love?" (draw), "how is my love life this month?" (horoscope), "what does the Lovers card mean?" (chat)
 
 support
 - ANY question about the AskingFate WEBSITE / PRODUCT itself
@@ -204,6 +211,7 @@ const MODE_TO_TYPE: Record<string, string | string[]> = {
     horoscope: "horoscope",
     chat: ["chat", "support"],
     support: "support",
+    synastry: "synastry",
 }
 
 function getChatDecisionPrompt({

@@ -122,8 +122,11 @@ import {
     getMaxCardsForTier,
 } from "@/lib/payments/plan-limits"
 import { buildSupportBlockFromDecision } from "@/lib/chat/support-block"
+import { extractMentionedCharacters } from "@/lib/chat/character-mentions"
+import type { SynastryPersonBirth } from "@/lib/chat/synastry-schema"
 import { useAuth } from "@/hooks/use-auth"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
+import { useCharacters } from "@/hooks/use-characters"
 import { useProfile } from "@/contexts/profile-context"
 import { supabase } from "@/lib/supabase"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
@@ -783,6 +786,7 @@ export default function ChatSession({
     const tActionTrigger = useTranslations("ActionTrigger")
     const tShareProgress = useTranslations("ShareImageProgress")
     const tReadingActions = useTranslations("ReadingPage.interpretation")
+    const tSynastry = useTranslations("Synastry")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -826,7 +830,10 @@ export default function ChatSession({
     const pathname = usePathname()
     const { user, loading: authLoading } = useAuth()
     const { subscription } = useActiveSubscription()
+    const isPaid =
+        subscription?.tier === "basic" || subscription?.tier === "pro"
     const { profile, birthChart: storedBirthChart } = useProfile()
+    const { characters: ownedCharacters } = useCharacters()
     const storedBirthChartPayload = useMemo(
         () =>
             storedBirthChart
@@ -3525,6 +3532,9 @@ export default function ChatSession({
                     supportCardSlug: undefined,
                 }
             }
+            if (interpretationMode === "synastry") {
+                return { ...decision, type: "synastry" }
+            }
             return decision
         },
         [interpretationMode, user],
@@ -5645,6 +5655,15 @@ export default function ChatSession({
                 }
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 nextDecision = normalizeDrawDecision(nextDecision)
+                // Synastry is a paid feature; downgrade to a tarot draw for
+                // free users so a compatibility question still gets a reading.
+                if (nextDecision.type === "synastry" && !isPaidRef.current) {
+                    nextDecision = {
+                        ...nextDecision,
+                        type: "draw",
+                        spreadType: nextDecision.spreadType ?? "general",
+                    }
+                }
                 nextDecision = applyCalendarModeOverride(nextDecision, trimmed)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
@@ -5699,6 +5718,15 @@ export default function ChatSession({
                         ),
                     )
                     consultingLoadingIdRef.current = null
+                    return
+                }
+
+                if (nextDecision.type === "synastry") {
+                    await runSynastryFlow(
+                        assistantLoadingId,
+                        trimmed,
+                        nextDecision,
+                    )
                     return
                 }
 
@@ -6298,6 +6326,182 @@ export default function ChatSession({
         setNotice(id, "Report draft opened.")
     }
 
+    // Latest-value refs so the synastry callbacks read fresh async-loaded data
+    // (character list, birth chart, profile, paid status) regardless of which
+    // render's closure the decision flows captured.
+    const ownedCharactersRef = useRef(ownedCharacters)
+    ownedCharactersRef.current = ownedCharacters
+    const storedBirthChartRef = useRef(storedBirthChart)
+    storedBirthChartRef.current = storedBirthChart
+    const profileRef = useRef(profile)
+    profileRef.current = profile
+    const isPaidRef = useRef(isPaid)
+    isPaidRef.current = isPaid
+
+    // The asker's own birth (person A) for synastry, from their stored chart.
+    const mapUserBirthToSynastry = useCallback((): SynastryPersonBirth | null => {
+        const b = storedBirthChartRef.current
+        const prof = profileRef.current
+        if (!b || !b.day || !b.month || !b.year) return null
+        return {
+            name: prof?.name ?? null,
+            day: b.day,
+            month: b.month,
+            year: b.year,
+            hour: b.hour ?? null,
+            minute: b.minute ?? null,
+            country: b.country ?? null,
+            state: b.state_province ?? null,
+            lat: b.lat ?? null,
+            lng: b.lng ?? null,
+            timezone: b.timezone ?? null,
+        }
+    }, [])
+
+    // Run the synastry reading and render the result on the loading message.
+    const runSynastryReading = useCallback(
+        async (
+            assistantLoadingId: string,
+            question: string,
+            personB: SynastryPersonBirth,
+        ) => {
+            const personA = mapUserBirthToSynastry()
+            if (!personA) {
+                setConsulting(false)
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: tSynastry("needYourBirth"),
+                                  variant: "plain" as const,
+                                  isLoading: false,
+                                  synastryReading: null,
+                              }
+                            : m,
+                    ),
+                )
+                consultingLoadingIdRef.current = null
+                return
+            }
+            setConsulting(true)
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              text: "",
+                              variant: "synastry" as const,
+                              synastryReading: null,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            try {
+                const res = await fetch("/api/synastry", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question, locale, personA, personB }),
+                })
+                if (!res.ok) throw new Error("synastry_failed")
+                const payload = await res.json()
+                setConsulting(false)
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: "",
+                                  variant: "synastry" as const,
+                                  synastryReading: payload,
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            } catch {
+                setConsulting(false)
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: tSynastry("error"),
+                                  variant: "plain" as const,
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            consultingLoadingIdRef.current = null
+        },
+        [mapUserBirthToSynastry, locale, tSynastry],
+    )
+
+    // Resolve the other person (person B): a mentioned character with birth
+    // data runs immediately; otherwise show the intake card to collect it.
+    const runSynastryFlow = useCallback(
+        async (
+            assistantLoadingId: string,
+            question: string,
+            decision: ChatDecision,
+        ) => {
+            const charB = extractMentionedCharacters(
+                question,
+                ownedCharactersRef.current,
+            )[0]
+            if (charB) {
+                await runSynastryReading(assistantLoadingId, question, {
+                    name: charB.name,
+                    day: charB.birthDay,
+                    month: charB.birthMonth,
+                    year: charB.birthYear,
+                    hour: charB.birthHour,
+                    minute: charB.birthMinute,
+                    country: charB.birthCountry,
+                    state: charB.birthState,
+                    lat: charB.lat,
+                    lng: charB.lng,
+                    timezone: charB.timezone,
+                })
+                return
+            }
+            setConsulting(false)
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              text: "",
+                              variant: "synastry-intake" as const,
+                              synastryPersonName:
+                                  decision.synastryPersonName ?? null,
+                              synastryQuestion: question,
+                              isLoading: false,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            consultingLoadingIdRef.current = null
+        },
+        [runSynastryReading],
+    )
+
+    // Submit handler for the inline synastry intake card.
+    const handleSynastryIntakeSubmit = useCallback(
+        (messageId: string, personB: SynastryPersonBirth) => {
+            const target = messages.find((m) => m.id === messageId)
+            const question = target?.synastryQuestion ?? lastQuestion ?? ""
+            void runSynastryReading(messageId, question, personB)
+        },
+        [messages, lastQuestion, runSynastryReading],
+    )
+
     const startDecisionFlow = useCallback(
         async (
             value: string,
@@ -6415,6 +6619,15 @@ export default function ChatSession({
                     }
                 }
                 nextDecision = normalizeDrawDecision(nextDecision)
+                // Synastry is a paid feature; downgrade to a tarot draw for
+                // free users so a compatibility question still gets a reading.
+                if (nextDecision.type === "synastry" && !isPaidRef.current) {
+                    nextDecision = {
+                        ...nextDecision,
+                        type: "draw",
+                        spreadType: nextDecision.spreadType ?? "general",
+                    }
+                }
                 // Apply the same calendar-intent rule as
                 // runDecisionFlowFromMessages so first-message (homepage →
                 // session) prompts like "show my cosmic calendar" render the
@@ -6478,6 +6691,15 @@ export default function ChatSession({
                         ),
                     )
                     consultingLoadingIdRef.current = null
+                    return
+                }
+
+                if (nextDecision.type === "synastry") {
+                    await runSynastryFlow(
+                        assistantLoadingId,
+                        trimmed,
+                        nextDecision,
+                    )
                     return
                 }
 
@@ -7794,6 +8016,7 @@ export default function ChatSession({
                 assistantReactions={assistantReactions}
                 messageNotices={messageNotices}
                 isHoroscopeIntakeActive={isHoroscopeIntakeActive}
+                onSynastryIntakeSubmit={handleSynastryIntakeSubmit}
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}
