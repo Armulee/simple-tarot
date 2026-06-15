@@ -187,7 +187,7 @@ export default function MentionTextarea({
                     <div
                         ref={backdropRef}
                         aria-hidden
-                        className={`pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words rounded-2xl text-transparent ${TEXT_BOX}`}
+                        className={`pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words rounded-2xl text-left text-transparent ${TEXT_BOX}`}
                     >
                         {segments.map((seg, i) =>
                             seg.mention ? (
@@ -214,7 +214,7 @@ export default function MentionTextarea({
                         onScroll={syncScroll}
                         placeholder={placeholder}
                         rows={1}
-                        className={`relative z-10 block w-full resize-none bg-transparent text-white caret-white placeholder:text-white/70 outline-none min-h-[40px] max-h-[200px] overflow-y-auto overflow-x-hidden scrollbar-hide ${TEXT_BOX}`}
+                        className={`relative z-10 block w-full resize-none bg-transparent text-left text-white caret-white placeholder:text-white/70 outline-none min-h-[40px] max-h-[200px] overflow-y-auto overflow-x-hidden scrollbar-hide ${TEXT_BOX}`}
                     />
                 </div>
             </PopoverAnchor>
