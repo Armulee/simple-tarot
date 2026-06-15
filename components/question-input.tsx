@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, type RefObject } from "react"
+import { useEffect, useRef, useState, type RefObject } from "react"
 import { CornerDownRight, Send, Square, X } from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
@@ -13,6 +13,8 @@ import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
+import CharacterComposerButton from "@/components/chat/character-composer-button"
+import type { Character } from "@/types/character"
 import {
     ComposerSettingsMenu,
     type ComposerSettingsMenuProps,
@@ -89,6 +91,7 @@ export default function QuestionInput({
     sectionId,
     wrapperClassName = "",
     inputWrapperClassName = "max-w-sm md:max-w-md",
+    enableCharacterMention = false,
 }: {
     id?: string
     label?: string
@@ -122,6 +125,8 @@ export default function QuestionInput({
     sectionId?: string
     wrapperClassName?: string
     inputWrapperClassName?: string
+    /** Show the "+" character mention button before the mode selector. */
+    enableCharacterMention?: boolean
 }) {
     const t = useTranslations("QuestionInput")
     const [internalQuestion, setInternalQuestion] = useState("")
@@ -143,6 +148,34 @@ export default function QuestionInput({
 
     const question = value !== undefined ? value : internalQuestion
     const setQuestion = onChange || setInternalQuestion
+
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+    // Insert an "@CharacterName " mention at the caret (or append). Phase 3
+    // adds the pink highlight overlay + id resolution; here we insert plain
+    // text so the mention round-trips through the existing string value.
+    const handleInsertMention = (character: Character) => {
+        const mentionText = `@${character.name} `
+        const el = textareaRef.current
+        if (!el) {
+            setQuestion(question ? `${question} ${mentionText}` : mentionText)
+            return
+        }
+        const start = el.selectionStart ?? question.length
+        const end = el.selectionEnd ?? question.length
+        const next =
+            question.slice(0, start) + mentionText + question.slice(end)
+        setQuestion(next)
+        const caret = start + mentionText.length
+        requestAnimationFrame(() => {
+            el.focus()
+            try {
+                el.setSelectionRange(caret, caret)
+            } catch {
+                /* ignore */
+            }
+        })
+    }
 
     const showBottomChrome =
         actionTrigger != null ||
@@ -339,6 +372,7 @@ export default function QuestionInput({
                     <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
                     <AutoHeightTextarea
                         id={id}
+                        ref={textareaRef}
                         name={id}
                         placeholder={placeholder || t("placeholder")}
                         className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border ${INPUT_BORDER_BY_MODE[interpretationMode ?? "auto"]} focus:ring-2 rounded-2xl resize-y ${INPUT_GLOW_BY_MODE[interpretationMode ?? "auto"]} resize-none transition-[border-color,box-shadow] duration-500`}
@@ -369,6 +403,11 @@ export default function QuestionInput({
                 {interpretationMode !== undefined &&
                     onInterpretationModeChange && (
                         <div className='mt-2 flex items-center justify-start gap-2'>
+                            {enableCharacterMention ? (
+                                <CharacterComposerButton
+                                    onMention={handleInsertMention}
+                                />
+                            ) : null}
                             <InterpretationModeSelector
                                 value={interpretationMode}
                                 onChange={onInterpretationModeChange}

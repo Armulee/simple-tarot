@@ -473,6 +473,7 @@ export default function Home() {
                     className='w-full'
                     interpretationMode={interpretationMode}
                     onInterpretationModeChange={setInterpretationMode}
+                    enableCharacterMention
                     composerSettings={{
                         showAutoPick: true,
                         autoPickOn,

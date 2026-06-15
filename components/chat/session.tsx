@@ -7631,6 +7631,7 @@ export default function ChatSession({
                 onInterpretationModeChange={
                     isHoroscopeIntakeActive ? undefined : setInterpretationMode
                 }
+                enableCharacterMention={!isHoroscopeIntakeActive}
                 composerSettings={
                     isHoroscopeIntakeActive
                         ? null
