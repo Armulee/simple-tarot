@@ -8,7 +8,7 @@ import {
     useState,
 } from "react"
 import { useTranslations } from "next-intl"
-import { UserRound, Crown } from "lucide-react"
+import { UserRound, UserPlus, Crown } from "lucide-react"
 import {
     Popover,
     PopoverAnchor,
@@ -56,7 +56,7 @@ export default function MentionTextarea({
     interpretationMode,
 }: MentionTextareaProps) {
     const t = useTranslations("Character")
-    const { characters, isPaid, textareaRef, replaceActiveMention, openPaywall } =
+    const { characters, isPaid, textareaRef, replaceActiveMention, openPaywall, openAddForm } =
         useCharacterMention()
     const backdropRef = useRef<HTMLDivElement>(null)
     const [activeQuery, setActiveQuery] = useState<ActiveMentionQuery | null>(
@@ -168,10 +168,10 @@ export default function MentionTextarea({
         onKeyDown?.(e)
     }
 
-    // Open the picker when an "@query" is active: the character list for paid
-    // users, or the "paid only" notice for everyone else.
-    const popoverOpen =
-        activeQuery !== null && (isPaid ? filtered.length > 0 : true)
+    // Open the picker whenever an "@query" is active. For paid users it shows
+    // the matches, an empty "create one" state, or "not found"; everyone else
+    // sees the "paid only" notice.
+    const popoverOpen = activeQuery !== null
 
     return (
         <Popover
@@ -225,7 +225,47 @@ export default function MentionTextarea({
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 className='w-60 rounded-xl border-white/10 bg-[#0A0F26] p-2'
             >
-                {isPaid ? (
+                {!isPaid ? (
+                    <div className='space-y-2 p-1'>
+                        <p className='flex items-center gap-1.5 text-xs leading-snug text-white/80'>
+                            <Crown className='size-3.5 shrink-0 text-amber-300' />
+                            {t("mentionPaidOnly")}
+                        </p>
+                        <button
+                            type='button'
+                            onMouseDown={(e) => {
+                                e.preventDefault()
+                                setActiveQuery(null)
+                                openPaywall()
+                            }}
+                            className='w-full rounded-lg bg-pink-500/20 px-3 py-1.5 text-xs font-medium text-pink-100 transition-colors hover:bg-pink-500/30'
+                        >
+                            {t("paywallFeature")}
+                        </button>
+                    </div>
+                ) : characters.length === 0 ? (
+                    <div className='space-y-2 p-1'>
+                        <p className='text-xs text-white/70'>
+                            {t("menuEmpty")}
+                        </p>
+                        <button
+                            type='button'
+                            onMouseDown={(e) => {
+                                e.preventDefault()
+                                setActiveQuery(null)
+                                openAddForm()
+                            }}
+                            className='flex w-full items-center justify-center gap-2 rounded-lg bg-pink-500/20 px-3 py-1.5 text-xs font-medium text-pink-100 transition-colors hover:bg-pink-500/30'
+                        >
+                            <UserPlus className='size-3.5 shrink-0' />
+                            {t("menuAddNew")}
+                        </button>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <p className='px-2 py-2 text-center text-xs text-white/60'>
+                        {t("mentionNotFound")}
+                    </p>
+                ) : (
                     <div className='max-h-56 space-y-0.5 overflow-y-auto'>
                         {filtered.map((character, idx) => (
                             <button
@@ -247,24 +287,6 @@ export default function MentionTextarea({
                                 </span>
                             </button>
                         ))}
-                    </div>
-                ) : (
-                    <div className='space-y-2 p-1'>
-                        <p className='flex items-center gap-1.5 text-xs leading-snug text-white/80'>
-                            <Crown className='size-3.5 shrink-0 text-amber-300' />
-                            {t("mentionPaidOnly")}
-                        </p>
-                        <button
-                            type='button'
-                            onMouseDown={(e) => {
-                                e.preventDefault()
-                                setActiveQuery(null)
-                                openPaywall()
-                            }}
-                            className='w-full rounded-lg bg-pink-500/20 px-3 py-1.5 text-xs font-medium text-pink-100 transition-colors hover:bg-pink-500/30'
-                        >
-                            {t("paywallFeature")}
-                        </button>
                     </div>
                 )}
             </PopoverContent>
