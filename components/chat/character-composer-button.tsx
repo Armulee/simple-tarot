@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
-import { Plus, UserRound, UserPlus, Trash2 } from "lucide-react"
+import { Plus, UserRound, UserPlus, Trash2, Crown } from "lucide-react"
 import {
     Popover,
     PopoverContent,
@@ -131,8 +131,9 @@ export default function CharacterComposerButton({
                         onClick={handleAddNew}
                         className='flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white'
                     >
-                        <UserPlus className='size-4 shrink-0 text-pink-300' />
-                        {t("menuAddNew")}
+                        <UserPlus className='size-4 shrink-0 text-white' />
+                        <span className='truncate'>{t("menuAddNew")}</span>
+                        <Crown className='ml-auto size-3.5 shrink-0 text-amber-300' />
                     </button>
                 </PopoverContent>
             </Popover>
