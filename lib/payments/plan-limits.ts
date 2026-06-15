@@ -16,6 +16,17 @@ export function canUseManualCardPick(
     return tier === "basic" || tier === "pro"
 }
 
+/**
+ * Adding a "character" (a saved person with birth data, used for synastry and
+ * the life monitor) is a paid feature. Listing/reading existing characters is
+ * not gated — only creating new ones.
+ */
+export function canManageCharacters(
+    tier: PlanTier | null | undefined,
+): boolean {
+    return tier === "basic" || tier === "pro"
+}
+
 export function clampCardCountToTier(
     count: number,
     tier: PlanTier | null | undefined,
