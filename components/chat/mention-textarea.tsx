@@ -225,7 +225,7 @@ export default function MentionTextarea({
                             seg.kind === "mention" ? (
                                 <mark
                                     key={i}
-                                    className='rounded bg-pink-500/30 text-transparent box-decoration-clone'
+                                    className='rounded bg-pink-500/30 px-1 -mx-1 text-transparent box-decoration-clone'
                                 >
                                     {seg.leadChar ? (
                                         <span className='relative inline-block'>
