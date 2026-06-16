@@ -122,7 +122,10 @@ import {
     getMaxCardsForTier,
 } from "@/lib/payments/plan-limits"
 import { buildSupportBlockFromDecision } from "@/lib/chat/support-block"
-import { extractMentionedCharacters } from "@/lib/chat/character-mentions"
+import {
+    extractMentionedCharacters,
+    findMentionRanges,
+} from "@/lib/chat/character-mentions"
 import type { SynastryPersonBirth } from "@/lib/chat/synastry-schema"
 import { useAuth } from "@/hooks/use-auth"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
@@ -7130,11 +7133,46 @@ export default function ChatSession({
                 originContextSnapshot?: OriginContext | null
             } = {},
         ) => {
-            const result = await sanitizePromptOnClient(rawValue, {
+            // Protect known @character mentions so PII sanitization never
+            // redacts a character the user explicitly tagged (and so the
+            // mention survives verbatim for downstream synastry/mention
+            // resolution). Anything that is NOT a known character is left for
+            // normal sanitization (e.g. an unknown @handle).
+            const mentionRanges = findMentionRanges(
+                rawValue,
+                ownedCharactersRef.current,
+            )
+            let toSanitize = rawValue
+            const restoreMentions: Array<{ token: string; original: string }> =
+                []
+            if (mentionRanges.length) {
+                // Replace right-to-left so earlier offsets stay valid.
+                const ordered = [...mentionRanges].sort(
+                    (a, b) => b.start - a.start,
+                )
+                ordered.forEach((range, i) => {
+                    const token = String.fromCodePoint(0xe000 + i)
+                    restoreMentions.push({
+                        token,
+                        original: rawValue.slice(range.start, range.end),
+                    })
+                    toSanitize =
+                        toSanitize.slice(0, range.start) +
+                        token +
+                        toSanitize.slice(range.end)
+                })
+            }
+
+            const result = await sanitizePromptOnClient(toSanitize, {
                 sessionId: sessionId ?? "",
                 locale,
                 userId: user?.id ?? null,
             })
+            // Restore the tagged character names verbatim.
+            let sanitizedText = result.sanitized
+            for (const { token, original } of restoreMentions) {
+                sanitizedText = sanitizedText.split(token).join(original)
+            }
             if (result.aliases.length) {
                 setPrivacyAliases(result.aliases)
             }
@@ -7147,7 +7185,7 @@ export default function ChatSession({
             const userMessage: ChatMessage = {
                 id: userMessageId,
                 role: "user",
-                text: result.sanitized,
+                text: sanitizedText,
                 isSanitizing: false,
                 originContextSnapshot:
                     options.originContextSnapshot !== undefined
