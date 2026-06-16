@@ -168,7 +168,6 @@ export type ChatMessage = {
         | "paywall"
         | "oracle"
         | "synastry"
-        | "synastry-intake"
     /**
      * Streamed oracle-mode reading. Populated on assistant messages
      * with `variant === "oracle"`. The renderer is `OracleHero`.
@@ -176,10 +175,6 @@ export type ChatMessage = {
     oracleReading?: import("@/lib/chat/oracle-reading-schema").StreamingOracleReading | null
     /** Synastry compatibility result. Populated when variant === "synastry". */
     synastryReading?: import("@/lib/chat/synastry-schema").SynastryReadingPayload | null
-    /** Other person's name to prefill the synastry intake card (variant === "synastry-intake"). */
-    synastryPersonName?: string | null
-    /** The question that triggered synastry, carried from the intake card into the reading. */
-    synastryQuestion?: string | null
     /**
      * Reply strategy resolved by /api/horoscope/extract. Drives which
      * downstream route renders the reading and which tabs the
@@ -372,8 +367,14 @@ export type ChatDecision = {
      * reflection, no support block).
      */
     conversational?: boolean
-    /** When type === "synastry": the other person's name, to prefill the intake card. */
+    /** When type === "synastry": the other person's name, if referenced. */
     synastryPersonName?: string
+    /** When type === "synastry": the other person's birth date, if given in the question. */
+    synastryPersonBirthDate?: {
+        day: number | null
+        month: number | null
+        year: number | null
+    } | null
 }
 
 /**

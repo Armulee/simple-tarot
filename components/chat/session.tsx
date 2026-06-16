@@ -5722,12 +5722,25 @@ export default function ChatSession({
                 }
 
                 if (nextDecision.type === "synastry") {
-                    await runSynastryFlow(
-                        assistantLoadingId,
+                    const personB = resolveSynastryPersonB(
                         trimmed,
                         nextDecision,
                     )
-                    return
+                    if (personB) {
+                        await runSynastryReading(
+                            assistantLoadingId,
+                            trimmed,
+                            personB,
+                        )
+                        return
+                    }
+                    // Other person has only a name (no birth data) — not a
+                    // synastry case; fall back to a normal tarot draw.
+                    nextDecision = {
+                        ...nextDecision,
+                        type: "draw",
+                        spreadType: nextDecision.spreadType ?? "general",
+                    }
                 }
 
                 const supportBlock = buildSupportBlockFromDecision(
@@ -6442,20 +6455,20 @@ export default function ChatSession({
         [mapUserBirthToSynastry, locale, tSynastry],
     )
 
-    // Resolve the other person (person B): a mentioned character with birth
-    // data runs immediately; otherwise show the intake card to collect it.
-    const runSynastryFlow = useCallback(
-        async (
-            assistantLoadingId: string,
+    // Resolve the other person (person B): a mentioned character's birth data,
+    // or a birth date the classifier pulled from the question. Returns null
+    // when only a name is known — that is not a synastry case.
+    const resolveSynastryPersonB = useCallback(
+        (
             question: string,
             decision: ChatDecision,
-        ) => {
+        ): SynastryPersonBirth | null => {
             const charB = extractMentionedCharacters(
                 question,
                 ownedCharactersRef.current,
             )[0]
             if (charB) {
-                await runSynastryReading(assistantLoadingId, question, {
+                return {
                     name: charB.name,
                     day: charB.birthDay,
                     month: charB.birthMonth,
@@ -6467,39 +6480,27 @@ export default function ChatSession({
                     lat: charB.lat,
                     lng: charB.lng,
                     timezone: charB.timezone,
-                })
-                return
+                }
             }
-            setConsulting(false)
-            setMessages((prev) =>
-                prev.map((m) =>
-                    m.id === assistantLoadingId
-                        ? {
-                              ...m,
-                              text: "",
-                              variant: "synastry-intake" as const,
-                              synastryPersonName:
-                                  decision.synastryPersonName ?? null,
-                              synastryQuestion: question,
-                              isLoading: false,
-                              streamStopped: false,
-                          }
-                        : m,
-                ),
-            )
-            consultingLoadingIdRef.current = null
+            const dob = decision.synastryPersonBirthDate
+            if (dob && dob.day && dob.month && dob.year) {
+                return {
+                    name: decision.synastryPersonName ?? null,
+                    day: dob.day,
+                    month: dob.month,
+                    year: dob.year,
+                    hour: null,
+                    minute: null,
+                    country: null,
+                    state: null,
+                    lat: null,
+                    lng: null,
+                    timezone: null,
+                }
+            }
+            return null
         },
-        [runSynastryReading],
-    )
-
-    // Submit handler for the inline synastry intake card.
-    const handleSynastryIntakeSubmit = useCallback(
-        (messageId: string, personB: SynastryPersonBirth) => {
-            const target = messages.find((m) => m.id === messageId)
-            const question = target?.synastryQuestion ?? lastQuestion ?? ""
-            void runSynastryReading(messageId, question, personB)
-        },
-        [messages, lastQuestion, runSynastryReading],
+        [],
     )
 
     const startDecisionFlow = useCallback(
@@ -6695,12 +6696,25 @@ export default function ChatSession({
                 }
 
                 if (nextDecision.type === "synastry") {
-                    await runSynastryFlow(
-                        assistantLoadingId,
+                    const personB = resolveSynastryPersonB(
                         trimmed,
                         nextDecision,
                     )
-                    return
+                    if (personB) {
+                        await runSynastryReading(
+                            assistantLoadingId,
+                            trimmed,
+                            personB,
+                        )
+                        return
+                    }
+                    // Other person has only a name (no birth data) — not a
+                    // synastry case; fall back to a normal tarot draw.
+                    nextDecision = {
+                        ...nextDecision,
+                        type: "draw",
+                        spreadType: nextDecision.spreadType ?? "general",
+                    }
                 }
 
                 const supportBlock = buildSupportBlockFromDecision(
@@ -8016,7 +8030,6 @@ export default function ChatSession({
                 assistantReactions={assistantReactions}
                 messageNotices={messageNotices}
                 isHoroscopeIntakeActive={isHoroscopeIntakeActive}
-                onSynastryIntakeSubmit={handleSynastryIntakeSubmit}
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}

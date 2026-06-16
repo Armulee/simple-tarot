@@ -110,6 +110,17 @@ export const chatDecisionSchema = z.object({
         .describe(
             "Only for synastry. The other person's name/handle as referenced in the question (e.g. 'Alex', the name inside an @mention). Omit if the other person was given only by birth date with no name.",
         ),
+    synastryPersonBirthDate: z
+        .object({
+            day: z.number().int().min(1).max(31).nullable(),
+            month: z.number().int().min(1).max(12).nullable(),
+            year: z.number().int().min(1).max(3000).nullable(),
+        })
+        .nullable()
+        .optional()
+        .describe(
+            "Only for synastry. The other person's birth date when it appears in the question (convert Buddhist Era years to Gregorian, e.g. 2545 -> 2002). Omit/null when no date is given.",
+        ),
 })
 
 export type ChatDecisionSchema = z.infer<typeof chatDecisionSchema>

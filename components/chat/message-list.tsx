@@ -24,8 +24,6 @@ import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
 import SynastryReading from "@/components/chat/synastry-reading"
-import SynastryIntakeCard from "@/components/chat/synastry-intake-card"
-import type { SynastryPersonBirth } from "@/lib/chat/synastry-schema"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
 import {
     TarotAssistantInterpretation,
@@ -247,10 +245,6 @@ type MessageListProps = {
     assistantReactions: Record<string, "like" | "dislike" | null>
     messageNotices: Record<string, string>
     isHoroscopeIntakeActive?: boolean
-    onSynastryIntakeSubmit?: (
-        messageId: string,
-        personB: SynastryPersonBirth,
-    ) => void
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -373,7 +367,6 @@ export default function MessageList({
     onCancelEdit,
     onSendEditAt,
     onCalendarChipClick,
-    onSynastryIntakeSubmit,
     onCalendarSelectionChange,
     calendarToolResetSignal,
     onAskAspectDetail,
@@ -803,21 +796,6 @@ export default function MessageList({
                                         )}
                                     </div>
                                 ) : null}
-                                {message.variant === "synastry-intake" ? (
-                                    <div className='w-full md:max-w-[85%]'>
-                                        <SynastryIntakeCard
-                                            initialName={
-                                                message.synastryPersonName
-                                            }
-                                            onSubmit={(personB) =>
-                                                onSynastryIntakeSubmit?.(
-                                                    message.id,
-                                                    personB,
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                ) : null}
                                 {message.variant === "horoscope-calendar" ? (
                                     <div className='w-full md:max-w-[85%]'>
                                         <HoroscopeCalendarTool
@@ -848,9 +826,8 @@ export default function MessageList({
                                     </div>
                                 ) : message.variant === "box" ||
                                   message.variant === "oracle" ||
-                                  message.variant === "synastry" ||
                                   message.variant ===
-                                      "synastry-intake" ? null : message.variant ===
+                                      "synastry" ? null : message.variant ===
                                   "horoscope" ? (
                                     <>
                                         {message.sourceAspectEvent && (

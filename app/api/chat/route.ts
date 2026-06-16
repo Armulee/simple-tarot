@@ -55,6 +55,7 @@ synastry
 - relationship COMPATIBILITY between the asker and ONE other specific person: "are we compatible?", "will it work out with @Name?", "do my partner and I match?", "เราสองคนเข้ากันไหม", "ฉันกับ @คน จะไปกันรอดไหม", "ดวงเนื้อคู่"
 - the question compares the asker to a SPECIFIC other person — named, @mentioned, a relationship word (partner, boyfriend, girlfriend, husband, wife, crush, แฟน, สามี, ภรรยา), or given by birth date — NOT a generic "will I find love" (that's draw) and NOT a solo timing question (that's horoscope)
 - set synastryPersonName to the other person's name/handle when one is present (e.g. the name inside an @mention); omit it when only a birth date is given
+- set synastryPersonBirthDate (day/month/year) when the question gives the other person's birth date (convert Buddhist Era years to Gregorian); omit when no date is given
 - DO NOT use synastry for: "will I find love?" (draw), "how is my love life this month?" (horoscope), "what does the Lovers card mean?" (chat)
 
 support
