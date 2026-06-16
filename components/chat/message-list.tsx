@@ -18,7 +18,8 @@ import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import { DynamicThinking } from "@/components/chat/dynamic-thinking"
-import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
+import MentionTextarea from "@/components/chat/mention-textarea"
+import { CharacterMentionProvider } from "@/components/chat/character-mention-context"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
@@ -565,14 +566,14 @@ export default function MessageList({
                                     ) : null}
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                         {isEditing ? (
+                                            <CharacterMentionProvider
+                                                value={editingDraft}
+                                                onChange={setEditingDraft}
+                                            >
                                             <div className='relative'>
-                                                <AutoHeightTextarea
+                                                <MentionTextarea
                                                     value={editingDraft}
-                                                    onChange={(e) =>
-                                                        setEditingDraft(
-                                                            e.target.value,
-                                                        )
-                                                    }
+                                                    onChange={setEditingDraft}
                                                     onKeyDown={(e) => {
                                                         if (e.key !== "Enter")
                                                             return
@@ -588,9 +589,9 @@ export default function MessageList({
                                                             messageIndex,
                                                         )
                                                     }}
-                                                    className='w-full bg-transparent text-white placeholder:text-white/60 outline-none border border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/30 rounded-xl px-3 py-2 pr-12'
                                                     placeholder='Edit your message...'
-                                                    disabled={isChatLoading}
+                                                    interpretationMode='auto'
+                                                    appearance='bare'
                                                 />
                                                 <div className='mt-2 flex items-center justify-end gap-2'>
                                                     <button
@@ -620,6 +621,7 @@ export default function MessageList({
                                                     </button>
                                                 </div>
                                             </div>
+                                            </CharacterMentionProvider>
                                         ) : message.privacyRedacted &&
                                           typeof displayText === "string" &&
                                           displayText.length > 0 &&

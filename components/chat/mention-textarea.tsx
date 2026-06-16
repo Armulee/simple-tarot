@@ -31,6 +31,7 @@ import type { Character } from "@/types/character"
 // Padding + type ramp shared by the textarea and its highlight backdrop. They
 // MUST match exactly so the pink highlight lines up with the typed text.
 const TEXT_BOX = "pl-4 pr-15 py-2 text-base md:text-sm leading-6"
+const BARE_TEXT_BOX = "pl-3 pr-3 py-2 text-base md:text-sm leading-6"
 
 type MentionTextareaProps = {
     id?: string
@@ -39,6 +40,8 @@ type MentionTextareaProps = {
     onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
     placeholder?: string
     interpretationMode: InterpretationMode
+    /** "composer" = full gradient composer look; "bare" = lightweight, for the edit field. */
+    appearance?: "composer" | "bare"
 }
 
 /**
@@ -54,6 +57,7 @@ export default function MentionTextarea({
     onKeyDown,
     placeholder,
     interpretationMode,
+    appearance = "composer",
 }: MentionTextareaProps) {
     const t = useTranslations("Character")
     const { characters, isPaid, textareaRef, replaceActiveMention, openPaywall, openAddForm } =
@@ -66,6 +70,12 @@ export default function MentionTextarea({
 
     const border = INPUT_BORDER_BY_MODE[interpretationMode]
     const glow = INPUT_GLOW_BY_MODE[interpretationMode]
+    const isBare = appearance === "bare"
+    const textBox = isBare ? BARE_TEXT_BOX : TEXT_BOX
+    const roundedClass = isBare ? "rounded-xl" : "rounded-2xl"
+    const wrapperClass = isBare
+        ? "relative w-full rounded-xl border border-white/10 bg-transparent transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/30"
+        : `relative w-full rounded-2xl border bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl ${border} ${glow} transition-[border-color,box-shadow] duration-500 focus-within:ring-2 focus-within:ring-white/15`
 
     const ranges = useMemo(
         () => findMentionRanges(value, characters),
@@ -181,13 +191,11 @@ export default function MentionTextarea({
             }}
         >
             <PopoverAnchor asChild>
-                <div
-                    className={`relative w-full rounded-2xl border bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl ${border} ${glow} transition-[border-color,box-shadow] duration-500 focus-within:ring-2 focus-within:ring-white/15`}
-                >
+                <div className={wrapperClass}>
                     <div
                         ref={backdropRef}
                         aria-hidden
-                        className={`pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words rounded-2xl text-left text-transparent ${TEXT_BOX}`}
+                        className={`pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words text-left text-transparent ${roundedClass} ${textBox}`}
                     >
                         {segments.map((seg, i) =>
                             seg.mention ? (
@@ -218,7 +226,7 @@ export default function MentionTextarea({
                         onScroll={syncScroll}
                         placeholder={placeholder}
                         rows={1}
-                        className={`relative z-10 block w-full resize-none bg-transparent text-left text-white caret-white placeholder:text-white/70 outline-none min-h-[40px] max-h-[200px] overflow-y-auto overflow-x-hidden scrollbar-hide ${TEXT_BOX}`}
+                        className={`relative z-10 block w-full resize-none bg-transparent text-left text-white caret-white placeholder:text-white/70 outline-none min-h-[40px] max-h-[200px] overflow-y-auto overflow-x-hidden scrollbar-hide ${textBox}`}
                     />
                 </div>
             </PopoverAnchor>
