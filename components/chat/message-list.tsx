@@ -25,6 +25,8 @@ import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
 import SynastryReading from "@/components/chat/synastry-reading"
+import { CharacterMentionText } from "@/components/chat/character-mention-text"
+import type { Character } from "@/types/character"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
 import {
     TarotAssistantInterpretation,
@@ -246,6 +248,8 @@ type MessageListProps = {
     assistantReactions: Record<string, "like" | "dislike" | null>
     messageNotices: Record<string, string>
     isHoroscopeIntakeActive?: boolean
+    /** The user's saved characters, for highlighting @mentions in sent messages. */
+    characters?: Character[]
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -368,6 +372,7 @@ export default function MessageList({
     onCancelEdit,
     onSendEditAt,
     onCalendarChipClick,
+    characters,
     onCalendarSelectionChange,
     calendarToolResetSignal,
     onAskAspectDetail,
@@ -634,7 +639,10 @@ export default function MessageList({
                                                 aliases={privacyAliases}
                                             />
                                         ) : (
-                                            displayText
+                                            <CharacterMentionText
+                                                text={displayText}
+                                                characters={characters ?? []}
+                                            />
                                         )}
                                     </div>
                                     {message.privacyRedacted ? (

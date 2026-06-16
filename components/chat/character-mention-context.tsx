@@ -96,10 +96,13 @@ export function CharacterMentionProvider({
     const insertMention = useCallback(
         (character: Character) => {
             const el = textareaRef.current
-            const mention = `@${character.name} `
             const start = el?.selectionStart ?? value.length
             const end = el?.selectionEnd ?? value.length
-            applyInsert(start, end, mention)
+            // Keep the mention a separate word: add a leading space when the
+            // preceding character isn't whitespace (and a trailing space).
+            const prevChar = value.slice(0, start).slice(-1)
+            const lead = prevChar !== "" && !/\s/.test(prevChar) ? " " : ""
+            applyInsert(start, end, `${lead}@${character.name} `)
         },
         [applyInsert, value],
     )
@@ -108,8 +111,9 @@ export function CharacterMentionProvider({
         (character: Character, queryStart: number) => {
             const el = textareaRef.current
             const caret = el?.selectionStart ?? value.length
-            const mention = `@${character.name} `
-            applyInsert(queryStart, caret, mention)
+            const prevChar = value.slice(0, queryStart).slice(-1)
+            const lead = prevChar !== "" && !/\s/.test(prevChar) ? " " : ""
+            applyInsert(queryStart, caret, `${lead}@${character.name} `)
         },
         [applyInsert, value],
     )

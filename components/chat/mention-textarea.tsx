@@ -201,11 +201,11 @@ export default function MentionTextarea({
                             seg.mention ? (
                                 <mark
                                     key={i}
-                                    className='relative rounded bg-pink-500/30 pl-[1.15rem] pr-1 -ml-[1.15rem] -mr-1 text-transparent box-decoration-clone'
+                                    className='relative rounded bg-pink-500/30 pl-[0.85rem] pr-1 -ml-[0.85rem] -mr-1 text-transparent box-decoration-clone'
                                 >
                                     <UserRound
                                         aria-hidden
-                                        className='absolute left-1 top-1/2 size-3 -translate-y-1/2 text-pink-200'
+                                        className='absolute left-[0.1rem] top-1/2 size-3 -translate-y-1/2 text-pink-200'
                                     />
                                     {seg.text}
                                 </mark>

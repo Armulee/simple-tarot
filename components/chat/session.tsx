@@ -8068,6 +8068,7 @@ export default function ChatSession({
                 assistantReactions={assistantReactions}
                 messageNotices={messageNotices}
                 isHoroscopeIntakeActive={isHoroscopeIntakeActive}
+                characters={ownedCharacters}
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}
