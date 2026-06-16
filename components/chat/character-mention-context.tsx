@@ -101,7 +101,7 @@ export function CharacterMentionProvider({
             // Keep the mention a separate word: add a leading space when the
             // preceding character isn't whitespace (and a trailing space).
             const prevChar = value.slice(0, start).slice(-1)
-            const lead = prevChar !== "" && !/\s/.test(prevChar) ? " " : ""
+            const lead = prevChar === "" || !/\s/.test(prevChar) ? " " : ""
             applyInsert(start, end, `${lead}@${character.name} `)
         },
         [applyInsert, value],
@@ -112,7 +112,7 @@ export function CharacterMentionProvider({
             const el = textareaRef.current
             const caret = el?.selectionStart ?? value.length
             const prevChar = value.slice(0, queryStart).slice(-1)
-            const lead = prevChar !== "" && !/\s/.test(prevChar) ? " " : ""
+            const lead = prevChar === "" || !/\s/.test(prevChar) ? " " : ""
             applyInsert(queryStart, caret, `${lead}@${character.name} `)
         },
         [applyInsert, value],

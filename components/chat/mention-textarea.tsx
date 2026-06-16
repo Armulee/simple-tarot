@@ -22,7 +22,6 @@ import {
 import {
     findMentionRanges,
     getActiveMentionQuery,
-    splitIntoMentionSegments,
     type ActiveMentionQuery,
 } from "@/lib/chat/character-mentions"
 import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
@@ -81,10 +80,34 @@ export default function MentionTextarea({
         () => findMentionRanges(value, characters),
         [value, characters],
     )
-    const segments = useMemo(
-        () => splitIntoMentionSegments(value, ranges),
-        [value, ranges],
-    )
+    // Display segments where each mention absorbs one leading space (if any),
+    // shown as an icon slot so the icon sits over that space. This keeps the
+    // typed text/caret aligned and keeps the box within the input's padding
+    // (no negative margin pulling the icon into the left padding).
+    const displaySegments = useMemo(() => {
+        const out: Array<
+            | { kind: "text"; text: string }
+            | { kind: "mention"; name: string; lead: boolean }
+        > = []
+        let pos = 0
+        for (const r of ranges) {
+            const lead = r.start > 0 && value[r.start - 1] === " "
+            const plainEnd = lead ? r.start - 1 : r.start
+            if (plainEnd > pos) {
+                out.push({ kind: "text", text: value.slice(pos, plainEnd) })
+            }
+            out.push({
+                kind: "mention",
+                name: value.slice(r.start, r.end),
+                lead,
+            })
+            pos = r.end
+        }
+        if (pos < value.length) {
+            out.push({ kind: "text", text: value.slice(pos) })
+        }
+        return out
+    }, [value, ranges])
 
     const filtered = useMemo(() => {
         if (!activeQuery) return []
@@ -197,17 +220,22 @@ export default function MentionTextarea({
                         aria-hidden
                         className={`pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words text-left text-transparent ${roundedClass} ${textBox}`}
                     >
-                        {segments.map((seg, i) =>
-                            seg.mention ? (
+                        {displaySegments.map((seg, i) =>
+                            seg.kind === "mention" ? (
                                 <mark
                                     key={i}
-                                    className='relative rounded bg-pink-500/30 pl-[0.85rem] pr-1 -ml-[0.85rem] -mr-1 text-transparent box-decoration-clone'
+                                    className='rounded bg-pink-500/30 text-transparent box-decoration-clone'
                                 >
-                                    <UserRound
-                                        aria-hidden
-                                        className='absolute left-[0.1rem] top-1/2 size-3 -translate-y-1/2 text-pink-200'
-                                    />
-                                    {seg.text}
+                                    {seg.lead ? (
+                                        <span className='relative inline-block'>
+                                            {" "}
+                                            <UserRound
+                                                aria-hidden
+                                                className='absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 text-pink-200'
+                                            />
+                                        </span>
+                                    ) : null}
+                                    {seg.name}
                                 </mark>
                             ) : (
                                 <span key={i}>{seg.text}</span>
