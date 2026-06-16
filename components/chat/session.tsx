@@ -7133,6 +7133,9 @@ export default function ChatSession({
                 originContextSnapshot?: OriginContext | null
             } = {},
         ) => {
+            // The composer uses an em space as the mention's icon slot; store
+            // and send a normal space instead so persisted/AI text stays clean.
+            rawValue = rawValue.split(String.fromCodePoint(0x2003)).join(" ")
             // Protect known @character mentions so PII sanitization never
             // redacts a character the user explicitly tagged (and so the
             // mention survives verbatim for downstream synastry/mention

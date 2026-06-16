@@ -20,6 +20,8 @@ export function CharacterMentionText({
     text: string
     characters: Character[]
 }) {
+    // Normalize the composer's em-space mention slot to a regular space.
+    text = text.split(String.fromCodePoint(0x2003)).join(" ")
     const ranges = findMentionRanges(text, characters)
     if (ranges.length === 0) return <>{text}</>
     const segments = splitIntoMentionSegments(text, ranges)

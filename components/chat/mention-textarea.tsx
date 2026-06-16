@@ -87,19 +87,20 @@ export default function MentionTextarea({
     const displaySegments = useMemo(() => {
         const out: Array<
             | { kind: "text"; text: string }
-            | { kind: "mention"; name: string; lead: boolean }
+            | { kind: "mention"; name: string; leadChar: string }
         > = []
         let pos = 0
         for (const r of ranges) {
-            const lead = r.start > 0 && value[r.start - 1] === " "
-            const plainEnd = lead ? r.start - 1 : r.start
+            const before = r.start > 0 ? value[r.start - 1] : ""
+            const hasLead = /\s/.test(before)
+            const plainEnd = hasLead ? r.start - 1 : r.start
             if (plainEnd > pos) {
                 out.push({ kind: "text", text: value.slice(pos, plainEnd) })
             }
             out.push({
                 kind: "mention",
                 name: value.slice(r.start, r.end),
-                lead,
+                leadChar: hasLead ? before : "",
             })
             pos = r.end
         }
@@ -226,9 +227,9 @@ export default function MentionTextarea({
                                     key={i}
                                     className='rounded bg-pink-500/30 text-transparent box-decoration-clone'
                                 >
-                                    {seg.lead ? (
+                                    {seg.leadChar ? (
                                         <span className='relative inline-block'>
-                                            {" "}
+                                            {seg.leadChar}
                                             <UserRound
                                                 aria-hidden
                                                 className='absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 text-pink-200'
