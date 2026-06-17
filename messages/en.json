@@ -259,6 +259,7 @@
     "tarot": "Tarot",
     "birthChart": "Birth Chart",
     "astrology": "Astrology",
+    "lifeMonitor": "Life Monitor",
     "namelogy": "Namelogy",
     "numerology": "Numerology",
     "luckyColors": "Lucky Colors",
@@ -644,6 +645,35 @@
     "analyzing": "Reading…",
     "needYourBirth": "Add your own birth details first to read compatibility.",
     "error": "Couldn't read your compatibility. Please try again."
+  },
+  "LifeMonitor": {
+    "title": "Life Monitor",
+    "subtitle": "Your cosmic weather, right now",
+    "you": "You",
+    "score": "Score",
+    "loading": "Reading the current sky…",
+    "error": "Couldn't load the monitor.",
+    "retry": "Try again",
+    "refresh": "Refresh",
+    "approxNote": "Birth time unknown — this is a broad outlook.",
+    "signInTitle": "Sign in to view your monitor",
+    "signInBody": "Your life monitor reads your birth chart against today's transits.",
+    "signInCta": "Sign in",
+    "noBirthTitle": "Set up your birth chart",
+    "noBirthBody": "Add your birth details so we can read your transits.",
+    "noBirthCta": "Add birth details",
+    "supportTitle": "How to be there for them",
+    "characterDisclaimer": "A reflection of cosmic energy, not facts about another person.",
+    "mood": { "bright": "Bright", "mixed": "Mixed", "tough": "Demanding" },
+    "areas": {
+      "mood": "Mood",
+      "love": "Love",
+      "career": "Career",
+      "money": "Money",
+      "health": "Health",
+      "growth": "Growth",
+      "social": "Social"
+    }
   },
   "InterpretationMode": {
     "auto": "Auto",
