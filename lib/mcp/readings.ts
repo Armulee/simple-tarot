@@ -1,95 +1,42 @@
-import { pickRandomCards } from "@/lib/tarot/pick-random-cards"
-import { TAROT_CARDS } from "@/lib/tarot/cards"
+import {
+    generateTarotReading as engineGenerateTarotReading,
+    interpretWithAI,
+    type DrawnCard,
+    type TarotSpread,
+} from "@/lib/tarot"
 
 /**
  * Reading generators for the MCP tools.
  *
- * Default behaviour (per the brief, Task 3): return the drawn cards together
- * with their meanings as structured text and let the *calling* Claude narrate
- * in its own voice. `lib/tarot.ts`'s `interpretWithAI()` / the existing
- * `/api/interpret-cards` engine can be wired in later for AskingFate's own
- * voice — that deepening lands in Task 3.
+ * Tarot delegates to the canonical engine in `lib/tarot.ts` (Task 3).
+ * Default behaviour: return drawn cards + meanings as structured text and let
+ * the *calling* Claude narrate. Pass `narrate: true` to use AskingFate's own
+ * voice via `interpretWithAI()`.
  */
 
-export type TarotSpread = "single" | "three_card" | "celtic_cross"
+export type { TarotSpread } from "@/lib/tarot"
+export const TAROT_SPREADS: TarotSpread[] = ["single", "three_card", "celtic_cross"]
 
-export const TAROT_SPREADS: TarotSpread[] = [
-    "single",
-    "three_card",
-    "celtic_cross",
-]
-
-const SPREAD_SIZE: Record<TarotSpread, number> = {
-    single: 1,
-    three_card: 3,
-    celtic_cross: 10,
-}
-
-const SPREAD_POSITIONS: Record<TarotSpread, string[]> = {
-    single: ["Focus"],
-    three_card: ["Past", "Present", "Future"],
-    celtic_cross: [
-        "The Present",
-        "The Challenge",
-        "The Past",
-        "The Future",
-        "Above (Goal)",
-        "Below (Subconscious)",
-        "Advice",
-        "External Influences",
-        "Hopes & Fears",
-        "Outcome",
-    ],
-}
-
-const CARD_BY_NAME = new Map(TAROT_CARDS.map((c) => [c.name, c]))
-
-export type DrawnCard = { name: string; reversed: boolean }
-
-/**
- * Build a structured-text tarot reading. If `cards` are supplied (e.g. posted
- * back from the card-picker widget) they are used as-is; otherwise the spread
- * is drawn from the shared 78-card deck.
- */
-export function generateTarotReading(opts: {
+export async function generateTarotReading(opts: {
+    userId?: string
     question: string
     spread: TarotSpread
-    cards?: DrawnCard[]
-}): string {
-    const { question, spread } = opts
-    const positions = SPREAD_POSITIONS[spread]
-    const size = SPREAD_SIZE[spread]
+    cards?: { name: string; reversed: boolean }[]
+    narrate?: boolean
+}): Promise<string> {
+    const { cards, text } = engineGenerateTarotReading(opts)
+    if (!opts.narrate) return text
 
-    const drawn: DrawnCard[] =
-        opts.cards && opts.cards.length > 0
-            ? opts.cards.slice(0, size)
-            : pickRandomCards(size).map((c) => ({
-                  name: c.name,
-                  reversed: c.isReversed,
-              }))
-
-    const lines = drawn.map((card, i) => {
-        const meta = CARD_BY_NAME.get(card.name)
-        const position = positions[i] ?? `Card ${i + 1}`
-        const orientation = card.reversed ? "Reversed" : "Upright"
-        const keywords = meta
-            ? (card.reversed
-                  ? meta.reversedKeywords
-                  : meta.uprightKeywords
-              ).join(", ")
-            : "—"
-        return `${i + 1}. ${position}: ${card.name} (${orientation})\n   Keywords: ${keywords}`
-    })
-
-    return [
-        `Tarot reading — ${spread.replace("_", " ")} spread`,
-        `Question: ${question}`,
-        "",
-        "Cards drawn:",
-        ...lines,
-        "",
-        "Use these cards, their positions and keywords to narrate a cohesive reading for the user's question.",
-    ].join("\n")
+    try {
+        const narrated = await interpretWithAI({
+            question: opts.question,
+            cards: cards as DrawnCard[],
+        })
+        return narrated || text
+    } catch {
+        // Fall back to structured text if the AI engine is unavailable.
+        return text
+    }
 }
 
 /**

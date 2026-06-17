@@ -17,7 +17,8 @@ export class OutOfCreditsError extends Error {
  * Reuses the existing `star_spend` Postgres RPC — an atomic
  * check-and-decrement, so concurrent calls can't overspend (Task 4). Throws
  * `OutOfCreditsError` when the balance is insufficient; nothing is deducted in
- * that case.
+ * that case. A clearly-named `consume_credits(user, cost)` wrapper over the
+ * same logic is available in database-mcp-consume-credits.sql.
  */
 export async function consumeCredits(
     userId: string,
