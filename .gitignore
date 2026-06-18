@@ -20,6 +20,9 @@
 # production
 /build
 
+# MCP widget build output (the generated lib/mcp/card-picker-html.ts is committed)
+/widget/dist
+
 # misc
 .DS_Store
 *.pem
