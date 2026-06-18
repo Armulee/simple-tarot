@@ -64,24 +64,34 @@ routes consume it (replacing the old per-route `detectQuestionLanguage` copies):
 
 ## Translation status (machine translation — needs native review)
 
-All locale files are **structurally complete** (no missing keys), so the build
-and runtime are unaffected. Translation completeness of the newly added locales:
+All locale files are **structurally complete** (no missing keys). Approximate
+translation coverage of the newly added locales (remaining % are values that are
+intentionally identical to English — brand name, social-platform names, URLs,
+plan names, format placeholders):
 
-| Locale  | Status                                            |
-| ------- | ------------------------------------------------- |
-| `zh-TW` | ~98% translated                                   |
-| `ko`    | ~97% translated                                   |
-| `es`    | ~97% translated                                   |
-| `id`    | ~94% translated                                   |
-| `my`    | ~58% translated (rest English fallback)           |
-| `ja`    | ~51% translated (rest English fallback)           |
-| `zh-CN` | English placeholder — translation pending         |
-| `pt-BR` | English placeholder — translation pending         |
+| Locale  | Coverage |
+| ------- | -------- |
+| `zh-CN` | ~99%     |
+| `zh-TW` | ~99%     |
+| `ja`    | ~98%     |
+| `ko`    | ~98%     |
+| `es`    | ~97%     |
+| `pt-BR` | ~97%     |
+| `my`    | ~97%     |
+| `id`    | ~95%     |
 
-`zh-CN`, `pt-BR`, and the remaining portions of `ja` / `my` were cut off by a
-generation usage limit and still need completion. Re-run the translation pass for
-those keys, then `npm run verify:i18n`. **All machine translations should get a
-native-speaker review**, especially Burmese (`my`) which is lower-resource.
+Check coverage anytime with `node scripts/i18n-coverage.js <locale>` (add
+`--list` to print untranslated key paths, `--json` to dump them).
+
+**All machine translations should get a native-speaker review**, especially:
+- Burmese (`my`) — lower-resource; the long-form BirthChart astrology prose and
+  Vedic/Western dignity & aspect terms in particular.
+- The condensed/templated `BirthChart.planetInHouse.*` / `planetInSign.*` strings
+  in `zh-CN` (and other locales) — accurate but more concise than the English.
+- The legal/consent blocks (`StarConsent.modal.liabilityBody`, `religiousBody`)
+  in every locale — formal/juridical register.
+- Astrology vocabulary (Rahu/Ketu, exalted/debilitated/retrograde, aspect names)
+  which varies by community in several languages.
 
 Card-draw microcopy in `components/chat/card-ui.ts` (`CARD_UI_TEXT`) is still only
 defined for `en` / `th` / `lo`; other locales fall back to English there. That is a
