@@ -17,7 +17,7 @@ import {
 import { useStarConsent } from "@/components/star-consent"
 import {
     detectInputLanguage,
-    isSupportedLocale,
+    resolveSessionLocale,
 } from "@/lib/detect-input-language"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
 import {
@@ -275,10 +275,7 @@ export default function Home() {
             linkingAbortControllerRef.current = null
             pendingSessionIdRef.current = null
             const detectedLocale = detectInputLanguage(trimmed)
-            const targetLocale =
-                detectedLocale && isSupportedLocale(detectedLocale)
-                    ? detectedLocale
-                    : locale
+            const targetLocale = resolveSessionLocale(detectedLocale, locale)
             try {
                 router.prefetch(`/${targetLocale}/${payload.id}`)
             } catch {}

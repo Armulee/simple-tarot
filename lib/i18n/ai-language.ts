@@ -32,19 +32,35 @@ export const LOCALE_TO_AI_LANGUAGE: Record<string, string> = {
 const DEFAULT_AI_LANGUAGE = "English"
 
 /**
- * Detect the primary language of a piece of text by script. Used only as a
- * fallback when no locale is provided. Cannot distinguish Simplified vs
- * Traditional Chinese (use the locale for that).
+ * Detect a distinctive (non-Latin) script in `text` and return its language
+ * name, or null when the script is Latin / ambiguous / too short. Uses a small
+ * ratio threshold so a stray foreign character doesn't flip the result.
+ *
+ * Cannot distinguish Simplified vs Traditional Chinese — returns the generic
+ * "Chinese"; callers use the locale to pick the variant.
+ */
+function detectScriptLanguage(text: string): string | null {
+    const trimmed = (text ?? "").trim()
+    const letters = trimmed.replace(/\s/g, "").length
+    if (letters < 2) return null
+    const ratio = (re: RegExp) => (trimmed.match(re) ?? []).length / letters
+
+    if (ratio(/[຀-໿]/g) > 0.1) return "Lao"
+    if (ratio(/[฀-๿]/g) > 0.1) return "Thai"
+    if (ratio(/[က-႟]/g) > 0.1) return "Burmese (Myanmar)"
+    if (ratio(/[가-힯]/g) > 0.1) return "Korean"
+    if (ratio(/[぀-ヿ]/g) > 0.1) return "Japanese"
+    if (ratio(/[一-鿿]/g) > 0.1) return "Chinese"
+    if (ratio(/[Ѐ-ӿ]/g) > 0.1) return "Russian"
+    return null
+}
+
+/**
+ * Detect the primary language of a piece of text by script. Used as a fallback
+ * when no locale is provided. Defaults to English for Latin/ambiguous input.
  */
 export function detectQuestionLanguage(text: string): string {
-    if (/[က-႟]/.test(text)) return "Burmese (Myanmar)"
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[぀-ヿ]/.test(text)) return "Japanese"
-    if (/[一-鿿]/.test(text)) return "Chinese"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return DEFAULT_AI_LANGUAGE
+    return detectScriptLanguage(text) ?? DEFAULT_AI_LANGUAGE
 }
 
 /**
@@ -70,17 +86,39 @@ function normalizeLocaleKey(locale: string | null | undefined): string | null {
 }
 
 /**
- * Resolve the language the AI should respond in. Prefers the explicit UI
- * locale; falls back to detecting the script of the user's text.
+ * Resolve the language the AI should respond in.
+ *
+ * Precedence:
+ * 1. If the user wrote in a distinctive non-Latin script (Thai, Lao, Burmese,
+ *    Japanese, Korean, Chinese), honor what they actually typed — even if the UI
+ *    locale differs — so a Japanese question never gets an English answer.
+ *    For Chinese, keep the locale's Simplified/Traditional variant when set.
+ * 2. Otherwise (Latin / ambiguous text) trust the chosen UI locale, which is the
+ *    only signal that separates en / es / id / pt-BR.
+ * 3. Fall back to English.
  */
 export function resolveResponseLanguage(
     locale: string | null | undefined,
     text?: string | null,
 ): string {
     const key = normalizeLocaleKey(locale)
-    if (key) return LOCALE_TO_AI_LANGUAGE[key]
-    if (text) return detectQuestionLanguage(text)
-    return DEFAULT_AI_LANGUAGE
+    const localeLanguage = key ? LOCALE_TO_AI_LANGUAGE[key] : null
+
+    const scripted = text ? detectScriptLanguage(text) : null
+    if (scripted) {
+        if (scripted === "Chinese") {
+            if (
+                localeLanguage === "Simplified Chinese" ||
+                localeLanguage === "Traditional Chinese"
+            ) {
+                return localeLanguage
+            }
+            return "Simplified Chinese"
+        }
+        return scripted
+    }
+
+    return localeLanguage ?? DEFAULT_AI_LANGUAGE
 }
 
 /**
