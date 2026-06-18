@@ -13,6 +13,7 @@ import {
     type NatalPlacementForPrompt,
 } from "@/lib/prompts"
 import { findNextSignIngresses } from "@/lib/astrology/next-ingress"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 import {
     hydrateQuestionTimeRange,
     questionTimeRangePayloadSchema,
@@ -54,15 +55,6 @@ const MODEL = "deepseek/deepseek-v3.2"
 const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3
-
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
 
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
@@ -303,8 +295,8 @@ async function handleTimingVerdict(
     providedQuestionRange: QuestionTimeRange,
 ) {
     const chartLocale =
-        detectQuestionLanguage(body.question) === "Thai" ||
-        detectQuestionLanguage(body.question) === "Lao"
+        resolveResponseLanguage(body.locale, body.question) === "Thai" ||
+        resolveResponseLanguage(body.locale, body.question) === "Lao"
             ? "th"
             : "en"
 
@@ -411,7 +403,7 @@ async function handleTimingVerdict(
         timeStyle: "long",
         timeZone: "UTC",
     })
-    const questionLanguage = detectQuestionLanguage(body.question)
+    const questionLanguage = resolveResponseLanguage(body.locale, body.question)
 
     const prompt = getTimingVerdictPrompt({
         question: body.question,
@@ -578,8 +570,8 @@ function sanitizeTimingWindow(
 
 async function handleNatalVerdict(body: VerdictRequestBody) {
     const chartLocale =
-        detectQuestionLanguage(body.question) === "Thai" ||
-        detectQuestionLanguage(body.question) === "Lao"
+        resolveResponseLanguage(body.locale, body.question) === "Thai" ||
+        resolveResponseLanguage(body.locale, body.question) === "Lao"
             ? "th"
             : "en"
 
@@ -607,7 +599,7 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
         timeStyle: "long",
         timeZone: "UTC",
     })
-    const questionLanguage = detectQuestionLanguage(body.question)
+    const questionLanguage = resolveResponseLanguage(body.locale, body.question)
 
     const prompt = getNatalVerdictPrompt({
         question: body.question,
@@ -635,8 +627,8 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
  */
 async function handleTechnicalVerdict(body: VerdictRequestBody) {
     const chartLocale =
-        detectQuestionLanguage(body.question) === "Thai" ||
-        detectQuestionLanguage(body.question) === "Lao"
+        resolveResponseLanguage(body.locale, body.question) === "Thai" ||
+        resolveResponseLanguage(body.locale, body.question) === "Lao"
             ? "th"
             : "en"
 
@@ -702,7 +694,7 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
         timeStyle: "long",
         timeZone: "UTC",
     })
-    const questionLanguage = detectQuestionLanguage(body.question)
+    const questionLanguage = resolveResponseLanguage(body.locale, body.question)
 
     const prompt = getTechnicalVerdictPrompt({
         question: body.question,
@@ -853,7 +845,7 @@ export async function POST(req: Request) {
         const codexTransit = await codexTransitPromise
 
         const appLocale = body.locale || "en"
-        const questionLanguage = detectQuestionLanguage(body.question)
+        const questionLanguage = resolveResponseLanguage(body.locale, body.question)
         const chartLocale =
             questionLanguage === "Thai" || questionLanguage === "Lao"
                 ? "th"

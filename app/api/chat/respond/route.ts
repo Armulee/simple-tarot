@@ -4,6 +4,7 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -22,6 +23,7 @@ const requestSchema = z.object({
         .optional(),
     contextSummary: z.string().nullable().optional(),
     savedBirthInfo: z.string().nullable().optional(),
+    locale: z.string().optional(),
 })
 
 const CHAT_RESPONSE_SYSTEM_PROMPT = `
@@ -72,15 +74,6 @@ If mode is support:
   - faq: "I gathered the common answers for you below."
 `
 
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
-
 function getChatResponsePrompt({
     question,
     type,
@@ -89,6 +82,7 @@ function getChatResponsePrompt({
     history,
     contextSummary,
     savedBirthInfo,
+    locale,
 }: z.infer<typeof requestSchema>) {
     const historyText =
         history && history.length
@@ -103,7 +97,7 @@ function getChatResponsePrompt({
             ? `Session context (previous readings/interactions):\n${contextSummary.trim()}\n\n`
             : ""
 
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(locale, question)
     const savedBirthBlock = savedBirthInfo
         ? `Saved birth profile: available (${savedBirthInfo}).`
         : "Saved birth profile: not available."

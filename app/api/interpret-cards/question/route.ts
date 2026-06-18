@@ -12,17 +12,9 @@ import {
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 
 const MODEL = "deepseek/deepseek-v3.2"
-
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
 
 export async function POST(req: Request) {
     try {
@@ -134,7 +126,7 @@ ${prompt}`
             }
         }
 
-        const lang = detectQuestionLanguage(question)
+        const lang = resolveResponseLanguage(body.locale, question)
         const hasPriorReadingForFollowUp =
             Boolean(isFollowUp) &&
             typeof previousInterpretation === "string" &&

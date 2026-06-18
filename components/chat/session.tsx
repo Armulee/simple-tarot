@@ -4172,6 +4172,7 @@ export default function ChatSession({
                     interpretationMode: modeForApi,
                     contextSummary: contextSummary || undefined,
                     planTier,
+                    locale,
                 }),
                 signal: abortControllerRef.current.signal,
             })
@@ -4209,6 +4210,7 @@ export default function ChatSession({
             user,
             originContext,
             planTier,
+            locale,
         ],
     )
 

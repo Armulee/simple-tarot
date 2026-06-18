@@ -2,7 +2,19 @@ import { defineRouting } from "next-intl/routing"
 
 export const routing = defineRouting({
     // A list of all locales that are supported
-    locales: ["en", "th", "lo"],
+    locales: [
+        "en",
+        "th",
+        "lo",
+        "zh-CN",
+        "zh-TW",
+        "ja",
+        "ko",
+        "id",
+        "es",
+        "pt-BR",
+        "my",
+    ],
 
     // Used when no locale matches
     defaultLocale: "en",

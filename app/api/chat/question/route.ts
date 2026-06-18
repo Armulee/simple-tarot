@@ -6,6 +6,7 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -124,20 +125,11 @@ OUTPUT FORMAT:
 You MUST return a single valid JSON object that exactly matches the provided schema. Do not add any text outside the JSON.
 `
 
-function detectQuestionLanguage(text: string): string {
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[぀-ヿ一-鿿]/.test(text)) return "Japanese"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return "English"
-}
-
 function buildPrompt(
     body: z.infer<typeof requestSchema>,
     astrologyBlock: string,
 ) {
-    const { question, isFollowUp, history, contextSummary } = body
+    const { question, isFollowUp, history, contextSummary, locale } = body
     const historyText =
         history && history.length
             ? history
@@ -151,7 +143,7 @@ function buildPrompt(
             ? `Session context (previous readings / interactions):\n${contextSummary.trim()}\n\n`
             : ""
 
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(locale, question)
     const astrologySection = astrologyBlock ? `${astrologyBlock}\n\n` : ""
 
     return `
