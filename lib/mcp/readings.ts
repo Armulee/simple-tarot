@@ -17,26 +17,46 @@ import {
 export type { TarotSpread } from "@/lib/tarot"
 export const TAROT_SPREADS: TarotSpread[] = ["single", "three_card", "celtic_cross"]
 
+export type TarotReadingResult = {
+    text: string
+    cards: DrawnCard[]
+}
+
 export async function generateTarotReading(opts: {
     userId?: string
     question: string
     spread: TarotSpread
     cards?: { name: string; reversed: boolean }[]
     narrate?: boolean
-}): Promise<string> {
+}): Promise<TarotReadingResult> {
     const { cards, text } = engineGenerateTarotReading(opts)
-    if (!opts.narrate) return text
+    if (!opts.narrate) return { text, cards }
 
     try {
-        const narrated = await interpretWithAI({
-            question: opts.question,
-            cards: cards as DrawnCard[],
-        })
-        return narrated || text
+        const narrated = await interpretWithAI({ question: opts.question, cards })
+        return { text: narrated || text, cards }
     } catch {
         // Fall back to structured text if the AI engine is unavailable.
-        return text
+        return { text, cards }
     }
+}
+
+/** Decks available on the site. Extend as deck art is added under /decks. */
+export const TAROT_DECKS = [
+    {
+        id: "default",
+        name: "AskingFate Classic",
+        description:
+            "The default Rider–Waite deck — deep-purple backs with a gold 8-point star.",
+        backImage: "https://askingfate.com/decks/default/back.png",
+    },
+] as const
+
+export function listDecksText(): string {
+    return [
+        "Available decks:",
+        ...TAROT_DECKS.map((d) => `- ${d.name} (${d.id}): ${d.description}`),
+    ].join("\n")
 }
 
 /**

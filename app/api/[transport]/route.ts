@@ -7,7 +7,14 @@ import {
     generateBirthChartReading,
     generateHoroscopeReading,
     generateTarotReading,
+    listDecksText,
+    TAROT_DECKS,
 } from "@/lib/mcp/readings"
+import { cardPickerHtml } from "@/lib/mcp/card-picker-html"
+
+/** UI resource URI for the card-picker widget (MCP Apps / SEP-1865). */
+const CARD_PICKER_URI = "ui://askingfate/card-picker"
+const MCP_APP_MIME = "text/html;profile=mcp-app"
 
 /** Star cost per reading (Task 1 suggested costs). */
 const CREDIT_COST = {
@@ -31,10 +38,12 @@ function textResult(text: string, isError = false): ToolResult {
  * consume credits, then produce the reading text. Out-of-credits and
  * unauthenticated states are surfaced as verbatim text Claude can relay.
  */
+type Produced = string | { text: string; structuredContent?: Record<string, unknown> }
+
 async function runReading(
     authInfo: AuthInfo | undefined,
     cost: number,
-    produce: () => string | Promise<string>,
+    produce: (userId: string) => Produced | Promise<Produced>,
 ): Promise<ToolResult> {
     let userId: string
     try {
@@ -51,11 +60,35 @@ async function runReading(
         throw err
     }
 
-    return textResult(await produce())
+    const out = await produce(userId)
+    if (typeof out === "string") return textResult(out)
+    return {
+        content: [{ type: "text", text: out.text }],
+        structuredContent: out.structuredContent,
+    }
 }
 
 const handler = createMcpHandler(
     (server) => {
+        // --- card-picker UI resource (MCP Apps) ---------------------------
+        server.registerResource(
+            "card-picker",
+            CARD_PICKER_URI,
+            {
+                title: "Tarot card picker",
+                mimeType: MCP_APP_MIME,
+            },
+            async () => ({
+                contents: [
+                    {
+                        uri: CARD_PICKER_URI,
+                        mimeType: MCP_APP_MIME,
+                        text: cardPickerHtml,
+                    },
+                ],
+            }),
+        )
+
         // --- tarot_reading -------------------------------------------------
         server.registerTool(
             "tarot_reading",
@@ -93,13 +126,25 @@ const handler = createMcpHandler(
                 },
             },
             async ({ question, spread, cards }, { authInfo }) =>
-                runReading(authInfo, CREDIT_COST.tarot, () =>
-                    generateTarotReading({
+                runReading(authInfo, CREDIT_COST.tarot, async (userId) => {
+                    const resolvedSpread = spread ?? "three_card"
+                    const { text, cards: drawn } = await generateTarotReading({
+                        userId,
                         question,
-                        spread: spread ?? "three_card",
+                        spread: resolvedSpread,
                         cards,
-                    }),
-                ),
+                    })
+                    // structuredContent carries the drawn cards so the widget /
+                    // hosts can render the reveal (flip cards + meanings).
+                    return {
+                        text,
+                        structuredContent: {
+                            question,
+                            spread: resolvedSpread,
+                            cards: drawn,
+                        },
+                    }
+                }),
         )
 
         // --- birth_chart ---------------------------------------------------
@@ -192,6 +237,12 @@ const handler = createMcpHandler(
                         .string()
                         .describe("The user's question for the reading."),
                 },
+                // Bind the UI resource. Modern nested format is preferred;
+                // the legacy flat key is included for host compatibility.
+                _meta: {
+                    ui: { resourceUri: CARD_PICKER_URI },
+                    "ui/resourceUri": CARD_PICKER_URI,
+                },
             },
             async ({ question }, { authInfo }): Promise<ToolResult> => {
                 try {
@@ -202,15 +253,44 @@ const handler = createMcpHandler(
                     throw err
                 }
                 return {
+                    // Mandatory plain-text fallback for hosts that don't render UI.
                     content: [
                         { type: "text", text: "Showing the tarot card picker." },
                     ],
+                    // The sandboxed widget can't call the API, so everything it
+                    // needs travels here.
                     structuredContent: {
                         question,
                         cardsToPick: 3,
                         creditCost: CREDIT_COST.tarot,
                         fanSize: 9,
+                        spread: "three_card",
+                        deckBackImage: "https://askingfate.com/decks/default/back.png",
                     },
+                }
+            },
+        )
+
+        // --- show_decks (Task 6) ------------------------------------------
+        server.registerTool(
+            "show_decks",
+            {
+                title: "Show available tarot decks",
+                description:
+                    "List the tarot decks available on AskingFate so the user can choose one before a reading. Free; no stars are charged.",
+                inputSchema: {},
+            },
+            async (_args, { authInfo }): Promise<ToolResult> => {
+                try {
+                    getUserId(authInfo) // require auth; never charge
+                } catch (err) {
+                    if (err instanceof UnauthenticatedError)
+                        return textResult(err.message, true)
+                    throw err
+                }
+                return {
+                    content: [{ type: "text", text: listDecksText() }],
+                    structuredContent: { decks: TAROT_DECKS },
                 }
             },
         )

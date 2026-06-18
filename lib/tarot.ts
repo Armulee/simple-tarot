@@ -53,6 +53,15 @@ export type DrawnCard = {
     reversed: boolean
     /** Position label within the spread (e.g. "Past"). */
     position: string
+    /** Orientation-appropriate keyword meanings, for the reveal step. */
+    keywords: string[]
+}
+
+/** Keyword meanings for a card name in the given orientation. */
+export function getCardKeywords(name: string, reversed: boolean): string[] {
+    const meta = CARD_BY_NAME.get(name)
+    if (!meta) return []
+    return reversed ? meta.reversedKeywords : meta.uprightKeywords
 }
 
 export function shuffle<T>(array: readonly T[]): T[] {
@@ -69,11 +78,15 @@ export function drawSpread(spread: TarotSpread): DrawnCard[] {
     const size = SPREAD_SIZE[spread]
     const positions = SPREAD_POSITIONS[spread]
     const shuffled = shuffle(TAROT_DECK)
-    return shuffled.slice(0, size).map((name, i) => ({
-        name,
-        reversed: Math.random() < REVERSED_PROBABILITY,
-        position: positions[i] ?? `Card ${i + 1}`,
-    }))
+    return shuffled.slice(0, size).map((name, i) => {
+        const reversed = Math.random() < REVERSED_PROBABILITY
+        return {
+            name,
+            reversed,
+            position: positions[i] ?? `Card ${i + 1}`,
+            keywords: getCardKeywords(name, reversed),
+        }
+    })
 }
 
 /** Attach spread position labels to a caller-supplied set of cards. */
@@ -85,6 +98,7 @@ export function withPositions(
     return cards.map((c, i) => ({
         ...c,
         position: positions[i] ?? `Card ${i + 1}`,
+        keywords: getCardKeywords(c.name, c.reversed),
     }))
 }
 
@@ -95,13 +109,8 @@ export function buildReadingText(
     cards: DrawnCard[],
 ): string {
     const lines = cards.map((card, i) => {
-        const meta = CARD_BY_NAME.get(card.name)
         const orientation = card.reversed ? "Reversed" : "Upright"
-        const keywords = meta
-            ? (card.reversed ? meta.reversedKeywords : meta.uprightKeywords).join(
-                  ", ",
-              )
-            : "—"
+        const keywords = card.keywords.length ? card.keywords.join(", ") : "—"
         return `${i + 1}. ${card.position}: ${card.name} (${orientation})\n   Keywords: ${keywords}`
     })
 
