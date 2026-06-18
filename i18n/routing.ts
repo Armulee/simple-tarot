@@ -6,6 +6,7 @@ export const routing = defineRouting({
         "en",
         "th",
         "lo",
+        "my",
         "zh-CN",
         "zh-TW",
         "ja",
@@ -13,7 +14,6 @@ export const routing = defineRouting({
         "id",
         "es",
         "pt-BR",
-        "my",
     ],
 
     // Used when no locale matches

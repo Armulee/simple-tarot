@@ -6,6 +6,7 @@ export const locales = [
     "en",
     "th",
     "lo",
+    "my",
     "zh-CN",
     "zh-TW",
     "ja",
@@ -13,7 +14,6 @@ export const locales = [
     "id",
     "es",
     "pt-BR",
-    "my",
 ] as const
 export type AppLocale = (typeof locales)[number]
 
