@@ -4,6 +4,7 @@ import {
     sanitizePromptForPersistence,
 } from "@/lib/privacy/prompt-redaction"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
+import { canAccessChatSession } from "@/lib/server/chat-session-ownership"
 import { readAndVerifyDid } from "@/lib/server/did"
 import { createClient } from "@supabase/supabase-js"
 
@@ -66,10 +67,40 @@ export async function PATCH(
 
         const did = await readAndVerifyDid()
         if (!did) return NextResponse.json({ error: "NO_DID" }, { status: 400 })
+        const user = await getUserFromAuth(req)
 
         const { id: rawId } = await context.params
         const id = (rawId ?? "").toString().slice(0, 32)
         if (!id) return NextResponse.json({ error: "BAD_ID" }, { status: 400 })
+
+        const { data: session, error: fetchError } = await supabaseAdmin
+            .from("chat_sessions")
+            .select("id, owner_user_id, did")
+            .eq("id", id)
+            .maybeSingle()
+
+        if (fetchError) {
+            return NextResponse.json(
+                { error: fetchError.message },
+                { status: 400 }
+            )
+        }
+
+        if (!session) {
+            return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
+        }
+
+        if (
+            !canAccessChatSession({
+                session,
+                requester: {
+                    userId: user?.id ?? null,
+                    did,
+                },
+            })
+        ) {
+            return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
+        }
 
         const body = await req.json()
         const update: Record<string, unknown> = {
@@ -149,11 +180,15 @@ export async function DELETE(
             return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 })
         }
 
-        const ownedByUser = !!user && session.owner_user_id === user.id
-        const ownedByDid = !!did && session.did === did
-
-        // Check ownership
-        if (!ownedByUser && !ownedByDid) {
+        if (
+            !canAccessChatSession({
+                session,
+                requester: {
+                    userId: user?.id ?? null,
+                    did,
+                },
+            })
+        ) {
             return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 })
         }
 
