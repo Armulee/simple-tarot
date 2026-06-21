@@ -21,6 +21,12 @@ export type ShareImageRequest = {
     cta?: string
     width: number
     height: number
+    /**
+     * Selects the painted background set and layout flavor. "tarot" (default)
+     * keeps the card-spread poster; "astrology" swaps in the solar-system
+     * skies and drops the card sections (daily-verdict share).
+     */
+    theme?: "tarot" | "astrology"
     /** Render on a transparent canvas (for video compositing). */
     transparent?: boolean
 }

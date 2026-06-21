@@ -35,6 +35,11 @@ export interface ShareImageMockProps {
     insights?: string[]
     cta?: string
     /**
+     * Selects the painted background set: "tarot" (default) or the
+     * "astrology" solar-system skies for the daily-verdict share.
+     */
+    theme?: "tarot" | "astrology"
+    /**
      * Loop this film behind the elements instead of the painted sky —
      * previews the video export, whose overlay carries its own gold frame.
      */
@@ -60,6 +65,7 @@ export default function ShareImageMock({
     detailedHtml,
     insights,
     cta,
+    theme = "tarot",
     videoBackgroundSrc,
 }: ShareImageMockProps) {
     const isStory = aspect === "story"
@@ -656,7 +662,7 @@ export default function ShareImageMock({
                 </>
             ) : (
                 <Image
-                    src={`/assets/share/${aspect}-background.jpg`}
+                    src={`/assets/share/${theme === "astrology" ? "astrology/" : ""}${aspect}-background.jpg`}
                     alt=''
                     fill
                     unoptimized

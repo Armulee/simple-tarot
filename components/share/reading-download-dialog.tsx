@@ -72,6 +72,18 @@ export interface ReadingDownloadDialogProps {
     keyMessage?: string
     detailedHtml?: string
     insights?: string[]
+    /**
+     * Background set + layout flavor. "tarot" (default) renders the
+     * card-spread poster; "astrology" swaps in the solar-system skies and
+     * drops the card sections for the daily-verdict share.
+     */
+    theme?: "tarot" | "astrology"
+    /**
+     * Whether the animated video export is offered. The astrology theme has
+     * no background film yet, so callers pass `false` to show image-only.
+     * Defaults to `true`.
+     */
+    allowVideo?: boolean
     /** Prefix for the saved file name; a timestamp + style id are appended. */
     filenameBase?: string
     /**
@@ -94,6 +106,8 @@ export default function ReadingDownloadDialog({
     keyMessage,
     detailedHtml,
     insights,
+    theme = "tarot",
+    allowVideo = true,
     filenameBase = "askingfate-reading",
     onExportStatus,
 }: ReadingDownloadDialogProps) {
@@ -167,6 +181,7 @@ export default function ReadingDownloadDialog({
                 keyMessage,
                 detailedHtml,
                 insights,
+                theme,
             ]),
         [
             question,
@@ -177,6 +192,7 @@ export default function ReadingDownloadDialog({
             keyMessage,
             detailedHtml,
             insights,
+            theme,
         ],
     )
 
@@ -209,6 +225,7 @@ export default function ReadingDownloadDialog({
             cta: t("actions.shareCta"),
             width: style.width,
             height: style.height,
+            theme,
         }),
         [
             question,
@@ -219,6 +236,7 @@ export default function ReadingDownloadDialog({
             keyMessage,
             detailedHtml,
             insights,
+            theme,
             t,
         ],
     )
@@ -426,7 +444,9 @@ export default function ReadingDownloadDialog({
                     <SheetDescription className='text-white/55'>
                         {t("actions.downloadSheetDesc")}
                     </SheetDescription>
-                    <div className='mt-2 flex justify-center'>
+                    <div
+                        className={`mt-2 flex justify-center ${allowVideo ? "" : "hidden"}`}
+                    >
                         <div className='inline-flex h-10 items-center justify-center rounded-full border border-amber-300/20 bg-white/5 p-1 text-white'>
                             {(["image", "video"] as const).map((value) => (
                                 <button
@@ -579,6 +599,7 @@ export default function ReadingDownloadDialog({
                                     detailedHtml={detailedHtml}
                                     insights={insights}
                                     cta={t("actions.shareCta")}
+                                    theme={theme}
                                     videoBackgroundSrc={
                                         format === "video"
                                             ? getShareVideoBackgroundSrc(

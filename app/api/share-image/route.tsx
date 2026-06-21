@@ -200,14 +200,18 @@ async function readImageAsBase64(slug: string) {
 }
 
 type ShareBgVariant = "story" | "post" | "square" | "landscape"
+type ShareTheme = "tarot" | "astrology"
 
 /**
  * Hand-illustrated night-sky paintings (gold crescent moon, star
  * sparkles, gilded clouds, baked-in gold frame) — one per aspect
- * variant, pre-sized to the exact canvas dimensions.
+ * variant, pre-sized to the exact canvas dimensions. The astrology theme
+ * swaps in the solar-system skies (public/assets/share/astrology/*) used
+ * by the daily-verdict share.
  */
-async function readShareBackground(variant: ShareBgVariant) {
-    if (shareBgCache.has(variant)) return shareBgCache.get(variant) ?? null
+async function readShareBackground(variant: ShareBgVariant, theme: ShareTheme) {
+    const cacheKey = `${theme}:${variant}`
+    if (shareBgCache.has(cacheKey)) return shareBgCache.get(cacheKey) ?? null
     let src: string | null = null
     try {
         const buffer = await readFile(
@@ -216,15 +220,16 @@ async function readShareBackground(variant: ShareBgVariant) {
                 "public",
                 "assets",
                 "share",
+                ...(theme === "astrology" ? ["astrology"] : []),
                 `${variant}-background.jpg`,
             ),
         )
         src = `data:image/jpeg;base64,${buffer.toString("base64")}`
     } catch (error) {
-        console.error(`Error reading ${variant} background:`, error)
+        console.error(`Error reading ${theme} ${variant} background:`, error)
         src = null
     }
-    shareBgCache.set(variant, src)
+    shareBgCache.set(cacheKey, src)
     return src
 }
 
@@ -535,11 +540,17 @@ function warmUpPipeline(): Promise<void> {
         warmUpPromise = (async () => {
             const [, , , , , shareFonts] = await Promise.all([
                 readLogoAsBase64(),
-                readShareBackground("story"),
-                readShareBackground("post"),
-                readShareBackground("square"),
-                readShareBackground("landscape"),
+                readShareBackground("story", "tarot"),
+                readShareBackground("post", "tarot"),
+                readShareBackground("square", "tarot"),
+                readShareBackground("landscape", "tarot"),
                 loadShareFonts(),
+                // Astrology skies warm in the background; not part of the
+                // gating tuple since the first verdict share can pay for them.
+                readShareBackground("story", "astrology"),
+                readShareBackground("post", "astrology"),
+                readShareBackground("square", "astrology"),
+                readShareBackground("landscape", "astrology"),
             ])
             const probe = new ImageResponse(
                 (
@@ -609,10 +620,13 @@ export async function POST(req: Request) {
             width = 1080,
             height = 1920,
             branding = "AskingFate",
+            theme: themeRaw = "tarot",
             // Transparent canvas (no painted sky) — the video exporter
             // composites this overlay onto the animated background.
             transparent = false,
         } = await req.json()
+
+        const theme: ShareTheme = themeRaw === "astrology" ? "astrology" : "tarot"
 
         const cacheKey = JSON.stringify([
             question,
@@ -627,6 +641,7 @@ export async function POST(req: Request) {
             width,
             height,
             branding,
+            theme,
             Boolean(transparent),
         ])
         const cached = renderedImageCache.get(cacheKey)
@@ -699,7 +714,7 @@ export async function POST(req: Request) {
         const [logoBase64, shareFonts, shareBgSrc] = await Promise.all([
             readLogoAsBase64(),
             loadShareFonts(),
-            readShareBackground(bgVariant),
+            readShareBackground(bgVariant, theme),
         ])
         const logoSrc = logoBase64 || `${origin}/assets/logo.png`
 
