@@ -7,6 +7,7 @@ import {
     type PredictionTimelineSlotScaffold,
 } from "@/lib/prompts"
 import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 import {
     hydrateQuestionTimeRange,
     questionTimeRangePayloadSchema,
@@ -34,7 +35,7 @@ import {
 } from "@/lib/astrology/transit-aspects"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_DAILY_SLOTS = 21
 
@@ -408,6 +409,7 @@ export async function POST(req: Request) {
             // arrive incrementally and the Overview tab paints slot-by-slot
             // — instead of buffering until the whole object is ready.
             mode: "json",
+            providerOptions: deepseekThinking(false),
             schema: predictionTimelineSchema,
             system: `You are Astra, a female oracle. Produce ONLY the predictionTimeline JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.
 

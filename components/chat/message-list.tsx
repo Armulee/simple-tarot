@@ -17,9 +17,16 @@ import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
+import { DynamicThinking } from "@/components/chat/dynamic-thinking"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
-import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
+import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
+import OracleHero from "@/components/chat/oracle/oracle-hero"
+import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
+import {
+    TarotAssistantInterpretation,
+    type ReadingImageExportStatus,
+} from "@/components/chat/tarot-interpretation"
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import PaywallBlock from "@/components/chat/paywall-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
@@ -46,6 +53,7 @@ import {
     MoveHorizontal,
     Pencil,
     RotateCw,
+    CornerDownRight,
     Send,
     Share2,
     Square,
@@ -246,6 +254,31 @@ type MessageListProps = {
     onStartEditAt: (messageIndex: number) => void
     onCancelEdit: () => void
     onSendEditAt: (messageIndex: number) => void
+    /**
+     * Fires when the viewer taps a topic chip inside an inline horoscope
+     * calendar tool (variant: "horoscope-calendar"). The session sends a
+     * follow-up question for the chosen topic + date.
+     */
+    onCalendarChipClick?: (
+        chipId: string,
+        topicLabel: string,
+        date: Date,
+    ) => void
+    /**
+     * Fires whenever the viewer picks a date (or new DayData lands) in the
+     * inline horoscope calendar tool. The session refreshes its
+     * originContext so the AI sees that day on follow-up questions.
+     */
+    onCalendarSelectionChange?: (
+        date: Date | null,
+        dayData: import("@/lib/calendar-helper").DayData | null,
+    ) => void
+    /**
+     * Bumped by the chat session to clear the inline calendar tool's
+     * date selection — typically right after the viewer cancels the
+     * originContext from the composer's OriginContextStrip.
+     */
+    calendarToolResetSignal?: number
     onAskAspectDetail?: (
         question: string,
         aspectKey: string,
@@ -276,6 +309,10 @@ type MessageListProps = {
     onShare: (id: string, text: string) => void
     onReadingTextDownloaded?: (messageId: string) => void
     onReadingTextDownloadFailed?: (messageId: string) => void
+    onReadingImageExportStatus?: (
+        messageId: string,
+        status: ReadingImageExportStatus | null,
+    ) => void
     onReadAloud: (id: string, text: string) => void
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
@@ -327,6 +364,9 @@ export default function MessageList({
     onStartEditAt,
     onCancelEdit,
     onSendEditAt,
+    onCalendarChipClick,
+    onCalendarSelectionChange,
+    calendarToolResetSignal,
     onAskAspectDetail,
     onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
@@ -341,6 +381,7 @@ export default function MessageList({
     onShare,
     onReadingTextDownloaded,
     onReadingTextDownloadFailed,
+    onReadingImageExportStatus,
     unmask,
     privacyAliases,
     lastAssistantMessageRef,
@@ -353,6 +394,15 @@ export default function MessageList({
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
     const consultingBase = t("consulting")
+    const thinkingLabels = useMemo(
+        () => ({
+            consulting: `${t("consulting")}…`,
+            active: t("thinkingActive"),
+            complete: t("thinkingCompleteTimed"),
+            toggle: t("thinkingToggle"),
+        }),
+        [t],
+    )
 
     const askedAspectKeys = useMemo(() => {
         const map: Record<string, string> = {}
@@ -485,6 +535,29 @@ export default function MessageList({
                                     id={`msg-${message.id}`}
                                     className='flex flex-col items-end gap-2'
                                 >
+                                    {message.originContextSnapshot?.kind ===
+                                    "calendar-day" ? (
+                                        <div
+                                            className='inline-flex max-w-[80%] items-center gap-1.5 text-xs text-amber-200/70'
+                                            role='note'
+                                            aria-label={
+                                                message.originContextSnapshot
+                                                    .label
+                                            }
+                                        >
+                                            <CornerDownRight
+                                                className='size-3.5 shrink-0'
+                                                aria-hidden
+                                            />
+                                            <span className='truncate'>
+                                                {
+                                                    message
+                                                        .originContextSnapshot
+                                                        .label
+                                                }
+                                            </span>
+                                        </div>
+                                    ) : null}
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                         {isEditing ? (
                                             <div className='relative'>
@@ -656,6 +729,15 @@ export default function MessageList({
                                 }
                                 className='flex flex-col items-start gap-4'
                             >
+                                {message.horoscopeForOtherPerson && (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <OtherPersonReadingBadge
+                                            info={
+                                                message.horoscopeForOtherPerson
+                                            }
+                                        />
+                                    </div>
+                                )}
                                 {((message.cards && message.cards.length > 0) ||
                                     message.variant === "box") && (
                                     <TarotAssistantInterpretation
@@ -679,12 +761,53 @@ export default function MessageList({
                                         onReadingTextDownloadFailed={
                                             onReadingTextDownloadFailed
                                         }
+                                        onReadingImageExportStatus={
+                                            onReadingImageExportStatus
+                                        }
                                         unmask={unmask}
                                         privacyAliases={privacyAliases}
                                     />
                                 )}
-                                {message.variant ===
-                                "box" ? null : message.variant ===
+                                {message.variant === "oracle" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <OracleHero
+                                            reading={message.oracleReading}
+                                            isLoading={message.isLoading}
+                                            privacyAliases={privacyAliases}
+                                        />
+                                    </div>
+                                ) : null}
+                                {message.variant === "horoscope-calendar" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <HoroscopeCalendarTool
+                                            onChipClick={(
+                                                chipId,
+                                                topicLabel,
+                                                date,
+                                            ) =>
+                                                onCalendarChipClick?.(
+                                                    chipId,
+                                                    topicLabel,
+                                                    date,
+                                                )
+                                            }
+                                            onSelectionChange={(date, data) =>
+                                                onCalendarSelectionChange?.(
+                                                    date,
+                                                    data,
+                                                )
+                                            }
+                                            clearSelectionSignal={
+                                                calendarToolResetSignal
+                                            }
+                                            responseLocale={
+                                                message.responseLocale
+                                            }
+                                        />
+                                    </div>
+                                ) : message.variant === "box" ||
+                                  message.variant ===
+                                      "oracle" ? null : message.variant ===
                                   "horoscope" ? (
                                     <>
                                         {message.sourceAspectEvent && (
@@ -878,31 +1001,46 @@ export default function MessageList({
                                                 />
                                             </div>
                                         )}
-                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {message.isLoading &&
-                                            !message.text?.trim() ? (
-                                                <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
-                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    <LoadingDotsText
-                                                        active={
-                                                            !!(
-                                                                message.isLoading &&
-                                                                !message.text?.trim()
-                                                            )
-                                                        }
-                                                        getText={(d) =>
-                                                            `${consultingBase}${".".repeat(d)}`
-                                                        }
-                                                    />
-                                                </span>
-                                            ) : (
+                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap space-y-3'>
+                                            {(message.isLoading ||
+                                                message.reasoningText) && (
+                                                <DynamicThinking
+                                                    reasoningText={
+                                                        message.reasoningText ??
+                                                        ""
+                                                    }
+                                                    isThinking={
+                                                        !!message.isLoading &&
+                                                        !message.text?.trim()
+                                                    }
+                                                    labels={thinkingLabels}
+                                                />
+                                            )}
+                                            {message.text?.trim() ? (
                                                 <PrivacyHighlightedText
                                                     text={message.text || ""}
                                                     aliases={privacyAliases}
                                                     supportMarkdown
                                                 />
-                                            )}
+                                            ) : null}
                                         </div>
+                                        {!message.isLoading &&
+                                            (message.explainAspectEvents
+                                                ?.length ?? 0) > 0 && (
+                                                <div className='w-full md:max-w-[85%] mt-2 flex gap-2 overflow-x-auto pb-1 animate-fade-in'>
+                                                    {message.explainAspectEvents!.map(
+                                                        (event) => (
+                                                            <SourceAspectCard
+                                                                key={
+                                                                    event.aspectKey
+                                                                }
+                                                                event={event}
+                                                                tPanel={tPanel}
+                                                            />
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
                                         {!message.isLoading &&
                                             message.supportBlock && (
                                                 <div className='w-full md:max-w-[85%] animate-fade-in'>

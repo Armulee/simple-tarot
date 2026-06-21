@@ -13,7 +13,8 @@
   "PageContextComposer": {
     "eyebrow": "情境",
     "hint": "此情境信息将发送给 AI",
-    "error": "抱歉，出了点问题，请重试。"
+    "error": "抱歉，出了点问题，请重试。",
+    "clear": "Clear context"
   },
   "Chat": {
     "originContext": {
@@ -360,12 +361,14 @@
     "quickCards": {
       "tarotCard": "塔罗牌",
       "birthChart": "本命星盘",
-      "horoscope": "星座运势"
+      "horoscope": "星座运势",
+      "calendarYear": "Cosmic Calendar"
     },
     "quickCardQuestions": {
       "tarotCard": "为我抽一张塔罗牌",
       "birthChart": "告诉我我的本命星盘",
-      "horoscope": "我今天的运势如何"
+      "horoscope": "我今天的运势如何",
+      "calendarYear": "Show me my cosmic calendar"
     },
     "selectedCards": "你已选择 {selectedCount}/{cardsToSelect} 张牌",
     "consulting": "占卜中",
@@ -427,6 +430,18 @@
       "deckSwipeHint": "点选一张牌，然后向上滑动选定它。",
       "reversedMark": "（逆位）",
       "pickedTeaser": "你选择了 {name}{reversedLabel}。在上方登录以获取你的星座运势。"
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
     }
   },
   "ActionTrigger": {
@@ -448,7 +463,8 @@
     "locationDialogDescription": "选择你的国家与省/州。我们会据此优化你的星座运势所在地。",
     "latitude": "纬度",
     "longitude": "经度",
-    "saveLocation": "保存位置"
+    "saveLocation": "保存位置",
+    "shareAccess": "Share access"
   },
   "InterpretationMode": {
     "auto": "自动",
@@ -459,7 +475,8 @@
     "composerSettingsAriaLabel": "占卜设置",
     "composerSettingsPanelTitle": "设置",
     "composerSettingsSectionPreferences": "偏好",
-    "composerSettingsSectionActions": "操作"
+    "composerSettingsSectionActions": "操作",
+    "oracle": "Spiritual"
   },
   "About": {
     "whatIs": "什么是",
@@ -1562,7 +1579,19 @@
         "wechat": "微信",
         "reddit": "Reddit",
         "sms": "短信",
-        "email": "邮件"
+        "email": "邮件",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "重新生成占卜",
@@ -1617,7 +1646,9 @@
         "voteDown": "没帮助",
         "voteDownDesc": "这没什么帮助",
         "removeVoteUpDesc": "取消评价",
-        "removeVoteDownDesc": "取消评价"
+        "removeVoteDownDesc": "取消评价",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
       },
       "followUp": {
         "badge": "追问",
@@ -3069,7 +3100,50 @@
       "sign-up": {
         "title": "创建账户",
         "description": "创建一个免费账户，留存你的占卜、星星与出生资料。"
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
       }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
     }
   }
 }

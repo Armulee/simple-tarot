@@ -6,6 +6,7 @@ import type { ChatDecision } from "@/components/chat/session"
 import { getMetadataBase } from "@/lib/seo"
 import { getCleanQuestionText } from "@/lib/prompts/question-utils"
 import { normalizeOriginContext } from "@/lib/chat/origin-context"
+import { readAndVerifyDid } from "@/lib/server/did"
 
 type ChatSessionData = {
     id: string
@@ -14,6 +15,7 @@ type ChatSessionData = {
     decision: unknown
     origin_context: unknown
     owner_user_id: string | null
+    did: string | null
     show_insufficient_stars?: boolean
     show_card_draw?: boolean
 }
@@ -35,7 +37,7 @@ async function getChatSession(id: string) {
     const { data } = await supabase
         .from("chat_sessions")
         .select(
-            "id, question, messages, decision, origin_context, owner_user_id, show_insufficient_stars, show_card_draw",
+            "id, question, messages, decision, origin_context, owner_user_id, did, show_insufficient_stars, show_card_draw",
         )
         .eq("id", id)
         .maybeSingle()
@@ -97,6 +99,13 @@ export default async function ChatSessionPage({
     const data = await getChatSession(id)
     if (!data) return notFound()
 
+    const requesterDid = await readAndVerifyDid()
+    const youAreCreatorDevice =
+        !data.owner_user_id &&
+        !!data.did &&
+        !!requesterDid &&
+        data.did === requesterDid
+
     return (
         <ChatSession
             initialSession={{
@@ -106,6 +115,7 @@ export default async function ChatSessionPage({
                 decision: isChatDecision(data.decision) ? data.decision : null,
                 originContext: normalizeOriginContext(data.origin_context),
                 owner_user_id: data.owner_user_id,
+                youAreCreatorDevice,
                 showInsufficientStars: data.show_insufficient_stars,
                 showCardDraw: data.show_card_draw,
             }}

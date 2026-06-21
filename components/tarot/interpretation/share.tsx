@@ -8,9 +8,11 @@ import {
     useMemo,
     cloneElement,
     isValidElement,
+    type CSSProperties,
     type ReactElement,
     type ReactNode,
 } from "react"
+import { toast } from "sonner"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -40,6 +42,8 @@ import {
 import { useAuth } from "@/hooks/use-auth"
 import { Share2 } from "lucide-react"
 import { shareLinkCache } from "@/lib/share-cache"
+import { getShareImageBlob } from "@/lib/share-image-client"
+import { createShareVideo } from "@/lib/share-video"
 import Link from "next/link"
 import { useTarot } from "@/contexts/tarot-context"
 import {
@@ -52,6 +56,28 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useTranslations } from "next-intl"
+
+type ShareOption = {
+    id: string
+    label: string
+    icon: ReactNode
+    bg: string
+    /**
+     * "file" platforms (Instagram, TikTok, …) have no web share intent —
+     * the rendered poster goes through the OS share sheet instead.
+     */
+    mode?: "file"
+    href: (url: string, text?: string, media?: string) => string | null
+}
+
+/** Gold pill toasts, echoing the download sheet's amber theme. Shown at
+ *  the top so the bottom-rising OS share sheet never covers them. */
+const GOLD_TOAST_STYLE: CSSProperties = {
+    background: "linear-gradient(90deg, #f59e0b, #fde047 50%, #f59e0b)",
+    color: "#241a05",
+    border: "1px solid rgba(252, 211, 77, 0.6)",
+    fontWeight: 600,
+}
 
 interface ShareSectionProps {
     question?: string
@@ -69,6 +95,7 @@ export default function ShareSection({
     variant = "full",
 }: ShareSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation.share")
+    const tInterp = useTranslations("ReadingPage.interpretation")
     const tCommon = useTranslations(
         "ReadingPage.interpretation.dialogs.unavailable",
     )
@@ -91,6 +118,19 @@ export default function ShareSection({
     const maxStars = starsPerVisit * maxGrantsPerDay
     const [unavailableOpen, setUnavailableOpen] = useState(false)
     const [unavailableLabel, setUnavailableLabel] = useState<string>("")
+    const [shareFormat, setShareFormat] = useState<"image" | "video">("image")
+
+    // The 15s recording is generated once and cached; the progress
+    // listener lives in a ref so a tap that joins an in-flight
+    // generation (e.g. pre-started by the toggle) still gets updates.
+    const videoCacheRef = useRef<{ blob: Blob; ext: "mp4" | "webm" } | null>(
+        null,
+    )
+    const videoPromiseRef = useRef<Promise<{
+        blob: Blob
+        ext: "mp4" | "webm"
+    }> | null>(null)
+    const videoProgressRef = useRef<((progress: number) => void) | null>(null)
 
     // Load earned stars from database on mount
     useEffect(() => {
@@ -340,7 +380,323 @@ export default function ShareSection({
         }
     }, [readingId, question, cards, interpretation, user?.id])
 
-    const shareOptions = useMemo(
+    /**
+     * App-only platforms: render the story poster and hand the file to
+     * the OS share sheet (the user picks the app there). Desktop falls
+     * back to the clipboard, then to a plain download.
+     */
+    const sharePlatformImage = useCallback(
+        async (option: ShareOption) => {
+            const loadingId = toast.loading(t("imagePreparing"), {
+                position: "top-center",
+                style: GOLD_TOAST_STYLE,
+            })
+            try {
+                const blob = await getShareImageBlob({
+                    question: question || undefined,
+                    cards,
+                    interpretation: interpretation || undefined,
+                    cta: tInterp("actions.shareCta"),
+                    width: 1080,
+                    height: 1920,
+                })
+                const file = new File([blob], "askingfate-reading.png", {
+                    type: "image/png",
+                })
+                toast.dismiss(loadingId)
+                if (
+                    typeof navigator !== "undefined" &&
+                    typeof navigator.canShare === "function" &&
+                    typeof navigator.share === "function" &&
+                    navigator.canShare({ files: [file] })
+                ) {
+                    const hintId = toast(
+                        t("selectInSheet", { platform: option.label }),
+                        {
+                            position: "top-center",
+                            duration: 8000,
+                            style: GOLD_TOAST_STYLE,
+                        },
+                    )
+                    try {
+                        await navigator.share({
+                            title: "AskingFate",
+                            files: [file],
+                        })
+                    } catch (error) {
+                        toast.dismiss(hintId)
+                        if ((error as DOMException)?.name !== "AbortError") {
+                            throw error
+                        }
+                    }
+                    return
+                }
+                if (
+                    typeof ClipboardItem !== "undefined" &&
+                    navigator.clipboard?.write
+                ) {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            [blob.type || "image/png"]: blob,
+                        }),
+                    ])
+                    toast(t("imageCopied", { platform: option.label }), {
+                        position: "top-center",
+                        duration: 8000,
+                        style: GOLD_TOAST_STYLE,
+                    })
+                    return
+                }
+                const url = URL.createObjectURL(blob)
+                try {
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = "askingfate-reading.png"
+                    a.rel = "noopener"
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                } finally {
+                    URL.revokeObjectURL(url)
+                }
+                toast(t("imageSaved", { platform: option.label }), {
+                    position: "top-center",
+                    duration: 8000,
+                    style: GOLD_TOAST_STYLE,
+                })
+            } catch (error) {
+                console.error("Image share error:", error)
+                toast.dismiss(loadingId)
+                toast.error(t("imageError"), { position: "top-center" })
+            }
+        },
+        [question, cards, interpretation, t, tInterp],
+    )
+
+    /**
+     * Story-poster overlay + 15s recording over the cosmic film, shared
+     * across all platform taps. Overlay render maps to the first 25% of
+     * progress, the realtime recording to the rest.
+     */
+    const getShareVideo = useCallback(() => {
+        if (videoCacheRef.current) {
+            return Promise.resolve(videoCacheRef.current)
+        }
+        if (!videoPromiseRef.current) {
+            videoPromiseRef.current = (async () => {
+                const overlayBlob = await getShareImageBlob(
+                    {
+                        question: question || undefined,
+                        cards,
+                        interpretation: interpretation || undefined,
+                        cta: tInterp("actions.shareCta"),
+                        width: 1080,
+                        height: 1920,
+                        transparent: true,
+                    },
+                    (phase, progress) =>
+                        videoProgressRef.current?.((progress ?? 0) * 0.25),
+                )
+                const video = await createShareVideo({
+                    overlayBlob,
+                    aspect: "story",
+                    width: 1080,
+                    height: 1920,
+                    onProgress: (progress) =>
+                        videoProgressRef.current?.(0.25 + progress * 0.75),
+                })
+                videoCacheRef.current = video
+                return video
+            })()
+            videoPromiseRef.current.catch(() => {
+                videoPromiseRef.current = null
+            })
+        }
+        return videoPromiseRef.current
+    }, [question, cards, interpretation, tInterp])
+
+    /** Video format: every platform goes through the OS share sheet —
+     *  no web intent accepts a video file. */
+    const sharePlatformVideo = useCallback(
+        async (option: ShareOption) => {
+            const loadingId = toast.loading(t("videoPreparing"), {
+                position: "top-center",
+                style: GOLD_TOAST_STYLE,
+            })
+            videoProgressRef.current = (progress) => {
+                toast.loading(
+                    `${t("videoPreparing")} ${Math.round(progress * 100)}%`,
+                    {
+                        id: loadingId,
+                        position: "top-center",
+                        style: GOLD_TOAST_STYLE,
+                    },
+                )
+            }
+            try {
+                const { blob, ext } = await getShareVideo()
+                videoProgressRef.current = null
+                toast.dismiss(loadingId)
+                const file = new File([blob], `askingfate-reading.${ext}`, {
+                    type:
+                        blob.type ||
+                        (ext === "mp4" ? "video/mp4" : "video/webm"),
+                })
+                if (
+                    typeof navigator !== "undefined" &&
+                    typeof navigator.canShare === "function" &&
+                    typeof navigator.share === "function" &&
+                    navigator.canShare({ files: [file] })
+                ) {
+                    const hintId = toast(
+                        t("selectInSheet", { platform: option.label }),
+                        {
+                            position: "top-center",
+                            duration: 8000,
+                            style: GOLD_TOAST_STYLE,
+                        },
+                    )
+                    try {
+                        await navigator.share({
+                            title: "AskingFate",
+                            files: [file],
+                        })
+                    } catch (error) {
+                        toast.dismiss(hintId)
+                        const name = (error as DOMException)?.name
+                        if (name === "AbortError") return
+                        if (name === "NotAllowedError") {
+                            // The recording outlived the tap's activation
+                            // window; it's cached now, so one more tap
+                            // shares instantly.
+                            toast(
+                                t("videoReady", { platform: option.label }),
+                                {
+                                    position: "top-center",
+                                    duration: 8000,
+                                    style: GOLD_TOAST_STYLE,
+                                },
+                            )
+                            return
+                        }
+                        throw error
+                    }
+                    return
+                }
+                // No file share sheet (desktop): save it — the clipboard
+                // can't hold video.
+                const url = URL.createObjectURL(blob)
+                try {
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = `askingfate-reading.${ext}`
+                    a.rel = "noopener"
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                } finally {
+                    URL.revokeObjectURL(url)
+                }
+                toast(t("videoSaved", { platform: option.label }), {
+                    position: "top-center",
+                    duration: 8000,
+                    style: GOLD_TOAST_STYLE,
+                })
+            } catch (error) {
+                console.error("Video share error:", error)
+                videoProgressRef.current = null
+                toast.dismiss(loadingId)
+                toast.error(t("videoError"), { position: "top-center" })
+            }
+        },
+        [getShareVideo, t],
+    )
+
+    /** Pre-render the recording while the user is still picking a
+     *  platform, so the tap can usually share from cache. */
+    const handleFormatChange = (value: "image" | "video") => {
+        setShareFormat(value)
+        if (value === "video") {
+            void getShareVideo().catch(() => {})
+        }
+    }
+
+    /** One click handler for every variant and platform mode. */
+    const handleOptionClick = useCallback(
+        async (option: ShareOption) => {
+            if (shareFormat === "video") {
+                await sharePlatformVideo(option)
+                return
+            }
+            if (option.mode === "file") {
+                await sharePlatformImage(option)
+                return
+            }
+            const link = await ensureShareLink()
+            if (!link) return
+            const text = question
+                ? `"${question}" — AI tarot interpretation`
+                : undefined
+            if (
+                option.id === "more" &&
+                typeof navigator !== "undefined" &&
+                typeof navigator.share === "function"
+            ) {
+                try {
+                    await navigator.share({
+                        title: "AskingFate",
+                        text,
+                        url: link,
+                    })
+                } catch {}
+                return
+            }
+            // Pinterest pins the actual poster: pass its public render URL,
+            // derived from the reading id at the end of the share link.
+            let media: string | undefined
+            if (option.id === "pinterest") {
+                const id = link.split("/").filter(Boolean).pop()
+                if (id) {
+                    media = `${window.location.origin}/api/share-image/${id}?style=story`
+                }
+            }
+            const href = option.href(link, text, media)
+            if (href) {
+                window.open(href, "_blank", "noopener,noreferrer")
+            } else {
+                setUnavailableLabel(option.label)
+                setUnavailableOpen(true)
+            }
+        },
+        [ensureShareLink, question, shareFormat, sharePlatformImage, sharePlatformVideo],
+    )
+
+    /** Image/video segmented pill — top-right of the section header. */
+    const formatToggle = (
+        <div
+            role='group'
+            aria-label={t("formatLabel")}
+            className='inline-flex items-center rounded-full border border-amber-300/25 bg-white/5 p-0.5'
+        >
+            {(["image", "video"] as const).map((value) => (
+                <button
+                    key={value}
+                    type='button'
+                    onClick={() => handleFormatChange(value)}
+                    aria-pressed={shareFormat === value}
+                    className={`whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-medium transition-all ${
+                        shareFormat === value
+                            ? "bg-gradient-to-r from-amber-400/90 via-yellow-300/90 to-amber-400/90 text-[#241a05] shadow-[0_2px_10px_-2px_rgba(252,211,77,0.55)]"
+                            : "text-white/65 hover:text-white/90"
+                    }`}
+                >
+                    {t(value === "video" ? "formatVideo" : "formatImage")}
+                </button>
+            ))}
+        </div>
+    )
+
+    const shareOptions = useMemo<ShareOption[]>(
         () => [
             {
                 id: "facebook",
@@ -365,6 +721,7 @@ export default function ShareSection({
                 label: t("instagram"),
                 icon: <SiInstagram className='w-5.5 h-5.5 text-white' />,
                 bg: "linear-gradient(135deg, #E4405F, #C13584)",
+                mode: "file",
                 href: () => null,
             },
 
@@ -373,6 +730,7 @@ export default function ShareSection({
                 label: t("tiktok"),
                 icon: <SiTiktok className='w-5.5 h-5.5 text-white' />,
                 bg: "linear-gradient(135deg, #000000, #333333)",
+                mode: "file",
                 href: () => null,
             },
             {
@@ -420,6 +778,7 @@ export default function ShareSection({
                 label: t("snapchat"),
                 icon: <SiSnapchat className='w-5.5 h-5.5 text-black' />,
                 bg: "linear-gradient(135deg, #FFFC00, #FFD700)",
+                mode: "file",
                 href: () => null,
             },
             {
@@ -427,6 +786,7 @@ export default function ShareSection({
                 label: t("discord"),
                 icon: <SiDiscord className='w-5.5 h-5.5 text-white' />,
                 bg: "linear-gradient(135deg, #5865F2, #4752C4)",
+                mode: "file",
                 href: () => null,
             },
             {
@@ -434,8 +794,8 @@ export default function ShareSection({
                 label: t("pinterest"),
                 icon: <SiPinterest className='w-5.5 h-5.5 text-white' />,
                 bg: "linear-gradient(135deg, #E60023, #CC001F)",
-                href: (u: string, t?: string) =>
-                    `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}${t ? `&description=${encodeURIComponent(t)}` : ""}`,
+                href: (u: string, t?: string, media?: string) =>
+                    `https://www.pinterest.com/pin/create/button/?url=${encodeURIComponent(u)}${media ? `&media=${encodeURIComponent(media)}` : ""}${t ? `&description=${encodeURIComponent(t)}` : ""}`,
             },
             {
                 id: "tumblr",
@@ -450,6 +810,7 @@ export default function ShareSection({
                 label: t("wechat"),
                 icon: <SiWechat className='w-5.5 h-5.5 text-white' />,
                 bg: "linear-gradient(135deg, #07C160, #05A050)",
+                mode: "file",
                 href: () => null,
             },
             {
@@ -501,49 +862,7 @@ export default function ShareSection({
                     <button
                         key={option.id}
                         type='button'
-                        onClick={async () => {
-                            const link = await ensureShareLink()
-                            if (!link) return
-                            const text = question
-                                ? `"${question}" — AI tarot interpretation`
-                                : undefined
-                            const href = option.href(link, text)
-                            if (
-                                option.id === "more" &&
-                                typeof navigator !== "undefined" &&
-                                typeof (
-                                    navigator as unknown as {
-                                        share?: (data: {
-                                            title?: string
-                                            text?: string
-                                            url?: string
-                                        }) => Promise<void>
-                                    }
-                                ).share === "function"
-                            ) {
-                                await (
-                                    navigator as unknown as {
-                                        share: (data: {
-                                            title?: string
-                                            text?: string
-                                            url?: string
-                                        }) => Promise<void>
-                                    }
-                                ).share({
-                                    title: "AskingFate",
-                                    text,
-                                    url: link,
-                                })
-                                return
-                            }
-                            if (href) {
-                                window.open(
-                                    href,
-                                    "_blank",
-                                    "noopener,noreferrer",
-                                )
-                            }
-                        }}
+                        onClick={() => void handleOptionClick(option)}
                         className='flex items-center justify-center h-6 w-6 rounded-full border border-white/10 bg-white/5 text-white/80 hover:text-white hover:border-white/30 transition-colors'
                         title={option.label}
                         aria-label={option.label}
@@ -563,7 +882,7 @@ export default function ShareSection({
                     className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90'
                 />
                 <div className='relative py-4'>
-                    <div className='mb-6 flex items-center gap-2.5'>
+                    <div className='mb-6 flex items-start gap-2.5'>
                         <div className='min-w-0 flex-1 px-4'>
                             <p className='text-sm font-semibold uppercase tracking-wider text-white/88'>
                                 {t("title")}
@@ -581,6 +900,7 @@ export default function ShareSection({
                                 </Link>
                             </p>
                         </div>
+                        <div className='shrink-0 pr-4'>{formatToggle}</div>
                     </div>
 
                     <div
@@ -613,50 +933,9 @@ export default function ShareSection({
                                 <SwiperSlide key={option.id}>
                                     <button
                                         type='button'
-                                        onClick={async () => {
-                                            const link = await ensureShareLink()
-                                            if (!link) return
-                                            const text = question
-                                                ? `"${question}" — AI tarot interpretation`
-                                                : undefined
-                                            const href = option.href(link, text)
-                                            if (
-                                                option.id === "more" &&
-                                                typeof navigator !==
-                                                    "undefined" &&
-                                                typeof (
-                                                    navigator as unknown as {
-                                                        share?: (data: {
-                                                            title?: string
-                                                            text?: string
-                                                            url?: string
-                                                        }) => Promise<void>
-                                                    }
-                                                ).share === "function"
-                                            ) {
-                                                await (
-                                                    navigator as unknown as {
-                                                        share: (data: {
-                                                            title?: string
-                                                            text?: string
-                                                            url?: string
-                                                        }) => Promise<void>
-                                                    }
-                                                ).share({
-                                                    title: "AskingFate",
-                                                    text,
-                                                    url: link,
-                                                })
-                                                return
-                                            }
-                                            if (href) {
-                                                window.open(
-                                                    href,
-                                                    "_blank",
-                                                    "noopener,noreferrer",
-                                                )
-                                            }
-                                        }}
+                                        onClick={() =>
+                                            void handleOptionClick(option)
+                                        }
                                         className='group flex w-full flex-col items-center gap-1.5 py-2 transition-all duration-300'
                                         aria-label={option.label}
                                     >
@@ -692,11 +971,11 @@ export default function ShareSection({
             <div className='relative'>
                 {/* Header with padding */}
                 <div className='px-6 pt-6 pb-4'>
-                    <div className='mb-6 flex animate-fade-up items-center gap-3'>
+                    <div className='mb-6 flex animate-fade-up items-start gap-3'>
                         <div className='rounded-full bg-white/10 p-2 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/15'>
                             <Share2 className='h-5 w-5 text-cyan-200/90 transition-transform duration-300 group-hover:scale-110 group-hover:text-white' />
                         </div>
-                        <div>
+                        <div className='min-w-0 flex-1'>
                             <h3 className='font-serif text-lg font-semibold text-white/90 transition-colors duration-300 group-hover:text-white'>
                                 {t("title")}
                             </h3>
@@ -713,6 +992,7 @@ export default function ShareSection({
                                 </Link>
                             </p>
                         </div>
+                        <div className='shrink-0'>{formatToggle}</div>
                     </div>
                 </div>
 
@@ -747,54 +1027,9 @@ export default function ShareSection({
                             <SwiperSlide key={option.id}>
                                 <button
                                     type='button'
-                                    onClick={async () => {
-                                        const link = await ensureShareLink()
-                                        if (!link) return
-                                        const text = question
-                                            ? `"${question}" — AI tarot interpretation`
-                                            : undefined
-                                        const href = option.href(link, text)
-
-                                        if (
-                                            option.id === "more" &&
-                                            typeof navigator !== "undefined" &&
-                                            typeof (
-                                                navigator as unknown as {
-                                                    share?: (data: {
-                                                        title?: string
-                                                        text?: string
-                                                        url?: string
-                                                    }) => Promise<void>
-                                                }
-                                            ).share === "function"
-                                        ) {
-                                            try {
-                                                await (
-                                                    navigator as unknown as {
-                                                        share: (data: {
-                                                            title?: string
-                                                            text?: string
-                                                            url?: string
-                                                        }) => Promise<void>
-                                                    }
-                                                ).share({
-                                                    title: "My Tarot Reading",
-                                                    text: text || undefined,
-                                                    url: link,
-                                                })
-                                            } catch {}
-                                        } else if (href) {
-                                            window.open(
-                                                href,
-                                                "_blank",
-                                                "noopener,noreferrer",
-                                            )
-                                        } else {
-                                            // Unavailable platform: show dialog instead of copy fallback
-                                            setUnavailableLabel(option.label)
-                                            setUnavailableOpen(true)
-                                        }
-                                    }}
+                                    onClick={() =>
+                                        void handleOptionClick(option)
+                                    }
                                     className='group relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg w-full'
                                     style={{
                                         animationDelay: `${index * 50}ms`,

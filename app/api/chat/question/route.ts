@@ -7,8 +7,9 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -147,14 +148,15 @@ function buildPrompt(
     const astrologySection = astrologyBlock ? `${astrologyBlock}\n\n` : ""
 
     return `
-${contextBlock}${astrologySection}Recent conversation:
+${contextBlock}${astrologySection}Recent conversation (background only):
 ${historyText}
 
-User message:
+Current user message (ANSWER THIS):
 ${question}
 
 Is follow-up: ${isFollowUp ? "yes" : "no"}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of the conversation history.
+ANSWER TARGET: Answer the CURRENT user message above. The recent conversation and session context are background only — use them to understand what an ambiguous message refers to; never re-answer an older question from them.
 
 Read the message together with the astrology context above and write the inner-energy reflection now. ANSWER what they asked, basing the answer on the active astrology_activities aspects, and weave in exactly ONE short, real astrological reference (the transit planet + the natal planet it touches) as the "why", then translate it to feeling. Lean into intuition when the message is vague or no astrology is supplied.
 `
@@ -181,6 +183,7 @@ export async function POST(req: Request) {
             schema: generalReplySchema,
             system: GENERAL_REPLY_SYSTEM_PROMPT,
             prompt: buildPrompt(body, astrologyContext?.promptBlock ?? ""),
+            providerOptions: deepseekThinking(false),
             onFinish: ({ object }) => {
                 const incoming = summarizePrivacyPlaceholdersInText(
                     body.question,

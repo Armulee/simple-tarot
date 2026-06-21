@@ -12,6 +12,7 @@ import {
     getTimingVerdictPrompt,
     type NatalPlacementForPrompt,
 } from "@/lib/prompts"
+import { deepseekThinking } from "@/lib/chat/model-options"
 import { findNextSignIngresses } from "@/lib/astrology/next-ingress"
 import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 import {
@@ -51,7 +52,7 @@ import {
 // /api/horoscope/chart-data so the VerdictHero can mount well before the
 // long-form interpretation finishes streaming.
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3
@@ -278,6 +279,7 @@ function streamDailyVerdictResponse({
         // headline / key message / detailed HTML incrementally instead of
         // waiting for the whole object to finish.
         mode: "json",
+        providerOptions: deepseekThinking(false),
         schema: streamingDailyVerdictSchema,
         system: `${system}
 
@@ -426,6 +428,7 @@ async function handleTimingVerdict(
 
     const result = await generateObject({
         model: MODEL,
+        providerOptions: deepseekThinking(false),
         schema: dailyVerdictSchema,
         system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a TIMING question, including timingWindow.startDateIso and timingWindow.endDateIso. Plain language, no astrology jargon, no planet names in user-facing strings. Output language: ${questionLanguage}.`,
         prompt,
@@ -713,6 +716,7 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
     // it in a single response (the same pattern as the timing verdict).
     const result = await generateObject({
         model: MODEL,
+        providerOptions: deepseekThinking(false),
         schema: dailyVerdictSchema,
         system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a TECHNICAL ephemeris / astrology-knowledge question. Output language: ${questionLanguage}. Always set mode to "technical". Astrology vocabulary IS allowed because the user is asking about planetary mechanics.`,
         prompt,

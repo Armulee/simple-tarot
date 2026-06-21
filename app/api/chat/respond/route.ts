@@ -5,8 +5,10 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { createReasoningStreamResponse } from "@/lib/chat/reasoning-stream"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -103,16 +105,17 @@ function getChatResponsePrompt({
         : "Saved birth profile: not available."
 
     return `
-${contextBlock}Recent conversation:
+${contextBlock}Recent conversation (background only):
 ${historyText}
 
-User message:
+Current user message (reply to THIS message only):
 ${question}
 
 Response mode: ${type}
 Is follow-up: ${isFollowUp ? "yes" : "no"}
 ${type === "support" && supportTopic ? `Support topic: ${supportTopic}\n` : ""}${savedBirthBlock}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history.
+ANSWER TARGET: The conversation and session context above are background only — use them to understand what an ambiguous message refers to and to keep continuity. Never re-answer an older question from the history; if history and the current message conflict, the current message wins.
 
 Write the user-facing response now.
 `
@@ -122,8 +125,14 @@ export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
 
+        // Draw/horoscope replies are a single short "invite" sentence, so
+        // thinking there only adds latency. Enable chain-of-thought (for the
+        // live thinking headline) only for the substantive chat/support replies.
+        const enableThinking = body.type === "chat" || body.type === "support"
+
         const result = streamText({
             model: MODEL,
+            providerOptions: deepseekThinking(enableThinking, "low"),
             system: CHAT_RESPONSE_SYSTEM_PROMPT,
             prompt: getChatResponsePrompt(body),
             onFinish: ({ text }) => {
@@ -149,7 +158,10 @@ export async function POST(req: Request) {
             },
         })
 
-        return result.toTextStreamResponse()
+        // Stream reasoning (chain-of-thought) and content on separate channels
+        // so the client can render the live "thinking" headline before the
+        // answer text begins.
+        return createReasoningStreamResponse(result)
     } catch (error) {
         console.error("Error generating chat response:", error)
         return new Response("Failed to generate response", { status: 500 })

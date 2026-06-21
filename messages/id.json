@@ -13,7 +13,8 @@
   "PageContextComposer": {
     "eyebrow": "Konteks",
     "hint": "konteks ini akan dikirim ke AI",
-    "error": "Maaf, terjadi kesalahan. Silakan coba lagi."
+    "error": "Maaf, terjadi kesalahan. Silakan coba lagi.",
+    "clear": "Clear context"
   },
   "Chat": {
     "originContext": {
@@ -360,12 +361,14 @@
     "quickCards": {
       "tarotCard": "Kartu Tarot",
       "birthChart": "Peta Kelahiran",
-      "horoscope": "Horoskop"
+      "horoscope": "Horoskop",
+      "calendarYear": "Cosmic Calendar"
     },
     "quickCardQuestions": {
       "tarotCard": "Tarikkan kartu tarot untukku",
       "birthChart": "Ceritakan peta kelahiranku",
-      "horoscope": "Apa horoskopku untuk hari ini"
+      "horoscope": "Apa horoskopku untuk hari ini",
+      "calendarYear": "Show me my cosmic calendar"
     },
     "selectedCards": "Kamu telah memilih {selectedCount}/{cardsToSelect} kartu",
     "consulting": "Berkonsultasi",
@@ -427,6 +430,18 @@
       "deckSwipeHint": "Ketuk sebuah kartu, lalu geser ke atas untuk memilihnya.",
       "reversedMark": " (terbalik)",
       "pickedTeaser": "Kamu memilih {name}{reversedLabel}. Masuk di atas untuk horoskopmu."
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
     }
   },
   "ActionTrigger": {
@@ -448,7 +463,8 @@
     "locationDialogDescription": "Pilih negara dan provinsi atau wilayahmu. Kami akan menggunakannya untuk menyempurnakan lokasi horoskopmu.",
     "latitude": "Lintang",
     "longitude": "Bujur",
-    "saveLocation": "Simpan lokasi"
+    "saveLocation": "Simpan lokasi",
+    "shareAccess": "Share access"
   },
   "InterpretationMode": {
     "auto": "Otomatis",
@@ -459,7 +475,8 @@
     "composerSettingsAriaLabel": "Pengaturan bacaan",
     "composerSettingsPanelTitle": "Pengaturan",
     "composerSettingsSectionPreferences": "Preferensi",
-    "composerSettingsSectionActions": "Tindakan"
+    "composerSettingsSectionActions": "Tindakan",
+    "oracle": "Spiritual"
   },
   "About": {
     "whatIs": "Apa itu",
@@ -1562,7 +1579,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "Email"
+        "email": "Email",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "Hasilkan Ulang Pembacaan",
@@ -1617,7 +1646,9 @@
         "voteDown": "Tidak membantu",
         "voteDownDesc": "Ini tidak membantu",
         "removeVoteUpDesc": "Hapus suara",
-        "removeVoteDownDesc": "Hapus suara"
+        "removeVoteDownDesc": "Hapus suara",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
       },
       "followUp": {
         "badge": "Lanjutan",
@@ -3069,7 +3100,50 @@
       "sign-up": {
         "title": "Buat akun",
         "description": "Buat akun gratis untuk menyimpan pembacaan, bintang, dan profil kelahiranmu."
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
       }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
     }
   }
 }

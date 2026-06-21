@@ -87,7 +87,7 @@ export const tarotInterpretationSchema = z.object({
         .min(3)
         .max(4)
         .describe(
-            "EXACTLY 3–4 very short follow-up prompts the user might tap next. Sound like a real person texting (casual, plain language) — not formal essay questions. Each item MUST be a single line, ≤8 Thai words or ≤6 English words when possible. All four MUST differ in angle (topic, scope, or perspective) — no near-duplicates. Do NOT quote or lean on the exact wording of headline/subtitle/perCard/nextStep. Same language as the user's question.",
+            "EXACTLY 3–4 follow-up QUESTIONS the user would tap to ask next, written in the user's own voice and ending like a question (\"?\" or a Thai question word such as ไหม / ยังไง / เมื่อไหร่). They are NOT advice or to-do items and NOT a restatement of nextStep/conclusion — never tell the user what to do; ask what they'd want to know next. Casual, single line, ≤10 Thai words or ≤8 English words when possible. All MUST differ in angle (topic, timing, person, scope) — no near-duplicates. Do NOT quote or lean on the exact wording of headline/subtitle/perCard/nextStep. Same language as the user's question.",
         ),
 })
 

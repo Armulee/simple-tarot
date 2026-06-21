@@ -155,8 +155,10 @@ const CY = 500
 
 const WHEEL_RX_OUTER = 478
 const WHEEL_RY_OUTER = 402
-const WHEEL_RX_MID = 458
-const WHEEL_RY_MID = 386
+// Zodiac labels sit just OUTSIDE the outer ring; cardinal diamond marks sit
+// right on it. These offsets keep both away from the orbit lines.
+const ZODIAC_LABEL_RX = 510
+const ZODIAC_LABEL_RY = 432
 
 function buildStars(seed: string, count: number, w: number, h: number) {
     let s = 0
@@ -208,12 +210,54 @@ function resolveLongitude(point: OrbitPoint): number {
     )
 }
 
+export type OrbitAspectLine = {
+    transitPlanet: string
+    natalPlanet: string
+    aspectType: "conjunction" | "opposition" | "sextile" | "square"
+}
+
+const ASPECT_STYLE: Record<
+    OrbitAspectLine["aspectType"],
+    {
+        stroke: string
+        dash?: string
+        label: string
+        textColor: string
+    }
+> = {
+    conjunction: {
+        stroke: "rgba(252, 211, 77, 0.7)",
+        label: "Conj",
+        textColor: "#fde68a",
+    },
+    sextile: {
+        stroke: "rgba(134, 239, 172, 0.7)",
+        dash: "6 5",
+        label: "Sextile",
+        textColor: "#bbf7d0",
+    },
+    square: {
+        stroke: "rgba(252, 165, 165, 0.7)",
+        label: "Square",
+        textColor: "#fecaca",
+    },
+    opposition: {
+        stroke: "rgba(165, 180, 252, 0.7)",
+        dash: "10 5",
+        label: "Opp",
+        textColor: "#c7d2fe",
+    },
+}
+
 export default function OrbitVisual({
     planets,
     dateLabel,
     highlightPlanets,
     starSeed,
     ariaLabel = "Orbit visual",
+    shadowPlanets,
+    aspects,
+    labelMode = "name-degree",
 }: {
     planets?: Record<string, unknown> | null
     /** Optional date label rendered centered at the top of the visual. */
@@ -223,6 +267,25 @@ export default function OrbitVisual({
     /** Deterministic seed for the starfield; defaults to dateLabel or a static seed. */
     starSeed?: string
     ariaLabel?: string
+    /**
+     * Secondary set of planet positions rendered as low-opacity shadows
+     * behind the primary `planets`. Used by the transit view to overlay the
+     * asker's natal positions onto the live transit wheel.
+     */
+    shadowPlanets?: Record<string, unknown> | null
+    /**
+     * Aspect lines connecting a planet in `planets` (transitPlanet) to a
+     * planet in `shadowPlanets` (natalPlanet). Each line is colored and
+     * labeled by its aspect type. Only the four cardinal majors render.
+     */
+    aspects?: ReadonlyArray<OrbitAspectLine>
+    /**
+     * `"name-degree"` (default) prints PlanetName above the degree (the
+     * birth-chart style). `"sign-degree"` prints `{sign} {degree}°` on one
+     * line and drops the planet name — used by the transit overview where
+     * the planet image already identifies the body.
+     */
+    labelMode?: "name-degree" | "sign-degree"
 }) {
     const tAstro = useTranslations("BirthChart")
 
@@ -274,12 +337,75 @@ export default function OrbitVisual({
         return out
     }, [planets])
 
+    const shadows = useMemo(() => {
+        if (!shadowPlanets) {
+            return [] as Array<{
+                name: string
+                vis: PlanetVisual
+                x: number
+                y: number
+            }>
+        }
+        const out: Array<{
+            name: string
+            vis: PlanetVisual
+            x: number
+            y: number
+        }> = []
+        for (const name of RENDER_ORDER) {
+            const raw = shadowPlanets[name]
+            const vis = PLANET_VISUAL[name]
+            if (!raw || typeof raw !== "object" || !vis?.orbit) continue
+            const lng = resolveLongitude(raw as OrbitPoint)
+            const { x, y } = pointOnOrbit(lng, vis.orbit.rx, vis.orbit.ry)
+            out.push({ name, vis, x, y })
+        }
+        return out
+    }, [shadowPlanets])
+
+    const aspectLines = useMemo(() => {
+        if (!aspects || aspects.length === 0 || !planets || !shadowPlanets) {
+            return [] as Array<{
+                key: string
+                x1: number
+                y1: number
+                x2: number
+                y2: number
+                aspectType: OrbitAspectLine["aspectType"]
+            }>
+        }
+        const placedByName = new Map(placed.map((p) => [p.name, p]))
+        const shadowByName = new Map(shadows.map((s) => [s.name, s]))
+        const lines: Array<{
+            key: string
+            x1: number
+            y1: number
+            x2: number
+            y2: number
+            aspectType: OrbitAspectLine["aspectType"]
+        }> = []
+        for (const aspect of aspects) {
+            const t = placedByName.get(aspect.transitPlanet)
+            const n = shadowByName.get(aspect.natalPlanet)
+            if (!t || !n) continue
+            lines.push({
+                key: `${aspect.transitPlanet}-${aspect.natalPlanet}-${aspect.aspectType}`,
+                x1: t.x,
+                y1: t.y,
+                x2: n.x,
+                y2: n.y,
+                aspectType: aspect.aspectType,
+            })
+        }
+        return lines
+    }, [aspects, placed, shadows, planets, shadowPlanets])
+
     const hasPlanets = placed.length > 0
 
     return (
         <div className='relative w-full overflow-hidden'>
             <svg
-                viewBox={`0 0 ${VB_W} ${VB_H}`}
+                viewBox={`-70 -30 ${VB_W + 140} ${VB_H + 60}`}
                 preserveAspectRatio='xMidYMid meet'
                 className='block h-auto w-full'
                 aria-label={ariaLabel}
@@ -394,9 +520,6 @@ export default function OrbitVisual({
                     </radialGradient>
                 </defs>
 
-                <rect width={VB_W} height={VB_H} fill='url(#orbit-sky)' />
-                <rect width={VB_W} height={VB_H} fill='url(#orbit-nebula)' />
-
                 {stars.map((s) => (
                     <circle
                         key={s.id}
@@ -439,67 +562,97 @@ export default function OrbitVisual({
                             rx={vis.orbit.rx}
                             ry={vis.orbit.ry}
                             fill='none'
-                            stroke='rgba(203, 213, 225, 0.5)'
-                            strokeWidth={1.1}
+                            stroke='rgba(252, 211, 77, 0.22)'
+                            strokeWidth={0.9}
                         />
                     )
                 })}
 
                 <g>
+                    {/* Soft outer ring — a touch brighter than the orbits so
+                        the zodiac boundary reads. */}
                     <ellipse
                         cx={CX}
                         cy={CY}
                         rx={WHEEL_RX_OUTER}
                         ry={WHEEL_RY_OUTER}
                         fill='none'
-                        stroke='rgba(252, 211, 77, 0.34)'
-                        strokeWidth={1.2}
+                        stroke='rgba(252, 211, 77, 0.38)'
+                        strokeWidth={1}
                     />
-                    {Array.from({ length: 12 }, (_, i) => {
-                        const lng = i * 30
-                        const outer = pointOnOrbit(
+                    {/* Two cardinal axis lines — horizontal + vertical — pass
+                        through Earth to mirror the reference layout (no 12
+                        wheel spokes). */}
+                    {[0, 90].map((lng) => {
+                        const a = pointOnOrbit(
                             lng,
+                            WHEEL_RX_OUTER,
+                            WHEEL_RY_OUTER,
+                        )
+                        const b = pointOnOrbit(
+                            lng + 180,
                             WHEEL_RX_OUTER,
                             WHEEL_RY_OUTER,
                         )
                         return (
                             <line
-                                key={`wheel-spoke-${i}`}
-                                x1={CX}
-                                y1={CY}
-                                x2={outer.x}
-                                y2={outer.y}
-                                stroke='#ffffffff'
-                                strokeOpacity={0.7}
-                                strokeWidth={1.2}
+                                key={`cardinal-${lng}`}
+                                x1={a.x}
+                                y1={a.y}
+                                x2={b.x}
+                                y2={b.y}
+                                stroke='rgba(252, 211, 77, 0.18)'
+                                strokeWidth={0.9}
                             />
                         )
                     })}
+                    {/* Small gold diamonds where the cardinal cross meets the
+                        outer ring. */}
+                    {[0, 90, 180, 270].map((lng) => {
+                        const p = pointOnOrbit(
+                            lng,
+                            WHEEL_RX_OUTER,
+                            WHEEL_RY_OUTER,
+                        )
+                        const s = 6
+                        return (
+                            <polygon
+                                key={`cardinal-mark-${lng}`}
+                                points={`${p.x},${p.y - s} ${p.x + s},${p.y} ${p.x},${p.y + s} ${p.x - s},${p.y}`}
+                                fill='rgba(253, 224, 71, 0.85)'
+                                stroke='rgba(252, 211, 77, 0.6)'
+                                strokeWidth={0.6}
+                            />
+                        )
+                    })}
+                    {/* Zodiac labels at every 30° interval, OUTSIDE the outer
+                        ring — names sit beyond the wheel rather than between
+                        rings, matching the reference visual. */}
                     {ZODIAC_CANONICAL.map((sign, i) => {
                         const lng = i * 30 + 15
                         const pos = pointOnOrbit(
                             lng,
-                            WHEEL_RX_MID,
-                            WHEEL_RY_MID,
+                            ZODIAC_LABEL_RX,
+                            ZODIAC_LABEL_RY,
                         )
                         const name = tAstro(`zodiacSigns.${sign}`, {
                             defaultValue: sign,
-                        }).toUpperCase()
+                        })
                         return (
                             <text
                                 key={`wheel-sign-${sign}`}
                                 x={pos.x}
                                 y={pos.y + 5}
                                 textAnchor='middle'
-                                fill='#ffffffff'
-                                fontSize={16}
-                                fontWeight={700}
-                                letterSpacing={2}
-                                opacity={0.95}
+                                fill='#fde68a'
+                                fontSize={18}
+                                fontWeight={500}
+                                letterSpacing={1}
+                                opacity={0.9}
                                 style={{
                                     fontFamily:
                                         'ui-sans-serif, system-ui, -apple-system, "Segoe UI"',
-                                    filter: "drop-shadow(0 0 6px rgba(0,0,0,0.6))",
+                                    filter: "drop-shadow(0 0 6px rgba(0,0,0,0.7))",
                                 }}
                             >
                                 {name}
@@ -526,6 +679,74 @@ export default function OrbitVisual({
                     }}
                 />
 
+                {/* Aspect lines run UNDER the planet images so the planet
+                    icons cap each end of the line cleanly. Drawn here, after
+                    Earth but before any planets. */}
+                {aspectLines.map((line) => {
+                    const style = ASPECT_STYLE[line.aspectType]
+                    const mx = (line.x1 + line.x2) / 2
+                    const my = (line.y1 + line.y2) / 2
+                    return (
+                        <g key={line.key}>
+                            <line
+                                x1={line.x1}
+                                y1={line.y1}
+                                x2={line.x2}
+                                y2={line.y2}
+                                stroke={style.stroke}
+                                strokeWidth={1.6}
+                                strokeDasharray={style.dash}
+                                strokeLinecap='round'
+                            />
+                            <text
+                                x={mx}
+                                y={my}
+                                textAnchor='middle'
+                                dominantBaseline='middle'
+                                fill={style.textColor}
+                                fontSize={14}
+                                fontWeight={600}
+                                letterSpacing={1}
+                                style={{
+                                    fontFamily:
+                                        'ui-sans-serif, system-ui, -apple-system, "Segoe UI"',
+                                    paintOrder: "stroke",
+                                    stroke: "rgba(4, 6, 15, 0.85)",
+                                    strokeWidth: 4,
+                                    strokeLinejoin: "round",
+                                }}
+                            >
+                                {style.label}
+                            </text>
+                        </g>
+                    )
+                })}
+
+                {/* Natal-position shadows: same planet image at low opacity,
+                    no label. They sit BELOW the transit planets so the live
+                    bodies read on top. */}
+                {shadows.map(({ name, vis, x, y }) => {
+                    const half = vis.size / 2
+                    return (
+                        <image
+                            key={`shadow-${name}`}
+                            href={vis.img}
+                            x={x - half}
+                            y={y - half}
+                            width={vis.size}
+                            height={vis.size}
+                            preserveAspectRatio='xMidYMid slice'
+                            transform={
+                                vis.mirror ? `rotate(180 ${x} ${y})` : undefined
+                            }
+                            opacity={0.28}
+                            style={{
+                                filter: "grayscale(0.4) drop-shadow(0 2px 6px rgba(0,0,0,0.45))",
+                            }}
+                        />
+                    )
+                })}
+
                 {placed.map(({ name, vis, point, x, y }) => {
                     const planetName = tAstro(`planets.${name}`, {
                         defaultValue: name,
@@ -539,18 +760,35 @@ export default function OrbitVisual({
                     // planet to half opacity so the asked one visually leads
                     // without making the others disappear.
                     const dimmed = !!highlightSet && !isHighlighted
+                    const signRaw =
+                        typeof point.sign === "string" ? point.sign : ""
+                    const canonical = canonicalSign(signRaw)
+                    const signLabel = signRaw
+                        ? tAstro(`zodiacSigns.${canonical}`, {
+                              defaultValue: signRaw,
+                          })
+                        : ""
+                    const degreeText = `${degree.toFixed(1)}°`
+                    const useSignDegree = labelMode === "sign-degree"
                     return (
                         <PlanetMark
                             key={name}
                             x={x}
                             y={y}
                             vis={vis}
-                            label={planetName}
-                            degreeText={`${degree.toFixed(1)}°`}
+                            label={
+                                useSignDegree
+                                    ? signLabel
+                                        ? `${signLabel} ${degreeText}`
+                                        : degreeText
+                                    : planetName
+                            }
+                            degreeText={degreeText}
                             retrograde={Boolean(point.retrograde)}
                             labelBelow={y < CY + 50}
                             highlighted={isHighlighted}
                             dimmed={dimmed}
+                            singleLineLabel={useSignDegree}
                         />
                     )
                 })}
@@ -583,6 +821,7 @@ function PlanetMark({
     labelBelow,
     highlighted = false,
     dimmed = false,
+    singleLineLabel = false,
 }: {
     x: number
     y: number
@@ -594,9 +833,18 @@ function PlanetMark({
     highlighted?: boolean
     /** When true, dim the planet (image + label + degree) to half opacity. */
     dimmed?: boolean
+    /**
+     * When true, `label` already contains both sign and degree (e.g.
+     * "Aries 12.3°") and the secondary degree line is suppressed.
+     */
+    singleLineLabel?: boolean
 }) {
     const half = vis.size / 2
-    const baseY = labelBelow ? y + half + 22 : y - half - 16 - 50
+    const baseY = labelBelow
+        ? y + half + 22
+        : singleLineLabel
+          ? y - half - 16 - 22
+          : y - half - 16 - 50
     const nameY = baseY
     const degreeY = baseY + 28
     const auraRadius = vis.size * 1.6
@@ -656,7 +904,7 @@ function PlanetMark({
                 y={nameY}
                 textAnchor='middle'
                 fill='#f8fafc'
-                fontSize={22}
+                fontSize={singleLineLabel ? 20 : 22}
                 fontWeight={600}
                 style={{
                     fontFamily:
@@ -665,20 +913,22 @@ function PlanetMark({
             >
                 {label}
             </text>
-            <text
-                x={x}
-                y={degreeY}
-                textAnchor='middle'
-                fontSize={19}
-                fill='#e2e8f0'
-                opacity={0.9}
-                style={{
-                    fontFamily:
-                        "ui-monospace, SFMono-Regular, Menlo, monospace",
-                }}
-            >
-                {degreeText}
-            </text>
+            {!singleLineLabel && (
+                <text
+                    x={x}
+                    y={degreeY}
+                    textAnchor='middle'
+                    fontSize={19}
+                    fill='#e2e8f0'
+                    opacity={0.9}
+                    style={{
+                        fontFamily:
+                            "ui-monospace, SFMono-Regular, Menlo, monospace",
+                    }}
+                >
+                    {degreeText}
+                </text>
+            )}
         </g>
     )
 }

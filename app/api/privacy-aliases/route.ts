@@ -121,20 +121,14 @@ export async function POST(req: NextRequest) {
 
         const user = await getUserFromAuth(req)
         if (!user) {
-            return NextResponse.json(
-                { error: "UNAUTHORIZED" },
-                { status: 401 },
-            )
+            return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 })
         }
 
         let body: { sessionId?: unknown; items?: unknown }
         try {
             body = await req.json()
         } catch {
-            return NextResponse.json(
-                { error: "INVALID_BODY" },
-                { status: 400 },
-            )
+            return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 })
         }
 
         const sessionId = sanitizeSessionId(body.sessionId)
@@ -178,10 +172,7 @@ export async function POST(req: NextRequest) {
 
         if (error) {
             console.error("[privacy-aliases] upsert failed:", error)
-            return NextResponse.json(
-                { error: error.message },
-                { status: 400 },
-            )
+            return NextResponse.json({ error: error.message }, { status: 400 })
         }
 
         return NextResponse.json({ ok: true, inserted: rows.length })
@@ -209,10 +200,7 @@ export async function GET(req: NextRequest) {
 
         const user = await getUserFromAuth(req)
         if (!user) {
-            return NextResponse.json(
-                { error: "UNAUTHORIZED" },
-                { status: 401 },
-            )
+            return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 })
         }
 
         const url = new URL(req.url)
@@ -239,10 +227,7 @@ export async function GET(req: NextRequest) {
 
         if (error) {
             console.error("[privacy-aliases] select failed:", error)
-            return NextResponse.json(
-                { error: error.message },
-                { status: 400 },
-            )
+            return NextResponse.json({ error: error.message }, { status: 400 })
         }
 
         const items: Array<{

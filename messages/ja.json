@@ -13,7 +13,8 @@
   "PageContextComposer": {
     "eyebrow": "コンテキスト",
     "hint": "このコンテキストはAIに送信されます",
-    "error": "申し訳ございません。問題が発生しました。もう一度お試しください。"
+    "error": "申し訳ございません。問題が発生しました。もう一度お試しください。",
+    "clear": "Clear context"
   },
   "Chat": {
     "originContext": {
@@ -360,12 +361,14 @@
     "quickCards": {
       "tarotCard": "タロットカード",
       "birthChart": "出生図",
-      "horoscope": "ホロスコープ"
+      "horoscope": "ホロスコープ",
+      "calendarYear": "Cosmic Calendar"
     },
     "quickCardQuestions": {
       "tarotCard": "タロットカードを1枚引いて",
       "birthChart": "私の出生図を教えて",
-      "horoscope": "今日の私のホロスコープは？"
+      "horoscope": "今日の私のホロスコープは？",
+      "calendarYear": "Show me my cosmic calendar"
     },
     "selectedCards": "{cardsToSelect}枚中{selectedCount}枚のカードを選びました",
     "consulting": "鑑定中",
@@ -427,6 +430,18 @@
       "deckSwipeHint": "カードをタップして、上にスワイプして選んでください。",
       "reversedMark": "（逆位置）",
       "pickedTeaser": "{name}{reversedLabel}を選びました。あなたのホロスコープを見るには、上からサインインしてください。"
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
     }
   },
   "ActionTrigger": {
@@ -448,7 +463,8 @@
     "locationDialogDescription": "国と州・都道府県を選択してください。これをもとにホロスコープの場所を精緻化します。",
     "latitude": "緯度",
     "longitude": "経度",
-    "saveLocation": "場所を保存"
+    "saveLocation": "場所を保存",
+    "shareAccess": "Share access"
   },
   "InterpretationMode": {
     "auto": "おまかせ",
@@ -459,7 +475,8 @@
     "composerSettingsAriaLabel": "リーディングの設定",
     "composerSettingsPanelTitle": "設定",
     "composerSettingsSectionPreferences": "環境設定",
-    "composerSettingsSectionActions": "アクション"
+    "composerSettingsSectionActions": "アクション",
+    "oracle": "Spiritual"
   },
   "About": {
     "whatIs": "とは",
@@ -1562,7 +1579,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "メール"
+        "email": "メール",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "リーディングを再生成する",
@@ -1617,7 +1646,9 @@
         "voteDown": "役に立たなかった",
         "voteDownDesc": "これは役に立ちませんでした",
         "removeVoteUpDesc": "評価を取り消す",
-        "removeVoteDownDesc": "評価を取り消す"
+        "removeVoteDownDesc": "評価を取り消す",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
       },
       "followUp": {
         "badge": "フォローアップ",
@@ -3069,7 +3100,50 @@
       "sign-up": {
         "title": "アカウントを作成",
         "description": "無料アカウントを作成して、占い、スター、出生プロフィールを残しましょう。"
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
       }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
     }
   }
 }

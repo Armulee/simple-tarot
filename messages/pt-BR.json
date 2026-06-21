@@ -13,7 +13,8 @@
   "PageContextComposer": {
     "eyebrow": "Contexto",
     "hint": "este contexto será enviado para a IA",
-    "error": "Desculpe, algo deu errado. Por favor, tente novamente."
+    "error": "Desculpe, algo deu errado. Por favor, tente novamente.",
+    "clear": "Clear context"
   },
   "Chat": {
     "originContext": {
@@ -360,12 +361,14 @@
     "quickCards": {
       "tarotCard": "Carta de Tarô",
       "birthChart": "Mapa Natal",
-      "horoscope": "Horóscopo"
+      "horoscope": "Horóscopo",
+      "calendarYear": "Cosmic Calendar"
     },
     "quickCardQuestions": {
       "tarotCard": "Tire uma carta de tarô para mim",
       "birthChart": "Me fale sobre meu mapa natal",
-      "horoscope": "Qual é o meu horóscopo de hoje"
+      "horoscope": "Qual é o meu horóscopo de hoje",
+      "calendarYear": "Show me my cosmic calendar"
     },
     "selectedCards": "Você selecionou {selectedCount}/{cardsToSelect} cartas",
     "consulting": "Consultando",
@@ -427,6 +430,18 @@
       "deckSwipeHint": "Toque em uma carta e deslize para cima para selecioná-la.",
       "reversedMark": " (invertida)",
       "pickedTeaser": "Você escolheu {name}{reversedLabel}. Entre acima para ver seu horóscopo."
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
     }
   },
   "ActionTrigger": {
@@ -448,7 +463,8 @@
     "locationDialogDescription": "Escolha seu país e estado ou província. Usaremos isso para refinar a localização do seu horóscopo.",
     "latitude": "Latitude",
     "longitude": "Longitude",
-    "saveLocation": "Salvar localização"
+    "saveLocation": "Salvar localização",
+    "shareAccess": "Share access"
   },
   "InterpretationMode": {
     "auto": "Automático",
@@ -459,7 +475,8 @@
     "composerSettingsAriaLabel": "Configurações de leitura",
     "composerSettingsPanelTitle": "Configurações",
     "composerSettingsSectionPreferences": "Preferências",
-    "composerSettingsSectionActions": "Ações"
+    "composerSettingsSectionActions": "Ações",
+    "oracle": "Spiritual"
   },
   "About": {
     "whatIs": "O que é",
@@ -1562,7 +1579,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "E-mail"
+        "email": "E-mail",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "Gerar Leitura Novamente",
@@ -1617,7 +1646,9 @@
         "voteDown": "Não foi útil",
         "voteDownDesc": "Isto não foi útil",
         "removeVoteUpDesc": "Remover voto",
-        "removeVoteDownDesc": "Remover voto"
+        "removeVoteDownDesc": "Remover voto",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
       },
       "followUp": {
         "badge": "Acompanhamento",
@@ -3069,7 +3100,50 @@
       "sign-up": {
         "title": "Criar uma conta",
         "description": "Crie uma conta gratuita para manter suas leituras, estrelas e perfil de nascimento."
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
       }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
     }
   }
 }

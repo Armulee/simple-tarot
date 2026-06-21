@@ -1,6 +1,6 @@
 import { streamText } from "ai"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 export async function POST(req: Request) {
     try {

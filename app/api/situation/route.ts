@@ -8,7 +8,14 @@ import { getBaseCardName, isReversed } from "@/lib/tarot/rag"
 const MODEL = "deepseek/deepseek-v3.2"
 
 const USER_SITUATION_PROMPT = `
-You are a tarot reasoning engine. Your job is to:
+You are a tarot reasoning engine.
+
+CURRENT QUESTION FIRST (highest priority):
+- Everything you extract (topic, intent, emotion, focus, questionDomain) and the cardReadingDirection MUST be about the "Current user question" block — the user's LATEST message.
+- "Conversation context" and "Previous tarot reading" are BACKGROUND ONLY. Use them to figure out what an ambiguous current question really means (e.g. "who?", "what about him?", "so should I wait?" after a topic) — never as the question itself.
+- Never re-answer a previous question from the context. If the current question changes topic, drop the old topic entirely and reason only about the new one.
+
+Your job is to:
 1. Extract the user's situation (topic, intent, emotion, focus)
 2. Set questionDomain: classify the USER'S QUESTION into exactly one of general | legal | medical | financial (English enum values only).
    - legal: law, contracts, lawsuits, rights, immigration rules, criminal/regulatory matters.
@@ -126,15 +133,19 @@ function buildSituationPrompt({
     const parts: string[] = []
 
     if (conversationContext) {
-        parts.push(`Conversation context:\n${conversationContext}`)
+        parts.push(
+            `Conversation context (background only — for disambiguating the current question, never the question to answer):\n${conversationContext}`,
+        )
     }
     if (previousInterpretation) {
-        parts.push(`Previous tarot reading:\n${previousInterpretation}`)
+        parts.push(
+            `Previous tarot reading (background only — not evidence for this draw):\n${previousInterpretation}`,
+        )
     }
     if (cardSummary) {
         parts.push(`Cards drawn and their meanings:\n${cardSummary}`)
     }
-    parts.push(`User message:\n${question}`)
+    parts.push(`Current user question (ANSWER THIS):\n${question}`)
 
     return parts.join("\n\n")
 }

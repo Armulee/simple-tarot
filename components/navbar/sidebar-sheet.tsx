@@ -26,7 +26,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet"
-import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
+import { CrownedAvatar } from "@/components/ui/crowned-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
     UserProfileSidebarMenu,
@@ -310,7 +310,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                                 </>
                             ) : (
                                 <>
-                                    <ConsistentAvatar
+                                    <CrownedAvatar
                                         data={{
                                             name: profile?.name,
                                             email: user?.email,

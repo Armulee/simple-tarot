@@ -1,6 +1,17 @@
 import React from "react"
-import Head from "next/head"
-import Image from "next/image"
+import {
+    Body,
+    Container,
+    Head,
+    Heading,
+    Hr,
+    Html,
+    Img,
+    Link,
+    Preview,
+    Section,
+    Text,
+} from "@react-email/components"
 
 interface AdminNotificationEmailProps {
     name: string
@@ -9,6 +20,20 @@ interface AdminNotificationEmailProps {
     message: string
 }
 
+const COLORS = {
+    pageBg: "#0a0a14",
+    cardBg: "#14142a",
+    border: "#26264a",
+    text: "#ffffff",
+    textMuted: "#d6d6f8",
+    textDim: "#8888aa",
+    accent: "#b891ff",
+    accentSecondary: "#7de3ff",
+}
+
+const fontStack =
+    "-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif"
+
 export const AdminNotificationEmail: React.FC<AdminNotificationEmailProps> = ({
     name,
     email,
@@ -16,183 +41,169 @@ export const AdminNotificationEmail: React.FC<AdminNotificationEmailProps> = ({
     message,
 }) => {
     return (
-        <html
-            lang='en'
-            style={{
-                margin: 0,
-                padding: 0,
-                background: "#03030a",
-                color: "#fff",
-                fontFamily: "'Poppins','Helvetica Neue',Arial,sans-serif",
-            }}
-        >
-            <Head>
-                <meta charSet='UTF-8' />
-                <title>New Contact Form Submission - AskingFate</title>
-            </Head>
-            <body
+        <Html lang='en'>
+            <Head />
+            <Preview>{`New contact form: ${subject}`}</Preview>
+            <Body
                 style={{
                     margin: 0,
                     padding: 0,
-                    background:
-                        "radial-gradient(circle at top, #0a0a2a 0%, #000 100%)",
-                    color: "#fff",
-                    textAlign: "center",
+                    backgroundColor: COLORS.pageBg,
+                    color: COLORS.text,
+                    fontFamily: fontStack,
                 }}
             >
-                <div
+                <Container
                     style={{
                         maxWidth: "520px",
-                        margin: "60px auto",
-                        background: "rgba(20,20,40,0.8)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        borderRadius: "18px",
-                        padding: "40px 30px",
-                        boxShadow: "0 0 30px rgba(100,100,255,0.2)",
-                        backdropFilter: "blur(6px)",
+                        margin: "0 auto",
+                        padding: "40px 20px",
                     }}
                 >
-                    <Image
-                        src='https://askingfate.com/assets/logo.png'
-                        alt='AskingFate Logo'
-                        width={100}
-                        height={100}
-                        style={{
-                            width: "100px",
-                            height: "auto",
-                            marginBottom: "18px",
-                            filter: "drop-shadow(0 0 8px rgba(125,227,255,0.6))",
-                        }}
-                    />
+                    <Section style={{ textAlign: "center", paddingBottom: "8px" }}>
+                        <Img
+                            src='https://askingfate.com/assets/logo.png'
+                            alt='AskingFate'
+                            width='80'
+                            height='80'
+                            style={{
+                                display: "block",
+                                margin: "0 auto",
+                                width: "80px",
+                                height: "auto",
+                            }}
+                        />
+                    </Section>
 
-                    <h2
+                    <Section
                         style={{
-                            fontSize: "24px",
-                            marginBottom: "20px",
-                            background:
-                                "linear-gradient(90deg,#b891ff,#7de3ff)",
-                            WebkitBackgroundClip: "text",
-                            WebkitTextFillColor: "transparent",
-                            backgroundClip: "text",
+                            backgroundColor: COLORS.cardBg,
+                            border: `1px solid ${COLORS.border}`,
+                            borderRadius: "16px",
+                            padding: "32px 28px",
+                            marginTop: "20px",
                         }}
                     >
-                        New Contact Form Submission
-                    </h2>
-
-                    <div style={{ textAlign: "left", marginTop: "30px" }}>
-                        <div
+                        <Heading
+                            as='h2'
                             style={{
-                                marginBottom: "20px",
-                                padding: "20px",
-                                background: "rgba(255,255,255,0.05)",
-                                borderRadius: "12px",
-                                border: "1px solid rgba(255,255,255,0.1)",
+                                fontSize: "22px",
+                                lineHeight: 1.3,
+                                margin: "0 0 24px",
+                                color: COLORS.text,
+                                textAlign: "center",
                             }}
                         >
-                            <p
-                                style={{
-                                    fontSize: "15px",
-                                    lineHeight: "1.7",
-                                    color: "#d6d6f8",
-                                    margin: "8px 0",
-                                }}
-                            >
-                                <strong style={{ color: "#7de3ff" }}>
-                                    Name:
-                                </strong>{" "}
-                                {name}
-                            </p>
-                            <p
-                                style={{
-                                    fontSize: "15px",
-                                    lineHeight: "1.7",
-                                    color: "#d6d6f8",
-                                    margin: "8px 0",
-                                }}
-                            >
-                                <strong style={{ color: "#7de3ff" }}>
-                                    Email:
-                                </strong>{" "}
-                                {email}
-                            </p>
-                            <p
-                                style={{
-                                    fontSize: "15px",
-                                    lineHeight: "1.7",
-                                    color: "#d6d6f8",
-                                    margin: "8px 0",
-                                }}
-                            >
-                                <strong style={{ color: "#7de3ff" }}>
-                                    Subject:
-                                </strong>{" "}
-                                {subject}
-                            </p>
-                        </div>
+                            New Contact Form Submission
+                        </Heading>
 
-                        <div
+                        <Section
                             style={{
-                                marginBottom: "20px",
-                                padding: "20px",
-                                background: "rgba(255,255,255,0.05)",
+                                backgroundColor: "#1a1a36",
+                                border: `1px solid ${COLORS.border}`,
                                 borderRadius: "12px",
-                                border: "1px solid rgba(255,255,255,0.1)",
+                                padding: "20px",
+                                marginBottom: "16px",
                             }}
                         >
-                            <h3
+                            <Field label='Name' value={name} />
+                            <Field label='Email' value={email} />
+                            <Field label='Subject' value={subject} />
+                        </Section>
+
+                        <Section
+                            style={{
+                                backgroundColor: "#1a1a36",
+                                border: `1px solid ${COLORS.border}`,
+                                borderRadius: "12px",
+                                padding: "20px",
+                            }}
+                        >
+                            <Text
                                 style={{
-                                    fontSize: "16px",
-                                    marginBottom: "12px",
-                                    color: "#b891ff",
+                                    fontSize: "14px",
+                                    margin: "0 0 12px",
+                                    color: COLORS.accent,
+                                    fontWeight: 600,
                                 }}
                             >
-                                Message:
-                            </h3>
-                            <p
+                                Message
+                            </Text>
+                            <Text
                                 style={{
                                     fontSize: "15px",
-                                    lineHeight: "1.7",
-                                    color: "#d6d6f8",
+                                    lineHeight: 1.7,
+                                    color: COLORS.textMuted,
+                                    margin: 0,
                                     whiteSpace: "pre-wrap",
                                 }}
                             >
                                 {message}
-                            </p>
-                        </div>
-                    </div>
+                            </Text>
+                        </Section>
 
-                    <p
-                        style={{
-                            marginTop: "30px",
-                            fontSize: "13px",
-                            color: "#8888aa",
-                        }}
-                    >
-                        This message was sent from the contact form on your
-                        website.
-                    </p>
+                        <Text
+                            style={{
+                                marginTop: "24px",
+                                marginBottom: 0,
+                                fontSize: "13px",
+                                color: COLORS.textDim,
+                                textAlign: "center",
+                            }}
+                        >
+                            This message was sent from the contact form on your
+                            website.
+                        </Text>
+                    </Section>
 
-                    <hr
+                    <Hr
                         style={{
-                            margin: "30px auto",
-                            width: "40%",
                             border: "none",
-                            borderTop: "1px solid rgba(255,255,255,0.1)",
+                            borderTop: `1px solid ${COLORS.border}`,
+                            margin: "28px auto",
+                            width: "40%",
                         }}
                     />
 
-                    <p style={{ fontSize: "12px", color: "#5a5a80" }}>
-                        ✦ Sent from AskingFate Contact Form |{" "}
-                        <a
+                    <Text
+                        style={{
+                            fontSize: "12px",
+                            color: COLORS.textDim,
+                            textAlign: "center",
+                            margin: 0,
+                        }}
+                    >
+                        Sent from AskingFate Contact Form ·{" "}
+                        <Link
                             href='https://askingfate.com'
-                            style={{ color: "#7de3ff", textDecoration: "none" }}
+                            style={{
+                                color: COLORS.accentSecondary,
+                                textDecoration: "none",
+                            }}
                         >
                             Visit Us
-                        </a>{" "}
-                        ✦
-                    </p>
-                </div>
-            </body>
-        </html>
+                        </Link>
+                    </Text>
+                </Container>
+            </Body>
+        </Html>
+    )
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+    return (
+        <Text
+            style={{
+                fontSize: "15px",
+                lineHeight: 1.6,
+                color: COLORS.textMuted,
+                margin: "6px 0",
+            }}
+        >
+            <strong style={{ color: COLORS.accentSecondary, fontWeight: 600 }}>
+                {label}:
+            </strong>{" "}
+            {value}
+        </Text>
     )
 }

@@ -6,6 +6,8 @@ import { useTranslations, useLocale } from "next-intl"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { parsePartialJson } from "ai"
 import { useStars } from "@/contexts/stars-context"
+import { readReasoningStream } from "@/lib/chat/reasoning-stream-client"
+import { matchMentionedAspectEvents } from "@/lib/chat/aspect-mention"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
 import QuestionInput from "@/components/question-input"
@@ -24,6 +26,14 @@ import {
     type GeneralReply,
     type StreamingGeneralReply,
 } from "@/lib/chat/general-reply-schema"
+import {
+    streamingTalkReplySchema,
+    type StreamingTalkReply,
+} from "@/lib/chat/talk-schema"
+import {
+    streamingOracleReadingSchema,
+    type StreamingOracleReading,
+} from "@/lib/chat/oracle-reading-schema"
 import { resolveDeterministicTransitDate } from "@/lib/astrology/transit-date-extract"
 import {
     mergeAspectKeywordsIntoAspects,
@@ -36,6 +46,7 @@ import {
     buildSessionContextSummary,
 } from "@/lib/astrology/question-context"
 import {
+    buildCalendarDayOriginContext,
     mergeOriginContextIntoSummary,
     type OriginContext,
 } from "@/lib/chat/origin-context"
@@ -43,6 +54,7 @@ import { chartDataToBirth, chartDataToTransit } from "@/lib/chart-data-to-birth"
 import { loadBirthFromStorage } from "@/lib/birth-storage"
 import {
     applyEphemerisLocationTimeDefaults,
+    mentionedPersonToHoroscopeBirthData,
     profileToHoroscopeBirthData,
 } from "@/lib/horoscope-profile-birth"
 import {
@@ -71,7 +83,13 @@ import type {
 } from "@/types/horoscope"
 import DrawCardSection from "@/components/chat/draw-card-section"
 import ActionTrigger from "@/components/chat/action-trigger"
+import OriginContextStrip from "@/components/chat/origin-context-strip"
 import MessageList from "@/components/chat/message-list"
+import ShareAccessDialog from "@/components/chat/share-access-dialog"
+import type { ChipId as HoroscopeCalendarChipId } from "@/components/chat/horoscope/calendar-tool"
+import { toast } from "sonner"
+import type { ReadingImageExportStatus } from "@/components/chat/tarot-interpretation"
+import { getShareImageBlob } from "@/lib/share-image-client"
 import { LocationSelector } from "@/components/ui/location-selector"
 import {
     Dialog,
@@ -82,7 +100,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowDown, Star } from "lucide-react"
+import { ArrowDown, Check, EyeOff, Loader2, Star } from "lucide-react"
 import {
     CARD_UI_TEXT,
     isPickForMeIntent,
@@ -109,6 +127,11 @@ import { useActiveSubscription } from "@/hooks/use-active-subscription"
 import { useProfile } from "@/contexts/profile-context"
 import { supabase } from "@/lib/supabase"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
+import {
+    detectInputLanguage,
+    isSupportedLocale,
+    type SupportedLocale,
+} from "@/lib/detect-input-language"
 import {
     buildPrivacyStorageKey,
     loadRawPromptFromSession,
@@ -758,7 +781,8 @@ export default function ChatSession({
     const tReadingTypes = useTranslations("Reading.types")
     const tHoroscope = useTranslations("HoroscopeChat")
     const tActionTrigger = useTranslations("ActionTrigger")
-    const tOriginContext = useTranslations("Chat.originContext")
+    const tShareProgress = useTranslations("ShareImageProgress")
+    const tReadingActions = useTranslations("ReadingPage.interpretation")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -800,7 +824,7 @@ export default function ChatSession({
     const locale = useLocale()
     const router = useRouter()
     const pathname = usePathname()
-    const { user } = useAuth()
+    const { user, loading: authLoading } = useAuth()
     const { subscription } = useActiveSubscription()
     const { profile, birthChart: storedBirthChart } = useProfile()
     const storedBirthChartPayload = useMemo(
@@ -832,11 +856,22 @@ export default function ChatSession({
     const [showPrompt, setShowPrompt] = useState(false)
     const [showLearnMore, setShowLearnMore] = useState(false)
     const [consulting, setConsulting] = useState(false)
-    const [messages, setMessages] = useState<ChatMessage[]>(
-        Array.isArray(initialSession?.messages)
+    const [messages, setMessages] = useState<ChatMessage[]>(() => {
+        const restored = Array.isArray(initialSession?.messages)
             ? normalizeRestoredMessages(initialSession.messages)
-            : [],
-    )
+            : []
+        // Backfill the per-message context snapshot from the session's
+        // initial originContext for any user message that doesn't already
+        // carry one — sessions opened from /calendar should keep showing
+        // the day pill above the first user bubble.
+        const sessionOrigin = initialSession?.originContext ?? null
+        if (!sessionOrigin) return restored
+        return restored.map((m) =>
+            m.role === "user" && !m.originContextSnapshot
+                ? { ...m, originContextSnapshot: sessionOrigin }
+                : m,
+        )
+    })
     const [decision, setDecision] = useState<ChatDecision | null>(
         initialSession?.decision ?? null,
     )
@@ -882,9 +917,32 @@ export default function ChatSession({
     const [composerSuggestionsEnabled, setComposerSuggestionsEnabled] =
         useState(true)
     const [sessionId] = useState<string | null>(initialSession?.id ?? null)
-    const [originContext] = useState<OriginContext | null>(
+    const [originContext, setOriginContext] = useState<OriginContext | null>(
         initialSession?.originContext ?? null,
     )
+    // Mirror originContext into a ref so the user-message-add callbacks
+    // (memoised with stable deps for perf) snapshot the latest context
+    // onto the new message even after the calendar tool refreshes it
+    // mid-session.
+    const originContextRef = useRef<OriginContext | null>(originContext)
+    useEffect(() => {
+        originContextRef.current = originContext
+    }, [originContext])
+    // The context that applies to the IN-FLIGHT question turn. The strip is
+    // consumed by the message it was attached to (cleared right after send),
+    // so every AI call within a turn reads this captured value instead of the
+    // live strip state — regenerate/edit set it from the target message's
+    // originContextSnapshot, new sends capture it before clearing the strip.
+    const activeOriginContextRef = useRef<OriginContext | null>(
+        initialSession?.originContext ?? null,
+    )
+    // Bump to clear the inline calendar tool's selection (X button on the
+    // OriginContextStrip, or the strip being consumed by a sent message).
+    const [calendarToolResetSignal, setCalendarToolResetSignal] = useState(0)
+    const handleClearOriginContext = useCallback(() => {
+        setOriginContext(null)
+        setCalendarToolResetSignal((n) => n + 1)
+    }, [])
     const [privacyAliases, setPrivacyAliases] = useState<PromptAliasEntry[]>([])
     const unmask = useCallback(
         (text?: string | null): string => {
@@ -928,9 +986,155 @@ export default function ChatSession({
     const [showCardDraw, setShowCardDraw] = useState(
         initialSession?.showCardDraw ?? false,
     )
+
+    // Compose-access gating: only the owner and explicitly granted users may
+    // submit messages. Owner-by-auth and owner-by-device-id are known
+    // synchronously; non-owner authenticated users may still have a grant,
+    // which we resolve via /access.
+    const isAuthOwner = !!(
+        user &&
+        initialSession?.owner_user_id &&
+        user.id === initialSession.owner_user_id
+    )
+    const ownerKnownSync =
+        isAuthOwner || Boolean(initialSession?.youAreCreatorDevice)
+    const [isOwner, setIsOwner] = useState<boolean>(ownerKnownSync)
+    const [canCompose, setCanCompose] = useState<boolean>(ownerKnownSync)
+    const [composeAuthLoaded, setComposeAuthLoaded] =
+        useState<boolean>(ownerKnownSync)
+    const [shareDialogOpen, setShareDialogOpen] = useState(false)
+    const [accessRequestSent, setAccessRequestSent] = useState(false)
+    const [accessRequestSending, setAccessRequestSending] = useState(false)
+
+    const handleRequestAccess = useCallback(async () => {
+        if (!sessionId) return
+        setAccessRequestSending(true)
+        try {
+            const { data: sess } = await supabase.auth.getSession()
+            const token = sess.session?.access_token
+            if (!token) {
+                toast.error("Sign in to request access")
+                return
+            }
+            const res = await fetch(
+                `/api/chat-sessions/${sessionId}/access/request`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({}),
+                },
+            )
+            if (!res.ok) {
+                const json = await res.json().catch(() => ({}))
+                if (json?.error === "ALREADY_HAS_ACCESS") {
+                    toast.success("You already have access")
+                    setAccessRequestSent(true)
+                    return
+                }
+                if (json?.error === "OWNER_NOT_REACHABLE") {
+                    toast.error(
+                        "The session creator can't receive requests",
+                    )
+                    return
+                }
+                if (json?.error === "REQUESTER_NOT_AUTHENTICATED") {
+                    toast.error("Sign in to request access")
+                    return
+                }
+                toast.error("Failed to send request")
+                return
+            }
+            const json = await res.json().catch(() => ({}))
+            if (json?.alreadyExists) {
+                toast.message("Request already pending")
+            } else {
+                toast.success("Request sent")
+            }
+            setAccessRequestSent(true)
+        } finally {
+            setAccessRequestSending(false)
+        }
+    }, [sessionId])
+
+    useEffect(() => {
+        if (ownerKnownSync) {
+            setIsOwner(true)
+            setCanCompose(true)
+            setComposeAuthLoaded(true)
+            return
+        }
+        // Wait for auth context to settle before declaring "denied", so an
+        // authenticated owner doesn't briefly see the view-only banner.
+        if (authLoading) return
+        if (!sessionId || !user) {
+            setIsOwner(false)
+            setCanCompose(false)
+            setComposeAuthLoaded(true)
+            return
+        }
+        let cancelled = false
+        ;(async () => {
+            try {
+                const { data: sess } = await supabase.auth.getSession()
+                const token = sess.session?.access_token
+                if (!token) {
+                    if (!cancelled) {
+                        setIsOwner(false)
+                        setCanCompose(false)
+                        setComposeAuthLoaded(true)
+                    }
+                    return
+                }
+                const res = await fetch(
+                    `/api/chat-sessions/${sessionId}/access`,
+                    { headers: { Authorization: `Bearer ${token}` } },
+                )
+                if (!res.ok) {
+                    if (!cancelled) {
+                        setIsOwner(false)
+                        setCanCompose(false)
+                        setComposeAuthLoaded(true)
+                    }
+                    return
+                }
+                const json = await res.json()
+                if (cancelled) return
+                setIsOwner(Boolean(json?.isOwner))
+                setCanCompose(Boolean(json?.canCompose))
+                setComposeAuthLoaded(true)
+            } catch {
+                if (!cancelled) {
+                    setIsOwner(false)
+                    setCanCompose(false)
+                    setComposeAuthLoaded(true)
+                }
+            }
+        })()
+        return () => {
+            cancelled = true
+        }
+    }, [ownerKnownSync, sessionId, user, authLoading])
+
+    useEffect(() => {
+        if (!isOwner) return
+        if (typeof window === "undefined") return
+        const params = new URLSearchParams(window.location.search)
+        if (params.get("share") === "requests") {
+            setShareDialogOpen(true)
+        }
+    }, [isOwner])
+
     const [autoPickOn, setAutoPickOn] = useState(false)
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>("auto")
+    // Becomes true once persisted settings (esp. interpretation mode) are
+    // hydrated from storage. The first-message bootstrap waits for this so the
+    // homepage → session decision respects the locked interpretation mode
+    // instead of racing with the default "auto".
+    const [settingsLoaded, setSettingsLoaded] = useState(false)
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         null,
     )
@@ -958,6 +1162,8 @@ export default function ChatSession({
     const horoscopeTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeVerdictTargetMessageIdRef = useRef<string | null>(null)
     const generalReplyTargetMessageIdRef = useRef<string | null>(null)
+    const talkReplyTargetMessageIdRef = useRef<string | null>(null)
+    const oracleReplyTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeIsRefetchRef = useRef(false)
     const horoscopeRefetchSystemRef = useRef<
         "western_tropical" | "vedic_sidereal" | null
@@ -1212,6 +1418,114 @@ export default function ChatSession({
                 )
             }
             generalReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+    })
+
+    const {
+        submit: submitTalkReply,
+        object: talkReplyObject,
+        stop: stopTalkReply,
+    } = useObject({
+        api: "/api/chat/talk",
+        schema: streamingTalkReplySchema,
+        onFinish: ({ object }: { object: StreamingTalkReply | undefined }) => {
+            const targetId = talkReplyTargetMessageIdRef.current
+            if (!targetId) return
+            if (object) {
+                setMessages((prev) =>
+                    prev.map((m) => {
+                        if (m.id !== targetId) return m
+                        const followUpSuggestions =
+                            object.suggestions
+                                ?.map((s) =>
+                                    typeof s === "string" ? s.trim() : "",
+                                )
+                                .filter(Boolean)
+                                .slice(0, 4) ?? m.followUpSuggestions
+                        return {
+                            ...m,
+                            text: object.reply?.trim() || m.text,
+                            followUpSuggestions,
+                            isLoading: false,
+                            streamStopped: false,
+                        }
+                    }),
+                )
+            }
+            talkReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+        onError: (e: Error) => {
+            console.error("[chat/talk] stream error:", e)
+            const targetId = talkReplyTargetMessageIdRef.current
+            if (targetId && e?.name !== "AbortError") {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === targetId
+                            ? {
+                                  ...m,
+                                  text:
+                                      m.text ||
+                                      "Sorry, something went wrong. Please try again.",
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            talkReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+    })
+
+    const {
+        submit: submitOracleReply,
+        object: oracleReplyObject,
+        stop: stopOracleReply,
+    } = useObject({
+        api: "/api/chat/oracle",
+        schema: streamingOracleReadingSchema,
+        onFinish: ({ object }) => {
+            const targetId = oracleReplyTargetMessageIdRef.current
+            if (!targetId) return
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === targetId
+                        ? {
+                              ...m,
+                              oracleReading: object ?? m.oracleReading ?? null,
+                              isLoading: false,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            oracleReplyTargetMessageIdRef.current = null
+            consultingLoadingIdRef.current = null
+            setConsulting(false)
+        },
+        onError: (e: unknown) => {
+            console.error("[chat/oracle/useObject] stream error:", e)
+            const targetId = oracleReplyTargetMessageIdRef.current
+            if (targetId) {
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === targetId
+                            ? {
+                                  ...m,
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            oracleReplyTargetMessageIdRef.current = null
             consultingLoadingIdRef.current = null
             setConsulting(false)
         },
@@ -2328,6 +2642,57 @@ export default function ChatSession({
         })
     }, [generalReplyObject])
 
+    // Stream the conversational "talk" reply text into the plain bubble as it
+    // arrives. generalReply stays undefined so the message renders as plain
+    // text (not the inner-energy hero).
+    useEffect(() => {
+        const targetId = talkReplyTargetMessageIdRef.current
+        if (!targetId || !talkReplyObject) return
+        const partial = (talkReplyObject as StreamingTalkReply).reply
+        if (typeof partial !== "string" || !partial) return
+        setMessages((prev) =>
+            prev.map((m) =>
+                m.id === targetId && m.text !== partial
+                    ? { ...m, text: partial }
+                    : m,
+            ),
+        )
+    }, [talkReplyObject])
+
+    useEffect(() => {
+        const targetId = oracleReplyTargetMessageIdRef.current
+        if (!targetId || !oracleReplyObject) return
+        setMessages((prev) => {
+            const m = prev.find((x) => x.id === targetId)
+            if (!m) return prev
+            const incoming = oracleReplyObject as StreamingOracleReading
+            const current = m.oracleReading ?? null
+            if (
+                current &&
+                current.energy === incoming.energy &&
+                current.energyLabel === incoming.energyLabel &&
+                current.message === incoming.message &&
+                current.deeperMeaning === incoming.deeperMeaning &&
+                current.closing === incoming.closing &&
+                (current.guidance?.length ?? 0) ===
+                    (incoming.guidance?.length ?? 0) &&
+                (current.guidance ?? []).every(
+                    (g, i) => g === incoming.guidance?.[i],
+                )
+            ) {
+                return prev
+            }
+            return prev.map((mm) =>
+                mm.id === targetId
+                    ? {
+                          ...mm,
+                          oracleReading: incoming,
+                      }
+                    : mm,
+            )
+        })
+    }, [oracleReplyObject])
+
     const freezeStoppedPlainMessage = useCallback((targetId: string) => {
         setMessages((prev) => {
             const target = prev.find((m) => m.id === targetId)
@@ -2532,6 +2897,64 @@ export default function ChatSession({
         return true
     }, [generalReplyObject, stopGeneralReply])
 
+    const finalizeTalkReplyStream = useCallback(() => {
+        const targetId = talkReplyTargetMessageIdRef.current
+        if (!targetId) return false
+
+        setMessages((prev) =>
+            prev.map((m) => {
+                if (m.id !== targetId) return m
+                const partial = (talkReplyObject as StreamingTalkReply | undefined)
+                const followUpSuggestions =
+                    partial?.suggestions
+                        ?.map((s) => (typeof s === "string" ? s.trim() : ""))
+                        .filter(Boolean)
+                        .slice(0, 4) ?? m.followUpSuggestions
+                return {
+                    ...m,
+                    text: partial?.reply?.trim() || m.text || "",
+                    followUpSuggestions,
+                    isLoading: false,
+                    streamStopped: true,
+                }
+            }),
+        )
+
+        talkReplyTargetMessageIdRef.current = null
+        consultingLoadingIdRef.current = null
+        setConsulting(false)
+        stopTalkReply()
+        return true
+    }, [talkReplyObject, stopTalkReply])
+
+    const finalizeOracleReplyStream = useCallback(() => {
+        const targetId = oracleReplyTargetMessageIdRef.current
+        if (!targetId) return false
+
+        setMessages((prev) =>
+            prev.map((m) => {
+                if (m.id !== targetId) return m
+                const merged =
+                    (oracleReplyObject as StreamingOracleReading | undefined) ??
+                    m.oracleReading ??
+                    null
+                return {
+                    ...m,
+                    oracleReading: merged,
+                    text: merged?.message?.trim() || m.text || "",
+                    isLoading: false,
+                    streamStopped: true,
+                }
+            }),
+        )
+
+        oracleReplyTargetMessageIdRef.current = null
+        consultingLoadingIdRef.current = null
+        setConsulting(false)
+        stopOracleReply()
+        return true
+    }, [oracleReplyObject, stopOracleReply])
+
     useEffect(() => {
         return () => {
             if (abortControllerRef.current) {
@@ -2541,8 +2964,15 @@ export default function ChatSession({
             stopHoroscope()
             stopHoroscopeVerdict()
             stopGeneralReply()
+            stopOracleReply()
         }
-    }, [stopInterpretation, stopHoroscope, stopHoroscopeVerdict, stopGeneralReply])
+    }, [
+        stopInterpretation,
+        stopHoroscope,
+        stopHoroscopeVerdict,
+        stopGeneralReply,
+        stopOracleReply,
+    ])
 
     useEffect(() => {
         return () => {
@@ -2564,23 +2994,34 @@ export default function ChatSession({
             decision: currentDecision,
             showInsufficientStars: currentShowInsufficientStars,
             showCardDraw: currentShowCardDraw,
+            originContext: currentOriginContext,
         }: {
             question: string
             messages: ChatMessage[]
             decision: ChatDecision | null
             showInsufficientStars: boolean
             showCardDraw: boolean
+            originContext: OriginContext | null
         }) => {
             if (!sessionId) return
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            const { data: sess } = await supabase.auth.getSession()
+            const token = sess.session?.access_token
+            if (token) headers["Authorization"] = `Bearer ${token}`
             await fetch(`/api/chat-sessions/${sessionId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({
                     question: currentQuestion,
                     messages: currentMessages,
                     decision: currentDecision,
                     showInsufficientStars: currentShowInsufficientStars,
                     showCardDraw: currentShowCardDraw,
+                    // Persist the live strip (null once consumed) so a reload
+                    // doesn't resurrect a context that was already used.
+                    originContext: currentOriginContext,
                 }),
             })
         },
@@ -2871,6 +3312,7 @@ export default function ChatSession({
         )
         setAutoPickOn(loadAutoPickFromStorage())
         setInterpretationMode(loadInterpretationModeFromStorage())
+        setSettingsLoaded(true)
         setPrivacyAliases(loadSessionAliases(sessionId))
         const birth = loadBirthFromStorage()
         setSavedBirth(birth)
@@ -2939,6 +3381,7 @@ export default function ChatSession({
                 decision,
                 showInsufficientStars,
                 showCardDraw,
+                originContext,
             })
         }, 400)
         return () => {
@@ -2954,6 +3397,7 @@ export default function ChatSession({
         persistSession,
         showInsufficientStars,
         showCardDraw,
+        originContext,
     ])
 
     const heroText = consulting
@@ -3014,6 +3458,16 @@ export default function ChatSession({
     const applyInterpretationModeOverride = useCallback(
         (decision: ChatDecision): ChatDecision => {
             if (interpretationMode === "auto") return decision
+            // "Why" explanations are chat-type answers ABOUT a previous
+            // reading. Keep them even when a reading mode is locked — otherwise
+            // the lock would re-trigger a fresh draw/horoscope instead of
+            // explaining the one the user is questioning.
+            if (
+                decision.type === "chat" &&
+                (decision.tarotExplain || decision.horoscopeExplain)
+            ) {
+                return decision
+            }
             // The "chat" interpretation mode is the merged chat+support mode:
             // the AI may pick either `chat` (plain knowledge answer) or
             // `support` (inline tool block for product topics like pricing,
@@ -3034,8 +3488,8 @@ export default function ChatSession({
                 }
             }
             // Support-mode answers about the product itself bypass tarot /
-            // horoscope mode locks so users keep getting the right inline
-            // tool block.
+            // horoscope / oracle mode locks so users keep getting the right
+            // inline tool block.
             if (decision.type === "support") return decision
             if (interpretationMode === "tarot") {
                 return { ...decision, type: "draw" }
@@ -3044,9 +3498,66 @@ export default function ChatSession({
                 if (!user) return decision
                 return { ...decision, type: "horoscope" }
             }
+            if (interpretationMode === "oracle") {
+                return {
+                    ...decision,
+                    type: "oracle",
+                    spreadType: undefined,
+                    cardCount: undefined,
+                    spreadReason: undefined,
+                    supportTopic: undefined,
+                    supportCardSlug: undefined,
+                }
+            }
             return decision
         },
         [interpretationMode, user],
+    )
+
+    // Question phrasings that should force the calendar tool regardless of
+    // how the classifier labels the decision. Matches Thai (both common
+    // spellings), Lao, and several English variants.
+    const CALENDAR_KEYWORDS = useMemo(
+        () => [
+            "ปฏิทินดวง",
+            "ปฎิทินดวง",
+            "ปฏิทินดวง",
+            "ປະຕິທິນດວງ",
+            "ປະຕິທິນ",
+            "calendar year",
+            "cosmic calendar",
+            "year ahead",
+            "year-ahead",
+            "12-month view",
+            "12 month view",
+            "show me my calendar",
+            "show my calendar",
+        ],
+        [],
+    )
+    const questionMatchesCalendarIntent = useCallback(
+        (question: string) => {
+            const lower = (question ?? "").toLowerCase()
+            return CALENDAR_KEYWORDS.some((k) => lower.includes(k.toLowerCase()))
+        },
+        [CALENDAR_KEYWORDS],
+    )
+    const applyCalendarModeOverride = useCallback(
+        (decision: ChatDecision, question: string): ChatDecision => {
+            if (!questionMatchesCalendarIntent(question)) return decision
+            return {
+                ...decision,
+                type: "horoscope",
+                horoscopeMode: "calendar",
+                // Don't carry over a stale spread choice from a draw classification.
+                spreadType: undefined,
+                spreadReason: undefined,
+                cardCount: undefined,
+                supportTopic: undefined,
+                supportCardSlug: undefined,
+            }
+        },
+        [questionMatchesCalendarIntent],
     )
 
     const normalizeDrawDecision = useCallback(
@@ -3133,7 +3644,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
+                activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
 
@@ -3244,11 +3755,119 @@ export default function ChatSession({
             hasBirthDate,
             locale,
             messages,
-            originContext,
             profile,
             submitGeneralReply,
             user,
         ],
+    )
+
+    /**
+     * Kicks off the conversational "talk" reply via /api/chat/talk. The
+     * assistant message stays a plain bubble (generalReply undefined) and is
+     * progressively filled by the live-sync effect watching talkReplyObject.
+     * Used when the user is just chatting, not asking for a reading.
+     */
+    const startTalkReplyStream = useCallback(
+        ({
+            question,
+            assistantLoadingId,
+            isFollowUp,
+            historyOverride,
+        }: {
+            question: string
+            assistantLoadingId: string
+            isFollowUp?: boolean
+            historyOverride?: { role: string; text: string }[]
+        }) => {
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                activeOriginContextRef.current,
+                buildSessionContextSummary(messages),
+            )
+
+            talkReplyTargetMessageIdRef.current = assistantLoadingId
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              variant: "plain" as const,
+                              // Plain text bubble — NOT the inner-energy hero.
+                              generalReply: undefined,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            submitTalkReply({
+                question,
+                isFollowUp,
+                history,
+                contextSummary: contextSummary || undefined,
+                locale,
+            })
+        },
+        [locale, messages, submitTalkReply],
+    )
+
+    /**
+     * Kicks off the streaming oracle reading via /api/chat/oracle. Mirrors
+     * startGeneralReplyStream but routes the assistant message through
+     * OracleHero. The streamed object is piped into `message.oracleReading`
+     * by the live-sync effect above.
+     */
+    const startOracleReplyStream = useCallback(
+        ({
+            question,
+            assistantLoadingId,
+            isFollowUp,
+            historyOverride,
+        }: {
+            question: string
+            assistantLoadingId: string
+            isFollowUp?: boolean
+            historyOverride?: { role: string; text: string }[]
+        }) => {
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                activeOriginContextRef.current,
+                buildSessionContextSummary(messages),
+            )
+
+            oracleReplyTargetMessageIdRef.current = assistantLoadingId
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              variant: "oracle" as const,
+                              oracleReading: null,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            submitOracleReply({
+                question,
+                isFollowUp,
+                history,
+                contextSummary: contextSummary || undefined,
+                locale,
+            })
+        },
+        [locale, messages, submitOracleReply],
     )
 
     const runHoroscopeReading = useCallback(
@@ -3908,6 +4527,13 @@ export default function ChatSession({
             try {
                 const appendUserMessage = options.appendUserMessage !== false
                 if (appendUserMessage) {
+                    // A directly-appended message starts a new question turn:
+                    // capture the strip for this turn, stamp it on the
+                    // message, then consume (clear) the strip.
+                    const turnOriginContext =
+                        options.preparedUserMessage?.originContextSnapshot ??
+                        originContextRef.current
+                    activeOriginContextRef.current = turnOriginContext
                     const preparedUserMessage = options.preparedUserMessage
                     setMessages((prev) => [
                         ...prev,
@@ -3915,8 +4541,10 @@ export default function ChatSession({
                             id: `user-${Date.now()}`,
                             role: "user",
                             text: trimmed,
+                            originContextSnapshot: turnOriginContext,
                         },
                     ])
+                    if (turnOriginContext) handleClearOriginContext()
                 }
 
                 const profilePayload = profile
@@ -3960,6 +4588,10 @@ export default function ChatSession({
                         locale,
                         profile: profilePayload,
                         planTier: subscription?.tier ?? "free",
+                        // Context strip attached to this turn: anchors the
+                        // reading to the attached calendar day (daily verdict)
+                        // or routes to the natal strategy for a birth chart.
+                        originContext: activeOriginContextRef.current,
                     }),
                 })
 
@@ -4008,15 +4640,67 @@ export default function ChatSession({
                 horoscopeQuestionRangeRef.current =
                     extracted?.questionRange ?? null
 
-                // Onboarding makes birth data mandatory, so the profile is
-                // the single source of truth. If it's somehow missing, the
-                // reading can't run — surface a generic failure.
+                // Paid askers who include a third party's birth DATE in the
+                // chat ("my friend, born 1990-04-12 …") read the chart for
+                // THAT person, not themselves. The asker's own profile is
+                // still the location/time fallback. Free askers were already
+                // bounced by the paywall gate above.
+                const mentionedBirth = mentionedPersonToHoroscopeBirthData(
+                    extracted?.mentionedPerson ?? null,
+                    user ? profile : null,
+                )
                 const profileBirth = profileToHoroscopeBirthData(
                     user ? profile : null,
                 )
-                const birthToUse = profileBirth
-                    ? applyEphemerisLocationTimeDefaults(profileBirth)
+                const sourceBirth = mentionedBirth ?? profileBirth
+                const birthToUse = sourceBirth
+                    ? applyEphemerisLocationTimeDefaults(sourceBirth)
                     : null
+                // Stamp the 3rd-party DOB onto the bridge bubble — the first
+                // chatty AI reply that streamed in just before this code
+                // runs — so the "Reading for …" pill appears above the AI's
+                // initial response, not above the later verdict card.
+                if (
+                    mentionedBirth &&
+                    mentionedBirth.day != null &&
+                    mentionedBirth.month != null &&
+                    mentionedBirth.year != null
+                ) {
+                    const otherPersonInfo: NonNullable<
+                        ChatMessage["horoscopeForOtherPerson"]
+                    > = {
+                        name: extracted?.mentionedPerson?.name ?? null,
+                        relationshipHint:
+                            extracted?.mentionedPerson?.relationshipHint ??
+                            null,
+                        birthDate: {
+                            day: mentionedBirth.day,
+                            month: mentionedBirth.month,
+                            year: mentionedBirth.year,
+                        },
+                    }
+                    setMessages((prev) => {
+                        // Find the most recent assistant bubble and stamp the
+                        // badge on it. This is the bridge reply for the
+                        // standard decision flow; in the regenerate / direct
+                        // horoscope paths it's whichever bubble was just
+                        // appended.
+                        for (let i = prev.length - 1; i >= 0; i -= 1) {
+                            const m = prev[i]
+                            if (m.role !== "assistant") continue
+                            return prev.map((mm, idx) =>
+                                idx === i
+                                    ? {
+                                          ...mm,
+                                          horoscopeForOtherPerson:
+                                              otherPersonInfo,
+                                      }
+                                    : mm,
+                            )
+                        }
+                        return prev
+                    })
+                }
                 if (!birthToUse) {
                     setMessages((prev) => [
                         ...prev,
@@ -4114,6 +4798,7 @@ export default function ChatSession({
             lastQuestion,
             locale,
             ensureBirthTimeDefaults,
+            handleClearOriginContext,
             runHoroscopeReading,
             spendStars,
             tHoroscope,
@@ -4142,7 +4827,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
+                activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
             let modeForApi =
@@ -4208,7 +4893,6 @@ export default function ChatSession({
             interpretationMode,
             storedBirthChart,
             user,
-            originContext,
             planTier,
             locale,
         ],
@@ -4223,6 +4907,7 @@ export default function ChatSession({
             historyOverride,
             savedBirthInfo,
             onChunk,
+            onReasoning,
         }: {
             question: string
             type: ChatDecision["type"]
@@ -4231,6 +4916,7 @@ export default function ChatSession({
             historyOverride?: { role: string; text: string }[]
             savedBirthInfo?: string | null
             onChunk?: (text: string) => void
+            onReasoning?: (reasoning: string) => void
         }) => {
             if (abortControllerRef.current) {
                 abortControllerRef.current.abort()
@@ -4244,7 +4930,7 @@ export default function ChatSession({
                     text: m.text,
                 }))
             const contextSummary = mergeOriginContextIntoSummary(
-                originContext,
+                activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
             const response = await fetch("/api/chat/respond", {
@@ -4266,31 +4952,303 @@ export default function ChatSession({
                 throw new Error("Failed to generate chat response")
             }
 
-            const reader = response.body.getReader()
-            const decoder = new TextDecoder()
-            let text = ""
+            const { content } = await readReasoningStream(response, {
+                onReasoning: (accumulated) => onReasoning?.(accumulated),
+                onContent: (accumulated) => onChunk?.(accumulated),
+            })
 
-            try {
-                while (true) {
-                    const { done, value: chunk } = await reader.read()
-                    if (done) break
-                    text += decoder.decode(chunk, { stream: true })
-                    onChunk?.(text)
+            return content
+        },
+        [messages],
+    )
+
+    /**
+     * Streams the horoscope "why" explanation (/api/horoscope/explain) as a
+     * plain paragraph. The route computes real single-day aspect pictures for
+     * the previously recommended date and the user's proposed alternative,
+     * then a reasoning model compares them and explains the recommendation
+     * instead of re-running the reading.
+     */
+    const streamHoroscopeExplain = useCallback(
+        async ({
+            question,
+            comparisonDateIso,
+            historyOverride,
+            onChunk,
+            onReasoning,
+        }: {
+            question: string
+            comparisonDateIso?: string | null
+            historyOverride?: { role: string; text: string }[]
+            onChunk?: (text: string) => void
+            onReasoning?: (reasoning: string) => void
+        }) => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+            }
+            abortControllerRef.current = new AbortController()
+
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                activeOriginContextRef.current,
+                buildSessionContextSummary(messages),
+            )
+
+            // The reading being questioned: walk back to the latest horoscope
+            // verdict and pull its recommended date + summary.
+            let recommendedDateIso: string | null = null
+            let previousQuestion: string | null = null
+            let previousReadingSummary: string | null = null
+            for (let i = messages.length - 1; i >= 0; i -= 1) {
+                const m = messages[i]
+                if (m.role !== "assistant" || !m.dailyVerdict) continue
+                const verdict = m.dailyVerdict as {
+                    timingWindow?: { startDateIso?: string }
+                    targetDateIso?: string
+                    headline?: string
+                    keyMessage?: { headline?: string; subtitle?: string }
                 }
-                text += decoder.decode()
-                onChunk?.(text)
-            } finally {
-                reader.releaseLock()
+                const chartRange = (
+                    m.chartData as {
+                        questionRange?: { startDateIso?: string }
+                    } | null
+                )?.questionRange
+                recommendedDateIso =
+                    verdict.timingWindow?.startDateIso ??
+                    verdict.targetDateIso ??
+                    chartRange?.startDateIso ??
+                    null
+                previousQuestion = m.question ?? null
+                previousReadingSummary =
+                    [
+                        verdict.headline,
+                        verdict.keyMessage?.headline,
+                        verdict.keyMessage?.subtitle,
+                    ]
+                        .filter(Boolean)
+                        .join(" — ") || null
+                break
             }
 
-            return text
+            // Same birth resolution as the general reply: signed-in profile
+            // first, locally saved birth as fallback. Without birth data the
+            // route explains from the previous reading's summary alone.
+            const profileBirth = profileToHoroscopeBirthData(
+                user ? profile : null,
+            )
+            const resolvedBirth = ensureBirthTimeDefaults(
+                profileBirth
+                    ? applyEphemerisLocationTimeDefaults(profileBirth)
+                    : loadBirthFromStorage(),
+            )
+            const birthPayload =
+                resolvedBirth && hasBirthDate(resolvedBirth)
+                    ? {
+                          day: resolvedBirth.day as number,
+                          month: resolvedBirth.month as number,
+                          year: resolvedBirth.year as number,
+                          hour: resolvedBirth.hour,
+                          minute: resolvedBirth.minute,
+                          timeHint: resolvedBirth.timeHint,
+                          timezone: resolvedBirth.timezone ?? 0,
+                          lat: resolvedBirth.lat ?? 0,
+                          lng: resolvedBirth.lng ?? 0,
+                          country: resolvedBirth.country,
+                          state: resolvedBirth.state,
+                          usedLocationFallback:
+                              resolvedBirth.usedLocationFallback,
+                      }
+                    : null
+
+            const response = await fetch("/api/horoscope/explain", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    locale,
+                    history,
+                    contextSummary: contextSummary || undefined,
+                    previousQuestion,
+                    previousReadingSummary,
+                    recommendedDateIso,
+                    comparisonDateIso: comparisonDateIso ?? undefined,
+                    system: horoscopeSystem,
+                    birth: birthPayload,
+                }),
+                signal: abortControllerRef.current.signal,
+            })
+
+            if (!response.ok || !response.body) {
+                throw new Error("Failed to generate horoscope explanation")
+            }
+
+            // The route sends the card-ready events it grounded on as leading
+            // stream metadata; after the text settles we keep only the
+            // contacts the paragraph actually mentions.
+            let candidateAspectEvents: SourceAspectEvent[] = []
+            const { content } = await readReasoningStream(response, {
+                onMetadata: (metadata) => {
+                    const events = (
+                        metadata as {
+                            aspectEvents?: SourceAspectEvent[]
+                        } | null
+                    )?.aspectEvents
+                    if (Array.isArray(events)) {
+                        candidateAspectEvents = events.filter(
+                            (event) =>
+                                typeof event?.aspectKey === "string" &&
+                                typeof event?.transitPlanet === "string" &&
+                                typeof event?.natalPlanet === "string",
+                        )
+                    }
+                },
+                onReasoning: (accumulated) => onReasoning?.(accumulated),
+                onContent: (accumulated) => onChunk?.(accumulated),
+            })
+
+            return {
+                content,
+                aspectEvents: matchMentionedAspectEvents(
+                    content,
+                    candidateAspectEvents,
+                ),
+            }
         },
-        [messages, originContext],
+        [
+            ensureBirthTimeDefaults,
+            hasBirthDate,
+            horoscopeSystem,
+            locale,
+            messages,
+            profile,
+            user,
+        ],
+    )
+
+    /**
+     * Streams the tarot "why" explanation (/api/tarot/explain) as a plain
+     * paragraph. Walks back to the latest tarot reading, sends its cards +
+     * conclusion, and a reasoning model explains why that spread led there
+     * instead of doing a new draw.
+     */
+    const streamTarotExplain = useCallback(
+        async ({
+            question,
+            historyOverride,
+            onChunk,
+            onReasoning,
+        }: {
+            question: string
+            historyOverride?: { role: string; text: string }[]
+            onChunk?: (text: string) => void
+            onReasoning?: (reasoning: string) => void
+        }) => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort()
+            }
+            abortControllerRef.current = new AbortController()
+
+            const history =
+                historyOverride ??
+                messages.map((m) => ({
+                    role: m.role,
+                    text: m.text,
+                }))
+            const contextSummary = mergeOriginContextIntoSummary(
+                activeOriginContextRef.current,
+                buildSessionContextSummary(messages),
+            )
+
+            // The reading being questioned: latest completed tarot reading
+            // bubble (variant "box" with drawn cards + interpretation text).
+            let previousQuestion: string | null = null
+            let cards: string[] = []
+            let readingType: string | null = null
+            let previousInterpretation: string | null = null
+            for (let i = messages.length - 1; i >= 0; i -= 1) {
+                const m = messages[i]
+                if (
+                    m.role !== "assistant" ||
+                    m.variant !== "box" ||
+                    !m.cards?.length ||
+                    !m.text?.trim()
+                ) {
+                    continue
+                }
+                previousQuestion = m.question ?? null
+                cards = m.cards.map((c) => {
+                    const card = c as {
+                        meaning?: string
+                        name?: string
+                        isReversed?: boolean
+                    }
+                    if (card.meaning) return card.meaning
+                    return card.isReversed
+                        ? `${card.name} (Reversed)`
+                        : (card.name ?? "")
+                })
+                readingType = m.spreadType ?? null
+                previousInterpretation =
+                    [
+                        m.headline,
+                        m.subtitle,
+                        m.text,
+                        m.nextStep,
+                    ]
+                        .map((part) => part?.trim())
+                        .filter(Boolean)
+                        .join("\n") || null
+                break
+            }
+
+            const response = await fetch("/api/tarot/explain", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    question,
+                    locale,
+                    history,
+                    contextSummary: contextSummary || undefined,
+                    previousQuestion,
+                    cards,
+                    readingType,
+                    previousInterpretation,
+                }),
+                signal: abortControllerRef.current.signal,
+            })
+
+            if (!response.ok || !response.body) {
+                throw new Error("Failed to generate tarot explanation")
+            }
+
+            const { content } = await readReasoningStream(response, {
+                onReasoning: (accumulated) => onReasoning?.(accumulated),
+                onContent: (accumulated) => onChunk?.(accumulated),
+            })
+
+            return content
+        },
+        [locale, messages],
     )
 
     const handleStopStreaming = useCallback(() => {
         if (generalReplyTargetMessageIdRef.current) {
             finalizeGeneralReplyStream()
+            return
+        }
+
+        if (talkReplyTargetMessageIdRef.current) {
+            finalizeTalkReplyStream()
+            return
+        }
+
+        if (oracleReplyTargetMessageIdRef.current) {
+            finalizeOracleReplyStream()
             return
         }
 
@@ -4318,7 +5276,9 @@ export default function ChatSession({
     }, [
         finalizeConsultingStream,
         finalizeGeneralReplyStream,
+        finalizeTalkReplyStream,
         finalizeHoroscopeStream,
+        finalizeOracleReplyStream,
         finalizeTarotInterpretationStream,
     ])
 
@@ -4611,6 +5571,10 @@ export default function ChatSession({
                     rawText: lastUserMsg.displayText,
                 }
             }
+            // Regenerate/edit re-applies the context strip captured on the
+            // target message; messages sent without a strip get none.
+            activeOriginContextRef.current =
+                lastUserMsg?.originContextSnapshot ?? null
 
             setEditingMessageId(null)
             setEditingDraft("")
@@ -4665,8 +5629,43 @@ export default function ChatSession({
                 }
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 nextDecision = normalizeDrawDecision(nextDecision)
+                nextDecision = applyCalendarModeOverride(nextDecision, trimmed)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
+
+                // Calendar-mode horoscope: render the inline calendar tool
+                // instead of streaming a reading, and don't spend a star.
+                // The follow-up question fired by a chip click goes through
+                // the normal horoscope flow and spends one star then.
+                if (
+                    nextDecision.type === "horoscope" &&
+                    nextDecision.horoscopeMode === "calendar"
+                ) {
+                    setConsulting(false)
+                    const detectedFromQuestion = detectInputLanguage(trimmed)
+                    const calendarResponseLocale: SupportedLocale =
+                        detectedFromQuestion && isSupportedLocale(detectedFromQuestion)
+                            ? detectedFromQuestion
+                            : isSupportedLocale(locale)
+                              ? (locale as SupportedLocale)
+                              : "en"
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: "",
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      variant: "horoscope-calendar",
+                                      responseLocale: calendarResponseLocale,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                    return
+                }
 
                 if (horoscopeAuthGate) {
                     setConsulting(false)
@@ -4694,13 +5693,134 @@ export default function ChatSession({
 
                 // General/chat answers go through /api/chat/question for a
                 // structured "inner energy reflection" rendered by
-                // InnerEnergyHero. Bridge replies (draw / horoscope) and
-                // support acknowledgments keep the lightweight text stream
-                // from /api/chat/respond.
+                // InnerEnergyHero. Oracle answers go through /api/chat/oracle
+                // for a premium-feel symbolic oracle card rendered by
+                // OracleHero. Horoscope "why" follow-ups stream a
+                // data-grounded explanation paragraph from
+                // /api/horoscope/explain. Bridge replies (draw / horoscope)
+                // and support acknowledgments keep the lightweight text
+                // stream from /api/chat/respond.
+                const useHoroscopeExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.horoscopeExplain) &&
+                    !supportBlock
+                const useTarotExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.tarotExplain) &&
+                    !supportBlock
+                const useTalkReply =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.conversational) &&
+                    !supportBlock &&
+                    !useHoroscopeExplain &&
+                    !useTarotExplain
                 const useGeneralReplyStream =
-                    nextDecision.type === "chat" && !supportBlock
+                    nextDecision.type === "chat" &&
+                    !supportBlock &&
+                    !useHoroscopeExplain &&
+                    !useTarotExplain &&
+                    !useTalkReply
+                const useOracleReplyStream =
+                    nextDecision.type === "oracle" && !supportBlock
 
-                if (useGeneralReplyStream) {
+                if (useOracleReplyStream) {
+                    startOracleReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else if (useHoroscopeExplain) {
+                    const { content: explainText, aspectEvents } =
+                        await streamHoroscopeExplain({
+                            question: trimmed,
+                            comparisonDateIso:
+                                nextDecision.comparisonDateIso ?? null,
+                            historyOverride: history,
+                            onChunk: (partial) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? { ...m, text: partial }
+                                            : m,
+                                    ),
+                                )
+                            },
+                            onReasoning: (reasoning) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? {
+                                                  ...m,
+                                                  reasoningText: reasoning,
+                                              }
+                                            : m,
+                                    ),
+                                )
+                            },
+                        })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: explainText || m.text,
+                                      explainAspectEvents: aspectEvents.length
+                                          ? aspectEvents
+                                          : undefined,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                } else if (useTarotExplain) {
+                    const tarotExplainText = await streamTarotExplain({
+                        question: trimmed,
+                        historyOverride: history,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: tarotExplainText || m.text,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                } else if (useTalkReply) {
+                    startTalkReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
                         assistantLoadingId,
@@ -4720,6 +5840,15 @@ export default function ChatSession({
                                 prev.map((m) =>
                                     m.id === assistantLoadingId
                                         ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
                                         : m,
                                 ),
                             )
@@ -4786,6 +5915,7 @@ export default function ChatSession({
         },
         [
             applyInterpretationModeOverride,
+            applyCalendarModeOverride,
             consulting,
             detectHoroscopeAuthGate,
             fetchDecision,
@@ -4796,7 +5926,12 @@ export default function ChatSession({
             isInterpreting,
             normalizeDrawDecision,
             startGeneralReplyStream,
+            startTalkReplyStream,
+            startOracleReplyStream,
             streamAssistantResponse,
+            streamHoroscopeExplain,
+            streamTarotExplain,
+            locale,
         ],
     )
 
@@ -4854,6 +5989,9 @@ export default function ChatSession({
         try {
             const prepared = await prepareUserSubmission(trimmed, {
                 messageId: target.id,
+                // Editing keeps the context the message was originally sent
+                // with — the live strip (if any) stays for the next message.
+                originContextSnapshot: target.originContextSnapshot ?? null,
             })
             const editedUserMessage: ChatMessage = {
                 ...target,
@@ -4908,6 +6046,52 @@ export default function ChatSession({
         focusInput()
     }
 
+    const tHoroscopeCalendar = useTranslations("HoroscopeCalendar")
+    const handleCalendarChipClick = (
+        _chipId: HoroscopeCalendarChipId | string,
+        topicLabel: string,
+        date: Date,
+    ) => {
+        const formattedDate = new Intl.DateTimeFormat(locale, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        }).format(date)
+        const followUpQuestion = tHoroscopeCalendar("followUpQuestion", {
+            topic: topicLabel,
+            date: formattedDate,
+        })
+        void handleSubmit(followUpQuestion)
+    }
+    // Memoised so the calendar tool's onSelectionChange-effect deps stay
+    // stable; otherwise a fresh function reference each render kicks off
+    // a setState loop (React #185) — especially obvious when an unrelated
+    // re-render hits, e.g. opening the composer settings popover.
+    const handleCalendarSelectionChange = useCallback(
+        (
+            date: Date | null,
+            dayData: import("@/lib/calendar-helper").DayData | null,
+        ) => {
+            if (!date) {
+                setOriginContext((prev) => (prev === null ? prev : null))
+                return
+            }
+            const next = buildCalendarDayOriginContext(date, dayData, locale)
+            setOriginContext((prev) => {
+                if (
+                    prev &&
+                    prev.kind === "calendar-day" &&
+                    prev.isoDate === next.isoDate &&
+                    prev.label === next.label &&
+                    prev.summary === next.summary
+                ) {
+                    return prev
+                }
+                return next
+            })
+        },
+        [locale],
+    )
     const handleAskAspectDetail = async (
         question: string,
         aspectKey: string,
@@ -4933,6 +6117,106 @@ export default function ChatSession({
 
     const handleShare = async (id: string, text: string) => {
         const unmaskedText = unmask(text)
+
+        // Tarot readings share the rendered story poster rather than the
+        // plain text; live progress goes to the composer status strip.
+        const message = messages.find((m) => m.id === id)
+        const isTarotReading = Boolean(
+            message &&
+                ((message.cards?.length ?? 0) > 0 ||
+                    message.detailedHtml ||
+                    message.headline ||
+                    message.keyMessage),
+        )
+        if (message && isTarotReading) {
+            try {
+                const blob = await getShareImageBlob(
+                    {
+                        question: unmask(message.question),
+                        cards:
+                            message.cards?.map((card) => card.meaning) ?? [],
+                        interpretation: unmaskedText,
+                        headline: unmask(message.headline),
+                        subtitle: unmask(message.subtitle),
+                        keyMessage: unmask(message.keyMessage),
+                        detailedHtml: unmask(message.detailedHtml),
+                        insights:
+                            message.insights?.map((i) => unmask(i)) ?? [],
+                        cta: tReadingActions("actions.shareCta"),
+                        width: 1080,
+                        height: 1920,
+                    },
+                    (phase, progress) =>
+                        handleReadingImageExportStatus(id, {
+                            phase,
+                            progress,
+                        }),
+                )
+                const file = new File([blob], "askingfate-reading.png", {
+                    type: "image/png",
+                })
+                if (
+                    typeof navigator.canShare === "function" &&
+                    navigator.canShare({ files: [file] })
+                ) {
+                    await navigator.share({
+                        title: "AskingFate",
+                        files: [file],
+                    })
+                    handleReadingImageExportStatus(id, {
+                        phase: "done",
+                        progress: 1,
+                    })
+                    setNotice(id, "Shared.")
+                    return
+                }
+                // Desktop fallback: put the image on the clipboard so it
+                // can be pasted straight into any chat or post.
+                if (
+                    typeof ClipboardItem !== "undefined" &&
+                    navigator.clipboard?.write
+                ) {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            [blob.type || "image/png"]: blob,
+                        }),
+                    ])
+                    handleReadingImageExportStatus(id, {
+                        phase: "done",
+                        progress: 1,
+                    })
+                    setNotice(id, "Image copied.")
+                    return
+                }
+                // Last resort: save the file so it can be shared manually.
+                const url = URL.createObjectURL(blob)
+                try {
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = "askingfate-reading.png"
+                    a.rel = "noopener"
+                    document.body.appendChild(a)
+                    a.click()
+                    a.remove()
+                } finally {
+                    URL.revokeObjectURL(url)
+                }
+                handleReadingImageExportStatus(id, {
+                    phase: "done",
+                    progress: 1,
+                })
+                setNotice(id, "Image saved.")
+                return
+            } catch (error) {
+                handleReadingImageExportStatus(id, null)
+                if ((error as DOMException)?.name === "AbortError") {
+                    setNotice(id, "Share canceled.")
+                    return
+                }
+                // Image render/share failed — fall back to text below.
+            }
+        }
+
         try {
             if (navigator.share) {
                 await navigator.share({
@@ -4953,6 +6237,12 @@ export default function ChatSession({
         }
     }
 
+    const [readingImageExport, setReadingImageExport] = useState<{
+        messageId: string
+        status: ReadingImageExportStatus
+    } | null>(null)
+    const readingImageExportClearRef = useRef<number | null>(null)
+
     const handleReadingTextDownloaded = (id: string) => {
         setNotice(id, "Downloaded.")
     }
@@ -4960,6 +6250,27 @@ export default function ChatSession({
     const handleReadingTextDownloadFailed = (id: string) => {
         setNotice(id, "Download failed.")
     }
+
+    const handleReadingImageExportStatus = useCallback(
+        (messageId: string, status: ReadingImageExportStatus | null) => {
+            if (readingImageExportClearRef.current !== null) {
+                window.clearTimeout(readingImageExportClearRef.current)
+                readingImageExportClearRef.current = null
+            }
+            if (!status) {
+                setReadingImageExport(null)
+                return
+            }
+            setReadingImageExport({ messageId, status })
+            if (status.phase === "done") {
+                readingImageExportClearRef.current = window.setTimeout(() => {
+                    setReadingImageExport(null)
+                    readingImageExportClearRef.current = null
+                }, 2200)
+            }
+        },
+        [],
+    )
 
     const handleReport = (id: string, text: string) => {
         const unmaskedText = unmask(text)
@@ -4980,12 +6291,26 @@ export default function ChatSession({
                 preparedUserMessage?: ChatMessage
                 /** Prior conversation turns for /api/chat when user msg was already appended (avoids stale closure). */
                 decisionHistory?: { role: "user" | "assistant"; text: string }[]
+                /** Origin context (context strip) for this turn. Callers that appended the user message themselves pass the captured snapshot here. */
+                turnOriginContext?: OriginContext | null
             } = {},
         ) => {
             const trimmed = value.trim()
             if (!trimmed) return
 
             const shouldAppendUserMessage = options.appendUserMessage !== false
+            // Resolve the context strip value that applies to this question
+            // turn. A turn that appends a fresh user message consumes the
+            // live strip; callers that already appended the message pass the
+            // snapshot explicitly (undefined = keep the in-flight value).
+            const turnOriginContext =
+                options.turnOriginContext !== undefined
+                    ? options.turnOriginContext
+                    : (options.preparedUserMessage?.originContextSnapshot ??
+                      (shouldAppendUserMessage
+                          ? originContextRef.current
+                          : activeOriginContextRef.current))
+            activeOriginContextRef.current = turnOriginContext
             setQuestion("")
             setConsulting(true)
             setLastQuestion(trimmed)
@@ -5004,8 +6329,11 @@ export default function ChatSession({
                         id: `user-${Date.now()}`,
                         role: "user",
                         text: trimmed,
+                        originContextSnapshot: turnOriginContext,
                     },
                 ])
+                // The strip is consumed by the message it was attached to.
+                if (turnOriginContext) handleClearOriginContext()
             }
 
             const pending = pendingAspectDetailRef.current
@@ -5071,8 +6399,52 @@ export default function ChatSession({
                     }
                 }
                 nextDecision = normalizeDrawDecision(nextDecision)
+                // Apply the same calendar-intent rule as
+                // runDecisionFlowFromMessages so first-message (homepage →
+                // session) prompts like "show my cosmic calendar" render the
+                // calendar tool instead of a natal verdict. Skipped when the
+                // caller forces a plain chat reply.
+                if (!options.forceChatOnly) {
+                    nextDecision = applyCalendarModeOverride(
+                        nextDecision,
+                        trimmed,
+                    )
+                }
                 flowDecision = nextDecision
                 setDecision(nextDecision)
+
+                // Calendar-mode horoscope: render the inline calendar tool
+                // instead of streaming a reading, and don't spend a star.
+                if (
+                    nextDecision.type === "horoscope" &&
+                    nextDecision.horoscopeMode === "calendar"
+                ) {
+                    setConsulting(false)
+                    const detectedFromQuestion = detectInputLanguage(trimmed)
+                    const calendarResponseLocale: SupportedLocale =
+                        detectedFromQuestion &&
+                        isSupportedLocale(detectedFromQuestion)
+                            ? detectedFromQuestion
+                            : isSupportedLocale(locale)
+                              ? (locale as SupportedLocale)
+                              : "en"
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: "",
+                                      isLoading: false,
+                                      streamStopped: false,
+                                      variant: "horoscope-calendar",
+                                      responseLocale: calendarResponseLocale,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                    return
+                }
 
                 if (horoscopeAuthGate) {
                     setConsulting(false)
@@ -5099,11 +6471,129 @@ export default function ChatSession({
                 )
 
                 // See runDecisionFlowFromMessages — same branching:
-                // structured inner-energy reflection vs. plain text bridge.
+                // structured inner-energy reflection / oracle reading /
+                // horoscope "why" explanation vs. plain text bridge.
+                const useHoroscopeExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.horoscopeExplain) &&
+                    !supportBlock
+                const useTarotExplain =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.tarotExplain) &&
+                    !supportBlock
+                const useTalkReply =
+                    nextDecision.type === "chat" &&
+                    Boolean(nextDecision.conversational) &&
+                    !supportBlock &&
+                    !useHoroscopeExplain &&
+                    !useTarotExplain
                 const useGeneralReplyStream =
-                    nextDecision.type === "chat" && !supportBlock
+                    nextDecision.type === "chat" &&
+                    !supportBlock &&
+                    !useHoroscopeExplain &&
+                    !useTarotExplain &&
+                    !useTalkReply
+                const useOracleReplyStream =
+                    nextDecision.type === "oracle" && !supportBlock
 
-                if (useGeneralReplyStream) {
+                if (useOracleReplyStream) {
+                    startOracleReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else if (useHoroscopeExplain) {
+                    const { content: explainText, aspectEvents } =
+                        await streamHoroscopeExplain({
+                            question: trimmed,
+                            comparisonDateIso:
+                                nextDecision.comparisonDateIso ?? null,
+                            historyOverride: history,
+                            onChunk: (partial) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? { ...m, text: partial }
+                                            : m,
+                                    ),
+                                )
+                            },
+                            onReasoning: (reasoning) => {
+                                setMessages((prev) =>
+                                    prev.map((m) =>
+                                        m.id === assistantLoadingId
+                                            ? {
+                                                  ...m,
+                                                  reasoningText: reasoning,
+                                              }
+                                            : m,
+                                    ),
+                                )
+                            },
+                        })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: explainText || m.text,
+                                      explainAspectEvents: aspectEvents.length
+                                          ? aspectEvents
+                                          : undefined,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                } else if (useTarotExplain) {
+                    const tarotExplainText = await streamTarotExplain({
+                        question: trimmed,
+                        historyOverride: history,
+                        onChunk: (partial) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
+                                        : m,
+                                ),
+                            )
+                        },
+                    })
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: tarotExplainText || m.text,
+                                      isLoading: false,
+                                      streamStopped: false,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                } else if (useTalkReply) {
+                    startTalkReplyStream({
+                        question: trimmed,
+                        assistantLoadingId,
+                        isFollowUp: nextDecision.isFollowUp,
+                        historyOverride: history,
+                    })
+                } else if (useGeneralReplyStream) {
                     startGeneralReplyStream({
                         question: trimmed,
                         assistantLoadingId,
@@ -5123,6 +6613,15 @@ export default function ChatSession({
                                 prev.map((m) =>
                                     m.id === assistantLoadingId
                                         ? { ...m, text: partial }
+                                        : m,
+                                ),
+                            )
+                        },
+                        onReasoning: (reasoning) => {
+                            setMessages((prev) =>
+                                prev.map((m) =>
+                                    m.id === assistantLoadingId
+                                        ? { ...m, reasoningText: reasoning }
                                         : m,
                                 ),
                             )
@@ -5189,22 +6688,30 @@ export default function ChatSession({
         },
         [
             applyInterpretationModeOverride,
+            applyCalendarModeOverride,
+            locale,
             detectHoroscopeAuthGate,
             fetchDecision,
             freezeStoppedPlainMessage,
             getDefaultSystemByLocale,
+            handleClearOriginContext,
             handleHoroscopeInput,
             hasBirthDate,
             messages,
             normalizeDrawDecision,
             startGeneralReplyStream,
+            startTalkReplyStream,
+            startOracleReplyStream,
             streamAssistantResponse,
+            streamHoroscopeExplain,
+            streamTarotExplain,
         ],
     )
 
     useEffect(() => {
         if (hasBootstrapped.current) return
         if (!sessionId) return
+        if (!settingsLoaded) return
         if (decision) {
             hasBootstrapped.current = true
             return
@@ -5213,9 +6720,23 @@ export default function ChatSession({
             hasBootstrapped.current = true
             void startDecisionFlow(messages[0].text, {
                 appendUserMessage: false,
+                turnOriginContext:
+                    messages[0].originContextSnapshot ??
+                    originContextRef.current,
             })
+            // The first message consumed the page context it was created
+            // with (/calendar, /birthchart) — drop the strip now that the
+            // turn has captured it.
+            if (originContextRef.current) handleClearOriginContext()
         }
-    }, [sessionId, decision, messages, startDecisionFlow])
+    }, [
+        sessionId,
+        decision,
+        messages,
+        startDecisionFlow,
+        settingsLoaded,
+        handleClearOriginContext,
+    ])
 
     // Rehydrate raw prompts from sessionStorage so the UI shows the user's
     // original wording while the persisted/text fields stay redacted.
@@ -5349,7 +6870,14 @@ export default function ChatSession({
      * this device, in `sessionStorage`, so the UI can keep displaying it.
      */
     const prepareUserSubmission = useCallback(
-        async (rawValue: string, options: { messageId?: string } = {}) => {
+        async (
+            rawValue: string,
+            options: {
+                messageId?: string
+                /** Snapshot for the message; defaults to the live strip. Pass explicitly when the strip was already consumed/cleared for this turn. */
+                originContextSnapshot?: OriginContext | null
+            } = {},
+        ) => {
             const result = await sanitizePromptOnClient(rawValue, {
                 sessionId: sessionId ?? "",
                 locale,
@@ -5369,6 +6897,10 @@ export default function ChatSession({
                 role: "user",
                 text: result.sanitized,
                 isSanitizing: false,
+                originContextSnapshot:
+                    options.originContextSnapshot !== undefined
+                        ? options.originContextSnapshot
+                        : originContextRef.current,
                 ...(privacyStorageKey && {
                     displayText: rawValue,
                     privacyStorageKey,
@@ -5415,6 +6947,22 @@ export default function ChatSession({
         if (!trimmed) return
         setQuestion("")
 
+        // Capture the context strip for this turn, then consume it: the
+        // strip belongs to the message it was attached to and disappears
+        // once that message is sent. Mid-flow messages (birth-details
+        // intake, pending horoscope question) continue the previous question
+        // turn, so they keep that turn's context unless a new strip was
+        // attached meanwhile.
+        const liveOriginContext = originContextRef.current
+        const isContinuationTurn =
+            isHoroscopeIntakeActive ||
+            Boolean(horoscopeQuestion || horoscopeBirth)
+        if (!isContinuationTurn || liveOriginContext) {
+            activeOriginContextRef.current = liveOriginContext
+        }
+        const turnOriginContext = activeOriginContextRef.current
+        if (liveOriginContext) handleClearOriginContext()
+
         const userId = `user-${Date.now()}`
         let decisionHistory: { role: "user" | "assistant"; text: string }[] = []
 
@@ -5431,6 +6979,7 @@ export default function ChatSession({
                     text: trimmed,
                     displayText: trimmed,
                     isSanitizing: true,
+                    originContextSnapshot: turnOriginContext,
                 },
             ]
         })
@@ -5438,6 +6987,7 @@ export default function ChatSession({
         try {
             const prepared = await prepareUserSubmission(trimmed, {
                 messageId: userId,
+                originContextSnapshot: turnOriginContext,
             })
             setMessages((prev) =>
                 prev.map((m) =>
@@ -5463,6 +7013,7 @@ export default function ChatSession({
             await startDecisionFlow(prepared.sanitized, {
                 appendUserMessage: false,
                 decisionHistory,
+                turnOriginContext,
             })
         } catch {
             setMessages((prev) =>
@@ -5616,6 +7167,26 @@ export default function ChatSession({
         Boolean(composerFollowUpHost) &&
         !isHoroscopeIntakeActive &&
         composerSuggestionsEnabled
+
+    // Above the chat-session composer, reuse the /calendar page's
+    // PageContextComposer "context chip + suggestions" strip whenever a
+    // calendar-day originContext is active — typically right after the
+    // inline horoscope calendar tool turn. Mirrors what /calendar shows
+    // so the chip + suggestion chips travel between surfaces without
+    // visual breaks.
+    const tCalendarShared = useTranslations("Calendar")
+    const showOriginContextStrip = Boolean(
+        originContext?.kind === "calendar-day" && !isHoroscopeIntakeActive,
+    )
+    const originContextStripSuggestions = useMemo(() => {
+        if (!showOriginContextStrip) return null
+        return [
+            tCalendarShared("suggestions.focusToday"),
+            tCalendarShared("suggestions.goodDecisionDay"),
+            tCalendarShared("suggestions.activitiesForToday"),
+            tCalendarShared("suggestions.warnings"),
+        ]
+    }, [showOriginContextStrip, tCalendarShared])
 
     const formattedCurrentLocationLabel = useMemo(() => {
         if (
@@ -5912,6 +7483,50 @@ export default function ChatSession({
                 </DialogContent>
             </Dialog>
 
+            {sessionId && isOwner ? (
+                <ShareAccessDialog
+                    sessionId={sessionId}
+                    open={shareDialogOpen}
+                    onOpenChange={setShareDialogOpen}
+                />
+            ) : null}
+
+            {composeAuthLoaded && !canCompose && !authLoading ? (
+                <div className='mx-auto flex max-w-md flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-xs text-white/70 backdrop-blur-md sm:flex-row sm:justify-between'>
+                    <div className='flex items-center gap-2 text-center sm:text-left'>
+                        <EyeOff className='h-3.5 w-3.5 shrink-0 text-white/55' />
+                        <span>
+                            View-only conversation — only the creator and
+                            invited people can continue this chat.
+                        </span>
+                    </div>
+                    {user && initialSession?.owner_user_id ? (
+                        <button
+                            type='button'
+                            onClick={() => void handleRequestAccess()}
+                            disabled={
+                                accessRequestSending || accessRequestSent
+                            }
+                            className='inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-medium text-black hover:bg-white/90 disabled:opacity-60 disabled:cursor-not-allowed'
+                        >
+                            {accessRequestSent
+                                ? "Request sent"
+                                : accessRequestSending
+                                  ? "Sending…"
+                                  : "Request access"}
+                        </button>
+                    ) : !user && initialSession?.owner_user_id ? (
+                        <a
+                            href={`/signin?callbackUrl=/${sessionId ?? ""}`}
+                            className='inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/85 hover:bg-white/10 hover:text-white'
+                        >
+                            Sign in to request access
+                        </a>
+                    ) : null}
+                </div>
+            ) : null}
+
+            {canCompose ? (
             <QuestionInput
                 id='home-question-input'
                 value={question}
@@ -5920,6 +7535,66 @@ export default function ChatSession({
                 onStop={handleStopStreaming}
                 isLoading={isChatLoading}
                 centered
+                statusStrip={
+                    readingImageExport ? (
+                        <div className='w-full space-y-2 animate-fade-up'>
+                            <div className='flex items-center justify-between gap-3 min-w-0'>
+                                <p className='flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-200/95 truncate'>
+                                    {readingImageExport.status.phase ===
+                                    "done" ? (
+                                        <Check
+                                            className='size-3.5 shrink-0'
+                                            aria-hidden
+                                        />
+                                    ) : (
+                                        <Loader2
+                                            className='size-3.5 shrink-0 animate-spin'
+                                            aria-hidden
+                                        />
+                                    )}
+                                    {tShareProgress(
+                                        readingImageExport.status.phase,
+                                    )}
+                                </p>
+                                {readingImageExport.status.progress !==
+                                    null && (
+                                    <span className='shrink-0 text-[11px] tabular-nums text-white/60'>
+                                        {Math.round(
+                                            readingImageExport.status
+                                                .progress * 100,
+                                        )}
+                                        %
+                                    </span>
+                                )}
+                            </div>
+                            <div className='h-1.5 w-full overflow-hidden rounded-full bg-white/10'>
+                                <div
+                                    className={`h-full rounded-full bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500 transition-[width] duration-300 ease-out ${
+                                        readingImageExport.status.progress ===
+                                        null
+                                            ? "w-1/3 animate-pulse"
+                                            : ""
+                                    }`}
+                                    style={
+                                        readingImageExport.status.progress !==
+                                        null
+                                            ? {
+                                                  width: `${Math.max(
+                                                      6,
+                                                      Math.round(
+                                                          readingImageExport
+                                                              .status
+                                                              .progress * 100,
+                                                      ),
+                                                  )}%`,
+                                              }
+                                            : undefined
+                                    }
+                                />
+                            </div>
+                        </div>
+                    ) : null
+                }
                 placeholder={
                     isHoroscopeIntakeActive
                         ? tHoroscope("composerBirthPlaceholder")
@@ -5958,6 +7633,11 @@ export default function ChatSession({
                               cardsToSelect,
                               cardUi,
                               onScrollToDraw: handleScrollToDraw,
+                              showShareAccess: Boolean(
+                                  isOwner && sessionId,
+                              ),
+                              onShareAccessClick: () =>
+                                  setShareDialogOpen(true),
                           }
                 }
                 composerFollowUps={
@@ -5980,20 +7660,41 @@ export default function ChatSession({
                 }
                 actionTrigger={
                     hideComposerActionTriggerRow ? null : (
-                        <ActionTrigger
-                            autoPickOn={autoPickOn}
-                            showDrawTrigger={showDrawTrigger}
-                            showInsufficientStars={showInsufficientStars}
-                            cardsToSelect={cardsToSelect}
-                            cardUi={cardUi}
-                            onScrollToDraw={handleScrollToDraw}
-                            intakeMode={isHoroscopeIntakeActive}
-                            intakeHelperText={tActionTrigger("birthTimeHelper")}
-                            currentLocationLabel={formattedCurrentLocationLabel}
-                            onLocationClick={openLocationDialog}
-                            onCancelIntake={handleCancelHoroscopeIntake}
-                            onChooseCardInstead={handleChooseCardInstead}
-                        />
+                        <div className='space-y-3'>
+                            {showOriginContextStrip && originContext ? (
+                                <OriginContextStrip
+                                    originContext={originContext}
+                                    suggestions={
+                                        originContextStripSuggestions ??
+                                        undefined
+                                    }
+                                    onSuggestionClick={(suggestion) =>
+                                        applySuggestedQuestion(
+                                            unmask(suggestion),
+                                        )
+                                    }
+                                    onCancel={handleClearOriginContext}
+                                />
+                            ) : null}
+                            <ActionTrigger
+                                autoPickOn={autoPickOn}
+                                showDrawTrigger={showDrawTrigger}
+                                showInsufficientStars={showInsufficientStars}
+                                cardsToSelect={cardsToSelect}
+                                cardUi={cardUi}
+                                onScrollToDraw={handleScrollToDraw}
+                                intakeMode={isHoroscopeIntakeActive}
+                                intakeHelperText={tActionTrigger(
+                                    "birthTimeHelper",
+                                )}
+                                currentLocationLabel={
+                                    formattedCurrentLocationLabel
+                                }
+                                onLocationClick={openLocationDialog}
+                                onCancelIntake={handleCancelHoroscopeIntake}
+                                onChooseCardInstead={handleChooseCardInstead}
+                            />
+                        </div>
                     )
                 }
                 disclaimerText={disclaimerText}
@@ -6002,6 +7703,7 @@ export default function ChatSession({
                     hasMessages ? "max-w-3xl" : "max-w-sm md:max-w-md"
                 }
             />
+            ) : null}
         </>
     )
 
@@ -6055,19 +7757,6 @@ export default function ChatSession({
                 </div>
             )}
 
-            {originContext ? (
-                <div className='w-full max-w-3xl mx-auto px-4 pt-2'>
-                    <div className='inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-white/70 backdrop-blur'>
-                        <Star className='size-3 text-amber-200/85' />
-                        <span>
-                            {tOriginContext("attached", {
-                                label: originContext.label,
-                            })}
-                        </span>
-                    </div>
-                </div>
-            ) : null}
-
             <MessageList
                 hasMessages={hasMessages}
                 messages={messages}
@@ -6093,6 +7782,9 @@ export default function ChatSession({
                 hasAssistantResponse={hasAssistantResponse}
                 disclaimerText={disclaimerText}
                 onRegenerateAt={handleRegenerateAt}
+                onCalendarChipClick={handleCalendarChipClick}
+                onCalendarSelectionChange={handleCalendarSelectionChange}
+                calendarToolResetSignal={calendarToolResetSignal}
                 onStartEditAt={handleStartEditAt}
                 onCancelEdit={handleCancelEdit}
                 onSendEditAt={handleSendEditAt}
@@ -6110,6 +7802,7 @@ export default function ChatSession({
                 onShare={handleShare}
                 onReadingTextDownloaded={handleReadingTextDownloaded}
                 onReadingTextDownloadFailed={handleReadingTextDownloadFailed}
+                onReadingImageExportStatus={handleReadingImageExportStatus}
                 onReadAloud={handleReadAloud}
                 unmask={unmask}
                 privacyAliases={privacyAliases}

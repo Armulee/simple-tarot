@@ -15,7 +15,11 @@ import type {
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
 import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
-import { getPlanetDignity } from "@/lib/birth-chart-utils"
+import {
+    canonicalPlanetName,
+    getPlanetDignity,
+    isKnownPlanetName,
+} from "@/lib/birth-chart-utils"
 import { unmaskTextWithAliases } from "@/lib/privacy/prompt-redaction"
 import ShareSection from "@/components/tarot/interpretation/share"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
@@ -270,9 +274,10 @@ function resolveHeroPlacements(
             ? data?.transit?.charts?.[0]?.planets ?? {}
             : data?.charts?.[0]?.planets ?? {}
     return relevantPlanets.map((rp) => {
-        const point = planets[rp.planet]
+        const planet = canonicalPlanetName(rp.planet)
+        const point = planets[planet] ?? planets[rp.planet]
         return {
-            planet: rp.planet,
+            planet,
             sign: point?.sign,
             degree: typeof point?.degree === "number" ? point.degree : undefined,
             retrograde: !!point?.retrograde,
@@ -347,10 +352,11 @@ function NatalHeroCrest({
                     }`}
                 >
                     {visible.map(({ planet, sign, degree, retrograde }) => {
-                        const planetName = tAstro(`planets.${planet}`, {
-                            defaultValue: planet,
-                        })
-                        const src = getPlanetImageSrc(planet)
+                        const canonicalPlanet = canonicalPlanetName(planet)
+                        const planetName = isKnownPlanetName(canonicalPlanet)
+                            ? tAstro(`planets.${canonicalPlanet}`)
+                            : canonicalPlanet
+                        const src = getPlanetImageSrc(canonicalPlanet)
                         const canonical = sign ? canonicalSign(sign) : null
                         const signName = canonical
                             ? tAstro(`zodiacSigns.${canonical}`, {
@@ -358,7 +364,7 @@ function NatalHeroCrest({
                               })
                             : null
                         const dignity = canonical
-                            ? getPlanetDignity(planet, canonical)
+                            ? getPlanetDignity(canonicalPlanet, canonical)
                             : null
                         const dignityNameClass = dignity?.isExalted
                             ? "text-amber-200"
@@ -648,10 +654,18 @@ export default function VerdictHero({
     )
     // Technical verdicts hoist the orbit visual into the hero slot (replacing
     // the planet portraits). Natal verdicts keep the planet-portrait crest.
+    // Daily / fallback verdicts also surface the orbit when we have chart
+    // data — it replaces the legacy mood icon so the overview tab carries the
+    // visual that used to live in the transit tab.
     const showTechnicalOrbit = isTechnicalMode
     const showNatalHeroCrest =
         isNatalMode && heroPlacements.length > 0
     const showTimingHeroCrest = isTimingMode && !!verdict.timingWindow
+    const showDailyOrbit =
+        !isTechnicalMode &&
+        !showNatalHeroCrest &&
+        !showTimingHeroCrest &&
+        Boolean(transitSourceMessage.chartData)
     const hasVerdictText =
         verdict.headline.trim().length > 0 ||
         keyMessageHeadline.length > 0 ||
@@ -697,19 +711,43 @@ export default function VerdictHero({
                                 moodShadow={style.iconShadow}
                             />
                         </div>
-                    ) : (
+                    ) : showDailyOrbit ? null : (
                         <MoodIcon
                             mood={verdict.mood}
                             className={`h-12 w-12 mb-2 ${style.accent} ${style.iconShadow}`}
                         />
                     )}
+
+                    {/* Daily-verdict header: small star + date pill above the
+                        serif headline, subtitle below, and the orbit visual
+                        rendered AFTER this text block. Matches the
+                        premium-fortune layout in the reference. */}
+                    {showDailyOrbit && (
+                        <div className='flex items-center justify-center gap-2.5 text-amber-200/85'>
+                            <span aria-hidden className='inline-flex h-px w-6 bg-gradient-to-r from-transparent to-amber-300/60' />
+                            <span aria-hidden className='text-base leading-none'>✦</span>
+                            <span aria-hidden className='inline-flex h-px w-6 bg-gradient-to-l from-transparent to-amber-300/60' />
+                        </div>
+                    )}
                     {dateLabel && (
-                        <p className='text-center text-[11px] uppercase tracking-[0.22em] text-white/45'>
+                        <p
+                            className={
+                                showDailyOrbit
+                                    ? 'text-center text-[12px] uppercase tracking-[0.32em] text-amber-200/80'
+                                    : 'text-center text-[11px] uppercase tracking-[0.22em] text-white/45'
+                            }
+                        >
                             {dateLabel}
                         </p>
                     )}
 
-                    <h2 className='max-w-[28ch] text-balance text-xl font-semibold leading-[1.25] text-white'>
+                    <h2
+                        className={
+                            showDailyOrbit
+                                ? 'max-w-[24ch] text-balance font-serif text-3xl font-semibold leading-[1.15] text-amber-50 sm:text-4xl'
+                                : 'max-w-[28ch] text-balance text-xl font-semibold leading-[1.25] text-white'
+                        }
+                    >
                         <PrivacyHighlightedText
                             text={verdict.headline}
                             aliases={aliases}
@@ -717,15 +755,32 @@ export default function VerdictHero({
                         />
                     </h2>
 
-                    {moodLabel && (
-                        <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
-                            <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
+                    {moodLabel &&
+                        (showDailyOrbit ? (
+                            <p className='max-w-[36ch] text-balance text-center text-sm leading-relaxed text-amber-100/75'>
                                 <PrivacyHighlightedText
                                     text={moodLabel}
                                     aliases={aliases}
                                     supportMarkdown
                                 />
                             </p>
+                        ) : (
+                            <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
+                                <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
+                                    <PrivacyHighlightedText
+                                        text={moodLabel}
+                                        aliases={aliases}
+                                        supportMarkdown
+                                    />
+                                </p>
+                            </div>
+                        ))}
+
+                    {showDailyOrbit && (
+                        <div className='mt-2 w-full animate-fade-in'>
+                            <TransitOrbitVisual
+                                chartData={transitSourceMessage.chartData}
+                            />
                         </div>
                     )}
                 </div>

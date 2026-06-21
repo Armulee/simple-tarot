@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         const adminEmailResult = await resend.emails.send({
             from: "Contact Form <contact@no-reply.askingfate.com>",
             to: ["admin@askingfate.com"],
-            subject: `[Contact Form] ${subject}`,
+            subject: `Askingfate Contact - from ${name}`,
             react: React.createElement(AdminNotificationEmail, {
                 name,
                 email,

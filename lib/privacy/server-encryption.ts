@@ -25,18 +25,22 @@ const HKDF_INFO_V1 = "askingfate-pii-v1"
 let cachedMasterKey: Buffer | null = null
 
 function decodeMasterKey(raw: string): Buffer {
-    const cleaned = raw.trim()
+    const cleaned = raw.trim().replace(/^['"]|['"]$/g, "")
+    // `openssl rand -hex 32` → 64 hex chars (common in .env files)
+    if (/^[0-9a-fA-F]{64}$/.test(cleaned)) {
+        return Buffer.from(cleaned, "hex")
+    }
     let buf: Buffer
     try {
         buf = Buffer.from(cleaned, "base64")
     } catch {
         throw new Error(
-            "PRIVACY_ENCRYPTION_MASTER_KEY must be base64-encoded 32 bytes",
+            "PRIVACY_ENCRYPTION_MASTER_KEY must be base64 or 64-char hex (32 bytes)",
         )
     }
     if (buf.length !== KEY_LENGTH) {
         throw new Error(
-            `PRIVACY_ENCRYPTION_MASTER_KEY must decode to ${KEY_LENGTH} bytes (got ${buf.length}). Generate one with: openssl rand -base64 32`,
+            `PRIVACY_ENCRYPTION_MASTER_KEY must decode to ${KEY_LENGTH} bytes (got ${buf.length}). Generate with: openssl rand -base64 32  OR  openssl rand -hex 32`,
         )
     }
     return buf

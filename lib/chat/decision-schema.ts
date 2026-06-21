@@ -27,6 +27,7 @@ export const supportTopicSchema = z.enum([
     "tarot-cards-index",
     "birth-chart",
     "horoscope",
+    "calendar-year",
     "account",
     "settings",
     "about",
@@ -37,11 +38,14 @@ export const supportTopicSchema = z.enum([
 
 export type SupportTopicSchema = z.infer<typeof supportTopicSchema>
 
+export const horoscopeModeSchema = z.enum(["calendar"])
+export type HoroscopeMode = z.infer<typeof horoscopeModeSchema>
+
 export const chatDecisionSchema = z.object({
     type: z
-        .enum(["chat", "draw", "horoscope", "support"])
+        .enum(["chat", "draw", "horoscope", "support", "oracle"])
         .describe(
-            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block)",
+            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block), oracle (mystical / symbolic / spiritual reflection that doesn't fit tarot, astrology, numerology)",
         ),
     isFollowUp: z
         .boolean()
@@ -70,6 +74,35 @@ export const chatDecisionSchema = z.object({
         .optional()
         .describe(
             "Only for support + tarot-card. Canonical kebab-case card slug, e.g. 'seven-of-cups', 'the-fool'. If unsure, omit it; the client will try to detect from the user message.",
+        ),
+    horoscopeMode: horoscopeModeSchema
+        .optional()
+        .describe(
+            "Only for horoscope. When set to 'calendar', the client renders the interactive calendar tool (date picker + topic chips) instead of streaming an immediate reading. Use for prompts like 'show my calendar / year ahead / 12 months overview'.",
+        ),
+    horoscopeExplain: z
+        .boolean()
+        .optional()
+        .describe(
+            "Only for chat. True when the user is questioning the REASONING behind a previous horoscope/timing recommendation ('why that date?', 'ทำไมไม่ควรลาออกสิ้นเดือน') — the client streams a data-grounded explanation paragraph instead of re-running the reading.",
+        ),
+    comparisonDateIso: z
+        .string()
+        .optional()
+        .describe(
+            "Only when horoscopeExplain. The alternative date/period the user proposes, resolved to YYYY-MM-DD against the current date ('สิ้นเดือน' / 'end of the month' → last day of the current month). Omit when they propose none.",
+        ),
+    tarotExplain: z
+        .boolean()
+        .optional()
+        .describe(
+            "Only for chat. True when the user is questioning the REASONING behind a previous TAROT reading ('why did the cards say that?', 'ทำไมไพ่ถึงบอกแบบนี้', 'how did you conclude that?') — the client streams a paragraph explaining the previous reading from the drawn cards instead of doing a new draw. Not for clarification follow-ups that want more/new info ('who?', 'tell me more') — those stay 'draw'.",
+        ),
+    conversational: z
+        .boolean()
+        .optional()
+        .describe(
+            "Only for chat. True when the user is just TALKING (greeting, venting, 'I want to talk to you', thanks, chit-chat) and is NOT asking for a reading, prediction, interpretation, definition, or product feature. The client answers with a gentle plain-text conversation (no mystical reflection, no support block). False/omit for knowledge questions and anything seeking interpretation.",
         ),
 })
 

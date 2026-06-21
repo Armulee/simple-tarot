@@ -13,7 +13,8 @@
   "PageContextComposer": {
     "eyebrow": "맥락",
     "hint": "이 맥락은 AI에게 전달돼요",
-    "error": "죄송해요, 문제가 발생했어요. 다시 시도해 주세요."
+    "error": "죄송해요, 문제가 발생했어요. 다시 시도해 주세요.",
+    "clear": "Clear context"
   },
   "Chat": {
     "originContext": {
@@ -360,12 +361,14 @@
     "quickCards": {
       "tarotCard": "타로 카드",
       "birthChart": "출생 차트",
-      "horoscope": "운세"
+      "horoscope": "운세",
+      "calendarYear": "Cosmic Calendar"
     },
     "quickCardQuestions": {
       "tarotCard": "타로 카드를 한 장 뽑아주세요",
       "birthChart": "제 출생 차트를 알려주세요",
-      "horoscope": "오늘의 제 운세는 어떤가요"
+      "horoscope": "오늘의 제 운세는 어떤가요",
+      "calendarYear": "Show me my cosmic calendar"
     },
     "selectedCards": "{cardsToSelect}장 중 {selectedCount}장을 선택했어요",
     "consulting": "상담 중",
@@ -427,6 +430,18 @@
       "deckSwipeHint": "카드를 탭한 다음, 위로 밀어 선택하세요.",
       "reversedMark": " (역방향)",
       "pickedTeaser": "{name}{reversedLabel}을(를) 고르셨어요. 위에서 로그인하면 운세를 볼 수 있어요."
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
     }
   },
   "ActionTrigger": {
@@ -448,7 +463,8 @@
     "locationDialogDescription": "국가와 주 또는 도를 선택하세요. 운세의 위치를 더 정교하게 다듬는 데 사용해요.",
     "latitude": "위도",
     "longitude": "경도",
-    "saveLocation": "위치 저장"
+    "saveLocation": "위치 저장",
+    "shareAccess": "Share access"
   },
   "InterpretationMode": {
     "auto": "자동",
@@ -459,7 +475,8 @@
     "composerSettingsAriaLabel": "리딩 설정",
     "composerSettingsPanelTitle": "설정",
     "composerSettingsSectionPreferences": "환경설정",
-    "composerSettingsSectionActions": "동작"
+    "composerSettingsSectionActions": "동작",
+    "oracle": "Spiritual"
   },
   "About": {
     "whatIs": "무엇일까요",
@@ -1562,7 +1579,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "문자",
-        "email": "이메일"
+        "email": "이메일",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "리딩 다시 생성",
@@ -1617,7 +1646,9 @@
         "voteDown": "도움 안 됨",
         "voteDownDesc": "도움이 되지 않았어요",
         "removeVoteUpDesc": "평가 취소",
-        "removeVoteDownDesc": "평가 취소"
+        "removeVoteDownDesc": "평가 취소",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
       },
       "followUp": {
         "badge": "추가 질문",
@@ -3069,7 +3100,50 @@
       "sign-up": {
         "title": "계정 만들기",
         "description": "무료 계정을 만들어 리딩, 별, 출생 프로필을 보관하세요."
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
       }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
     }
   }
 }

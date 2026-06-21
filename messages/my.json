@@ -13,7 +13,8 @@
   "PageContextComposer": {
     "eyebrow": "နောက်ခံအချက်အလက်",
     "hint": "ဤနောက်ခံအချက်အလက်ကို AI ထံ ပေးပို့ပါမည်",
-    "error": "ဝမ်းနည်းပါတယ်၊ တစ်စုံတစ်ခု မှားယွင်းသွားပါပြီ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားကြည့်ပါ။"
+    "error": "ဝမ်းနည်းပါတယ်၊ တစ်စုံတစ်ခု မှားယွင်းသွားပါပြီ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားကြည့်ပါ။",
+    "clear": "Clear context"
   },
   "Chat": {
     "originContext": {
@@ -360,12 +361,14 @@
     "quickCards": {
       "tarotCard": "တာရော့ဖဲ",
       "birthChart": "မွေးဇာတာ",
-      "horoscope": "ဟောစတမ်း"
+      "horoscope": "ဟောစတမ်း",
+      "calendarYear": "Cosmic Calendar"
     },
     "quickCardQuestions": {
       "tarotCard": "ကျွန်ုပ်အတွက် တာရော့ဖဲ တစ်ချပ် နှိုက်ပေးပါ",
       "birthChart": "ကျွန်ုပ်၏ မွေးဇာတာကို ပြောပြပါ",
-      "horoscope": "ဒီနေ့ ကျွန်ုပ်၏ ဟောစတမ်းက ဘာလဲ"
+      "horoscope": "ဒီနေ့ ကျွန်ုပ်၏ ဟောစတမ်းက ဘာလဲ",
+      "calendarYear": "Show me my cosmic calendar"
     },
     "selectedCards": "သင်သည် ဖဲ {selectedCount}/{cardsToSelect} ချပ် ရွေးချယ်ထားသည်",
     "consulting": "တိုင်ပင်နေသည်",
@@ -427,6 +430,18 @@
       "deckSwipeHint": "ဖဲတစ်ချပ်ကို နှိပ်ပါ၊ ပြီးနောက် ရွေးချယ်ရန် အပေါ်သို့ ပွတ်ဆွဲတင်ပါ။",
       "reversedMark": " (ပြောင်းပြန်)",
       "pickedTeaser": "သင် {name}{reversedLabel} ကို ရွေးချယ်ခဲ့သည်။ သင့်ဟောစတမ်းအတွက် အပေါ်တွင် အကောင့်ဝင်ပါ။"
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
     }
   },
   "ActionTrigger": {
@@ -448,7 +463,8 @@
     "locationDialogDescription": "သင့်နိုင်ငံနှင့် ပြည်နယ် သို့မဟုတ် တိုင်းကို ရွေးချယ်ပါ။ ဤအချက်အလက်ကို သင့်ဗေဒင်တည်နေရာ ပိုမိုတိကျစေရန်အသုံးပြုပါမည်။",
     "latitude": "လတ္တီတွဒ်",
     "longitude": "လောင်ဂျီတွဒ်",
-    "saveLocation": "တည်နေရာသိမ်းရန်"
+    "saveLocation": "တည်နေရာသိမ်းရန်",
+    "shareAccess": "Share access"
   },
   "InterpretationMode": {
     "auto": "အလိုအလျောက်",
@@ -459,7 +475,8 @@
     "composerSettingsAriaLabel": "ဟောကိန်းဆက်တင်များ",
     "composerSettingsPanelTitle": "ဆက်တင်များ",
     "composerSettingsSectionPreferences": "နှစ်သက်မှုများ",
-    "composerSettingsSectionActions": "လုပ်ဆောင်ချက်များ"
+    "composerSettingsSectionActions": "လုပ်ဆောင်ချက်များ",
+    "oracle": "Spiritual"
   },
   "About": {
     "whatIs": "ဘာလဲ",
@@ -1562,7 +1579,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "အီးမေးလ်"
+        "email": "အီးမေးလ်",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
       },
       "buttons": {
         "regenerate": "ဖတ်ကြားချက်ကို ပြန်လည်ဖန်တီးရန်",
@@ -1617,7 +1646,9 @@
         "voteDown": "အထောက်အကူ မဖြစ်ပါ",
         "voteDownDesc": "ဤအရာက အထောက်အကူ မဖြစ်ခဲ့ပါ",
         "removeVoteUpDesc": "မဲကို ဖယ်ရှားရန်",
-        "removeVoteDownDesc": "မဲကို ဖယ်ရှားရန်"
+        "removeVoteDownDesc": "မဲကို ဖယ်ရှားရန်",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
       },
       "followUp": {
         "badge": "ဆက်လက်မေးမြန်းရန်",
@@ -3069,7 +3100,50 @@
       "sign-up": {
         "title": "အကောင့်တစ်ခု ဖန်တီးရန်",
         "description": "သင့်ဖတ်ကြားမှုများ၊ ကြယ်များနှင့် မွေးဖွားပရိုဖိုင်ကို သိမ်းရန် အခမဲ့ အကောင့်တစ်ခု ဖန်တီးပါ။"
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
       }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
     }
   }
 }

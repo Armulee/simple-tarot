@@ -228,6 +228,116 @@ export function buildCalendarDayOriginContext(
 }
 
 // ---------------------------------------------------------------------------
+// Context-strip strategy override (horoscope routing)
+// ---------------------------------------------------------------------------
+
+export type OriginContextStrategyOverride = {
+    replyStrategy: "daily" | "natal"
+    questionRange: {
+        startDateIso: string
+        endDateIso: string
+        durationDays: number
+        granularity: "hourly"
+    } | null
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * Deterministic strategy override for the composer's context strip. The
+ * extract LLM classifies from the message text alone, so a question with no
+ * time anchor ("how will my career be?") resolves to natal/general even when
+ * the user attached a calendar day. The attachment IS the missing anchor:
+ *
+ * - calendar-day context + no date in the question → daily verdict anchored
+ *   to the attached ISO date (transit + natal aspects for that day).
+ * - calendar-day context + a RELATIVE "today" reference ("วันนี้ / today /
+ *   tonight") → the resolved range comes back as the wall-clock today; in
+ *   this UI those words mean the ATTACHED day, so the single-day range is
+ *   re-anchored onto it. (An absolute date equal to today written out in
+ *   full would also re-anchor — attaching a different day while spelling
+ *   out today's date is a contradiction we resolve in the attachment's
+ *   favor.)
+ * - birth-chart context + no anchor → natal strategy (answer from the user's
+ *   natal placements immediately).
+ *
+ * Absolute dates/windows written in the question win otherwise, and
+ * planet-focused (technical) / "when will…" (timing) questions keep their
+ * strategy; the attachment never rewrites those.
+ */
+export function resolveOriginContextStrategyOverride({
+    originContext,
+    replyStrategy,
+    questionRange,
+    currentDateIso,
+}: {
+    originContext:
+        | { kind: string; isoDate?: string | null }
+        | null
+        | undefined
+    replyStrategy: string
+    questionRange:
+        | { startDateIso: string; endDateIso: string }
+        | null
+        | undefined
+    /** Wall-clock "today" (UTC, YYYY-MM-DD) the LLM resolved relative dates against. */
+    currentDateIso?: string | null
+}): OriginContextStrategyOverride | null {
+    if (!originContext) return null
+
+    if (originContext.kind === "calendar-day") {
+        const attachedIso =
+            typeof originContext.isoDate === "string" &&
+            ISO_DATE_RE.test(originContext.isoDate)
+                ? originContext.isoDate
+                : null
+        if (!attachedIso) return null
+
+        const dailyOnAttachedDay: OriginContextStrategyOverride = {
+            replyStrategy: "daily",
+            questionRange: {
+                startDateIso: attachedIso,
+                endDateIso: attachedIso,
+                durationDays: 1,
+                granularity: "hourly",
+            },
+        }
+
+        if (
+            !questionRange &&
+            (replyStrategy === "natal" ||
+                replyStrategy === "general" ||
+                replyStrategy === "daily")
+        ) {
+            return dailyOnAttachedDay
+        }
+
+        if (
+            questionRange &&
+            replyStrategy === "daily" &&
+            currentDateIso &&
+            questionRange.startDateIso === currentDateIso &&
+            questionRange.endDateIso === currentDateIso &&
+            attachedIso !== currentDateIso
+        ) {
+            return dailyOnAttachedDay
+        }
+
+        return null
+    }
+
+    if (
+        originContext.kind === "birth-chart" &&
+        !questionRange &&
+        replyStrategy === "general"
+    ) {
+        return { replyStrategy: "natal", questionRange: null }
+    }
+
+    return null
+}
+
+// ---------------------------------------------------------------------------
 // Summary merge
 // ---------------------------------------------------------------------------
 

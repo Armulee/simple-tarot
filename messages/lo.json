@@ -13,6 +13,7 @@
   "PageContextComposer": {
     "eyebrow": "ບໍລິບົດ",
     "hint": "ບໍລິບົດນີ້ຈະຖືກສົ່ງໃຫ້ AI",
+    "clear": "ລຶບບໍລິບົດ",
     "error": "ຂໍອະໄພ ມີຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່"
   },
   "Chat": {
@@ -366,6 +367,7 @@
       "cta": "ເລີ່ມອ່ານດວງຂອງທ່ານ"
     },
     "getStarted": "ເລີ່ມຕົ້ນ",
+    "getStartedPrompt": "ຊ່ວຍເບິ່ງດວງໃຫ້ຂ້ອຍແດ່",
     "tourInstruction": "ພິມຄຳຖາມທີ່ທ່ານຢາກຖາມໂຊກຊະຕາຂອງທ່ານທີ່ນີ້:",
     "tourExamples": "ເຊັ່ນ \"ຂໍ້ຄວາມທີ່ຂ້ອຍຕ້ອງໄດ້ຍິນມື້ນີ້ຄືຫຍັງ?\" ຫຼື \"ຂ້ອຍຈະຫາຄວາມຊັດເຈນໃນອາຊີບໄດ້ແນວໃດ?\"",
     "learnMore": "ຮຽນຮູ້ເພີ່ມເຕີມ",
@@ -373,15 +375,21 @@
     "quickCards": {
       "tarotCard": "ໄພ່ທາໂຣດ",
       "birthChart": "ແຜນຠູມເກີດ",
-      "horoscope": "ໂຮໂຣສໂຄບ"
+      "horoscope": "ໂຫລາສາດ",
+      "calendarYear": "ປະຕິທິນດວງ"
     },
     "quickCardQuestions": {
       "tarotCard": "ຈັບໄພ່ທາໂຣດໃຫ້ຂ້ອຍ",
       "birthChart": "ບອກແຜນຠູມເກີດຂອງຂ້ອຍໃຫ້ຟັງ",
-      "horoscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ"
+      "horoscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ",
+      "calendarYear": "ຂໍເບິ່ງປະຕິທິນດວງຂອງຂ້ອຍ"
     },
     "selectedCards": "ທ່ານເລືອກໄພ່ແລ້ວ {selectedCount}/{cardsToSelect} ໃບ",
     "consulting": "ກຳລັງປຶກສາ",
+    "thinkingActive": "ກຳລັງຄິດ",
+    "thinkingComplete": "ວິເຄາະສຳເລັດແລ້ວ",
+    "thinkingCompleteTimed": "ປຶກສາເຊິ່ງເລິກ {seconds} ວິນາທີ",
+    "thinkingToggle": "ສະແດງຂັ້ນຕອນການຄິດ",
     "enterBirthDate": "ກະລຸນາກອກວັນເກີດຂອງທ່ານ",
     "streamStopped": "ຢຸດຄຳຕອບໄວ້ແລ້ວ",
     "scrollToBottom": "ເລື່ອນລົງລຸ່ມສຸດ",
@@ -428,6 +436,13 @@
       "national_id": "ເລກບັດປະຈຳຕົວ"
     },
     "sanitizingPrompt": "ກຳລັງຊຳລະລ້າງ",
+    "signInGate": {
+      "eyebrow": "ຄຳທຳນາຍຂອງເຈົ້າລໍຖ້າຢູ່",
+      "title": "ເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ງານຕໍ່",
+      "description": "ກະລຸນາເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ຄຸນສົມບັດນີ້. ພວກເຮົາຈະພາທ່ານກັບມາທີ່ຄຳຖາມຂອງທ່ານທັນທີ.",
+      "signIn": "ເຂົ້າສູ່ລະບົບ",
+      "cancel": "ຍົກເລີກ"
+    },
     "horoscopeAuthGate": {
       "intro": "ຄຳຖາມນີ້ຄວນຕອບໂດຍ<pill>ດວງຊາຕາ</pill>ຂອງເຈົ້າ. ເຈົ້າຕ້ອງ",
       "introSignedIn": "ຄຳຖາມນີ້ຄວນຕອບໂດຍ<pill>ດວງຊາຕາ</pill>ຂອງເຈົ້າ.",
@@ -451,6 +466,7 @@
     "composerSuggestionsOff": "ປິດ",
     "newBirthInfo": "ຂໍ້ມູນວັນເກີດ",
     "editBirthInfo": "ແກ້ໄຂຂໍ້ມູນວັນເກີດ",
+    "shareAccess": "ແບ່ງປັນການເຂົ້າເຖິງ",
     "birthInfo": "ຂໍ້ມູນວັນເກີດ: {date}",
     "chooseCardInstead": "ປ່ຽນໄປເລືອກໄພ່ແທນ",
     "location": "ຕຳແໜ່ງ: {value}",
@@ -468,11 +484,22 @@
     "tarot": "ໄພ່ທາໂຣດ",
     "horoscope": "ດວງຊະຕາ",
     "chat": "ແຊັດ",
+    "oracle": "ຈິດສຳພັດ",
     "horoscopeLoginRequired": "ເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ດວງຊະຕາ",
     "composerSettingsAriaLabel": "ການຕັ້ງຄ່າການອ່ານ",
     "composerSettingsPanelTitle": "ການຕັ້ງຄ່າ",
     "composerSettingsSectionPreferences": "ຄ່າທີ່ນິຍົມ",
     "composerSettingsSectionActions": "ການດຳເນີນການ"
+  },
+  "OracleReading": {
+    "messageReceived": "ຂໍ້ຄວາມທີ່ໄດ້ຮັບ",
+    "oracleEnergy": "ພະລັງງານໂອຣາເຄິລ",
+    "meaning": "ຄວາມໝາຍ",
+    "guidance": "ແນວທາງທີ່ຄວນເຮັດ",
+    "listening": "ກຳລັງຮັບຂໍ້ຄວາມ…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "ອ່ານດວງໃຫ້ຄົນເກີດ {date}"
   },
   "About": {
     "whatIs": "ແມ່ນຫຍັງ",
@@ -733,6 +760,12 @@
         "mysticalExperience": "ປະສົບການລຶກລັບ"
       }
     }
+  },
+  "ShareImageProgress": {
+    "render": "ກຳລັງແຕ້ມຮູບຄຳທຳນາຍຂອງເຈົ້າ…",
+    "download": "ກຳລັງດາວໂຫຼດຮູບພາບ…",
+    "animate": "ກຳລັງບັນທຶກອະນິເມຊັນຈັກກະວານຂອງເຈົ້າ…",
+    "done": "ບັນທຶກລົງເຄື່ອງແລ້ວ"
   },
   "QuestionInput": {
     "label": "ຄຳຖາມຂອງທ່ານ",
@@ -1572,7 +1605,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "ອີເມວ"
+        "email": "ອີເມວ",
+        "imagePreparing": "ກຳລັງກະກຽມຮູບພາບຄຳທຳນາຍຂອງທ່ານ…",
+        "selectInSheet": "ເລືອກ {platform} ໃນໜ້າຕ່າງແບ່ງປັນ",
+        "imageCopied": "ສຳເນົາຮູບແລ້ວ — ນຳໄປວາງໃນ {platform} ໄດ້ເລີຍ",
+        "imageSaved": "ບັນທຶກຮູບແລ້ວ — ແນບຮູບໃນ {platform} ໄດ້ເລີຍ",
+        "imageError": "ບໍ່ສາມາດກະກຽມຮູບພາບໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+        "formatLabel": "ຮູບແບບການແບ່ງປັນ",
+        "formatImage": "ຮູບພາບ",
+        "formatVideo": "ວິດີໂອ",
+        "videoPreparing": "ກຳລັງບັນທຶກວິດີໂອຄຳທຳນາຍຂອງທ່ານ…",
+        "videoReady": "ວິດີໂອພ້ອມແລ້ວ — ແຕະ {platform} ອີກຄັ້ງເພື່ອແບ່ງປັນ",
+        "videoSaved": "ບັນທຶກວິດີໂອແລ້ວ — ແນບວິດີໂອໃນ {platform} ໄດ້ເລີຍ",
+        "videoError": "ບໍ່ສາມາດກະກຽມວິດີໂອໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ"
       },
       "buttons": {
         "regenerate": "ສ້າງຄຳທຳນາຍໃໝ່",
@@ -1586,6 +1631,7 @@
         "share": "ແຊຣ໌",
         "downloadReadingText": "ດາວໂຫຼດການອ່ານເປັນໄຟລ໌ຂໍ້ຄວາມ",
         "downloadReadingImage": "ດາວໂຫຼດການອ່ານເປັນຮູບພາບ",
+        "shareCta": "ຖາມຄຳຖາມຂອງເຈົ້າເອງໄດ້ທີ່ askingfate.com",
         "copyResult": "ຄັດລອກຄຳທຳນາຍ",
         "askFollowUp": "ຖາມຕໍ່",
         "askFollowUpPrompt": "ຊ່ວຍຂະຫຍາຍຄຳທຳນາຍນີ້ໃຫ້ເພີ່ມເຕີມໄດ້ບໍ?",
@@ -1605,6 +1651,7 @@
         "downloadBrandingTitle": "ແບຣນ",
         "downloadBrandingHint": "ພຣີວິວລວມແບຣນ",
         "downloadStyleStory": "ສະຕໍຣີ",
+        "downloadStylePost": "ໂພສ",
         "downloadStyleSquare": "ສີ່ຫຼ່ຽມຈັດຕຸລັດ",
         "downloadStyleLandscape": "ແນວນອນ",
         "downloadTabImage": "ຮູບພາບ",
@@ -2721,6 +2768,26 @@
     "rememberBirth": "ຈົດຈຳຂໍ້ມູນວັນເກີດຂອງຂ້ອຍ",
     "removeBirth": "ລຶບຂໍ້ມູນ"
   },
+  "HoroscopeCalendar": {
+    "intro": "ນີ້ແມ່ນປະຕິທິນດວງຂອງເຈົ້າ — ເລືອກມື້ໃດກໍ່ໄດ້ ແລ້ວກົດຫົວຂໍ້ ຫຼື ພິມຄຳຖາມທີ່ຢາກຖາມມາ.",
+    "actionTriggerHint": "ຄຳຖາມຕໍ່ໄປຈະຖືກອ່ານສຳລັບມື້ນີ້",
+    "followUpPrompt": "ຢາກຮູ້ເພີ່ມກ່ຽວກັບ {date} ບໍ? ກົດຫົວຂໍ້ ແລ້ວເຮົາຈະອ່ານໃຫ້ສຳລັບມື້ນັ້ນ ຫຼື ພິມຄຳຖາມທີ່ຢາກຖາມມາ.",
+    "followUpQuestion": "ຊ່ວຍບອກກ່ຽວກັບ {topic} ຂອງຂ້ອຍສຳລັບ {date}.",
+    "context": {
+      "noBirth": "ເພີ່ມຂໍ້ມູນວັນເກີດເພື່ອອ່ານມື້ນີ້ໃຫ້ເຈົ້າ.",
+      "noData": "ກຳລັງໂຫຼດຂໍ້ມູນຂອງມື້ນີ້.",
+      "selected": "{date} · ມື້ {quality} · {score}/10"
+    },
+    "chips": {
+      "financial": "ການເງິນ",
+      "love": "ຄວາມຮັກ",
+      "career": "ການງານ",
+      "health": "ສຸຂະພາບ",
+      "family": "ຄອບຄົວ",
+      "travel": "ການເດີນທາງ",
+      "thinkMore": "ຊ່ວຍຄິດໃຫ້ເພີ່ມ"
+    }
+  },
   "HoroscopeChat": {
     "usingSavedBirthDate": "ກຳລັງໃຊ້ຂໍ້ມູນວັນເກີດທີ່ບັນທຶກໄວ້ທຳນາຍດວງ...",
     "loading": "ກຳລັງອ່ານດວງຈາກຂໍ້ມູນເກີດຂອງທ່ານ...",
@@ -2971,6 +3038,9 @@
   },
   "SupportBlock": {
     "openPage": "ເປີດໜ້າ",
+    "openCalendar": "ເປີດປະຕິທິນ",
+    "viewMore": "ເບິ່ງເພີ່ມ",
+    "calendarMonths": "ມ.ກ., ກ.ພ., ມີ.ນ., ມ.ສ., ພ.ພ., ມິ.ຖ., ກ.ລ., ສ.ຫ., ກ.ຍ., ຕ.ລ., ພ.ຈ., ທ.ວ.",
     "readArticle": "ອ່ານບົດຄວາມ",
     "readFullMeaning": "ອ່ານຄວາມໝາຍສະບັບເຕັມ",
     "majorArcana": "ອາການາໃຫຍ່",
@@ -3050,6 +3120,10 @@
       "horoscope": {
         "title": "ດວງສ່ວນບຸກຄົນ",
         "description": "ດວງລາຍມື້ ລາຍເດືອນ ແລະລາຍປີຈາກວັນເກີດແລະຟ້າມື້ນີ້"
+      },
+      "calendar-year": {
+        "title": "ປະຕິທິນຈັກກະວານຂອງທ່ານ",
+        "description": "ເບິ່ງປີຄື່ນຄາຍແຕ່ລະເດືອນ — ມື້ດີ, ມື້ຍາກ, ແລະຈຸດປ່ຽນແປງສຳຄັນທີ່ເບິ່ງເຫັນໄດ້ໃນແວບດຽວ."
       },
       "account": {
         "title": "ບັນຊີ",

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ConsistentAvatar } from "@/components/ui/consistent-avatar"
+import { CrownedAvatar } from "@/components/ui/crowned-avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
@@ -87,12 +87,12 @@ export function UserProfile({
                     className={`text-white hover:bg-white/10 ${className || ""}`}
                     aria-label='Open user menu'
                 >
-                    <ConsistentAvatar 
+                    <CrownedAvatar
                         data={{
                             name: profile?.name,
-                            email: user.email
+                            email: user.email,
                         }}
-                        size="sm"
+                        size='sm'
                     />
                 </Button>
             </UserProfileDropdown>
@@ -109,12 +109,12 @@ export function UserProfile({
                 }`}
                 aria-label='Open user menu'
             >
-                    <ConsistentAvatar 
+                    <CrownedAvatar
                         data={{
                             name: profile?.name,
-                            email: user.email
+                            email: user.email,
                         }}
-                        size="sm"
+                        size='sm'
                     />
                 <span className='hidden sm:block text-sm font-medium'>
                     {getUserName()}
@@ -130,12 +130,12 @@ export function UserProfile({
                 variant='ghost'
                 className='flex items-center gap-2 px-3 py-2 rounded-full hover:bg-white/10 text-white'
             >
-                    <ConsistentAvatar 
+                    <CrownedAvatar
                         data={{
                             name: profile?.name,
-                            email: user.email
+                            email: user.email,
                         }}
-                        size="sm"
+                        size='sm'
                     />
                 <ChevronDown className='w-4 h-4' />
             </Button>
