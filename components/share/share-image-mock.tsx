@@ -35,6 +35,12 @@ export interface ShareImageMockProps {
     insights?: string[]
     cta?: string
     /**
+     * Which painted artwork set to lay behind the elements — must match the
+     * server's `kind`. "tarot" (default) uses the night-sky paintings;
+     * "horoscope" uses the solar-system backgrounds.
+     */
+    kind?: "tarot" | "horoscope"
+    /**
      * Loop this film behind the elements instead of the painted sky —
      * previews the video export, whose overlay carries its own gold frame.
      */
@@ -60,6 +66,7 @@ export default function ShareImageMock({
     detailedHtml,
     insights,
     cta,
+    kind = "tarot",
     videoBackgroundSrc,
 }: ShareImageMockProps) {
     const isStory = aspect === "story"
@@ -656,7 +663,11 @@ export default function ShareImageMock({
                 </>
             ) : (
                 <Image
-                    src={`/assets/share/${aspect}-background.jpg`}
+                    src={
+                        kind === "horoscope"
+                            ? `/assets/share/horoscope-${aspect}-background.jpg`
+                            : `/assets/share/${aspect}-background.jpg`
+                    }
                     alt=''
                     fill
                     unoptimized

@@ -2813,6 +2813,7 @@
     },
     "verdict": {
       "moodGood": "ມື້ທີ່ດີ",
+      "downloadImage": "ດາວໂຫຼດ",
       "moodCaution": "ລະວັງໄວ້",
       "moodRest": "ມື້ພັກ",
       "answerHeading": "ຄຳຕອບສຳລັບຄຳຖາມນີ້",
