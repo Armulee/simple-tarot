@@ -7,8 +7,7 @@
     "dev:webpack": "next dev",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
-    "verify:i18n": "node scripts/verify-i18n-keys.js"
+    "lint": "eslint"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.24",

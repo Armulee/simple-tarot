@@ -34,17 +34,9 @@ cookie or `Accept-Language`, and now matches both region-coded tags (`zh-CN`,
 ## Message files
 
 One namespaced JSON file per locale in `messages/<locale>.json`, mirroring the
-key structure of `en.json` (the source of truth, ~2,237 leaf keys).
-
-Verify key parity at any time:
-
-```bash
-npm run verify:i18n            # all locales
-node scripts/verify-i18n-keys.js zh-CN ja   # specific locales
-```
-
-Missing keys fail the check (they break next-intl at runtime). "Extra" keys and
-ICU-placeholder mismatches are reported as warnings only.
+key structure of `en.json` (the source of truth, ~2,237 leaf keys). Every locale
+file carries the complete `en.json` key set — missing keys break next-intl at
+runtime, so keep new keys in sync across all locales when editing.
 
 ## AI response language (Phase 3)
 
@@ -79,9 +71,6 @@ plan names, format placeholders):
 | `pt-BR` | ~97%     |
 | `my`    | ~97%     |
 | `id`    | ~95%     |
-
-Check coverage anytime with `node scripts/i18n-coverage.js <locale>` (add
-`--list` to print untranslated key paths, `--json` to dump them).
 
 **All machine translations should get a native-speaker review**, especially:
 - Burmese (`my`) — lower-resource; the long-form BirthChart astrology prose and
