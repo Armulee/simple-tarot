@@ -21,6 +21,12 @@ export type ShareImageRequest = {
     cta?: string
     width: number
     height: number
+    /**
+     * Which painted artwork set to lay behind the poster. "tarot" (default)
+     * uses the night-sky paintings; "horoscope" uses the solar-system
+     * backgrounds for astrology verdict shares.
+     */
+    kind?: "tarot" | "horoscope"
     /** Render on a transparent canvas (for video compositing). */
     transparent?: boolean
 }

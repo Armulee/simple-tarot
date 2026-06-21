@@ -200,31 +200,32 @@ async function readImageAsBase64(slug: string) {
 }
 
 type ShareBgVariant = "story" | "post" | "square" | "landscape"
+type ShareKind = "tarot" | "horoscope"
 
 /**
- * Hand-illustrated night-sky paintings (gold crescent moon, star
- * sparkles, gilded clouds, baked-in gold frame) — one per aspect
- * variant, pre-sized to the exact canvas dimensions.
+ * Painted backgrounds, one per aspect variant, pre-sized to the exact
+ * canvas dimensions. Tarot uses the hand-illustrated night-sky paintings
+ * (gold crescent moon, sparkles, gilded clouds, baked-in gold frame);
+ * horoscope uses the solar-system artwork for astrology verdict shares.
  */
-async function readShareBackground(variant: ShareBgVariant) {
-    if (shareBgCache.has(variant)) return shareBgCache.get(variant) ?? null
+async function readShareBackground(variant: ShareBgVariant, kind: ShareKind) {
+    const cacheKey = `${kind}:${variant}`
+    if (shareBgCache.has(cacheKey)) return shareBgCache.get(cacheKey) ?? null
+    const fileName =
+        kind === "horoscope"
+            ? `horoscope-${variant}-background.jpg`
+            : `${variant}-background.jpg`
     let src: string | null = null
     try {
         const buffer = await readFile(
-            join(
-                process.cwd(),
-                "public",
-                "assets",
-                "share",
-                `${variant}-background.jpg`,
-            ),
+            join(process.cwd(), "public", "assets", "share", fileName),
         )
         src = `data:image/jpeg;base64,${buffer.toString("base64")}`
     } catch (error) {
-        console.error(`Error reading ${variant} background:`, error)
+        console.error(`Error reading ${cacheKey} background:`, error)
         src = null
     }
-    shareBgCache.set(variant, src)
+    shareBgCache.set(cacheKey, src)
     return src
 }
 
@@ -533,12 +534,16 @@ let warmUpPromise: Promise<void> | null = null
 function warmUpPipeline(): Promise<void> {
     if (!warmUpPromise) {
         warmUpPromise = (async () => {
-            const [, , , , , shareFonts] = await Promise.all([
+            const [, , , , , , , , , shareFonts] = await Promise.all([
                 readLogoAsBase64(),
-                readShareBackground("story"),
-                readShareBackground("post"),
-                readShareBackground("square"),
-                readShareBackground("landscape"),
+                readShareBackground("story", "tarot"),
+                readShareBackground("post", "tarot"),
+                readShareBackground("square", "tarot"),
+                readShareBackground("landscape", "tarot"),
+                readShareBackground("story", "horoscope"),
+                readShareBackground("post", "horoscope"),
+                readShareBackground("square", "horoscope"),
+                readShareBackground("landscape", "horoscope"),
                 loadShareFonts(),
             ])
             const probe = new ImageResponse(
@@ -609,10 +614,14 @@ export async function POST(req: Request) {
             width = 1080,
             height = 1920,
             branding = "AskingFate",
+            // Which painted artwork set to lay behind the poster.
+            kind = "tarot",
             // Transparent canvas (no painted sky) — the video exporter
             // composites this overlay onto the animated background.
             transparent = false,
         } = await req.json()
+
+        const shareKind: ShareKind = kind === "horoscope" ? "horoscope" : "tarot"
 
         const cacheKey = JSON.stringify([
             question,
@@ -627,6 +636,7 @@ export async function POST(req: Request) {
             width,
             height,
             branding,
+            shareKind,
             Boolean(transparent),
         ])
         const cached = renderedImageCache.get(cacheKey)
@@ -699,7 +709,7 @@ export async function POST(req: Request) {
         const [logoBase64, shareFonts, shareBgSrc] = await Promise.all([
             readLogoAsBase64(),
             loadShareFonts(),
-            readShareBackground(bgVariant),
+            readShareBackground(bgVariant, shareKind),
         ])
         const logoSrc = logoBase64 || `${origin}/assets/logo.png`
 

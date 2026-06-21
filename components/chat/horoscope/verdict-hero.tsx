@@ -1,8 +1,9 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Image from "next/image"
 import { AlertTriangle, Moon, Sparkles, Target } from "lucide-react"
+import { FaDownload } from "react-icons/fa6"
 import { useFormatter, useTranslations } from "next-intl"
 import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
@@ -22,6 +23,7 @@ import {
 } from "@/lib/birth-chart-utils"
 import { unmaskTextWithAliases } from "@/lib/privacy/prompt-redaction"
 import ShareSection from "@/components/tarot/interpretation/share"
+import HoroscopeDownloadDialog from "@/components/share/horoscope-download-dialog"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
 
 type NatalPlacementForHero = {
@@ -563,6 +565,7 @@ export default function VerdictHero({
     const formatter = useFormatter()
     const style = MOOD_STYLES[verdict.mood]
     const aliases = privacyAliases ?? []
+    const [downloadOpen, setDownloadOpen] = useState(false)
 
     // Natal-mode verdicts answer questions like "Which career fits me?" —
     // they are timeless, so we deliberately suppress the date pill that
@@ -674,6 +677,11 @@ export default function VerdictHero({
     // Below the detailed HTML we surface the share section (the transit feed /
     // natal spotlight detail now lives in the Technical / Aspect tabs).
     const showShare = overviewReady && !isLoading && hasVerdictText
+    // Image-share (download poster) currently ships for the daily verdict
+    // only — the "predict exact date" single-day forecast. Other strategies
+    // (timing / natal / technical) keep the link-share carousel for now.
+    const isDailyVerdict = !verdict.mode || verdict.mode === "daily"
+    const showDownload = showShare && isDailyVerdict
     const showReplyBubble =
         keyMessageHeadline.length > 0 ||
         detailedHtml.length > 0 ||
@@ -840,6 +848,35 @@ export default function VerdictHero({
                                                 : ""
                                         }
                                     >
+                                        {/* Daily verdict: download a share
+                                            poster (image-only for now),
+                                            mirroring the tarot download
+                                            button + sheet. */}
+                                        {showDownload && (
+                                            <div className='mb-4 flex justify-center'>
+                                                <button
+                                                    type='button'
+                                                    onClick={() =>
+                                                        setDownloadOpen(true)
+                                                    }
+                                                    className='group relative flex flex-col items-center gap-2 rounded-xl p-3 transition-all duration-300 hover:scale-105 hover:shadow-lg'
+                                                >
+                                                    <div
+                                                        className='relative flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl'
+                                                        style={{
+                                                            background:
+                                                                "linear-gradient(135deg, var(--primary), var(--accent))",
+                                                        }}
+                                                    >
+                                                        <FaDownload className='h-6 w-6 text-white' />
+                                                        <div className='absolute inset-0 rounded-full bg-white/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100' />
+                                                    </div>
+                                                    <span className='text-center text-xs font-medium leading-tight text-foreground/80 transition-colors duration-300 group-hover:text-foreground'>
+                                                        {t("downloadImage")}
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        )}
                                         <ShareSection
                                             variant='embedded'
                                             question={unmaskTextWithAliases(
@@ -857,6 +894,45 @@ export default function VerdictHero({
                                                 aliases,
                                             )}
                                         />
+                                        {showDownload && (
+                                            <HoroscopeDownloadDialog
+                                                open={downloadOpen}
+                                                onOpenChange={setDownloadOpen}
+                                                question={unmaskTextWithAliases(
+                                                    questionText,
+                                                    aliases,
+                                                )}
+                                                headline={unmaskTextWithAliases(
+                                                    verdict.headline,
+                                                    aliases,
+                                                )}
+                                                subtitle={unmaskTextWithAliases(
+                                                    moodLabel,
+                                                    aliases,
+                                                )}
+                                                keyMessage={unmaskTextWithAliases(
+                                                    keyMessageHeadline,
+                                                    aliases,
+                                                )}
+                                                detailedHtml={unmaskTextWithAliases(
+                                                    detailedHtml,
+                                                    aliases,
+                                                )}
+                                                interpretation={unmaskTextWithAliases(
+                                                    (
+                                                        transitSourceMessage.text ||
+                                                        detailedHtml
+                                                    )
+                                                        .replace(
+                                                            /<[^>]+>/g,
+                                                            " ",
+                                                        )
+                                                        .replace(/\s+/g, " ")
+                                                        .trim(),
+                                                    aliases,
+                                                )}
+                                            />
+                                        )}
                                     </div>
                                 )}
                             </div>
