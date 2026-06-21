@@ -17,7 +17,7 @@ import OriginContextStrip from "@/components/chat/origin-context-strip"
 import { CARD_UI_TEXT, normalizeLocale } from "@/components/chat/card-ui"
 import {
     detectInputLanguage,
-    isSupportedLocale,
+    resolveSessionLocale,
 } from "@/lib/detect-input-language"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
 import {
@@ -208,10 +208,7 @@ export default function PageContextComposer({
             linkingAbortControllerRef.current = null
             pendingSessionIdRef.current = null
             const detectedLocale = detectInputLanguage(trimmed)
-            const targetLocale =
-                detectedLocale && isSupportedLocale(detectedLocale)
-                    ? detectedLocale
-                    : locale
+            const targetLocale = resolveSessionLocale(detectedLocale, locale)
             try {
                 router.prefetch(`/${targetLocale}/${payload.id}`)
             } catch {}

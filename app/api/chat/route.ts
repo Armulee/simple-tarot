@@ -6,6 +6,7 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { supabaseAdmin } from "@/lib/supabase"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 import { deepseekThinking } from "@/lib/chat/model-options"
 
 const MODEL = "deepseek/deepseek-v4-flash"
@@ -191,15 +192,6 @@ async function getUserFromBearer(req: Request) {
     return user
 }
 
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
-
 /**
  * Maps the user-facing interpretation mode (set in the composer menu) to the
  * decision `type` (or list of allowed types). The "chat" mode is special: it
@@ -223,6 +215,7 @@ function getChatDecisionPrompt({
     hasStoredBirthChart,
     isAuthenticated,
     planTier,
+    locale,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
@@ -232,6 +225,7 @@ function getChatDecisionPrompt({
     hasStoredBirthChart?: boolean
     isAuthenticated: boolean
     planTier?: "free" | "basic" | "pro"
+    locale?: string | null
 }) {
     const historyText =
         history && history.length
@@ -259,7 +253,7 @@ function getChatDecisionPrompt({
         modeInstruction = `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}". If the forced type is "draw", you must still choose the best spreadType and spreadReason. If the forced type is "support", you MUST set supportTopic (and supportCardSlug when the user is asking about a specific tarot card).\n`
     }
 
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(locale, question)
     const savedBirthBlock = savedBirthInfo
         ? `Saved birth profile: available (${savedBirthInfo}).`
         : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
@@ -327,6 +321,7 @@ export async function POST(req: Request) {
             interpretationMode?: string | null
             contextSummary?: string | null
             planTier?: "free" | "basic" | "pro"
+            locale?: string | null
         }
         try {
             body = await req.json()
@@ -343,6 +338,7 @@ export async function POST(req: Request) {
             savedBirthInfo,
             hasStoredBirthChart,
             planTier: rawPlanTier,
+            locale,
         } = body ?? {}
         const planTier =
             rawPlanTier === "basic" || rawPlanTier === "pro"
@@ -384,6 +380,7 @@ export async function POST(req: Request) {
                 hasStoredBirthChart: Boolean(hasStoredBirthChart),
                 isAuthenticated,
                 planTier,
+                locale,
             }),
         })
 

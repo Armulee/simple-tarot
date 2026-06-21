@@ -87,7 +87,7 @@ type Props = {
      * Set by session.tsx from detectInputLanguage(triggerQuestion) so the
      * tool responds in the same language the viewer wrote in.
      */
-    responseLocale?: SupportedToolLocale
+    responseLocale?: string
 }
 
 const QUALITY_LABEL: Record<DayData["quality"], string> = {
@@ -113,8 +113,9 @@ export default function HoroscopeCalendarTool({
     responseLocale,
 }: Props) {
     const uiLocale = useLocale()
-    const activeLocale: SupportedToolLocale =
-        responseLocale ?? resolveToolLocale(uiLocale)
+    const activeLocale: SupportedToolLocale = resolveToolLocale(
+        responseLocale ?? uiLocale,
+    )
     const messages = MESSAGES_BY_LOCALE[activeLocale]
     const t = useCallback(
         (key: string, params?: Record<string, string>): string => {

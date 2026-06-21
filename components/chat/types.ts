@@ -13,6 +13,7 @@ import type {
     SupportTopic,
 } from "@/lib/chat/support-topics"
 import type { GeneralReply } from "@/lib/chat/general-reply-schema"
+import type { SupportedLocale } from "@/lib/detect-input-language"
 
 export type AspectInsightItem = {
     aspectKey: string
@@ -158,7 +159,7 @@ export type ChatMessage = {
      * chips, intro, and follow-up sentence match what the user wrote
      * regardless of the app's UI locale.
      */
-    responseLocale?: "en" | "th" | "lo"
+    responseLocale?: SupportedLocale
     variant?:
         | "plain"
         | "box"
