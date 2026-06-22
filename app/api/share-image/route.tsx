@@ -357,7 +357,11 @@ function cornerOrnament(
  * runs split into wrappable word tokens. Shared by the story and
  * landscape reading panels.
  */
-function renderRichBlocks(blocks: RichBlock[], fontSize: number) {
+function renderRichBlocks(
+    blocks: RichBlock[],
+    fontSize: number,
+    fitContent = false,
+) {
     return (
         <div
             style={{
@@ -365,8 +369,10 @@ function renderRichBlocks(blocks: RichBlock[], fontSize: number) {
                 flexDirection: "column",
                 fontSize,
                 lineHeight: 1.6,
-                flex: 1,
-                minHeight: 0,
+                // Astrology posters size the panel to its content; growing to
+                // fill (flex:1) would collapse the text under an auto-height
+                // parent, so only stretch in the tarot layouts.
+                ...(fitContent ? {} : { flex: 1, minHeight: 0 }),
                 overflow: "hidden",
             }}
         >
@@ -914,21 +920,36 @@ export async function POST(req: Request) {
                 { type: "paragraph", runs: [{ text: finalInterpretation }] },
             ]
         }
-        const detailBudget = isLandscape
-            ? 420
-            : isSquare
-              ? 0
-              : isPost
-                ? storyCount >= 4
-                    ? 250
-                    : 270
-                : storyCount >= 7
-                  ? 400
-                  : storyCount >= 4
-                    ? 500
-                    : showCardInsights
-                      ? 460
-                      : 600
+        // Astrology posters fit the reading panel to its content (no card
+        // spread to balance) and hard-cap it at a max height; the char budget
+        // makes the AI text truncate with an ellipsis before the cap. The
+        // freed space lets the panel sit snug above the planet band instead of
+        // stretching to fill it.
+        const astroReadingMaxH = isLandscape ? 212 : isPost ? 320 : 430
+        const detailBudget =
+            theme === "astrology"
+                ? isSquare
+                    ? 0
+                    : isLandscape
+                      ? 230
+                      : isPost
+                        ? 300
+                        : 380
+                : isLandscape
+                  ? 420
+                  : isSquare
+                    ? 0
+                    : isPost
+                      ? storyCount >= 4
+                          ? 250
+                          : 270
+                      : storyCount >= 7
+                        ? 400
+                        : storyCount >= 4
+                          ? 500
+                          : showCardInsights
+                            ? 460
+                            : 600
         storyBlocks = truncateRichBlocks(storyBlocks, detailBudget)
         const detailChars = storyBlocks.reduce(
             (sum, block) =>
@@ -1425,8 +1446,15 @@ export async function POST(req: Request) {
                                                     background: PANEL_BG,
                                                     border: PANEL_BORDER,
                                                     maxWidth: "100%",
-                                                    flex: 1,
-                                                    minHeight: 0,
+                                                    ...(theme === "astrology"
+                                                        ? {
+                                                              maxHeight:
+                                                                  astroReadingMaxH,
+                                                          }
+                                                        : {
+                                                              flex: 1,
+                                                              minHeight: 0,
+                                                          }),
                                                     overflow: "hidden",
                                                 }}
                                             >
@@ -1437,6 +1465,7 @@ export async function POST(req: Request) {
                                                 {renderRichBlocks(
                                                     storyBlocks,
                                                     detailFontSize,
+                                                    theme === "astrology",
                                                 )}
                                             </div>
                                         ) : null}
@@ -1918,8 +1947,9 @@ export async function POST(req: Request) {
                                             background: PANEL_BG,
                                             border: PANEL_BORDER,
                                             maxWidth: "100%",
-                                            flex: 1,
-                                            minHeight: 0,
+                                            ...(theme === "astrology"
+                                                ? { maxHeight: astroReadingMaxH }
+                                                : { flex: 1, minHeight: 0 }),
                                             overflow: "hidden",
                                         }}
                                     >
@@ -1960,6 +1990,7 @@ export async function POST(req: Request) {
                                         {renderRichBlocks(
                                             storyBlocks,
                                             detailFontSize,
+                                            theme === "astrology",
                                         )}
                                     </div>
                                 ) : null}
@@ -1972,6 +2003,9 @@ export async function POST(req: Request) {
                                         justifyContent: "center",
                                         gap: 14,
                                         alignSelf: "center",
+                                        ...(theme === "astrology"
+                                            ? { marginTop: "auto" }
+                                            : {}),
                                         padding: "15px 42px",
                                         borderRadius: 9999,
                                         border: "1.5px solid rgba(216,181,109,0.65)",

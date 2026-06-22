@@ -121,19 +121,27 @@ export default function ShareImageMock({
     // Same content pipeline as the server: strip card names, parse the
     // rich html, fall back to the plain interpretation, truncate.
     const blocks = useMemo<RichBlock[]>(() => {
-        const budget = isLandscape
-            ? 420
-            : isSquare
-              ? 0
-              : isPost
-                ? count >= 4
-                    ? 250
-                    : 270
-                : count >= 7
-                  ? 400
-                  : count >= 4
-                    ? 500
-                    : 600
+        const budget = isAstro
+            ? isSquare
+                ? 0
+                : isLandscape
+                  ? 230
+                  : isPost
+                    ? 300
+                    : 380
+            : isLandscape
+              ? 420
+              : isSquare
+                ? 0
+                : isPost
+                  ? count >= 4
+                      ? 250
+                      : 270
+                  : count >= 7
+                    ? 400
+                    : count >= 4
+                      ? 500
+                      : 600
         if (budget === 0) return []
         let parsed = parseDetailedHtml(
             stripCardNamesFromHtml(detailedHtml ?? "", cards),
@@ -153,6 +161,7 @@ export default function ShareImageMock({
         interpretation,
         cards,
         count,
+        isAstro,
         isLandscape,
         isSquare,
         isPost,
@@ -273,6 +282,9 @@ export default function ShareImageMock({
         (insights ?? []).some((i) => i.trim().length > 0)
     const questionFontSize = isStory ? 38 : isPost ? 33 : isSquare ? 32 : 34
     const columnGap = isStory ? 26 : isPost ? 18 : isSquare ? 22 : 20
+    // Mirrors the server: astrology fits the reading panel to its content and
+    // hard-caps the height so the AI text truncates above the planet band.
+    const astroReadingMaxH = isLandscape ? 212 : isPost ? 320 : 430
     const ctaText =
         truncate(cta ?? "", 70) || "Ask your own question at askingfate.com"
 
@@ -511,8 +523,9 @@ export default function ShareImageMock({
                     background: PANEL_BG,
                     border: PANEL_BORDER,
                     maxWidth: "100%",
-                    flex: 1,
-                    minHeight: 0,
+                    ...(isAstro
+                        ? { maxHeight: s(astroReadingMaxH) }
+                        : { flex: 1, minHeight: 0 }),
                 }}
             >
                 {sectionLabel("The reading", isPortraitColumn ? 60 : 52)}
@@ -521,8 +534,7 @@ export default function ShareImageMock({
                     style={{
                         fontSize: s(detailFontSize),
                         lineHeight: 1.6,
-                        flex: 1,
-                        minHeight: 0,
+                        ...(isAstro ? {} : { flex: 1, minHeight: 0 }),
                     }}
                 >
                     {blocks.map((block, blockIdx) => (
@@ -580,7 +592,7 @@ export default function ShareImageMock({
             className='flex items-center justify-center self-center'
             style={{
                 gap: s(14),
-                marginTop: isStory ? undefined : "auto",
+                marginTop: isStory && !isAstro ? undefined : "auto",
                 padding: `${s(isStory ? 15 : 13)} ${s(isStory ? 42 : 38)}`,
                 borderRadius: 9999,
                 border: "1.5px solid rgba(216,181,109,0.65)",
