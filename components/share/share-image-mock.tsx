@@ -11,6 +11,11 @@ import {
     truncate,
     truncateRichBlocks,
 } from "@/lib/share-rich-text"
+import {
+    ASTRO_BAND_FRACTION,
+    buildAstroPlanetLabels,
+    type TransitPlanetInput,
+} from "@/lib/share-astrology-planets"
 
 export type ShareImageAspect = "story" | "post" | "square" | "landscape"
 
@@ -39,6 +44,8 @@ export interface ShareImageMockProps {
      * "astrology" solar-system skies for the daily-verdict share.
      */
     theme?: "tarot" | "astrology"
+    /** Transit positions stamped under the painted planets (astrology only). */
+    planets?: TransitPlanetInput[]
     /**
      * Loop this film behind the elements instead of the painted sky —
      * previews the video export, whose overlay carries its own gold frame.
@@ -66,6 +73,7 @@ export default function ShareImageMock({
     insights,
     cta,
     theme = "tarot",
+    planets,
     videoBackgroundSrc,
 }: ShareImageMockProps) {
     const isStory = aspect === "story"
@@ -73,6 +81,15 @@ export default function ShareImageMock({
     const isSquare = aspect === "square"
     const isLandscape = aspect === "landscape"
     const isPortraitColumn = isStory || isPost
+
+    // Astrology posters reserve a bottom band for the painted planets and
+    // stamp the day's transit positions under each — mirrors the server.
+    const isAstro = theme === "astrology" && !videoBackgroundSrc
+    const astroBand = isAstro ? ASTRO_BAND_FRACTION[aspect] : 0
+    const astroLabels = useMemo(
+        () => (isAstro ? buildAstroPlanetLabels(planets, aspect) : []),
+        [isAstro, planets, aspect],
+    )
 
     const refW = isLandscape ? 1920 : 1080
     const s = (px: number) => `${((px / refW) * 100).toFixed(3)}cqw`
@@ -670,9 +687,42 @@ export default function ShareImageMock({
                     className='object-cover'
                 />
             )}
+            {astroLabels.map((label) => (
+                <div
+                    key={`astro-${label.name}`}
+                    className='absolute z-10'
+                    style={{
+                        left: `${(label.leftPct * 100).toFixed(2)}%`,
+                        top: `${(label.topPct * 100).toFixed(2)}%`,
+                        transform: "translateX(-50%)",
+                    }}
+                >
+                    <div
+                        style={{
+                            padding: `${s(2)} ${s(12)}`,
+                            borderRadius: 9999,
+                            background: "rgba(7,11,34,0.62)",
+                            border: "1px solid rgba(216,181,109,0.45)",
+                            color: label.retrograde ? "#fda4af" : "#f3e2b0",
+                            fontSize: s(isLandscape ? 22 : 24),
+                            fontWeight: 700,
+                            whiteSpace: "nowrap",
+                            lineHeight: 1.2,
+                        }}
+                    >
+                        {label.text}
+                    </div>
+                </div>
+            ))}
             <div
-                className='relative z-10 flex h-full w-full flex-col'
-                style={{ padding: s(72), boxSizing: "border-box" }}
+                className='relative z-10 flex w-full flex-col'
+                style={{
+                    height: astroBand
+                        ? `${((1 - astroBand) * 100).toFixed(2)}%`
+                        : "100%",
+                    padding: s(72),
+                    boxSizing: "border-box",
+                }}
             >
                 <div
                     className='mx-auto flex w-full flex-col'

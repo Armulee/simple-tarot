@@ -78,6 +78,13 @@ export interface ReadingDownloadDialogProps {
      * drops the card sections for the daily-verdict share.
      */
     theme?: "tarot" | "astrology"
+    /** Transit positions stamped under the painted planets (astrology only). */
+    planets?: Array<{
+        name: string
+        sign?: string | null
+        degree?: number | null
+        retrograde?: boolean | null
+    }>
     /**
      * Whether the animated video export is offered. The astrology theme has
      * no background film yet, so callers pass `false` to show image-only.
@@ -107,6 +114,7 @@ export default function ReadingDownloadDialog({
     detailedHtml,
     insights,
     theme = "tarot",
+    planets,
     allowVideo = true,
     filenameBase = "askingfate-reading",
     onExportStatus,
@@ -182,6 +190,7 @@ export default function ReadingDownloadDialog({
                 detailedHtml,
                 insights,
                 theme,
+                planets,
             ]),
         [
             question,
@@ -193,6 +202,7 @@ export default function ReadingDownloadDialog({
             detailedHtml,
             insights,
             theme,
+            planets,
         ],
     )
 
@@ -226,6 +236,7 @@ export default function ReadingDownloadDialog({
             width: style.width,
             height: style.height,
             theme,
+            planets,
         }),
         [
             question,
@@ -237,6 +248,7 @@ export default function ReadingDownloadDialog({
             detailedHtml,
             insights,
             theme,
+            planets,
             t,
         ],
     )
@@ -600,6 +612,7 @@ export default function ReadingDownloadDialog({
                                     insights={insights}
                                     cta={t("actions.shareCta")}
                                     theme={theme}
+                                    planets={planets}
                                     videoBackgroundSrc={
                                         format === "video"
                                             ? getShareVideoBackgroundSrc(

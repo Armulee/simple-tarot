@@ -103,6 +103,13 @@ export interface ActionSectionProps {
      * daily-verdict solar-system skies).
      */
     theme?: "tarot" | "astrology"
+    /** Transit positions stamped under the painted planets (astrology only). */
+    planets?: Array<{
+        name: string
+        sign?: string | null
+        degree?: number | null
+        retrograde?: boolean | null
+    }>
     /** Whether the download dialog offers the animated video export. */
     allowVideo?: boolean
     /** When set (e.g. from layout: row width − pill width − gap), drives how many icons show in `compact`. */
@@ -161,6 +168,7 @@ export default function ActionSection({
     keyMessage: propKeyMessage,
     detailedHtml: propDetailedHtml,
     theme = "tarot",
+    planets: propPlanets,
     allowVideo = true,
     compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
@@ -842,6 +850,7 @@ export default function ActionSection({
             detailedHtml={propDetailedHtml}
             insights={propInsights}
             theme={theme}
+            planets={propPlanets}
             allowVideo={allowVideo}
             filenameBase={
                 mode === "horoscope"

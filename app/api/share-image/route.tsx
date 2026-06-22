@@ -13,6 +13,11 @@ import {
     truncate,
     truncateRichBlocks,
 } from "@/lib/share-rich-text"
+import {
+    ASTRO_BAND_FRACTION,
+    buildAstroPlanetLabels,
+    type TransitPlanetInput,
+} from "@/lib/share-astrology-planets"
 
 type WordSegmenter = {
     segment: (input: string) => Iterable<{ segment: string }>
@@ -621,12 +626,16 @@ export async function POST(req: Request) {
             height = 1920,
             branding = "AskingFate",
             theme: themeRaw = "tarot",
+            planets = [],
             // Transparent canvas (no painted sky) — the video exporter
             // composites this overlay onto the animated background.
             transparent = false,
         } = await req.json()
 
         const theme: ShareTheme = themeRaw === "astrology" ? "astrology" : "tarot"
+        const transitPlanets: TransitPlanetInput[] = Array.isArray(planets)
+            ? (planets as TransitPlanetInput[])
+            : []
 
         const cacheKey = JSON.stringify([
             question,
@@ -642,6 +651,7 @@ export async function POST(req: Request) {
             height,
             branding,
             theme,
+            transitPlanets,
             Boolean(transparent),
         ])
         const cached = renderedImageCache.get(cacheKey)
@@ -718,7 +728,20 @@ export async function POST(req: Request) {
         ])
         const logoSrc = logoBase64 || `${origin}/assets/logo.png`
 
-        const paddingBottom = basePadding
+        // Astrology posters keep a clear band at the bottom for the painted
+        // planets and their stamped transit positions; the text column stops
+        // above it. Transparent (video overlay) renders skip the reserve.
+        const astroBandFraction =
+            theme === "astrology" && !transparent
+                ? ASTRO_BAND_FRACTION[bgVariant]
+                : 0
+        const astroBand = Math.round(imageHeight * astroBandFraction)
+        const astroLabels =
+            theme === "astrology" && !transparent
+                ? buildAstroPlanetLabels(transitPlanets, bgVariant)
+                : []
+
+        const paddingBottom = basePadding + astroBand
         const maxInterpretChars = isStoryAspect ? 400 : isLandscape ? 420 : 240
 
         const displayQuestion = truncate(safeQuestion, isSquare ? 110 : 140)
@@ -1174,6 +1197,40 @@ export async function POST(req: Request) {
                     </svg>
                         </div>
                     )}
+
+                    {/* Transit positions stamped under the painted planets —
+                        the day's zodiac degrees (retrograde bodies in rose). */}
+                    {astroLabels.map((label) => (
+                        <div
+                            key={`astro-${label.name}`}
+                            style={{
+                                position: "absolute",
+                                left: Math.round(label.leftPct * imageWidth),
+                                top: Math.round(label.topPct * imageHeight),
+                                transform: "translateX(-50%)",
+                                display: "flex",
+                            }}
+                        >
+                            <div
+                                style={{
+                                    display: "flex",
+                                    padding: "2px 12px",
+                                    borderRadius: 999,
+                                    background: "rgba(7,11,34,0.62)",
+                                    border: "1px solid rgba(216,181,109,0.45)",
+                                    color: label.retrograde
+                                        ? "#fda4af"
+                                        : "#f3e2b0",
+                                    fontSize: isLandscape ? 22 : 24,
+                                    fontWeight: 700,
+                                    whiteSpace: "nowrap",
+                                    textShadow: "0 2px 8px rgba(0,0,0,0.85)",
+                                }}
+                            >
+                                {label.text}
+                            </div>
+                        </div>
+                    ))}
 
                     <div
                         style={{

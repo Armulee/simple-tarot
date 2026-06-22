@@ -1,8 +1,16 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Image from "next/image"
-import { AlertTriangle, Moon, Sparkles, Target } from "lucide-react"
+import {
+    AlertTriangle,
+    Download,
+    Moon,
+    Share2,
+    Sparkles,
+    Target,
+} from "lucide-react"
+import { toast } from "sonner"
 import { useFormatter, useTranslations } from "next-intl"
 import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
@@ -22,7 +30,13 @@ import {
 } from "@/lib/birth-chart-utils"
 import { unmaskTextWithAliases } from "@/lib/privacy/prompt-redaction"
 import ShareSection from "@/components/tarot/interpretation/share"
+import ReadingDownloadDialog from "@/components/share/reading-download-dialog"
+import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
+
+/** Mirrors the tarot reply's headline-box export icon button. */
+const VERDICT_EXPORT_ICON_BTN =
+    "group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:scale-105 hover:border-accent/40 hover:shadow-[0_12px_32px_-10px_rgba(139,92,246,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 
 type NatalPlacementForHero = {
     planet: string
@@ -563,6 +577,7 @@ export default function VerdictHero({
 }: VerdictHeroProps) {
     const tChat = useTranslations("HoroscopeChat")
     const t = useTranslations("HoroscopeChat.verdict")
+    const tActions = useTranslations("ReadingPage.interpretation")
     const formatter = useFormatter()
     const style = MOOD_STYLES[verdict.mood]
     const aliases = privacyAliases ?? []
@@ -699,6 +714,41 @@ export default function VerdictHero({
             .replace(/\s+/g, " ")
             .trim(),
     )
+    // Today's transit positions (sign + degree), stamped under the painted
+    // planets on the share poster — sourced from the same chart the orbit
+    // visual reads.
+    const transitPlanets = useMemo(
+        () => extractTransitPlanets(transitSourceMessage.chartData),
+        [transitSourceMessage.chartData],
+    )
+    const [downloadOpen, setDownloadOpen] = useState(false)
+    const handleVerdictShare = async () => {
+        const shareText = [posterHeadline, posterInterpretation]
+            .filter(Boolean)
+            .join("\n\n")
+        const url =
+            typeof window !== "undefined" ? window.location.href : undefined
+        const nav =
+            typeof navigator !== "undefined"
+                ? (navigator as Navigator & {
+                      share?: (data: ShareData) => Promise<void>
+                  })
+                : undefined
+        if (nav?.share) {
+            try {
+                await nav.share({ title: "AskingFate", text: shareText, url })
+                return
+            } catch {
+                return
+            }
+        }
+        try {
+            await navigator.clipboard.writeText(
+                url ? `${shareText}\n\n${url}` : shareText,
+            )
+            toast.success(tActions("actions.copiedLink"))
+        } catch {}
+    }
 
     return (
         <section
@@ -814,6 +864,7 @@ export default function VerdictHero({
                                 mode='horoscope'
                                 theme='astrology'
                                 allowVideo={false}
+                                planets={transitPlanets}
                                 question={posterQuestion}
                                 interpretation={posterInterpretation}
                                 headline={posterHeadline}
@@ -832,24 +883,82 @@ export default function VerdictHero({
                         )}
                         {keyMessageHeadline.length > 0 && (
                             <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-4 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)] animate-fade-in'>
-                                <h3 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug'>
-                                    <PrivacyHighlightedText
-                                        text={keyMessageHeadline}
-                                        aliases={aliases}
-                                        supportMarkdown
-                                    />
-                                </h3>
-                                {keyMessageSubtitle.length > 0 && (
-                                    <p className='mt-2 text-sm sm:text-[15px] leading-6 text-white/65'>
-                                        <PrivacyHighlightedText
-                                            text={keyMessageSubtitle}
-                                            aliases={aliases}
-                                            supportMarkdown
-                                        />
-                                    </p>
-                                )}
+                                <div className='flex items-start justify-between gap-3'>
+                                    <div className='min-w-0 flex-1'>
+                                        <h3 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug'>
+                                            <PrivacyHighlightedText
+                                                text={keyMessageHeadline}
+                                                aliases={aliases}
+                                                supportMarkdown
+                                            />
+                                        </h3>
+                                        {keyMessageSubtitle.length > 0 && (
+                                            <p className='mt-2 text-sm sm:text-[15px] leading-6 text-white/65'>
+                                                <PrivacyHighlightedText
+                                                    text={keyMessageSubtitle}
+                                                    aliases={aliases}
+                                                    supportMarkdown
+                                                />
+                                            </p>
+                                        )}
+                                    </div>
+                                    {showShare && (
+                                        <div className='flex shrink-0 items-start gap-2'>
+                                            <button
+                                                type='button'
+                                                onClick={handleVerdictShare}
+                                                className={VERDICT_EXPORT_ICON_BTN}
+                                                aria-label={tActions(
+                                                    "actions.share",
+                                                )}
+                                                title={tActions(
+                                                    "actions.share",
+                                                )}
+                                            >
+                                                <span
+                                                    aria-hidden
+                                                    className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
+                                                />
+                                                <Share2 className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
+                                            </button>
+                                            <button
+                                                type='button'
+                                                onClick={() =>
+                                                    setDownloadOpen(true)
+                                                }
+                                                className={VERDICT_EXPORT_ICON_BTN}
+                                                aria-label={tActions(
+                                                    "actions.downloadReadingImage",
+                                                )}
+                                                title={tActions(
+                                                    "actions.downloadReadingImage",
+                                                )}
+                                            >
+                                                <span
+                                                    aria-hidden
+                                                    className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
+                                                />
+                                                <Download className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
+
+                        <ReadingDownloadDialog
+                            open={downloadOpen}
+                            onOpenChange={setDownloadOpen}
+                            theme='astrology'
+                            allowVideo={false}
+                            filenameBase='askingfate-horoscope'
+                            question={posterQuestion || undefined}
+                            cards={[]}
+                            headline={posterHeadline}
+                            subtitle={posterSubtitle}
+                            detailedHtml={posterDetailedHtml}
+                            planets={transitPlanets}
+                        />
 
                         {!showLoadingState &&
                             (detailedHtml.length > 0 || showShare) && (

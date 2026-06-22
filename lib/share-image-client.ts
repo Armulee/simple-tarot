@@ -27,6 +27,16 @@ export type ShareImageRequest = {
      * skies and drops the card sections (daily-verdict share).
      */
     theme?: "tarot" | "astrology"
+    /**
+     * Transit planet positions (sign + degree) for the viewed day, stamped
+     * under the painted planets on the astrology poster.
+     */
+    planets?: Array<{
+        name: string
+        sign?: string | null
+        degree?: number | null
+        retrograde?: boolean | null
+    }>
     /** Render on a transparent canvas (for video compositing). */
     transparent?: boolean
 }

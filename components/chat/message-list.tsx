@@ -20,6 +20,7 @@ import { ConsultingBadge } from "@/components/consulting-badge"
 import { DynamicThinking } from "@/components/chat/dynamic-thinking"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
+import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
@@ -902,6 +903,9 @@ export default function MessageList({
                                                                     allowVideo={
                                                                         false
                                                                     }
+                                                                    planets={extractTransitPlanets(
+                                                                        message.chartData,
+                                                                    )}
                                                                     question={
                                                                         displayQuestion
                                                                     }
