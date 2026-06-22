@@ -827,6 +827,9 @@ export default function MessageList({
                                                     question: displayQuestion,
                                                 }}
                                                 privacyAliases={privacyAliases}
+                                                onRegenerateHoroscope={
+                                                    onRegenerateHoroscope
+                                                }
                                                 onAskAspectDetail={
                                                     onAskAspectDetail
                                                 }
@@ -895,11 +898,31 @@ export default function MessageList({
                                                                 <ActionSection
                                                                     variant='embedded'
                                                                     mode='horoscope'
+                                                                    theme='astrology'
+                                                                    allowVideo={
+                                                                        false
+                                                                    }
                                                                     question={
                                                                         displayQuestion
                                                                     }
                                                                     interpretation={unmask(
                                                                         message.text,
+                                                                    )}
+                                                                    headline={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.headline,
+                                                                    )}
+                                                                    subtitle={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.keyMessage
+                                                                            ?.subtitle,
+                                                                    )}
+                                                                    detailedHtml={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.detailedHtml,
                                                                     )}
                                                                     messageId={
                                                                         message.id

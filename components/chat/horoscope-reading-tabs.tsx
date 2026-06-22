@@ -107,10 +107,13 @@ export default function HoroscopeReadingTabs({
     onAskAspectDetail,
     askedAspectKeys,
     onPickTransitDate,
+    onRegenerateHoroscope,
 }: {
     message: ChatMessage
     loadingNode?: ReactNode
     footerActions?: ReactNode
+    /** Regenerate handler forwarded to the daily-verdict action bar. */
+    onRegenerateHoroscope?: (messageId: string) => void
     /**
      * Session-scoped alias map used to resolve `[Person_0]`-style placeholders
      * to the user's original PII and render them as emerald lock chips.
@@ -393,6 +396,7 @@ export default function HoroscopeReadingTabs({
                                 isLoading={message.isLoading}
                                 overviewReady={hasOverviewContent}
                                 transitSourceMessage={message}
+                                onRegenerateHoroscope={onRegenerateHoroscope}
                             />
                         )}
 

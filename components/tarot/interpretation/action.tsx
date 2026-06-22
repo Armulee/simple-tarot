@@ -98,6 +98,13 @@ export interface ActionSectionProps {
     subtitle?: string
     keyMessage?: string
     detailedHtml?: string
+    /**
+     * Share-image background set: "tarot" (default) or "astrology" (the
+     * daily-verdict solar-system skies).
+     */
+    theme?: "tarot" | "astrology"
+    /** Whether the download dialog offers the animated video export. */
+    allowVideo?: boolean
     /** When set (e.g. from layout: row width − pill width − gap), drives how many icons show in `compact`. */
     compactAvailableWidthPx?: number
 }
@@ -153,6 +160,8 @@ export default function ActionSection({
     subtitle: propSubtitle,
     keyMessage: propKeyMessage,
     detailedHtml: propDetailedHtml,
+    theme = "tarot",
+    allowVideo = true,
     compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
@@ -832,6 +841,13 @@ export default function ActionSection({
             keyMessage={propKeyMessage}
             detailedHtml={propDetailedHtml}
             insights={propInsights}
+            theme={theme}
+            allowVideo={allowVideo}
+            filenameBase={
+                mode === "horoscope"
+                    ? "askingfate-horoscope"
+                    : "askingfate-reading"
+            }
         />
     )
 

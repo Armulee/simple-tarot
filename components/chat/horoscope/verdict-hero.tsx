@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import Image from "next/image"
-import { AlertTriangle, Download, Moon, Sparkles, Target } from "lucide-react"
+import { AlertTriangle, Moon, Sparkles, Target } from "lucide-react"
 import { useFormatter, useTranslations } from "next-intl"
 import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
@@ -22,7 +22,6 @@ import {
 } from "@/lib/birth-chart-utils"
 import { unmaskTextWithAliases } from "@/lib/privacy/prompt-redaction"
 import ShareSection from "@/components/tarot/interpretation/share"
-import ReadingDownloadDialog from "@/components/share/reading-download-dialog"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
 
 type NatalPlacementForHero = {
@@ -62,6 +61,8 @@ type VerdictHeroProps = {
     overviewReady?: boolean
     /** Same message as the horoscope reading; powers the transit aspect list under the verdict. */
     transitSourceMessage: ChatMessage
+    /** Regenerate handler for the verdict's action bar (mirrors the tarot reply). */
+    onRegenerateHoroscope?: (messageId: string) => void
 }
 
 type MoodStyle = {
@@ -558,6 +559,7 @@ export default function VerdictHero({
     isLoading = false,
     overviewReady = false,
     transitSourceMessage,
+    onRegenerateHoroscope,
 }: VerdictHeroProps) {
     const tChat = useTranslations("HoroscopeChat")
     const t = useTranslations("HoroscopeChat.verdict")
@@ -681,18 +683,22 @@ export default function VerdictHero({
         showShare ||
         showLoadingState
 
-    // ----- Daily-verdict share poster -----
-    // The share image mirrors the tarot poster (gold celestial frame) but
-    // swaps in the solar-system skies and drops the card sections. We feed
-    // the verdict's headline / mood tagline / detailed reading into the same
-    // /api/share-image renderer via the astrology theme.
-    const tActions = useTranslations("ReadingPage.interpretation")
-    const [shareImageOpen, setShareImageOpen] = useState(false)
+    // ----- Daily-verdict share / actions -----
+    // The verdict reply carries the same action bar as the tarot reply
+    // (regenerate, copy, download, share…). The download share-image mirrors
+    // the tarot poster but swaps in the solar-system skies via the astrology
+    // theme, feeding the verdict headline / mood tagline / detailed reading.
     const unmask = (text: string) => unmaskTextWithAliases(text, aliases)
     const posterQuestion = unmask(questionText)
     const posterHeadline = unmask(verdict.headline.trim() || keyMessageHeadline)
     const posterSubtitle = unmask(keyMessageSubtitle || moodLabel || "")
     const posterDetailedHtml = unmask(detailedHtml)
+    const posterInterpretation = unmask(
+        (transitSourceMessage.text || detailedHtml)
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim(),
+    )
 
     return (
         <section
@@ -805,6 +811,16 @@ export default function VerdictHero({
                             <InterpretationHeaderBar
                                 isLoading={isLoading}
                                 showActions={overviewReady || !isLoading}
+                                mode='horoscope'
+                                theme='astrology'
+                                allowVideo={false}
+                                question={posterQuestion}
+                                interpretation={posterInterpretation}
+                                headline={posterHeadline}
+                                subtitle={posterSubtitle}
+                                detailedHtml={posterDetailedHtml}
+                                messageId={transitSourceMessage.id}
+                                onRegenerateHoroscope={onRegenerateHoroscope}
                             />
                         </div>
                         {showLoadingState && (
@@ -854,47 +870,10 @@ export default function VerdictHero({
                                                 : ""
                                         }
                                     >
-                                        <div className='mb-4 flex justify-center'>
-                                            <button
-                                                type='button'
-                                                onClick={() =>
-                                                    setShareImageOpen(true)
-                                                }
-                                                className='inline-flex items-center gap-2 rounded-full border border-amber-300/40 bg-gradient-to-b from-amber-300/15 to-amber-400/5 px-5 py-2.5 text-sm font-medium text-amber-100 shadow-[0_6px_24px_-10px_rgba(252,211,77,0.55)] transition hover:border-amber-300/70 hover:from-amber-300/25 hover:to-amber-400/10'
-                                            >
-                                                <Download className='h-4 w-4' />
-                                                {tActions(
-                                                    "actions.downloadReadingImage",
-                                                )}
-                                            </button>
-                                        </div>
                                         <ShareSection
                                             variant='embedded'
                                             question={posterQuestion}
-                                            interpretation={unmaskTextWithAliases(
-                                                (
-                                                    transitSourceMessage.text ||
-                                                    detailedHtml
-                                                )
-                                                    .replace(/<[^>]+>/g, " ")
-                                                    .replace(/\s+/g, " ")
-                                                    .trim(),
-                                                aliases,
-                                            )}
-                                        />
-                                        <ReadingDownloadDialog
-                                            open={shareImageOpen}
-                                            onOpenChange={setShareImageOpen}
-                                            theme='astrology'
-                                            allowVideo={false}
-                                            filenameBase='askingfate-horoscope'
-                                            question={
-                                                posterQuestion || undefined
-                                            }
-                                            cards={[]}
-                                            headline={posterHeadline}
-                                            subtitle={posterSubtitle}
-                                            detailedHtml={posterDetailedHtml}
+                                            interpretation={posterInterpretation}
                                         />
                                     </div>
                                 )}
