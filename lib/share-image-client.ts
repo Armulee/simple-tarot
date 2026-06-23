@@ -23,10 +23,11 @@ export type ShareImageRequest = {
     height: number
     /**
      * Selects the painted background set and layout flavor. "tarot" (default)
-     * keeps the card-spread poster; "astrology" swaps in the solar-system
-     * skies and drops the card sections (daily-verdict share).
+     * keeps the card-spread poster; "astrology" swaps in the daily solar-system
+     * skies (linear planet row); "astrology-technical" uses the orbit-wheel
+     * skies for the technical/ephemeris reply.
      */
-    theme?: "tarot" | "astrology"
+    theme?: "tarot" | "astrology" | "astrology-technical"
     /**
      * Transit planet positions (sign + degree) for the viewed day, stamped
      * under the painted planets on the astrology poster.

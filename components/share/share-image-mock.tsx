@@ -13,6 +13,7 @@ import {
 } from "@/lib/share-rich-text"
 import {
     ASTRO_BAND_FRACTION,
+    ASTRO_TECHNICAL_BAND_FRACTION,
     buildAstroPlanetLabels,
     type TransitPlanetInput,
 } from "@/lib/share-astrology-planets"
@@ -40,10 +41,10 @@ export interface ShareImageMockProps {
     insights?: string[]
     cta?: string
     /**
-     * Selects the painted background set: "tarot" (default) or the
-     * "astrology" solar-system skies for the daily-verdict share.
+     * Selects the painted background set: "tarot" (default), the daily
+     * "astrology" solar-system row, or the "astrology-technical" orbit wheel.
      */
-    theme?: "tarot" | "astrology"
+    theme?: "tarot" | "astrology" | "astrology-technical"
     /** Transit positions stamped under the painted planets (astrology only). */
     planets?: TransitPlanetInput[]
     /**
@@ -83,12 +84,23 @@ export default function ShareImageMock({
     const isPortraitColumn = isStory || isPost
 
     // Astrology posters reserve a bottom band for the painted planets and
-    // stamp the day's transit positions under each — mirrors the server.
-    const isAstro = theme === "astrology" && !videoBackgroundSrc
-    const astroBand = isAstro ? ASTRO_BAND_FRACTION[aspect] : 0
+    // (daily only) stamp the day's transit positions under each — mirrors the
+    // server. The technical theme uses the orbit-wheel art, a larger band and
+    // no per-planet labels.
+    const isTechnical = theme === "astrology-technical"
+    const isAstro =
+        (theme === "astrology" || isTechnical) && !videoBackgroundSrc
+    const astroBand = isAstro
+        ? (isTechnical ? ASTRO_TECHNICAL_BAND_FRACTION : ASTRO_BAND_FRACTION)[
+              aspect
+          ]
+        : 0
     const astroLabels = useMemo(
-        () => (isAstro ? buildAstroPlanetLabels(planets, aspect) : []),
-        [isAstro, planets, aspect],
+        () =>
+            isAstro && !isTechnical
+                ? buildAstroPlanetLabels(planets, aspect)
+                : [],
+        [isAstro, isTechnical, planets, aspect],
     )
 
     const refW = isLandscape ? 1920 : 1080
@@ -124,11 +136,17 @@ export default function ShareImageMock({
         const budget = isAstro
             ? isSquare
                 ? 0
-                : isLandscape
-                  ? 230
-                  : isPost
-                    ? 300
-                    : 380
+                : isTechnical
+                  ? isLandscape
+                      ? 0
+                      : isPost
+                        ? 280
+                        : 340
+                  : isLandscape
+                    ? 230
+                    : isPost
+                      ? 300
+                      : 380
             : isLandscape
               ? 420
               : isSquare
@@ -162,6 +180,7 @@ export default function ShareImageMock({
         cards,
         count,
         isAstro,
+        isTechnical,
         isLandscape,
         isSquare,
         isPost,
@@ -284,7 +303,17 @@ export default function ShareImageMock({
     const columnGap = isStory ? 26 : isPost ? 18 : isSquare ? 22 : 20
     // Mirrors the server: astrology fits the reading panel to its content and
     // hard-caps the height so the AI text truncates above the planet band.
-    const astroReadingMaxH = isLandscape ? 212 : isPost ? 320 : 430
+    const astroReadingMaxH = isTechnical
+        ? isLandscape
+            ? 150
+            : isPost
+              ? 300
+              : 380
+        : isLandscape
+          ? 212
+          : isPost
+            ? 320
+            : 430
     const ctaText =
         truncate(cta ?? "", 70) || "Ask your own question at askingfate.com"
 
@@ -691,7 +720,7 @@ export default function ShareImageMock({
                 </>
             ) : (
                 <Image
-                    src={`/assets/share/${theme === "astrology" ? "astrology/" : ""}${aspect}-background.jpg`}
+                    src={`/assets/share/${theme === "astrology" ? "astrology/" : isTechnical ? "astrology-technical/" : ""}${aspect}-background.jpg`}
                     alt=''
                     fill
                     unoptimized

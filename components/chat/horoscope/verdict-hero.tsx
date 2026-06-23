@@ -703,6 +703,11 @@ export default function VerdictHero({
     // (regenerate, copy, download, share…). The download share-image mirrors
     // the tarot poster but swaps in the solar-system skies via the astrology
     // theme, feeding the verdict headline / mood tagline / detailed reading.
+    // Technical (ephemeris) verdicts use the orbit-wheel poster; the other
+    // verdict flavors use the daily linear solar-system poster.
+    const shareTheme: "astrology" | "astrology-technical" = isTechnicalMode
+        ? "astrology-technical"
+        : "astrology"
     const unmask = (text: string) => unmaskTextWithAliases(text, aliases)
     const posterQuestion = unmask(questionText)
     const posterHeadline = unmask(verdict.headline.trim() || keyMessageHeadline)
@@ -862,7 +867,7 @@ export default function VerdictHero({
                                 isLoading={isLoading}
                                 showActions={overviewReady || !isLoading}
                                 mode='horoscope'
-                                theme='astrology'
+                                theme={shareTheme}
                                 allowVideo={false}
                                 planets={transitPlanets}
                                 question={posterQuestion}
@@ -949,7 +954,7 @@ export default function VerdictHero({
                         <ReadingDownloadDialog
                             open={downloadOpen}
                             onOpenChange={setDownloadOpen}
-                            theme='astrology'
+                            theme={shareTheme}
                             allowVideo={false}
                             filenameBase='askingfate-horoscope'
                             question={posterQuestion || undefined}

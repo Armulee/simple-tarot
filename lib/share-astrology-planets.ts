@@ -155,6 +155,18 @@ export const ASTRO_BAND_FRACTION: Record<ShareAstroAspect, number> = {
     landscape: 0.28,
 }
 
+/**
+ * Reserved bottom band for the technical-reply poster, whose orbit-wheel
+ * backgrounds carry a larger, more central solar system (Sun-centered
+ * concentric orbits) than the daily "linear row" skies.
+ */
+export const ASTRO_TECHNICAL_BAND_FRACTION: Record<ShareAstroAspect, number> = {
+    story: 0.33,
+    post: 0.3,
+    square: 0.46,
+    landscape: 0.5,
+}
+
 function abbrFor(sign: string | null | undefined): string | null {
     if (!sign) return null
     return SIGN_ABBR[canonicalSign(sign)] ?? null

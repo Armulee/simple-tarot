@@ -77,7 +77,7 @@ export interface ReadingDownloadDialogProps {
      * card-spread poster; "astrology" swaps in the solar-system skies and
      * drops the card sections for the daily-verdict share.
      */
-    theme?: "tarot" | "astrology"
+    theme?: "tarot" | "astrology" | "astrology-technical"
     /** Transit positions stamped under the painted planets (astrology only). */
     planets?: Array<{
         name: string

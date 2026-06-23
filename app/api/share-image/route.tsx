@@ -15,6 +15,7 @@ import {
 } from "@/lib/share-rich-text"
 import {
     ASTRO_BAND_FRACTION,
+    ASTRO_TECHNICAL_BAND_FRACTION,
     buildAstroPlanetLabels,
     type TransitPlanetInput,
 } from "@/lib/share-astrology-planets"
@@ -205,14 +206,22 @@ async function readImageAsBase64(slug: string) {
 }
 
 type ShareBgVariant = "story" | "post" | "square" | "landscape"
-type ShareTheme = "tarot" | "astrology"
+type ShareTheme = "tarot" | "astrology" | "astrology-technical"
+
+/** Subfolder under public/assets/share holding each theme's backgrounds. */
+const THEME_BG_DIR: Record<ShareTheme, string[]> = {
+    tarot: [],
+    astrology: ["astrology"],
+    "astrology-technical": ["astrology-technical"],
+}
 
 /**
  * Hand-illustrated night-sky paintings (gold crescent moon, star
  * sparkles, gilded clouds, baked-in gold frame) — one per aspect
- * variant, pre-sized to the exact canvas dimensions. The astrology theme
- * swaps in the solar-system skies (public/assets/share/astrology/*) used
- * by the daily-verdict share.
+ * variant, pre-sized to the exact canvas dimensions. The astrology themes
+ * swap in the solar-system skies: the daily linear row
+ * (public/assets/share/astrology/*) or the technical orbit wheel
+ * (public/assets/share/astrology-technical/*).
  */
 async function readShareBackground(variant: ShareBgVariant, theme: ShareTheme) {
     const cacheKey = `${theme}:${variant}`
@@ -225,7 +234,7 @@ async function readShareBackground(variant: ShareBgVariant, theme: ShareTheme) {
                 "public",
                 "assets",
                 "share",
-                ...(theme === "astrology" ? ["astrology"] : []),
+                ...THEME_BG_DIR[theme],
                 `${variant}-background.jpg`,
             ),
         )
@@ -562,6 +571,10 @@ function warmUpPipeline(): Promise<void> {
                 readShareBackground("post", "astrology"),
                 readShareBackground("square", "astrology"),
                 readShareBackground("landscape", "astrology"),
+                readShareBackground("story", "astrology-technical"),
+                readShareBackground("post", "astrology-technical"),
+                readShareBackground("square", "astrology-technical"),
+                readShareBackground("landscape", "astrology-technical"),
             ])
             const probe = new ImageResponse(
                 (
@@ -638,7 +651,16 @@ export async function POST(req: Request) {
             transparent = false,
         } = await req.json()
 
-        const theme: ShareTheme = themeRaw === "astrology" ? "astrology" : "tarot"
+        const theme: ShareTheme =
+            themeRaw === "astrology"
+                ? "astrology"
+                : themeRaw === "astrology-technical"
+                  ? "astrology-technical"
+                  : "tarot"
+        // Both astrology themes share the fit-to-content reading panel and
+        // bottom-anchored CTA; only the daily theme stamps planet degrees.
+        const isAstroTheme =
+            theme === "astrology" || theme === "astrology-technical"
         const transitPlanets: TransitPlanetInput[] = Array.isArray(planets)
             ? (planets as TransitPlanetInput[])
             : []
@@ -738,10 +760,14 @@ export async function POST(req: Request) {
         // planets and their stamped transit positions; the text column stops
         // above it. Transparent (video overlay) renders skip the reserve.
         const astroBandFraction =
-            theme === "astrology" && !transparent
-                ? ASTRO_BAND_FRACTION[bgVariant]
+            isAstroTheme && !transparent
+                ? (theme === "astrology-technical"
+                      ? ASTRO_TECHNICAL_BAND_FRACTION
+                      : ASTRO_BAND_FRACTION)[bgVariant]
                 : 0
         const astroBand = Math.round(imageHeight * astroBandFraction)
+        // Only the daily theme stamps degrees under a linear planet row; the
+        // technical orbit-wheel art keeps the planets unlabeled.
         const astroLabels =
             theme === "astrology" && !transparent
                 ? buildAstroPlanetLabels(transitPlanets, bgVariant)
@@ -925,31 +951,49 @@ export async function POST(req: Request) {
         // makes the AI text truncate with an ellipsis before the cap. The
         // freed space lets the panel sit snug above the planet band instead of
         // stretching to fill it.
-        const astroReadingMaxH = isLandscape ? 212 : isPost ? 320 : 430
-        const detailBudget =
-            theme === "astrology"
-                ? isSquare
-                    ? 0
-                    : isLandscape
-                      ? 230
+        // The technical orbit-wheel art is larger/more central, so its reading
+        // panel is tighter on the square/landscape frames than the daily theme.
+        const isTechnical = theme === "astrology-technical"
+        const astroReadingMaxH = isTechnical
+            ? isLandscape
+                ? 110
+                : isPost
+                  ? 300
+                  : 380
+            : isLandscape
+              ? 212
+              : isPost
+                ? 320
+                : 430
+        const detailBudget = isAstroTheme
+            ? isSquare
+                ? 0
+                : isTechnical
+                  ? isLandscape
+                      ? 0
                       : isPost
-                        ? 300
-                        : 380
-                : isLandscape
-                  ? 420
-                  : isSquare
-                    ? 0
+                        ? 280
+                        : 340
+                  : isLandscape
+                    ? 230
                     : isPost
-                      ? storyCount >= 4
-                          ? 250
-                          : 270
-                      : storyCount >= 7
-                        ? 400
-                        : storyCount >= 4
-                          ? 500
-                          : showCardInsights
-                            ? 460
-                            : 600
+                      ? 300
+                      : 380
+            : isLandscape
+              ? 420
+              : isSquare
+                ? 0
+                : isPost
+                  ? storyCount >= 4
+                      ? 250
+                      : 270
+                  : storyCount >= 7
+                    ? 400
+                    : storyCount >= 4
+                      ? 500
+                      : showCardInsights
+                        ? 460
+                        : 600
         storyBlocks = truncateRichBlocks(storyBlocks, detailBudget)
         const detailChars = storyBlocks.reduce(
             (sum, block) =>
@@ -1446,7 +1490,7 @@ export async function POST(req: Request) {
                                                     background: PANEL_BG,
                                                     border: PANEL_BORDER,
                                                     maxWidth: "100%",
-                                                    ...(theme === "astrology"
+                                                    ...(isAstroTheme
                                                         ? {
                                                               maxHeight:
                                                                   astroReadingMaxH,
@@ -1465,7 +1509,7 @@ export async function POST(req: Request) {
                                                 {renderRichBlocks(
                                                     storyBlocks,
                                                     detailFontSize,
-                                                    theme === "astrology",
+                                                    isAstroTheme,
                                                 )}
                                             </div>
                                         ) : null}
@@ -1477,7 +1521,7 @@ export async function POST(req: Request) {
                                                 justifyContent: "center",
                                                 gap: 14,
                                                 alignSelf: "center",
-                                                ...(theme === "astrology"
+                                                ...(isAstroTheme
                                                     ? {}
                                                     : { marginTop: "auto" }),
                                                 padding: "13px 38px",
@@ -1591,8 +1635,12 @@ export async function POST(req: Request) {
                                                 background: PANEL_BG,
                                                 border: PANEL_BORDER,
                                                 maxWidth: "100%",
-                                                flex: 1,
-                                                minHeight: 0,
+                                                // Technical posters fit the box
+                                                // to content so it clears the
+                                                // central orbit art.
+                                                ...(isTechnical
+                                                    ? {}
+                                                    : { flex: 1, minHeight: 0 }),
                                                 overflow: "hidden",
                                                 justifyContent: "center",
                                             }}
@@ -1652,7 +1700,7 @@ export async function POST(req: Request) {
                                             justifyContent: "center",
                                             gap: 14,
                                             alignSelf: "center",
-                                            ...(theme === "astrology"
+                                            ...(isAstroTheme
                                                 ? {}
                                                 : { marginTop: "auto" }),
                                             padding: "13px 38px",
@@ -1951,7 +1999,7 @@ export async function POST(req: Request) {
                                             background: PANEL_BG,
                                             border: PANEL_BORDER,
                                             maxWidth: "100%",
-                                            ...(theme === "astrology"
+                                            ...(isAstroTheme
                                                 ? { maxHeight: astroReadingMaxH }
                                                 : { flex: 1, minHeight: 0 }),
                                             overflow: "hidden",
@@ -1994,7 +2042,7 @@ export async function POST(req: Request) {
                                         {renderRichBlocks(
                                             storyBlocks,
                                             detailFontSize,
-                                            theme === "astrology",
+                                            isAstroTheme,
                                         )}
                                     </div>
                                 ) : null}

@@ -102,7 +102,7 @@ export interface ActionSectionProps {
      * Share-image background set: "tarot" (default) or "astrology" (the
      * daily-verdict solar-system skies).
      */
-    theme?: "tarot" | "astrology"
+    theme?: "tarot" | "astrology" | "astrology-technical"
     /** Transit positions stamped under the painted planets (astrology only). */
     planets?: Array<{
         name: string

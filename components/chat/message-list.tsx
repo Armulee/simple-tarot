@@ -899,7 +899,14 @@ export default function MessageList({
                                                                 <ActionSection
                                                                     variant='embedded'
                                                                     mode='horoscope'
-                                                                    theme='astrology'
+                                                                    theme={
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.mode ===
+                                                                        "technical"
+                                                                            ? "astrology-technical"
+                                                                            : "astrology"
+                                                                    }
                                                                     allowVideo={
                                                                         false
                                                                     }
