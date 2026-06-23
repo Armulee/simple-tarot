@@ -592,7 +592,7 @@ export default function ShareImageMock({
             className='flex items-center justify-center self-center'
             style={{
                 gap: s(14),
-                marginTop: isStory && !isAstro ? undefined : "auto",
+                marginTop: isAstro || isStory ? undefined : "auto",
                 padding: `${s(isStory ? 15 : 13)} ${s(isStory ? 42 : 38)}`,
                 borderRadius: 9999,
                 border: "1.5px solid rgba(216,181,109,0.65)",

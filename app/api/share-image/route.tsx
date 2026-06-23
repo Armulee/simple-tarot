@@ -1477,7 +1477,9 @@ export async function POST(req: Request) {
                                                 justifyContent: "center",
                                                 gap: 14,
                                                 alignSelf: "center",
-                                                marginTop: "auto",
+                                                ...(theme === "astrology"
+                                                    ? {}
+                                                    : { marginTop: "auto" }),
                                                 padding: "13px 38px",
                                                 borderRadius: 9999,
                                                 border: "1.5px solid rgba(216,181,109,0.65)",
@@ -1650,7 +1652,9 @@ export async function POST(req: Request) {
                                             justifyContent: "center",
                                             gap: 14,
                                             alignSelf: "center",
-                                            marginTop: "auto",
+                                            ...(theme === "astrology"
+                                                ? {}
+                                                : { marginTop: "auto" }),
                                             padding: "13px 38px",
                                             borderRadius: 9999,
                                             border: "1.5px solid rgba(216,181,109,0.65)",
@@ -2003,9 +2007,6 @@ export async function POST(req: Request) {
                                         justifyContent: "center",
                                         gap: 14,
                                         alignSelf: "center",
-                                        ...(theme === "astrology"
-                                            ? { marginTop: "auto" }
-                                            : {}),
                                         padding: "15px 42px",
                                         borderRadius: 9999,
                                         border: "1.5px solid rgba(216,181,109,0.65)",

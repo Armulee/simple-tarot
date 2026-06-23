@@ -92,54 +92,55 @@ function canonicalSign(sign: string): string {
 }
 
 /**
- * Painted-planet anchors (planet center as fractions of the canvas), measured
- * per background variant. `Earth` is intentionally omitted — the geocentric
- * transit chart has no Earth sign. The order is Sun → outward, matching the
- * left-to-right sweep painted in each sky.
+ * Painted-planet anchors (planet center as fractions of the canvas), detected
+ * from each background by locating the bright/colored bodies along the orbit
+ * and mapping them left-to-right to the planets. Every label sits exactly on a
+ * painted body; the names follow the painted sweep rather than heliocentric
+ * truth (the decorative blue body reads as Venus, etc.).
  */
 const PLANET_ANCHORS: Record<
     ShareAstroAspect,
     ReadonlyArray<{ name: string; x: number; y: number }>
 > = {
     story: [
-        { name: "Sun", x: 0.225, y: 0.85 },
-        { name: "Mercury", x: 0.32, y: 0.835 },
-        { name: "Venus", x: 0.378, y: 0.815 },
-        { name: "Mars", x: 0.52, y: 0.78 },
-        { name: "Jupiter", x: 0.61, y: 0.738 },
-        { name: "Saturn", x: 0.72, y: 0.75 },
-        { name: "Uranus", x: 0.8, y: 0.7 },
-        { name: "Neptune", x: 0.862, y: 0.655 },
+        { name: "Sun", x: 0.27, y: 0.82 },
+        { name: "Mercury", x: 0.383, y: 0.812 },
+        { name: "Venus", x: 0.467, y: 0.797 },
+        { name: "Mars", x: 0.542, y: 0.778 },
+        { name: "Jupiter", x: 0.623, y: 0.761 },
+        { name: "Saturn", x: 0.756, y: 0.783 },
+        { name: "Uranus", x: 0.768, y: 0.719 },
+        { name: "Neptune", x: 0.882, y: 0.694 },
     ],
     post: [
-        { name: "Sun", x: 0.215, y: 0.875 },
-        { name: "Mercury", x: 0.31, y: 0.865 },
-        { name: "Venus", x: 0.362, y: 0.855 },
-        { name: "Mars", x: 0.52, y: 0.835 },
-        { name: "Jupiter", x: 0.62, y: 0.808 },
-        { name: "Saturn", x: 0.73, y: 0.815 },
-        { name: "Uranus", x: 0.8, y: 0.785 },
-        { name: "Neptune", x: 0.852, y: 0.762 },
+        { name: "Sun", x: 0.275, y: 0.817 },
+        { name: "Mercury", x: 0.401, y: 0.805 },
+        { name: "Venus", x: 0.481, y: 0.783 },
+        { name: "Mars", x: 0.557, y: 0.764 },
+        { name: "Jupiter", x: 0.633, y: 0.743 },
+        { name: "Saturn", x: 0.762, y: 0.77 },
+        { name: "Uranus", x: 0.779, y: 0.696 },
+        { name: "Neptune", x: 0.88, y: 0.668 },
     ],
     square: [
-        { name: "Sun", x: 0.16, y: 0.888 },
-        { name: "Mercury", x: 0.262, y: 0.878 },
-        { name: "Venus", x: 0.312, y: 0.872 },
-        { name: "Mars", x: 0.47, y: 0.855 },
-        { name: "Jupiter", x: 0.58, y: 0.832 },
-        { name: "Saturn", x: 0.68, y: 0.842 },
-        { name: "Uranus", x: 0.752, y: 0.812 },
-        { name: "Neptune", x: 0.8, y: 0.792 },
+        { name: "Sun", x: 0.295, y: 0.847 },
+        { name: "Mercury", x: 0.405, y: 0.832 },
+        { name: "Venus", x: 0.485, y: 0.807 },
+        { name: "Mars", x: 0.563, y: 0.783 },
+        { name: "Jupiter", x: 0.648, y: 0.76 },
+        { name: "Saturn", x: 0.773, y: 0.795 },
+        { name: "Uranus", x: 0.794, y: 0.714 },
+        { name: "Neptune", x: 0.896, y: 0.687 },
     ],
     landscape: [
-        { name: "Sun", x: 0.42, y: 0.85 },
-        { name: "Mercury", x: 0.49, y: 0.838 },
-        { name: "Venus", x: 0.522, y: 0.828 },
-        { name: "Mars", x: 0.6, y: 0.788 },
-        { name: "Jupiter", x: 0.668, y: 0.748 },
-        { name: "Saturn", x: 0.73, y: 0.762 },
-        { name: "Uranus", x: 0.782, y: 0.708 },
-        { name: "Neptune", x: 0.822, y: 0.675 },
+        { name: "Sun", x: 0.401, y: 0.815 },
+        { name: "Mercury", x: 0.486, y: 0.783 },
+        { name: "Venus", x: 0.543, y: 0.755 },
+        { name: "Mars", x: 0.601, y: 0.73 },
+        { name: "Jupiter", x: 0.662, y: 0.7 },
+        { name: "Saturn", x: 0.75, y: 0.742 },
+        { name: "Uranus", x: 0.767, y: 0.643 },
+        { name: "Neptune", x: 0.846, y: 0.618 },
     ],
 }
 
@@ -233,7 +234,7 @@ export function buildAstroPlanetLabels(
         const text = degree === null ? abbr : `${abbr} ${degree}°`
         // Alternate the drop below the planet so neighbouring labels stagger
         // — the inner planets (Sun/Mercury/Venus) sit close together.
-        const drop = idx % 2 === 0 ? 0.058 : 0.022
+        const drop = idx % 2 === 0 ? 0.048 : 0.023
         out.push({
             name: anchor.name,
             leftPct: anchor.x,
