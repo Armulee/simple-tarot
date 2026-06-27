@@ -12,7 +12,8 @@
     --mist-dim: #6f6e91;
     --accent: #c8a86a;
     --accent-soft: #e6d2a3;
-    --glow: rgba(200, 168, 106, 0.28);
+    --glow: rgba(214, 180, 116, 0.32);
+    --wash: rgba(200, 168, 106, 0.12);
     --serif: var(--font-cormorant), Georgia, serif;
     --sans: var(--font-manrope), system-ui, sans-serif;
     --maxw: 1080px;
@@ -32,12 +33,13 @@
 .root[data-orientation="reversed"] {
     --accent: #a9b6c9;
     --accent-soft: #d3dae5;
-    --glow: rgba(150, 170, 200, 0.22);
+    --glow: rgba(160, 180, 210, 0.26);
+    --wash: rgba(150, 170, 200, 0.1);
     --line: rgba(169, 182, 201, 0.18);
     --line-strong: rgba(169, 182, 201, 0.36);
 }
 
-/* faint vertical light, like a veil */
+/* faint vertical light, like a veil — centered, balanced, modern */
 .root::before {
     content: "";
     position: absolute;
@@ -45,8 +47,8 @@
     pointer-events: none;
     z-index: 0;
     background:
-        radial-gradient(120% 80% at 50% -10%, rgba(120, 110, 180, 0.12), transparent 60%),
-        radial-gradient(70% 50% at 78% 8%, var(--glow), transparent 60%),
+        radial-gradient(90% 46% at 50% 0%, var(--wash), transparent 62%),
+        radial-gradient(120% 80% at 50% -12%, rgba(120, 110, 180, 0.1), transparent 60%),
         radial-gradient(90% 60% at 50% 120%, rgba(60, 60, 120, 0.1), transparent 60%);
     transition: background 0.8s var(--ease);
 }
@@ -147,25 +149,31 @@
     place-items: center;
     align-self: center;
 }
+/* soft elliptical aura that hugs the card — centered via inset+margin so the
+   breathe transform (scale) doesn't fight a centering translate */
 .glow {
     position: absolute;
-    width: 122%;
-    aspect-ratio: 1;
+    inset: 0;
+    margin: auto;
+    width: 112%;
+    height: 92%;
     border-radius: 50%;
-    background: radial-gradient(circle, var(--glow), transparent 62%);
-    filter: blur(8px);
+    background: radial-gradient(ellipse at center, var(--glow), transparent 70%);
+    filter: blur(26px);
     animation: breathe 7s var(--ease) infinite;
     transition: background 0.8s var(--ease);
 }
-/* second, slower halo for layered depth */
+/* second, wider+slower halo for layered depth */
 .glow2 {
     position: absolute;
+    inset: 0;
+    margin: auto;
     width: 150%;
-    aspect-ratio: 1;
+    height: 118%;
     border-radius: 50%;
-    background: radial-gradient(circle, var(--glow), transparent 55%);
-    filter: blur(34px);
-    opacity: 0.6;
+    background: radial-gradient(ellipse at center, var(--glow), transparent 62%);
+    filter: blur(56px);
+    opacity: 0.55;
     animation: breathe 11s var(--ease) infinite reverse;
     transition: background 0.8s var(--ease);
 }
@@ -180,18 +188,23 @@
         opacity: 1;
     }
 }
-/* ornamental frame around the card */
+/* refined hairline frame — transparent so the dark page (not a brown box)
+   shows through; the glow lights it softly */
 .cardFrame {
     position: relative;
     width: 100%;
     max-width: 300px;
-    padding: 12px;
-    border-radius: 20px;
-    background:
-        linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)) padding-box,
-        linear-gradient(150deg, var(--line-strong), transparent 45%, var(--line-strong)) border-box;
-    border: 1px solid transparent;
-    transition: transform 0.6s var(--ease);
+    padding: 10px;
+    border-radius: 22px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+    border: 1px solid var(--line);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) inset;
+    transition:
+        transform 0.6s var(--ease),
+        border-color 0.6s var(--ease);
+}
+.cardStage:hover .cardFrame {
+    border-color: var(--line-strong);
 }
 .cardStage:hover .cardFrame {
     transform: translateY(-6px);
@@ -236,8 +249,10 @@
 .tarotCard {
     position: relative;
     width: 100%;
-    aspect-ratio: 300 / 480;
-    border-radius: 12px;
+    /* matches the Rider-Waite scans (~0.586) so the art fills edge-to-edge with
+       no letterbox — the rounded corners then clip the card cleanly */
+    aspect-ratio: 500 / 859;
+    border-radius: 14px;
     overflow: hidden;
     box-shadow:
         0 30px 70px -28px rgba(0, 0, 0, 0.85),
@@ -247,7 +262,8 @@
         filter 0.9s var(--ease);
 }
 .tarotCard :global(img) {
-    object-fit: contain;
+    object-fit: cover;
+    border-radius: 14px;
 }
 /* diagonal light sheen sweeping the card */
 .sheen {
