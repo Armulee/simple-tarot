@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Link } from "@/i18n/navigation"
 import PageContextComposer from "@/components/chat/page-context-composer"
 import type { OriginContext } from "@/lib/chat/origin-context"
+import { CardReadingCta } from "./card-reading-cta"
 import styles from "./card-article.module.css"
 
 type Orientation = "upright" | "reversed"
@@ -35,6 +36,7 @@ export type CardArticleProps = {
     eyebrow: string
     topHint: string
     originContext: OriginContext
+    deckId: number
     imageSrc: string
     badges: { yesNo?: string; zodiac?: string; element?: string }
     upright: OrientationView
@@ -51,6 +53,9 @@ export type CardArticleProps = {
         askPlaceholder: string
         askEyebrow: string
         askHint: string
+        ctaPaid: string
+        ctaFree: string
+        ctaNote: string
         orientationGroup: string
         yesNo: string
         zodiac: string
@@ -268,6 +273,19 @@ export function CardArticle(props: CardArticleProps) {
                             </article>
                         ))}
                     </div>
+
+                    <CardReadingCta
+                        cardName={props.cardName}
+                        imageSrc={props.imageSrc}
+                        deckId={props.deckId}
+                        isReversed={orientation === "reversed"}
+                        meaning={view.lede}
+                        labels={{
+                            paid: labels.ctaPaid,
+                            free: labels.ctaFree,
+                            note: labels.ctaNote,
+                        }}
+                    />
                 </section>
 
                 {/* SUGGESTED */}

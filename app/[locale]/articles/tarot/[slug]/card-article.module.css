@@ -774,6 +774,53 @@
     line-height: 1.7;
 }
 
+/* ---------- reading CTA (minimal) ---------- */
+.cta {
+    margin-top: 40px;
+    text-align: center;
+}
+.ctaButton {
+    appearance: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    padding: 12px 22px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(200, 168, 106, 0.06), rgba(255, 255, 255, 0));
+    transition:
+        border-color 0.4s var(--ease),
+        background 0.4s var(--ease),
+        color 0.4s var(--ease),
+        transform 0.4s var(--ease);
+}
+.ctaButton:hover {
+    border-color: var(--accent);
+    background: rgba(200, 168, 106, 0.1);
+    transform: translateY(-2px);
+}
+.ctaArrow {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.4s var(--ease);
+}
+.ctaButton:hover .ctaArrow {
+    transform: translateX(4px);
+}
+.ctaNote {
+    margin: 12px auto 0;
+    max-width: 44ch;
+    color: var(--mist-dim);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
 /* ---------- suggested ---------- */
 .more {
     margin-top: clamp(70px, 9vw, 120px);
