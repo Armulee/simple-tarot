@@ -138,8 +138,41 @@ export function CardArticle(props: CardArticleProps) {
             </header>
 
             <main className={styles.wrap}>
-                {/* HERO */}
+                {/* HERO — centered column: toggle → name → card → lede */}
                 <section className={styles.hero}>
+                    {/* TOGGLE — signature element, moved to the top */}
+                    <div
+                        className={styles.switch}
+                        role='group'
+                        aria-label={labels.orientationGroup}
+                        onKeyDown={onKeyDown}
+                    >
+                        <button
+                            className={styles.seg}
+                            type='button'
+                            aria-pressed={orientation === "upright"}
+                            onClick={() => choose("upright")}
+                        >
+                            {labels.upright}
+                            <span className={styles.sub}>{labels.lightGathers}</span>
+                        </button>
+                        <span className={styles.moon} aria-hidden='true' />
+                        <button
+                            className={styles.seg}
+                            type='button'
+                            aria-pressed={orientation === "reversed"}
+                            onClick={() => choose("reversed")}
+                        >
+                            {labels.reversed}
+                            <span className={styles.sub}>{labels.lightRecedes}</span>
+                        </button>
+                    </div>
+
+                    <div className={styles.eyebrow}>{props.eyebrow}</div>
+                    <h1 className={styles.title} data-text={props.cardName}>
+                        {props.cardName}
+                    </h1>
+
                     <div className={styles.cardStage}>
                         <div className={styles.glow} aria-hidden='true' />
                         <div className={styles.glow2} aria-hidden='true' />
@@ -157,7 +190,7 @@ export function CardArticle(props: CardArticleProps) {
                                             : props.cardName
                                     }
                                     fill
-                                    sizes='230px'
+                                    sizes='190px'
                                     priority
                                 />
                                 <span className={styles.sheen} aria-hidden='true' />
@@ -165,69 +198,35 @@ export function CardArticle(props: CardArticleProps) {
                         </div>
                     </div>
 
-                    <div className={styles.heroText}>
-                        <div className={styles.eyebrow}>{props.eyebrow}</div>
-                        <h1 className={styles.title} data-text={props.cardName}>
-                            {props.cardName}
-                        </h1>
-                        <p className={swap(styles.lede)}>{view.lede}</p>
-                        <div className={swap(styles.chips)}>
-                            {view.core.map((k) => (
-                                <span key={k} className={`${styles.chip} ${styles.chipKey}`}>
-                                    {k}
-                                </span>
-                            ))}
-                        </div>
-                        <div className={styles.badges}>
-                            {badges.yesNo && (
-                                <div className={styles.badge}>
-                                    <span className={styles.lab}>{labels.yesNo}</span>
-                                    <span className={styles.val}>{badges.yesNo}</span>
-                                </div>
-                            )}
-                            {badges.zodiac && (
-                                <div className={styles.badge}>
-                                    <span className={styles.lab}>{labels.zodiac}</span>
-                                    <span className={styles.val}>{badges.zodiac}</span>
-                                </div>
-                            )}
-                            {badges.element && (
-                                <div className={styles.badge}>
-                                    <span className={styles.lab}>{labels.element}</span>
-                                    <span className={styles.val}>{badges.element}</span>
-                                </div>
-                            )}
-                        </div>
+                    <p className={swap(styles.lede)}>{view.lede}</p>
+                    <div className={swap(styles.chips)}>
+                        {view.core.map((k) => (
+                            <span key={k} className={`${styles.chip} ${styles.chipKey}`}>
+                                {k}
+                            </span>
+                        ))}
+                    </div>
+                    <div className={styles.badges}>
+                        {badges.yesNo && (
+                            <div className={styles.badge}>
+                                <span className={styles.lab}>{labels.yesNo}</span>
+                                <span className={styles.val}>{badges.yesNo}</span>
+                            </div>
+                        )}
+                        {badges.zodiac && (
+                            <div className={styles.badge}>
+                                <span className={styles.lab}>{labels.zodiac}</span>
+                                <span className={styles.val}>{badges.zodiac}</span>
+                            </div>
+                        )}
+                        {badges.element && (
+                            <div className={styles.badge}>
+                                <span className={styles.lab}>{labels.element}</span>
+                                <span className={styles.val}>{badges.element}</span>
+                            </div>
+                        )}
                     </div>
                 </section>
-
-                {/* TOGGLE — signature element */}
-                <div
-                    className={styles.switch}
-                    role='group'
-                    aria-label={labels.orientationGroup}
-                    onKeyDown={onKeyDown}
-                >
-                    <button
-                        className={styles.seg}
-                        type='button'
-                        aria-pressed={orientation === "upright"}
-                        onClick={() => choose("upright")}
-                    >
-                        {labels.upright}
-                        <span className={styles.sub}>{labels.lightGathers}</span>
-                    </button>
-                    <span className={styles.moon} aria-hidden='true' />
-                    <button
-                        className={styles.seg}
-                        type='button'
-                        aria-pressed={orientation === "reversed"}
-                        onClick={() => choose("reversed")}
-                    >
-                        {labels.reversed}
-                        <span className={styles.sub}>{labels.lightRecedes}</span>
-                    </button>
-                </div>
 
                 {/* QUOTE */}
                 <section className={styles.quote}>
