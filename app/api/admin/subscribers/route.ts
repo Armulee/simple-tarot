@@ -18,10 +18,30 @@ export async function GET(request: NextRequest) {
     if (!auth.ok) return auth.response
     const { admin } = auth
     const { limit, offset } = readPaging(request)
+    const q = (request.nextUrl.searchParams.get("q") ?? "").trim()
 
     try {
         const now = new Date().toISOString()
-        const { data, count, error } = await admin
+
+        // When searching by member name, resolve the matching profile ids
+        // first and constrain the subscriptions to them.
+        let nameMatchIds: string[] | null = null
+        if (q) {
+            const { data: profs } = await admin
+                .from("profiles")
+                .select("id")
+                .ilike("name", `%${q}%`)
+                .limit(1000)
+            nameMatchIds = (profs ?? []).map((p) => p.id as string)
+            if (nameMatchIds.length === 0) {
+                return NextResponse.json(
+                    { items: [], total: 0, hasMore: false },
+                    { status: 200 },
+                )
+            }
+        }
+
+        let query = admin
             .from("billing_subscriptions")
             .select("user_id, plan, status, current_period_end, created_at", {
                 count: "exact",
@@ -29,6 +49,8 @@ export async function GET(request: NextRequest) {
             .or(
                 `status.in.(active,trialing),and(status.eq.canceled,current_period_end.gt.${now})`,
             )
+        if (nameMatchIds) query = query.in("user_id", nameMatchIds)
+        const { data, count, error } = await query
             .order("created_at", { ascending: false })
             .range(offset, offset + limit - 1)
         if (error) throw error

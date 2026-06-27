@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type ReactNode } from "react"
-import { ArrowLeft, Loader2, Inbox } from "lucide-react"
+import { ArrowLeft, Loader2, Inbox, Search, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
 import { supabase } from "@/lib/supabase"
@@ -10,6 +10,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 const PAGE_SIZE = 50
 
 type ListResponse<T> = { items: T[]; total: number; hasMore: boolean }
+
+/** Debounce a fast-changing value (e.g. a search box) before it drives fetches. */
+export function useDebouncedValue<T>(value: T, delayMs = 300): T {
+    const [debounced, setDebounced] = useState(value)
+    useEffect(() => {
+        const id = setTimeout(() => setDebounced(value), delayMs)
+        return () => clearTimeout(id)
+    }, [value, delayMs])
+    return debounced
+}
 
 /**
  * Authenticated, paginated fetch for the admin list endpoints. Sends the
@@ -169,6 +179,10 @@ export function AdminListShell({
     count,
     hasMore,
     onLoadMore,
+    searchValue,
+    onSearchChange,
+    searchPlaceholder,
+    searching,
     children,
 }: {
     title: string
@@ -179,10 +193,16 @@ export function AdminListShell({
     count: number
     hasMore: boolean
     onLoadMore: () => void
+    searchValue?: string
+    onSearchChange?: (value: string) => void
+    searchPlaceholder?: string
+    /** True while a typed query is still settling / fetching. */
+    searching?: boolean
     children: ReactNode
 }) {
     const t = useTranslations("Admin")
     const isEmpty = count === 0
+    const hasSearch = typeof onSearchChange === "function"
 
     return (
         <div className='min-h-screen px-6 py-16'>
@@ -212,6 +232,31 @@ export function AdminListShell({
                     </div>
                 </div>
 
+                {hasSearch ? (
+                    <div className='relative'>
+                        <Search className='pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35' />
+                        <input
+                            type='text'
+                            value={searchValue ?? ""}
+                            onChange={(e) => onSearchChange?.(e.target.value)}
+                            placeholder={searchPlaceholder ?? t("searchPlaceholder")}
+                            className='w-full rounded-xl border border-white/10 bg-white/[0.04] py-3 pl-10 pr-10 text-sm text-white placeholder:text-white/35 outline-none transition-colors focus:border-amber-400/40 focus:bg-white/[0.06]'
+                        />
+                        {searching ? (
+                            <Loader2 className='absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-white/40' />
+                        ) : searchValue ? (
+                            <button
+                                type='button'
+                                aria-label='Clear'
+                                onClick={() => onSearchChange?.("")}
+                                className='absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/40 transition-colors hover:bg-white/10 hover:text-white/70'
+                            >
+                                <X className='h-4 w-4' />
+                            </button>
+                        ) : null}
+                    </div>
+                ) : null}
+
                 {error ? (
                     <div className='rounded-xl border border-rose-400/20 bg-rose-400/5 px-4 py-8 text-center text-sm text-rose-200/80'>
                         {t("listError")}
@@ -223,7 +268,11 @@ export function AdminListShell({
                 ) : isEmpty ? (
                     <div className='flex flex-col items-center gap-3 rounded-xl border border-white/8 bg-white/[0.02] px-4 py-16 text-center text-white/40'>
                         <Inbox className='h-7 w-7' />
-                        <p className='text-sm'>{t("listEmpty")}</p>
+                        <p className='text-sm'>
+                            {hasSearch && (searchValue ?? "").trim()
+                                ? t("noResults")
+                                : t("listEmpty")}
+                        </p>
                     </div>
                 ) : (
                     <>

@@ -116,7 +116,12 @@
     "unnamedUser": "Unnamed",
     "untitledReading": "Untitled reading",
     "cardsCount": "{count, plural, =1 {# card} other {# cards}}",
-    "renewsOn": "Renews {date}"
+    "renewsOn": "Renews {date}",
+    "searchPlaceholder": "Search…",
+    "noResults": "No matches found.",
+    "searchUsersPlaceholder": "Search by name…",
+    "searchInterpretationsPlaceholder": "Search by topic or user…",
+    "searchSubscribersPlaceholder": "Search by name…"
   },
   "Sidebar": {
     "services": "Services",

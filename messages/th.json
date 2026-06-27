@@ -116,7 +116,12 @@
     "unnamedUser": "ไม่มีชื่อ",
     "untitledReading": "คำทำนายไม่มีชื่อ",
     "cardsCount": "{count} ใบ",
-    "renewsOn": "ต่ออายุ {date}"
+    "renewsOn": "ต่ออายุ {date}",
+    "searchPlaceholder": "ค้นหา…",
+    "noResults": "ไม่พบรายการที่ตรงกัน",
+    "searchUsersPlaceholder": "ค้นหาจากชื่อผู้ใช้…",
+    "searchInterpretationsPlaceholder": "ค้นหาจากหัวข้อ session หรือชื่อผู้ใช้…",
+    "searchSubscribersPlaceholder": "ค้นหาจากชื่อผู้ใช้…"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",

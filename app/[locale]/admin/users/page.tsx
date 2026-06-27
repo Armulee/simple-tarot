@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense } from "react"
+import { Suspense, useState } from "react"
 import { Star } from "lucide-react"
 import { useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -10,6 +10,7 @@ import {
     AdminRow,
     UserAvatar,
     useAdminList,
+    useDebouncedValue,
     useShortDate,
 } from "@/components/admin/admin-list"
 import type { AdminUserItem } from "@/app/api/admin/users/route"
@@ -28,8 +29,12 @@ function AdminUsersInner() {
     const raw = sp.get("filter")
     const filter =
         raw === "anonymous" || raw === "authenticated" ? raw : "all"
+    const [search, setSearch] = useState("")
+    const q = useDebouncedValue(search.trim(), 300)
     const { items, total, hasMore, loading, error, loadMore } =
-        useAdminList<AdminUserItem>(`/api/admin/users?filter=${filter}`)
+        useAdminList<AdminUserItem>(
+            `/api/admin/users?filter=${filter}${q ? `&q=${encodeURIComponent(q)}` : ""}`,
+        )
     const fmt = useShortDate()
 
     const title =
@@ -48,6 +53,10 @@ function AdminUsersInner() {
             error={error}
             hasMore={hasMore}
             onLoadMore={loadMore}
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder={t("searchUsersPlaceholder")}
+            searching={!!search.trim() && (loading || search.trim() !== q)}
         >
             {items.map((u, i) => {
                 const anonymous = u.type === "anonymous"

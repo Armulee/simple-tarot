@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useTranslations } from "next-intl"
 import {
     AdminBadge,
@@ -7,14 +8,19 @@ import {
     AdminRow,
     UserAvatar,
     useAdminList,
+    useDebouncedValue,
     useShortDate,
 } from "@/components/admin/admin-list"
 import type { AdminInterpretationItem } from "@/app/api/admin/interpretations/route"
 
 export default function AdminInterpretationsPage() {
     const t = useTranslations("Admin")
+    const [search, setSearch] = useState("")
+    const q = useDebouncedValue(search.trim(), 300)
     const { items, total, hasMore, loading, error, loadMore } =
-        useAdminList<AdminInterpretationItem>("/api/admin/interpretations")
+        useAdminList<AdminInterpretationItem>(
+            `/api/admin/interpretations${q ? `?q=${encodeURIComponent(q)}` : ""}`,
+        )
     const fmt = useShortDate()
 
     return (
@@ -26,6 +32,10 @@ export default function AdminInterpretationsPage() {
             error={error}
             hasMore={hasMore}
             onLoadMore={loadMore}
+            searchValue={search}
+            onSearchChange={setSearch}
+            searchPlaceholder={t("searchInterpretationsPlaceholder")}
+            searching={!!search.trim() && (loading || search.trim() !== q)}
         >
             {items.map((r) => (
                 <AdminRow
