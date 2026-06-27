@@ -131,7 +131,18 @@
     "deleting": "กำลังลบ…",
     "deleteConfirm": "ลบ {count, plural, other {# รายการ}} นี้ใช่ไหม? ข้อมูลจะถูกลบออกจากฐานข้อมูลอย่างถาวรและกู้คืนไม่ได้",
     "deleteSuccess": "{count, plural, other {ลบแล้ว # รายการ}}",
-    "deleteError": "ลบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+    "deleteError": "ลบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+    "activityLabel": "กิจกรรม",
+    "activityTitle": "จำนวนการเล่นเทียบกับผู้ใช้ใหม่ต่อวัน",
+    "activityPlays": "การเล่น",
+    "activitySignups": "ผู้ใช้ใหม่",
+    "range_7d": "7 วัน",
+    "range_1m": "1 เดือน",
+    "range_3m": "3 เดือน",
+    "range_6m": "6 เดือน",
+    "range_1y": "1 ปี",
+    "range_5y": "5 ปี",
+    "range_custom": "กำหนดเอง"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",

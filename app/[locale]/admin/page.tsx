@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
 import { useAdmin } from "@/contexts/admin-context"
 import { BarChart3, Users, UserCheck, FileText, CreditCard } from "lucide-react"
+import AdminActivityChart from "@/components/admin/activity-chart"
 
 export default function AdminDashboardPage() {
     const t = useTranslations("Admin")
@@ -106,6 +107,8 @@ export default function AdminDashboardPage() {
                         </Link>
                     ))}
                 </div>
+
+                <AdminActivityChart />
             </div>
         </div>
     )

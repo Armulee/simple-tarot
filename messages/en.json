@@ -131,7 +131,18 @@
     "deleting": "Deleting…",
     "deleteConfirm": "Delete {count, plural, =1 {this interpretation} other {these # interpretations}}? This permanently removes it from the database and can't be undone.",
     "deleteSuccess": "{count, plural, =1 {Deleted 1 interpretation} other {Deleted # interpretations}}.",
-    "deleteError": "Couldn't delete. Please try again."
+    "deleteError": "Couldn't delete. Please try again.",
+    "activityLabel": "Activity",
+    "activityTitle": "Plays vs. new signups per day",
+    "activityPlays": "Plays",
+    "activitySignups": "New signups",
+    "range_7d": "7D",
+    "range_1m": "1M",
+    "range_3m": "3M",
+    "range_6m": "6M",
+    "range_1y": "1Y",
+    "range_5y": "5Y",
+    "range_custom": "Custom"
   },
   "Sidebar": {
     "services": "Services",
