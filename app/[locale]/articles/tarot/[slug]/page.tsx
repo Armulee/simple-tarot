@@ -7,6 +7,7 @@ import {
     TAROT_CARDS,
 } from "@/lib/tarot/cards"
 import { getPathname } from "@/i18n/navigation"
+import { buildTarotCardOriginContext } from "@/lib/chat/origin-context"
 import { CardArticle, type AreaView, type OrientationView } from "./card-article"
 
 type SectionMeaning = {
@@ -158,6 +159,16 @@ export default async function TarotCardArticlePage({
     const eyebrow =
         card.arcana === "major" ? t("majorArcana") : t("minorArcana")
 
+    // Page context carried into the chat: the AI is told to only explain this
+    // card and refuse to predict events from it.
+    const originContext = buildTarotCardOriginContext({
+        name: card.name,
+        slug: card.slug,
+        arcanaLabel: eyebrow,
+        uprightLine: splitFirstSentence(meaning.upright.overview.text).first,
+        reversedLine: splitFirstSentence(meaning.reversed.overview.text).first,
+    })
+
     const year = new Date().getFullYear()
 
     // Structured data for SEO (Article + Breadcrumb).
@@ -226,6 +237,7 @@ export default async function TarotCardArticlePage({
                 cardName={card.name}
                 eyebrow={eyebrow}
                 topHint={t("tapToFlip")}
+                originContext={originContext}
                 imageSrc={`/assets/rider-waite-tarot/${card.slug}.png`}
                 badges={{
                     yesNo: meaning.upright.overview.yesNo,
@@ -260,6 +272,8 @@ export default async function TarotCardArticlePage({
                     continue: t("continue"),
                     readArticle: t("readArticle"),
                     askPlaceholder: t("askPlaceholder"),
+                    askEyebrow: t("askEyebrow"),
+                    askHint: t("askHint"),
                     orientationGroup: t("orientationGroup"),
                     yesNo: t("yesNo"),
                     zodiac: t("zodiac"),

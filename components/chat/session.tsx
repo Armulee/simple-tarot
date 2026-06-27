@@ -7176,17 +7176,23 @@ export default function ChatSession({
     // visual breaks.
     const tCalendarShared = useTranslations("Calendar")
     const showOriginContextStrip = Boolean(
-        originContext?.kind === "calendar-day" && !isHoroscopeIntakeActive,
+        (originContext?.kind === "calendar-day" ||
+            originContext?.kind === "tarot-card") &&
+            !isHoroscopeIntakeActive,
     )
     const originContextStripSuggestions = useMemo(() => {
-        if (!showOriginContextStrip) return null
+        // Suggestions are calendar-specific; the tarot-card strip shows just
+        // the card pill with no quick replies.
+        if (originContext?.kind !== "calendar-day" || !showOriginContextStrip) {
+            return null
+        }
         return [
             tCalendarShared("suggestions.focusToday"),
             tCalendarShared("suggestions.goodDecisionDay"),
             tCalendarShared("suggestions.activitiesForToday"),
             tCalendarShared("suggestions.warnings"),
         ]
-    }, [showOriginContextStrip, tCalendarShared])
+    }, [originContext?.kind, showOriginContextStrip, tCalendarShared])
 
     const formattedCurrentLocationLabel = useMemo(() => {
         if (

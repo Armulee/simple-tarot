@@ -27,6 +27,8 @@
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    /* clear the fixed composer pinned to the bottom of the viewport */
+    padding-bottom: clamp(180px, 26vh, 240px);
 }
 
 /* Reversed: light recedes — cooler, dimmer, silvered */

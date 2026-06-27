@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import Image from "next/image"
 import { Link } from "@/i18n/navigation"
-import { CardQuestionInput } from "./card-question-input"
+import PageContextComposer from "@/components/chat/page-context-composer"
+import type { OriginContext } from "@/lib/chat/origin-context"
 import styles from "./card-article.module.css"
 
 type Orientation = "upright" | "reversed"
@@ -33,6 +34,7 @@ export type CardArticleProps = {
     cardName: string
     eyebrow: string
     topHint: string
+    originContext: OriginContext
     imageSrc: string
     badges: { yesNo?: string; zodiac?: string; element?: string }
     upright: OrientationView
@@ -47,6 +49,8 @@ export type CardArticleProps = {
         continue: string
         readArticle: string
         askPlaceholder: string
+        askEyebrow: string
+        askHint: string
         orientationGroup: string
         yesNo: string
         zodiac: string
@@ -99,21 +103,6 @@ export function CardArticle(props: CardArticleProps) {
     const [fading, setFading] = useState(false)
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    // Keep the page clear of the fixed composer bar at the bottom (like home).
-    const barRef = useRef<HTMLDivElement>(null)
-    const [barHeight, setBarHeight] = useState(0)
-    useEffect(() => {
-        const el = barRef.current
-        if (!el) return
-        const ro = new ResizeObserver((entries) => {
-            for (const entry of entries) {
-                setBarHeight(entry.contentRect.height)
-            }
-        })
-        ro.observe(el)
-        return () => ro.disconnect()
-    }, [])
-
     const view = content === "upright" ? upright : reversed
 
     const choose = useCallback(
@@ -149,11 +138,7 @@ export function CardArticle(props: CardArticleProps) {
 
     return (
         <>
-            <div
-                className={styles.root}
-                data-orientation={orientation}
-                style={{ paddingBottom: barHeight ? barHeight + 8 : undefined }}
-            >
+            <div className={styles.root} data-orientation={orientation}>
                 {/* top hint pointing at the orientation toggle below */}
                 <header className={styles.head}>
                     <div className={styles.headMeta}>{props.topHint}</div>
@@ -312,15 +297,14 @@ export function CardArticle(props: CardArticleProps) {
                 </footer>
             </div>
 
-            {/* fixed composer bar pinned to the bottom of the viewport (like home) */}
-            <div
-                ref={barRef}
-                className='fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 pb-3'
-            >
-                <div className='mx-auto w-full max-w-2xl px-4'>
-                    <CardQuestionInput placeholder={labels.askPlaceholder} />
-                </div>
-            </div>
+            {/* fixed composer pinned to the bottom (same as the calendar page),
+                carrying this card as page context into the chat session */}
+            <PageContextComposer
+                originContext={props.originContext}
+                placeholder={labels.askPlaceholder}
+                eyebrow={labels.askEyebrow}
+                hint={labels.askHint}
+            />
         </>
     )
 }
