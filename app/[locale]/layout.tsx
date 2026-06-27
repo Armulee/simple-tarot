@@ -16,7 +16,7 @@ import { BetaToaster } from "@/components/beta-toaster"
 import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
-import { getMessages, getTranslations } from "next-intl/server"
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server"
 import { getMetadataBase } from "@/lib/seo"
 import { ConsentAwareAnalytics } from "@/components/consent-aware-analytics"
 // StarConsentProvider and ReferralProvider are composed inside StarsProvider
@@ -134,10 +134,14 @@ export default async function RootLayout({
 }>) {
     // Ensure that the incoming `locale` is valid
     const { locale } = await params
-    const messages = await getMessages()
     if (!hasLocale(routing.locales, locale)) {
         notFound()
     }
+    // Opt into static rendering: tell next-intl the locale up front so
+    // getMessages()/getTranslations() don't read headers() (which would
+    // force the whole [locale] subtree to render dynamically).
+    setRequestLocale(locale)
+    const messages = await getMessages()
 
     return (
         <html lang={locale}>

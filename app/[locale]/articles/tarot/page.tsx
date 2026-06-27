@@ -5,7 +5,16 @@ import {
 } from "@/components/articles/article-layout"
 import { Link } from "@/i18n/navigation"
 import Image from "next/image"
-import { getMajor, getMinorBySuit } from "@/lib/tarot/cards"
+import { setRequestLocale } from "next-intl/server"
+import {
+    getMajor,
+    getMinorBySuit,
+    TAROT_ARTICLE_LOCALES,
+} from "@/lib/tarot/cards"
+
+export function generateStaticParams() {
+    return TAROT_ARTICLE_LOCALES.map((locale) => ({ locale }))
+}
 
 export async function generateMetadata(): Promise<Metadata> {
     const title = "Tarot Guide: What it is, History, Major & Minor Arcana"
@@ -19,7 +28,13 @@ export async function generateMetadata(): Promise<Metadata> {
     }
 }
 
-export default async function TarotGuidePage() {
+export default async function TarotGuidePage({
+    params,
+}: {
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await params
+    setRequestLocale(locale)
     const whatIs: ArticleSection = {
         id: "what-is",
         title: "What is Tarot?",
