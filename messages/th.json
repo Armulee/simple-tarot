@@ -105,7 +105,18 @@
     "anonymousUsers": "ผู้ใช้แบบไม่ลงชื่อเข้าใช้",
     "authenticatedUsers": "ผู้ใช้ที่ลงชื่อเข้าใช้",
     "interpretations": "จำนวนคำทำนาย",
-    "paidSubscribers": "ผู้สมัครสมาชิกแบบชำระเงิน"
+    "paidSubscribers": "ผู้สมัครสมาชิกแบบชำระเงิน",
+    "back": "ย้อนกลับ",
+    "listError": "โหลดรายการไม่สำเร็จ",
+    "listEmpty": "ยังไม่มีข้อมูล",
+    "loadMore": "โหลดเพิ่มเติม",
+    "guestTag": "ผู้เยี่ยมชม",
+    "memberTag": "สมาชิก",
+    "anonymousUser": "ผู้ใช้ไม่ระบุตัวตน",
+    "unnamedUser": "ไม่มีชื่อ",
+    "untitledReading": "คำทำนายไม่มีชื่อ",
+    "cardsCount": "{count} ใบ",
+    "renewsOn": "ต่ออายุ {date}"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",

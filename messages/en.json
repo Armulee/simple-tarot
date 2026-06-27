@@ -105,7 +105,18 @@
     "anonymousUsers": "Anonymous users",
     "authenticatedUsers": "Authenticated users",
     "interpretations": "Interpretations",
-    "paidSubscribers": "Paid subscribers"
+    "paidSubscribers": "Paid subscribers",
+    "back": "Back",
+    "listError": "Couldn't load the list.",
+    "listEmpty": "Nothing here yet.",
+    "loadMore": "Load more",
+    "guestTag": "Guest",
+    "memberTag": "Member",
+    "anonymousUser": "Anonymous user",
+    "unnamedUser": "Unnamed",
+    "untitledReading": "Untitled reading",
+    "cardsCount": "{count, plural, =1 {# card} other {# cards}}",
+    "renewsOn": "Renews {date}"
   },
   "Sidebar": {
     "services": "Services",

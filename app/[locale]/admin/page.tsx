@@ -17,6 +17,7 @@ export default function AdminDashboardPage() {
             label: t("totalUsers"),
             value: metrics.totalUsers,
             icon: Users,
+            href: "/admin/users",
             gradient: "from-violet-500/20 to-purple-600/10",
             border: "border-violet-500/20",
         },
@@ -24,6 +25,7 @@ export default function AdminDashboardPage() {
             label: t("anonymousUsers"),
             value: metrics.anonymousUsers,
             icon: Users,
+            href: "/admin/users?filter=anonymous",
             gradient: "from-slate-500/20 to-slate-600/10",
             border: "border-slate-500/20",
         },
@@ -31,6 +33,7 @@ export default function AdminDashboardPage() {
             label: t("authenticatedUsers"),
             value: metrics.authenticatedUsers,
             icon: UserCheck,
+            href: "/admin/users?filter=authenticated",
             gradient: "from-emerald-500/20 to-teal-600/10",
             border: "border-emerald-500/20",
         },
@@ -38,6 +41,7 @@ export default function AdminDashboardPage() {
             label: t("interpretations"),
             value: metrics.interpretationCount,
             icon: FileText,
+            href: "/admin/interpretations",
             gradient: "from-amber-500/20 to-orange-600/10",
             border: "border-amber-500/20",
         },
@@ -45,6 +49,7 @@ export default function AdminDashboardPage() {
             label: t("paidSubscribers"),
             value: metrics.paidSubscribers,
             icon: CreditCard,
+            href: "/admin/subscribers",
             gradient: "from-rose-500/20 to-pink-600/10",
             border: "border-rose-500/20",
         },
@@ -76,25 +81,29 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {cards.map(({ label, value, icon: Icon, gradient, border }) => (
-                        <Card
-                            key={label}
-                            className={`overflow-hidden border ${border} bg-gradient-to-br ${gradient} p-6 transition-all hover:scale-[1.02]`}
-                        >
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-white/60">
-                                        {label}
-                                    </p>
-                                    <p className="mt-2 font-serif text-3xl font-semibold text-white">
-                                        {value.toLocaleString()}
-                                    </p>
+                    {cards.map(({ label, value, icon: Icon, gradient, border, href }) => (
+                        <Link key={label} href={href} className="group block">
+                            <Card
+                                className={`relative overflow-hidden border ${border} bg-gradient-to-br ${gradient} p-6 transition-all group-hover:scale-[1.02] group-hover:border-white/25 group-hover:shadow-lg group-hover:shadow-black/20`}
+                            >
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-white/60">
+                                            {label}
+                                        </p>
+                                        <p className="mt-2 font-serif text-3xl font-semibold text-white">
+                                            {value.toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-lg bg-white/5 p-2.5">
+                                        <Icon className="h-5 w-5 text-white/70" />
+                                    </div>
                                 </div>
-                                <div className="rounded-lg bg-white/5 p-2.5">
-                                    <Icon className="h-5 w-5 text-white/70" />
-                                </div>
-                            </div>
-                        </Card>
+                                <span className="absolute bottom-4 right-5 text-white/30 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-white/60 group-hover:opacity-100">
+                                    →
+                                </span>
+                            </Card>
+                        </Link>
                     ))}
                 </div>
             </div>
