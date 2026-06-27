@@ -142,24 +142,34 @@ export function CardArticle(props: CardArticleProps) {
                 <section className={styles.hero}>
                     <div className={styles.cardStage}>
                         <div className={styles.glow} aria-hidden='true' />
-                        <div className={styles.tarotCard}>
-                            <Image
-                                src={props.imageSrc}
-                                alt={
-                                    orientation === "reversed"
-                                        ? `${props.cardName} (reversed)`
-                                        : props.cardName
-                                }
-                                fill
-                                sizes='(max-width: 860px) 70vw, 300px'
-                                priority
-                            />
+                        <div className={styles.glow2} aria-hidden='true' />
+                        <div className={styles.cardFrame}>
+                            <span className={styles.corner} data-c='tl' aria-hidden='true' />
+                            <span className={styles.corner} data-c='tr' aria-hidden='true' />
+                            <span className={styles.corner} data-c='bl' aria-hidden='true' />
+                            <span className={styles.corner} data-c='br' aria-hidden='true' />
+                            <div className={styles.tarotCard}>
+                                <Image
+                                    src={props.imageSrc}
+                                    alt={
+                                        orientation === "reversed"
+                                            ? `${props.cardName} (reversed)`
+                                            : props.cardName
+                                    }
+                                    fill
+                                    sizes='(max-width: 860px) 70vw, 300px'
+                                    priority
+                                />
+                                <span className={styles.sheen} aria-hidden='true' />
+                            </div>
                         </div>
                     </div>
 
-                    <div>
+                    <div className={styles.heroText}>
                         <div className={styles.eyebrow}>{props.eyebrow}</div>
-                        <h1 className={styles.title}>{props.cardName}</h1>
+                        <h1 className={styles.title} data-text={props.cardName}>
+                            {props.cardName}
+                        </h1>
                         <p className={swap(styles.lede)}>{view.lede}</p>
                         <div className={swap(styles.chips)}>
                             {view.core.map((k) => (
@@ -232,6 +242,7 @@ export function CardArticle(props: CardArticleProps) {
                     <div className={styles.sectionHead}>
                         <span className={styles.num}>✦</span>
                         <h2>{labels.theReading}</h2>
+                        <span className={styles.rule} aria-hidden='true' />
                     </div>
                     <p className={swap(styles.overview)}>{view.overview}</p>
 
@@ -258,6 +269,7 @@ export function CardArticle(props: CardArticleProps) {
                     <div className={styles.sectionHead}>
                         <span className={styles.num}>✦</span>
                         <h2>{labels.continue}</h2>
+                        <span className={styles.rule} aria-hidden='true' />
                     </div>
                     <div className={styles.moreGrid}>
                         {props.related.map((r) => (
