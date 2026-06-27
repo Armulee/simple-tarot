@@ -117,7 +117,22 @@
     "reversed": "ไพ่กลับหัว",
     "yesNo": "ใช่/ไม่",
     "zodiac": "จักรราศี",
-    "element": "ธาตุ"
+    "element": "ธาตุ",
+    "tarot": "ไพ่ทาโรต์",
+    "majorArcana": "อาร์คานาใหญ่",
+    "minorArcana": "อาร์คานาเล็ก",
+    "theReading": "คำทำนาย",
+    "continue": "อ่านต่อ",
+    "readArticle": "อ่านบทความ",
+    "lightGathers": "แสงรวมตัว",
+    "lightRecedes": "แสงเลือนหาย",
+    "orientationGroup": "เลือกทิศทางของไพ่",
+    "allTarotCards": "ไพ่ทาโรต์ทั้งหมด",
+    "allTarotCardsDesc": "ดูไพ่ทั้ง 78 ใบ ตามอาร์คานาและชุดไพ่",
+    "howToPlay": "วิธีเล่น",
+    "howToPlayDesc": "ทำตามขั้นตอนง่าย ๆ เพื่อการทำนายที่มีความหมาย",
+    "faq": "คำถามที่พบบ่อย",
+    "faqDesc": "คำตอบสำหรับคำถามที่พบบ่อยเกี่ยวกับการทำนาย"
   },
   "Sidebar": {
     "services": "บริการ",

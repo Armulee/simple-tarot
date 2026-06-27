@@ -1,0 +1,570 @@
+/* Celestial-manuscript card article — scoped to the tarot card route only.
+   Tokens live on .root so they never leak into the global theme. */
+
+.root {
+    --ink: #0a0a16;
+    --veil: #13132a;
+    --veil-2: #1b1b3b;
+    --line: rgba(200, 168, 106, 0.18);
+    --line-strong: rgba(200, 168, 106, 0.4);
+    --moonlight: #ece7da;
+    --mist: #9a98b8;
+    --mist-dim: #6f6e91;
+    --accent: #c8a86a;
+    --accent-soft: #e6d2a3;
+    --glow: rgba(200, 168, 106, 0.28);
+    --serif: var(--font-cormorant), Georgia, serif;
+    --sans: var(--font-manrope), system-ui, sans-serif;
+    --maxw: 1080px;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+    position: relative;
+    z-index: 1;
+    color: var(--moonlight);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* Reversed: light recedes — cooler, dimmer, silvered */
+.root[data-orientation="reversed"] {
+    --accent: #a9b6c9;
+    --accent-soft: #d3dae5;
+    --glow: rgba(150, 170, 200, 0.22);
+    --line: rgba(169, 182, 201, 0.18);
+    --line-strong: rgba(169, 182, 201, 0.36);
+}
+
+/* faint vertical light, like a veil */
+.root::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(120% 80% at 50% -10%, rgba(120, 110, 180, 0.1), transparent 60%),
+        radial-gradient(90% 60% at 50% 120%, rgba(60, 60, 120, 0.1), transparent 60%);
+}
+
+.root :focus-visible {
+    outline: 2px solid var(--accent-soft);
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+.root ::selection {
+    background: var(--accent);
+    color: var(--ink);
+}
+
+.wrap {
+    position: relative;
+    z-index: 1;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ---------- slim breadcrumb header ---------- */
+.head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 24px;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    border-bottom: 1px solid var(--line);
+}
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    letter-spacing: 0.5px;
+}
+.brand .mk {
+    width: 22px;
+    height: 22px;
+    color: var(--accent);
+}
+.headMeta {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mist);
+}
+
+/* ---------- hero ---------- */
+.hero {
+    display: grid;
+    grid-template-columns: minmax(0, 300px) 1fr;
+    gap: clamp(28px, 5vw, 64px);
+    align-items: center;
+    padding: clamp(40px, 7vw, 84px) 0 clamp(28px, 4vw, 44px);
+}
+.cardStage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    align-self: center;
+}
+.glow {
+    position: absolute;
+    width: 118%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--glow), transparent 62%);
+    filter: blur(6px);
+    animation: breathe 7s var(--ease) infinite;
+    transition: background 0.8s var(--ease);
+}
+@keyframes breathe {
+    0%,
+    100% {
+        transform: scale(0.94);
+        opacity: 0.75;
+    }
+    50% {
+        transform: scale(1.06);
+        opacity: 1;
+    }
+}
+.tarotCard {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 300 / 480;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+        0 30px 70px -28px rgba(0, 0, 0, 0.85),
+        0 0 0 1px var(--line-strong) inset;
+    transition:
+        transform 0.9s var(--ease),
+        filter 0.9s var(--ease);
+}
+.tarotCard :global(img) {
+    object-fit: contain;
+}
+.root[data-orientation="reversed"] .tarotCard {
+    transform: rotate(180deg);
+    filter: saturate(0.7) brightness(0.9) hue-rotate(8deg);
+}
+
+.eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    transition: color 0.6s var(--ease);
+}
+.eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line-strong), transparent);
+    max-width: 120px;
+}
+.title {
+    font-family: var(--serif);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    line-height: 0.98;
+    font-size: clamp(2.9rem, 8vw, 5.4rem);
+    margin: 0 0 14px;
+}
+.lede {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+    color: var(--mist);
+    max-width: 34ch;
+    margin: 0 0 26px;
+    line-height: 1.4;
+}
+
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 26px;
+}
+.chip {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--moonlight);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.018);
+    padding: 6px 13px;
+    border-radius: 999px;
+    transition:
+        border-color 0.5s var(--ease),
+        background 0.5s var(--ease);
+}
+.chipKey {
+    color: var(--accent-soft);
+    border-color: var(--line-strong);
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    width: fit-content;
+    max-width: 100%;
+}
+.badge {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 20px;
+    border-right: 1px solid var(--line);
+}
+.badge:last-child {
+    border-right: 0;
+}
+.badge .lab {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mist-dim);
+}
+.badge .val {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.badge .val .gl {
+    color: var(--accent);
+    transition: color 0.6s var(--ease);
+}
+
+/* ---------- moon toggle (signature) ---------- */
+.switch {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 4vw, 34px);
+    padding: 30px 0 14px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin: 14px 0 0;
+}
+.seg {
+    appearance: none;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    letter-spacing: 0.5px;
+    color: var(--mist-dim);
+    padding: 6px 4px;
+    position: relative;
+    transition: color 0.5s var(--ease);
+}
+.seg[aria-pressed="true"] {
+    color: var(--moonlight);
+}
+.seg[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.seg .sub {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.6rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--mist-dim);
+    text-align: center;
+    margin-top: 6px;
+}
+.seg[aria-pressed="true"] .sub {
+    color: var(--accent);
+}
+
+/* the moon between the two labels: waxes/wanes with state */
+.moon {
+    position: relative;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    background: radial-gradient(circle at 38% 35%, #fffaf0, var(--accent-soft) 70%, #b89a5e);
+    box-shadow:
+        0 0 26px var(--glow),
+        inset 0 0 14px rgba(120, 90, 40, 0.25);
+    transition: box-shadow 0.8s var(--ease);
+}
+.moon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--ink);
+    transform: translateX(-58%);
+    transition: transform 1s var(--ease);
+}
+.root[data-orientation="reversed"] .moon::after {
+    transform: translateX(58%);
+}
+
+/* ---------- quote band ---------- */
+.quote {
+    position: relative;
+    text-align: center;
+    padding: clamp(46px, 7vw, 78px) 0;
+}
+.quote .q {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.6rem, 3.6vw, 2.5rem);
+    line-height: 1.32;
+    max-width: 22ch;
+    margin: 0 auto;
+    letter-spacing: 0.3px;
+}
+.quote .mark {
+    font-family: var(--serif);
+    color: var(--accent);
+    font-size: 3.4rem;
+    line-height: 0;
+    opacity: 0.55;
+    display: block;
+    margin-bottom: 18px;
+    transition: color 0.6s var(--ease);
+}
+
+/* ---------- reading ---------- */
+.sectionHead {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin: 0 0 28px;
+}
+.sectionHead .num {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--accent);
+    transition: color 0.6s var(--ease);
+}
+.sectionHead h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.7rem, 3vw, 2.2rem);
+    margin: 0;
+    letter-spacing: 0.4px;
+}
+.overview {
+    font-size: 1.12rem;
+    line-height: 1.78;
+    color: var(--moonlight);
+    max-width: 62ch;
+    margin: 0 0 8px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 48px;
+}
+.area {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 26px 26px 28px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+    transition:
+        border-color 0.45s var(--ease),
+        transform 0.45s var(--ease),
+        background 0.45s var(--ease);
+}
+.area:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-4px);
+    background: linear-gradient(180deg, rgba(200, 168, 106, 0.06), rgba(255, 255, 255, 0));
+}
+.area .ico {
+    width: 30px;
+    height: 30px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    transition: color 0.5s var(--ease);
+}
+.area h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin: 0 0 14px;
+    letter-spacing: 0.3px;
+}
+.area .chips {
+    margin-bottom: 16px;
+}
+.area p {
+    margin: 0;
+    color: var(--mist);
+    font-size: 1.01rem;
+    line-height: 1.66;
+}
+
+/* ---------- suggested ---------- */
+.more {
+    margin-top: clamp(70px, 9vw, 120px);
+}
+.moreGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+}
+.scard {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px;
+    transition:
+        border-color 0.4s var(--ease),
+        transform 0.4s var(--ease);
+}
+.scard:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-3px);
+}
+.scard h4 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0 0 8px;
+}
+.scard p {
+    margin: 0 0 16px;
+    color: var(--mist);
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+.scard .go {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: color 0.5s var(--ease);
+}
+.scard .go svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.4s var(--ease);
+}
+.scard:hover .go svg {
+    transform: translateX(4px);
+}
+
+/* ---------- slim footer ---------- */
+.foot {
+    margin-top: clamp(60px, 8vw, 100px);
+    border-top: 1px solid var(--line);
+    padding: 34px 24px 8px;
+    max-width: var(--maxw);
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--mist-dim);
+    font-size: 0.82rem;
+}
+
+/* fade on orientation swap */
+.swap {
+    transition: opacity 0.35s var(--ease);
+}
+.out {
+    opacity: 0;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+    .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 34px;
+    }
+    .cardStage {
+        order: -1;
+    }
+    .eyebrow {
+        justify-content: center;
+    }
+    .eyebrow::after {
+        display: none;
+    }
+    .lede {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .chips {
+        justify-content: center;
+    }
+    .badges {
+        margin: 0 auto;
+    }
+    .sectionHead {
+        justify-content: center;
+    }
+    .overview {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+@media (max-width: 680px) {
+    .root {
+        font-size: 16px;
+    }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    .moreGrid {
+        grid-template-columns: 1fr;
+    }
+    .headMeta {
+        display: none;
+    }
+    .badge {
+        padding: 11px 16px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .root *,
+    .root *::after,
+    .root *::before {
+        animation: none !important;
+        transition: none !important;
+    }
+}

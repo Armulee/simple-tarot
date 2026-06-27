@@ -1889,7 +1889,22 @@
     "reversed": "Reversed",
     "yesNo": "Yes/No",
     "zodiac": "Zodiac",
-    "element": "Element"
+    "element": "Element",
+    "tarot": "Tarot",
+    "majorArcana": "Major Arcana",
+    "minorArcana": "Minor Arcana",
+    "theReading": "The Reading",
+    "continue": "Continue",
+    "readArticle": "Read article",
+    "lightGathers": "Light gathers",
+    "lightRecedes": "Light recedes",
+    "orientationGroup": "Choose card orientation",
+    "allTarotCards": "All Tarot Cards",
+    "allTarotCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "howToPlay": "How to Play",
+    "howToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "faq": "FAQ",
+    "faqDesc": "Answers to common questions about readings."
   },
   "Auth": {
     "SignIn": {
