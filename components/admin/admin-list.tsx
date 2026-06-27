@@ -7,11 +7,19 @@ import {
     useState,
     type ReactNode,
 } from "react"
-import { ArrowLeft, Loader2, Inbox, Search, X } from "lucide-react"
+import { ArrowLeft, Copy, Loader2, Inbox, Search, Trash2, X } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { toast } from "sonner"
 import { Link } from "@/i18n/navigation"
 import { supabase } from "@/lib/supabase"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSeparator,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 
 const PAGE_SIZE = 50
 
@@ -171,6 +179,68 @@ export function AdminRow({
                 </div>
             ) : null}
         </div>
+    )
+}
+
+export type AdminMenuEntry = { label: string; value: string }
+
+/**
+ * Wraps a list row so a right-click (or touch long-press) opens a context
+ * menu of "copy <field>" actions plus an optional destructive delete.
+ * Pass only the entries whose values exist — empty fields are filtered out.
+ */
+export function AdminRowMenu({
+    entries,
+    onDelete,
+    deleteLabel,
+    children,
+}: {
+    entries: AdminMenuEntry[]
+    onDelete?: () => void
+    deleteLabel?: string
+    children: ReactNode
+}) {
+    const t = useTranslations("Admin")
+
+    const copy = async (value: string) => {
+        try {
+            await navigator.clipboard.writeText(value)
+            toast.success(t("copied"))
+        } catch {
+            toast.error(t("copyError"))
+        }
+    }
+
+    return (
+        <ContextMenu>
+            <ContextMenuTrigger asChild>
+                <div>{children}</div>
+            </ContextMenuTrigger>
+            <ContextMenuContent className='w-60 border-slate-800 bg-slate-900 text-white shadow-xl'>
+                {entries.map((e) => (
+                    <ContextMenuItem
+                        key={e.label}
+                        onSelect={() => copy(e.value)}
+                        className='gap-2 focus:bg-white/10 focus:text-white'
+                    >
+                        <Copy className='h-4 w-4 text-white/60' />
+                        <span className='flex-1 truncate'>{e.label}</span>
+                    </ContextMenuItem>
+                ))}
+                {onDelete ? (
+                    <>
+                        <ContextMenuSeparator className='bg-slate-800' />
+                        <ContextMenuItem
+                            onSelect={onDelete}
+                            className='gap-2 text-rose-400 focus:bg-rose-500/10 focus:text-rose-300'
+                        >
+                            <Trash2 className='h-4 w-4' />
+                            {deleteLabel ?? t("delete")}
+                        </ContextMenuItem>
+                    </>
+                ) : null}
+            </ContextMenuContent>
+        </ContextMenu>
     )
 }
 

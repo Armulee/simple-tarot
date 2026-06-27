@@ -11,10 +11,12 @@ export type AdminInterpretationItem = {
     createdAt: string | null
     ownerName: string | null
     ownerAvatarUrl: string | null
+    ownerUserId: string | null
+    anonymousId: string | null
     isAuthenticated: boolean
 }
 
-const COLS = "id, question, topic, messages, owner_user_id, created_at"
+const COLS = "id, question, topic, messages, owner_user_id, did, created_at"
 const SEARCH_CAP = 1000
 const UUID_RE =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -31,6 +33,7 @@ type SessionRow = {
     topic: string | null
     messages: ChatMessage[] | null
     owner_user_id: string | null
+    did: string | null
     created_at: string | null
 }
 
@@ -167,6 +170,8 @@ export async function GET(request: NextRequest) {
                 createdAt: r.created_at ?? null,
                 ownerName: prof?.name ?? null,
                 ownerAvatarUrl: prof?.avatar_url ?? null,
+                ownerUserId: owner ?? null,
+                anonymousId: r.did ?? null,
                 isAuthenticated: !!owner,
             }
         })

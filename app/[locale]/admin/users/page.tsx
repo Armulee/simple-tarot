@@ -8,10 +8,12 @@ import {
     AdminBadge,
     AdminListShell,
     AdminRow,
+    AdminRowMenu,
     UserAvatar,
     useAdminList,
     useDebouncedValue,
     useShortDate,
+    type AdminMenuEntry,
 } from "@/components/admin/admin-list"
 import type { AdminUserItem } from "@/app/api/admin/users/route"
 
@@ -60,9 +62,19 @@ function AdminUsersInner() {
         >
             {items.map((u, i) => {
                 const anonymous = u.type === "anonymous"
+                const entries: AdminMenuEntry[] = [
+                    u.name && { label: t("copyName"), value: u.name },
+                    anonymous
+                        ? { label: t("copyAnonId"), value: u.id }
+                        : { label: t("copyUserId"), value: u.id },
+                    u.createdAt && {
+                        label: t("copyDate"),
+                        value: fmt(u.createdAt),
+                    },
+                ].filter(Boolean) as AdminMenuEntry[]
                 return (
+                    <AdminRowMenu key={`${u.id}-${i}`} entries={entries}>
                     <AdminRow
-                        key={`${u.id}-${i}`}
                         avatar={
                             <UserAvatar
                                 name={u.name}
@@ -102,6 +114,7 @@ function AdminUsersInner() {
                             </div>
                         }
                     />
+                    </AdminRowMenu>
                 )
             })}
         </AdminListShell>

@@ -6,10 +6,12 @@ import {
     AdminBadge,
     AdminListShell,
     AdminRow,
+    AdminRowMenu,
     UserAvatar,
     useAdminList,
     useDebouncedValue,
     useShortDate,
+    type AdminMenuEntry,
 } from "@/components/admin/admin-list"
 import type { AdminSubscriberItem } from "@/app/api/admin/subscribers/route"
 
@@ -37,9 +39,18 @@ export default function AdminSubscribersPage() {
             searchPlaceholder={t("searchSubscribersPlaceholder")}
             searching={!!search.trim() && (loading || search.trim() !== q)}
         >
-            {items.map((s) => (
+            {items.map((s) => {
+                const entries: AdminMenuEntry[] = [
+                    s.name && { label: t("copyName"), value: s.name },
+                    { label: t("copyUserId"), value: s.userId },
+                    s.createdAt && {
+                        label: t("copyDate"),
+                        value: fmt(s.createdAt),
+                    },
+                ].filter(Boolean) as AdminMenuEntry[]
+                return (
+                <AdminRowMenu key={s.userId} entries={entries}>
                 <AdminRow
-                    key={s.userId}
                     avatar={<UserAvatar name={s.name} src={s.avatarUrl} />}
                     title={s.name || t("unnamedUser")}
                     subtitle={s.userId}
@@ -63,7 +74,9 @@ export default function AdminSubscribersPage() {
                         </div>
                     }
                 />
-            ))}
+                </AdminRowMenu>
+                )
+            })}
         </AdminListShell>
     )
 }

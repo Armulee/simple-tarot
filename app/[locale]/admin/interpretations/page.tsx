@@ -8,10 +8,12 @@ import {
     AdminBadge,
     AdminListShell,
     AdminRow,
+    AdminRowMenu,
     UserAvatar,
     useAdminList,
     useDebouncedValue,
     useShortDate,
+    type AdminMenuEntry,
 } from "@/components/admin/admin-list"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Link } from "@/i18n/navigation"
@@ -65,35 +67,50 @@ export default function AdminInterpretationsPage() {
         })
     }, [items])
 
-    const handleDelete = useCallback(async () => {
-        const ids = Array.from(selected)
-        if (ids.length === 0 || deleting) return
-        if (!window.confirm(t("deleteConfirm", { count: ids.length }))) return
+    const deleteByIds = useCallback(
+        async (ids: string[]): Promise<boolean> => {
+            if (ids.length === 0) return false
+            if (!window.confirm(t("deleteConfirm", { count: ids.length })))
+                return false
 
-        setDeleting(true)
-        try {
-            const {
-                data: { session },
-            } = await supabase.auth.getSession()
-            if (!session) throw new Error("NO_SESSION")
-            const res = await fetch("/api/admin/interpretations", {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${session.access_token}`,
-                },
-                body: JSON.stringify({ ids }),
-            })
-            if (!res.ok) throw new Error("DELETE_FAILED")
-            removeItems(ids)
-            toast.success(t("deleteSuccess", { count: ids.length }))
-            exitSelect()
-        } catch {
-            toast.error(t("deleteError"))
-        } finally {
-            setDeleting(false)
-        }
-    }, [selected, deleting, t, removeItems, exitSelect])
+            setDeleting(true)
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+                if (!session) throw new Error("NO_SESSION")
+                const res = await fetch("/api/admin/interpretations", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ ids }),
+                })
+                if (!res.ok) throw new Error("DELETE_FAILED")
+                removeItems(ids)
+                setSelected((prev) => {
+                    const next = new Set(prev)
+                    for (const id of ids) next.delete(id)
+                    return next
+                })
+                toast.success(t("deleteSuccess", { count: ids.length }))
+                return true
+            } catch {
+                toast.error(t("deleteError"))
+                return false
+            } finally {
+                setDeleting(false)
+            }
+        },
+        [t, removeItems],
+    )
+
+    const handleDelete = useCallback(async () => {
+        if (deleting) return
+        const ok = await deleteByIds(Array.from(selected))
+        if (ok) exitSelect()
+    }, [deleting, selected, deleteByIds, exitSelect])
 
     const selectedCount = selected.size
 
@@ -206,40 +223,67 @@ export default function AdminInterpretationsPage() {
                     />
                 )
 
+                const entries: AdminMenuEntry[] = [
+                    r.ownerName && { label: t("copyName"), value: r.ownerName },
+                    r.question && { label: t("copyTitle"), value: r.question },
+                    { label: t("copySessionId"), value: r.id },
+                    r.ownerUserId && {
+                        label: t("copyUserId"),
+                        value: r.ownerUserId,
+                    },
+                    r.anonymousId && {
+                        label: t("copyAnonId"),
+                        value: r.anonymousId,
+                    },
+                    r.createdAt && {
+                        label: t("copyDate"),
+                        value: fmt(r.createdAt),
+                    },
+                ].filter(Boolean) as AdminMenuEntry[]
+
+                const onDelete = () => void deleteByIds([r.id])
+
                 if (!selectMode)
                     return (
-                        <Link
+                        <AdminRowMenu
                             key={r.id}
-                            href={`/${r.id}`}
-                            className='block'
+                            entries={entries}
+                            onDelete={onDelete}
                         >
-                            {row}
-                        </Link>
+                            <Link href={`/${r.id}`} className='block'>
+                                {row}
+                            </Link>
+                        </AdminRowMenu>
                     )
 
                 const checked = selected.has(r.id)
                 return (
-                    <div
+                    <AdminRowMenu
                         key={r.id}
-                        role='button'
-                        tabIndex={0}
-                        onClick={() => toggleOne(r.id)}
-                        onKeyDown={(e) => {
-                            if (e.key === " " || e.key === "Enter") {
-                                e.preventDefault()
-                                toggleOne(r.id)
-                            }
-                        }}
-                        className={`flex cursor-pointer items-center gap-3 rounded-xl transition-colors ${
-                            checked ? "bg-amber-400/[0.06]" : ""
-                        }`}
+                        entries={entries}
+                        onDelete={onDelete}
                     >
-                        <Checkbox
-                            checked={checked}
-                            className='ml-1 size-5 shrink-0 border-white/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-black'
-                        />
-                        <div className='min-w-0 flex-1'>{row}</div>
-                    </div>
+                        <div
+                            role='button'
+                            tabIndex={0}
+                            onClick={() => toggleOne(r.id)}
+                            onKeyDown={(e) => {
+                                if (e.key === " " || e.key === "Enter") {
+                                    e.preventDefault()
+                                    toggleOne(r.id)
+                                }
+                            }}
+                            className={`flex cursor-pointer items-center gap-3 rounded-xl transition-colors ${
+                                checked ? "bg-amber-400/[0.06]" : ""
+                            }`}
+                        >
+                            <Checkbox
+                                checked={checked}
+                                className='ml-1 size-5 shrink-0 border-white/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-black'
+                            />
+                            <div className='min-w-0 flex-1'>{row}</div>
+                        </div>
+                    </AdminRowMenu>
                 )
             })}
         </AdminListShell>
