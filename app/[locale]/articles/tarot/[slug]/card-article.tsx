@@ -31,7 +31,7 @@ export type RelatedLink = {
 export type CardArticleProps = {
     cardName: string
     eyebrow: string
-    breadcrumb: string
+    topHint: string
     imageSrc: string
     badges: { yesNo?: string; zodiac?: string; element?: string }
     upright: OrientationView
@@ -132,9 +132,9 @@ export function CardArticle(props: CardArticleProps) {
 
     return (
         <div className={styles.root} data-orientation={orientation}>
-            {/* centered breadcrumb header */}
+            {/* top hint pointing at the orientation toggle below */}
             <header className={styles.head}>
-                <div className={styles.headMeta}>{props.breadcrumb}</div>
+                <div className={styles.headMeta}>{props.topHint}</div>
             </header>
 
             <main className={styles.wrap}>

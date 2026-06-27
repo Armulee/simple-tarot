@@ -68,31 +68,6 @@ export async function generateMetadata({
     }
 }
 
-const ROMAN = [
-    "0",
-    "I",
-    "II",
-    "III",
-    "IV",
-    "V",
-    "VI",
-    "VII",
-    "VIII",
-    "IX",
-    "X",
-    "XI",
-    "XII",
-    "XIII",
-    "XIV",
-    "XV",
-    "XVI",
-    "XVII",
-    "XVIII",
-    "XIX",
-    "XX",
-    "XXI",
-]
-
 // First sentence becomes the lede / pull-quote; the remainder is the overview body.
 function splitFirstSentence(text: string): { first: string; rest: string } {
     const match = text.match(/^(.*?\.)\s*([\s\S]*)$/)
@@ -180,11 +155,6 @@ export default async function TarotCardArticlePage({
         }
     }
 
-    const breadcrumb =
-        card.arcana === "major"
-            ? `${t("tarot")} · ${t("majorArcana")} · ${ROMAN[card.number ?? 0]}`
-            : `${t("tarot")} · ${t("minorArcana")} · ${card.rank ?? ""}`
-
     const eyebrow =
         card.arcana === "major" ? t("majorArcana") : t("minorArcana")
 
@@ -255,7 +225,7 @@ export default async function TarotCardArticlePage({
             <CardArticle
                 cardName={card.name}
                 eyebrow={eyebrow}
-                breadcrumb={breadcrumb}
+                topHint={t("tapToFlip")}
                 imageSrc={`/assets/rider-waite-tarot/${card.slug}.png`}
                 badges={{
                     yesNo: meaning.upright.overview.yesNo,
