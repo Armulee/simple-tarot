@@ -1,11 +1,10 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Activity, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { supabase } from "@/lib/supabase"
 import {
-    METRIC_KEYS,
     type AdminActivityResponse,
     type ActivityGranularity,
     type ActivityPoint,
@@ -25,7 +24,7 @@ const RANGE_DAYS: Record<Exclude<RangeKey, "custom">, number> = {
 
 const RANGES: RangeKey[] = ["7d", "1m", "3m", "6m", "1y", "5y", "custom"]
 
-const METRIC_COLOR: Record<MetricKey, string> = {
+export const METRIC_COLOR: Record<MetricKey, string> = {
     totalUsers: "#a78bfa", // violet-400
     anonymousUsers: "#94a3b8", // slate-400
     authenticatedUsers: "#34d399", // emerald-400
@@ -35,8 +34,8 @@ const METRIC_COLOR: Record<MetricKey, string> = {
 
 // Per-metric chart coordinate space (scaled responsively via viewBox).
 const W = 420
-const H = 190
-const PAD = { top: 14, right: 14, bottom: 26, left: 36 }
+const H = 150
+const PAD = { top: 12, right: 14, bottom: 24, left: 34 }
 const PLOT_W = W - PAD.left - PAD.right
 const PLOT_H = H - PAD.top - PAD.bottom
 
@@ -68,8 +67,23 @@ function formatTick(
     return d.toLocaleDateString(locale, { month: "short", day: "numeric" })
 }
 
-export default function AdminActivityChart() {
-    const t = useTranslations("Admin")
+export type ActivityController = {
+    range: RangeKey
+    setRange: (r: RangeKey) => void
+    customFrom: string
+    setCustomFrom: (v: string) => void
+    customTo: string
+    setCustomTo: (v: string) => void
+    data: AdminActivityResponse | null
+    loading: boolean
+    error: boolean
+    points: ActivityPoint[]
+    granularity: ActivityGranularity
+    locale: string
+}
+
+/** Shared range + data source for all the per-metric charts. */
+export function useActivityData(): ActivityController {
     const [range, setRange] = useState<RangeKey>("7d")
     const [customFrom, setCustomFrom] = useState("")
     const [customTo, setCustomTo] = useState("")
@@ -107,7 +121,6 @@ export default function AdminActivityChart() {
         }
     }, [])
 
-    // Resolve the active [from, to] window from the chosen range.
     useEffect(() => {
         if (range === "custom") {
             if (!customFrom || !customTo) return
@@ -122,109 +135,81 @@ export default function AdminActivityChart() {
         fetchData(from, to)
     }, [range, customFrom, customTo, fetchData])
 
-    const points: ActivityPoint[] = useMemo(() => data?.points ?? [], [data])
+    const points = useMemo(() => data?.points ?? [], [data])
     const granularity = data?.granularity ?? "day"
 
+    return {
+        range,
+        setRange,
+        customFrom,
+        setCustomFrom,
+        customTo,
+        setCustomTo,
+        data,
+        loading,
+        error,
+        points,
+        granularity,
+        locale,
+    }
+}
+
+/** Shared range buttons + custom date inputs. */
+export function ActivityRangeControls({ c }: { c: ActivityController }) {
+    const t = useTranslations("Admin")
     return (
-        <div className='space-y-5'>
-            <div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
-                <div>
-                    <div className='flex items-center gap-2 text-amber-400/80'>
-                        <Activity className='h-4 w-4' />
-                        <span className='text-xs font-medium uppercase tracking-wider'>
-                            {t("activityLabel")}
-                        </span>
-                    </div>
-                    <h2 className='mt-1.5 font-serif text-xl font-semibold text-white'>
-                        {t("activityTitle")}
-                    </h2>
-                </div>
-
-                <div className='flex flex-col items-start gap-2 sm:items-end'>
-                    <div className='flex flex-wrap gap-1.5'>
-                        {RANGES.map((r) => (
-                            <button
-                                key={r}
-                                type='button'
-                                onClick={() => setRange(r)}
-                                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                                    range === r
-                                        ? "bg-amber-400/20 text-amber-200 ring-1 ring-amber-400/40"
-                                        : "text-white/55 hover:bg-white/5 hover:text-white/80"
-                                }`}
-                            >
-                                {t(`range_${r}`)}
-                            </button>
-                        ))}
-                    </div>
-                    {range === "custom" ? (
-                        <div className='flex flex-wrap items-center gap-2 text-sm'>
-                            <input
-                                type='date'
-                                value={customFrom}
-                                max={customTo || toISODate(new Date())}
-                                onChange={(e) => setCustomFrom(e.target.value)}
-                                className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
-                            />
-                            <span className='text-white/40'>—</span>
-                            <input
-                                type='date'
-                                value={customTo}
-                                min={customFrom}
-                                max={toISODate(new Date())}
-                                onChange={(e) => setCustomTo(e.target.value)}
-                                className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
-                            />
-                        </div>
-                    ) : null}
-                </div>
+        <div className='flex flex-col items-start gap-2'>
+            <div className='flex flex-wrap gap-1.5'>
+                {RANGES.map((r) => (
+                    <button
+                        key={r}
+                        type='button'
+                        onClick={() => c.setRange(r)}
+                        className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                            c.range === r
+                                ? "bg-amber-400/20 text-amber-200 ring-1 ring-amber-400/40"
+                                : "text-white/55 hover:bg-white/5 hover:text-white/80"
+                        }`}
+                    >
+                        {t(`range_${r}`)}
+                    </button>
+                ))}
             </div>
-
-            {error ? (
-                <div className='flex h-40 items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-400/5 text-sm text-rose-200/80'>
-                    {t("listError")}
+            {c.range === "custom" ? (
+                <div className='flex flex-wrap items-center gap-2 text-sm'>
+                    <input
+                        type='date'
+                        value={c.customFrom}
+                        max={c.customTo || toISODate(new Date())}
+                        onChange={(e) => c.setCustomFrom(e.target.value)}
+                        className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
+                    />
+                    <span className='text-white/40'>—</span>
+                    <input
+                        type='date'
+                        value={c.customTo}
+                        min={c.customFrom}
+                        max={toISODate(new Date())}
+                        onChange={(e) => c.setCustomTo(e.target.value)}
+                        className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
+                    />
                 </div>
-            ) : (
-                <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
-                    {METRIC_KEYS.map((k) => (
-                        <MetricChart
-                            key={k}
-                            metric={k}
-                            color={METRIC_COLOR[k]}
-                            label={t(k)}
-                            total={data?.totals[k] ?? null}
-                            points={points}
-                            granularity={granularity}
-                            locale={locale}
-                            loading={loading && !data}
-                        />
-                    ))}
-                </div>
-            )}
+            ) : null}
         </div>
     )
 }
 
-function MetricChart({
+/** A single metric's trend, designed to sit directly under its stat card. */
+export function MetricChart({
     metric,
-    color,
-    label,
-    total,
-    points,
-    granularity,
-    locale,
-    loading,
+    c,
 }: {
     metric: MetricKey
-    color: string
-    label: string
-    total: number | null
-    points: ActivityPoint[]
-    granularity: ActivityGranularity
-    locale: string
-    loading: boolean
+    c: ActivityController
 }) {
     const t = useTranslations("Admin")
+    const { points, granularity, locale, loading, error } = c
+    const color = METRIC_COLOR[metric]
     const [hover, setHover] = useState<number | null>(null)
     const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -259,16 +244,10 @@ function MetricChart({
     const areaPath = useMemo(() => {
         if (points.length === 0) return ""
         const baseY = yFor(0)
-        const top = points
-            .map(
-                (p, i) =>
-                    `${i === 0 ? "M" : "L"}${xFor(i).toFixed(1)},${yFor(p[metric]).toFixed(1)}`,
-            )
-            .join(" ")
         const lastX = xFor(points.length - 1)
         const firstX = xFor(0)
-        return `${top} L${lastX.toFixed(1)},${baseY.toFixed(1)} L${firstX.toFixed(1)},${baseY.toFixed(1)} Z`
-    }, [points, metric, xFor, yFor])
+        return `${linePath} L${lastX.toFixed(1)},${baseY.toFixed(1)} L${firstX.toFixed(1)},${baseY.toFixed(1)} Z`
+    }, [linePath, points.length, xFor, yFor])
 
     const yTicks = useMemo(() => {
         const n = 3
@@ -297,176 +276,159 @@ function MetricChart({
     )
 
     const gradId = `area-${metric}`
+    const showLoading = loading && !c.data
 
     return (
-        <div className='rounded-2xl border border-white/10 bg-white/[0.02] p-4'>
-            <div className='flex items-center justify-between gap-2'>
-                <div className='flex items-center gap-2'>
-                    <span
-                        className='inline-block h-2.5 w-2.5 rounded-full'
-                        style={{ backgroundColor: color }}
-                    />
-                    <span className='text-sm font-medium text-white/75'>
-                        {label}
-                    </span>
+        <div
+            ref={wrapRef}
+            className='relative px-1'
+            onMouseMove={onMove}
+            onMouseLeave={() => setHover(null)}
+        >
+            {error ? (
+                <div className='flex h-[120px] items-center justify-center text-xs text-rose-200/70'>
+                    {t("listError")}
                 </div>
-                {total != null ? (
-                    <span className='font-serif text-lg font-semibold text-white'>
-                        {total.toLocaleString()}
-                    </span>
-                ) : null}
-            </div>
-
-            <div
-                ref={wrapRef}
-                className='relative mt-2'
-                onMouseMove={onMove}
-                onMouseLeave={() => setHover(null)}
-            >
-                {loading ? (
-                    <div className='flex h-[150px] items-center justify-center text-white/40'>
-                        <Loader2 className='h-5 w-5 animate-spin' />
-                    </div>
-                ) : points.length === 0 ? (
-                    <div className='flex h-[150px] items-center justify-center text-xs text-white/40'>
-                        {t("listEmpty")}
-                    </div>
-                ) : (
-                    <>
-                        <svg
-                            viewBox={`0 0 ${W} ${H}`}
-                            className='w-full'
-                            style={{ height: "auto" }}
-                            preserveAspectRatio='none'
-                        >
-                            <defs>
-                                <linearGradient
-                                    id={gradId}
-                                    x1='0'
-                                    y1='0'
-                                    x2='0'
-                                    y2='1'
-                                >
-                                    <stop
-                                        offset='0%'
-                                        stopColor={color}
-                                        stopOpacity={0.28}
-                                    />
-                                    <stop
-                                        offset='100%'
-                                        stopColor={color}
-                                        stopOpacity={0}
-                                    />
-                                </linearGradient>
-                            </defs>
-
-                            {yTicks.map((v, i) => {
-                                const y = yFor(v)
-                                return (
-                                    <g key={i}>
-                                        <line
-                                            x1={PAD.left}
-                                            y1={y}
-                                            x2={W - PAD.right}
-                                            y2={y}
-                                            stroke='rgba(255,255,255,0.07)'
-                                            strokeWidth={1}
-                                        />
-                                        <text
-                                            x={PAD.left - 6}
-                                            y={y + 3}
-                                            textAnchor='end'
-                                            fontSize={9}
-                                            fill='rgba(255,255,255,0.4)'
-                                        >
-                                            {Math.round(v)}
-                                        </text>
-                                    </g>
-                                )
-                            })}
-
-                            {xTickIdx.map((idx) => (
-                                <text
-                                    key={idx}
-                                    x={xFor(idx)}
-                                    y={H - 9}
-                                    textAnchor='middle'
-                                    fontSize={9}
-                                    fill='rgba(255,255,255,0.4)'
-                                >
-                                    {formatTick(
-                                        points[idx].date,
-                                        granularity,
-                                        locale,
-                                    )}
-                                </text>
-                            ))}
-
-                            <path d={areaPath} fill={`url(#${gradId})`} />
-
-                            {hover != null ? (
-                                <line
-                                    x1={xFor(hover)}
-                                    y1={PAD.top}
-                                    x2={xFor(hover)}
-                                    y2={PAD.top + PLOT_H}
-                                    stroke='rgba(255,255,255,0.25)'
-                                    strokeWidth={1}
-                                    strokeDasharray='3 3'
+            ) : showLoading ? (
+                <div className='flex h-[120px] items-center justify-center text-white/40'>
+                    <Loader2 className='h-5 w-5 animate-spin' />
+                </div>
+            ) : points.length === 0 ? (
+                <div className='flex h-[120px] items-center justify-center text-xs text-white/40'>
+                    {t("listEmpty")}
+                </div>
+            ) : (
+                <>
+                    <svg
+                        viewBox={`0 0 ${W} ${H}`}
+                        className='w-full'
+                        style={{ height: "auto" }}
+                        preserveAspectRatio='none'
+                    >
+                        <defs>
+                            <linearGradient
+                                id={gradId}
+                                x1='0'
+                                y1='0'
+                                x2='0'
+                                y2='1'
+                            >
+                                <stop
+                                    offset='0%'
+                                    stopColor={color}
+                                    stopOpacity={0.28}
                                 />
-                            ) : null}
-
-                            <path
-                                d={linePath}
-                                fill='none'
-                                stroke={color}
-                                strokeWidth={2}
-                                strokeLinejoin='round'
-                                strokeLinecap='round'
-                                vectorEffect='non-scaling-stroke'
-                            />
-
-                            {hover != null ? (
-                                <circle
-                                    cx={xFor(hover)}
-                                    cy={yFor(points[hover][metric])}
-                                    r={3.5}
-                                    fill={color}
+                                <stop
+                                    offset='100%'
+                                    stopColor={color}
+                                    stopOpacity={0}
                                 />
-                            ) : null}
-                        </svg>
+                            </linearGradient>
+                        </defs>
+
+                        {yTicks.map((v, i) => {
+                            const y = yFor(v)
+                            return (
+                                <g key={i}>
+                                    <line
+                                        x1={PAD.left}
+                                        y1={y}
+                                        x2={W - PAD.right}
+                                        y2={y}
+                                        stroke='rgba(255,255,255,0.07)'
+                                        strokeWidth={1}
+                                    />
+                                    <text
+                                        x={PAD.left - 6}
+                                        y={y + 3}
+                                        textAnchor='end'
+                                        fontSize={9}
+                                        fill='rgba(255,255,255,0.4)'
+                                    >
+                                        {Math.round(v)}
+                                    </text>
+                                </g>
+                            )
+                        })}
+
+                        {xTickIdx.map((idx) => (
+                            <text
+                                key={idx}
+                                x={xFor(idx)}
+                                y={H - 8}
+                                textAnchor='middle'
+                                fontSize={9}
+                                fill='rgba(255,255,255,0.4)'
+                            >
+                                {formatTick(points[idx].date, granularity, locale)}
+                            </text>
+                        ))}
+
+                        <path d={areaPath} fill={`url(#${gradId})`} />
 
                         {hover != null ? (
-                            <div
-                                className='pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-lg border border-white/15 bg-slate-900/95 px-2.5 py-1.5 text-xs shadow-xl'
-                                style={{ left: `${(xFor(hover) / W) * 100}%` }}
-                            >
-                                <div className='font-medium text-white/70'>
-                                    {new Date(
-                                        points[hover].date,
-                                    ).toLocaleDateString(locale, {
+                            <line
+                                x1={xFor(hover)}
+                                y1={PAD.top}
+                                x2={xFor(hover)}
+                                y2={PAD.top + PLOT_H}
+                                stroke='rgba(255,255,255,0.25)'
+                                strokeWidth={1}
+                                strokeDasharray='3 3'
+                            />
+                        ) : null}
+
+                        <path
+                            d={linePath}
+                            fill='none'
+                            stroke={color}
+                            strokeWidth={2}
+                            strokeLinejoin='round'
+                            strokeLinecap='round'
+                            vectorEffect='non-scaling-stroke'
+                        />
+
+                        {hover != null ? (
+                            <circle
+                                cx={xFor(hover)}
+                                cy={yFor(points[hover][metric])}
+                                r={3.5}
+                                fill={color}
+                            />
+                        ) : null}
+                    </svg>
+
+                    {hover != null ? (
+                        <div
+                            className='pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-lg border border-white/15 bg-slate-900/95 px-2.5 py-1.5 text-xs shadow-xl'
+                            style={{ left: `${(xFor(hover) / W) * 100}%` }}
+                        >
+                            <div className='font-medium text-white/70'>
+                                {new Date(points[hover].date).toLocaleDateString(
+                                    locale,
+                                    {
                                         year: "numeric",
                                         month: "short",
                                         day:
                                             granularity === "month"
                                                 ? undefined
                                                 : "numeric",
-                                    })}
-                                </div>
-                                <div className='mt-0.5 flex items-center gap-2 whitespace-nowrap'>
-                                    <span
-                                        className='inline-block h-2 w-2 rounded-full'
-                                        style={{ backgroundColor: color }}
-                                    />
-                                    <span className='font-medium text-white'>
-                                        {points[hover][metric].toLocaleString()}
-                                    </span>
-                                </div>
+                                    },
+                                )}
                             </div>
-                        ) : null}
-                    </>
-                )}
-            </div>
+                            <div className='mt-0.5 flex items-center gap-2 whitespace-nowrap'>
+                                <span
+                                    className='inline-block h-2 w-2 rounded-full'
+                                    style={{ backgroundColor: color }}
+                                />
+                                <span className='font-medium text-white'>
+                                    {points[hover][metric].toLocaleString()}
+                                </span>
+                            </div>
+                        </div>
+                    ) : null}
+                </>
+            )}
         </div>
     )
 }

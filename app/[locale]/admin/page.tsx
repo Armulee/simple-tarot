@@ -1,20 +1,34 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { Card } from "@/components/ui/card"
 import { Link } from "@/i18n/navigation"
 import { useAdmin } from "@/contexts/admin-context"
 import { BarChart3, Users, UserCheck, FileText, CreditCard } from "lucide-react"
-import AdminActivityChart from "@/components/admin/activity-chart"
+import {
+    ActivityRangeControls,
+    MetricChart,
+    useActivityData,
+} from "@/components/admin/activity-chart"
+import type { MetricKey } from "@/lib/admin/activity-metrics"
 
 export default function AdminDashboardPage() {
     const t = useTranslations("Admin")
     const metrics = useAdmin()
+    const activity = useActivityData()
 
     if (!metrics) return null
 
-    const cards = [
+    const cards: {
+        metric: MetricKey
+        label: string
+        value: number
+        icon: typeof Users
+        href: string
+        gradient: string
+        border: string
+    }[] = [
         {
+            metric: "totalUsers",
             label: t("totalUsers"),
             value: metrics.totalUsers,
             icon: Users,
@@ -23,6 +37,7 @@ export default function AdminDashboardPage() {
             border: "border-violet-500/20",
         },
         {
+            metric: "anonymousUsers",
             label: t("anonymousUsers"),
             value: metrics.anonymousUsers,
             icon: Users,
@@ -31,6 +46,7 @@ export default function AdminDashboardPage() {
             border: "border-slate-500/20",
         },
         {
+            metric: "authenticatedUsers",
             label: t("authenticatedUsers"),
             value: metrics.authenticatedUsers,
             icon: UserCheck,
@@ -39,6 +55,7 @@ export default function AdminDashboardPage() {
             border: "border-emerald-500/20",
         },
         {
+            metric: "interpretations",
             label: t("interpretations"),
             value: metrics.interpretationCount,
             icon: FileText,
@@ -47,6 +64,7 @@ export default function AdminDashboardPage() {
             border: "border-amber-500/20",
         },
         {
+            metric: "paidSubscribers",
             label: t("paidSubscribers"),
             value: metrics.paidSubscribers,
             icon: CreditCard,
@@ -58,7 +76,7 @@ export default function AdminDashboardPage() {
 
     return (
         <div className="min-h-screen px-6 py-16">
-            <div className="mx-auto max-w-5xl space-y-10">
+            <div className="mx-auto max-w-5xl space-y-8">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <div className="flex items-center gap-2 text-amber-400/80">
@@ -81,34 +99,53 @@ export default function AdminDashboardPage() {
                     </Link>
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {cards.map(({ label, value, icon: Icon, gradient, border, href }) => (
-                        <Link key={label} href={href} className="group block">
-                            <Card
-                                className={`relative overflow-hidden border ${border} bg-gradient-to-br ${gradient} p-6 transition-all group-hover:scale-[1.02] group-hover:border-white/25 group-hover:shadow-lg group-hover:shadow-black/20`}
-                            >
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <p className="text-sm font-medium text-white/60">
-                                            {label}
-                                        </p>
-                                        <p className="mt-2 font-serif text-3xl font-semibold text-white">
-                                            {value.toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <div className="rounded-lg bg-white/5 p-2.5">
-                                        <Icon className="h-5 w-5 text-white/70" />
-                                    </div>
-                                </div>
-                                <span className="absolute bottom-4 right-5 text-white/30 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-white/60 group-hover:opacity-100">
-                                    →
-                                </span>
-                            </Card>
-                        </Link>
-                    ))}
+                {/* Shared time-range filter for every stat's chart. */}
+                <div className="flex justify-end">
+                    <ActivityRangeControls c={activity} />
                 </div>
 
-                <AdminActivityChart />
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {cards.map(
+                        ({
+                            metric,
+                            label,
+                            value,
+                            icon: Icon,
+                            gradient,
+                            border,
+                            href,
+                        }) => (
+                            <div
+                                key={metric}
+                                className={`flex flex-col overflow-hidden rounded-xl border ${border} bg-gradient-to-br ${gradient}`}
+                            >
+                                <Link href={href} className="group block">
+                                    <div className="relative p-6 transition-all group-hover:bg-white/[0.03]">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <p className="text-sm font-medium text-white/60">
+                                                    {label}
+                                                </p>
+                                                <p className="mt-2 font-serif text-3xl font-semibold text-white">
+                                                    {value.toLocaleString()}
+                                                </p>
+                                            </div>
+                                            <div className="rounded-lg bg-white/5 p-2.5">
+                                                <Icon className="h-5 w-5 text-white/70" />
+                                            </div>
+                                        </div>
+                                        <span className="absolute bottom-4 right-5 text-white/30 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-white/60 group-hover:opacity-100">
+                                            →
+                                        </span>
+                                    </div>
+                                </Link>
+                                <div className="border-t border-white/[0.06] pb-3 pt-2">
+                                    <MetricChart metric={metric} c={activity} />
+                                </div>
+                            </div>
+                        ),
+                    )}
+                </div>
             </div>
         </div>
     )
