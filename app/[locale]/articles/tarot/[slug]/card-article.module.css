@@ -12,8 +12,8 @@
     --mist-dim: #6f6e91;
     --accent: #c8a86a;
     --accent-soft: #e6d2a3;
-    --glow: rgba(214, 180, 116, 0.32);
-    --wash: rgba(200, 168, 106, 0.12);
+    /* card aura — soft neutral moonlight, not gold */
+    --glow: rgba(173, 182, 224, 0.24);
     --serif: var(--font-cormorant), Georgia, serif;
     --sans: var(--font-manrope), system-ui, sans-serif;
     --maxw: 1080px;
@@ -33,8 +33,7 @@
 .root[data-orientation="reversed"] {
     --accent: #a9b6c9;
     --accent-soft: #d3dae5;
-    --glow: rgba(160, 180, 210, 0.26);
-    --wash: rgba(150, 170, 200, 0.1);
+    --glow: rgba(150, 175, 215, 0.26);
     --line: rgba(169, 182, 201, 0.18);
     --line-strong: rgba(169, 182, 201, 0.36);
 }
@@ -47,8 +46,7 @@
     pointer-events: none;
     z-index: 0;
     background:
-        radial-gradient(90% 46% at 50% 0%, var(--wash), transparent 62%),
-        radial-gradient(120% 80% at 50% -12%, rgba(120, 110, 180, 0.1), transparent 60%),
+        radial-gradient(120% 70% at 50% -12%, rgba(120, 116, 180, 0.12), transparent 58%),
         radial-gradient(90% 60% at 50% 120%, rgba(60, 60, 120, 0.1), transparent 60%);
     transition: background 0.8s var(--ease);
 }
@@ -138,7 +136,7 @@
 /* ---------- hero ---------- */
 .hero {
     display: grid;
-    grid-template-columns: minmax(0, 300px) 1fr;
+    grid-template-columns: minmax(0, 230px) 1fr;
     gap: clamp(28px, 5vw, 64px);
     align-items: center;
     padding: clamp(40px, 7vw, 84px) 0 clamp(28px, 4vw, 44px);
@@ -193,9 +191,9 @@
 .cardFrame {
     position: relative;
     width: 100%;
-    max-width: 300px;
-    padding: 10px;
-    border-radius: 22px;
+    max-width: 230px;
+    padding: 9px;
+    border-radius: 20px;
     background: linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
     border: 1px solid var(--line);
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) inset;
@@ -303,7 +301,7 @@
     color: var(--accent);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     margin-bottom: 18px;
     transition: color 0.6s var(--ease);
 }
@@ -363,11 +361,11 @@
 .lede {
     font-family: var(--serif);
     font-style: italic;
-    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
-    color: var(--mist);
-    max-width: 34ch;
+    font-size: clamp(1.2rem, 2.4vw, 1.5rem);
+    color: #c6c4dc;
+    max-width: 36ch;
     margin: 0 0 26px;
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .chips {
@@ -871,8 +869,16 @@
     .eyebrow {
         justify-content: center;
     }
+    /* symmetric flanking lines when centered: — LABEL — */
+    .eyebrow::before {
+        content: "";
+        flex: 1;
+        height: 1px;
+        max-width: 80px;
+        background: linear-gradient(90deg, transparent, var(--line-strong));
+    }
     .eyebrow::after {
-        display: none;
+        max-width: 80px;
     }
     .lede {
         margin-left: auto;

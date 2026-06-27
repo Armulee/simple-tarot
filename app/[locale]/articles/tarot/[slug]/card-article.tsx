@@ -157,7 +157,7 @@ export function CardArticle(props: CardArticleProps) {
                                             : props.cardName
                                     }
                                     fill
-                                    sizes='(max-width: 860px) 70vw, 300px'
+                                    sizes='230px'
                                     priority
                                 />
                                 <span className={styles.sheen} aria-hidden='true' />
