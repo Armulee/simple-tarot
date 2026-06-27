@@ -1,20 +1,16 @@
 "use client"
 
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Activity, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { supabase } from "@/lib/supabase"
-import type {
-    AdminActivityResponse,
-    ActivityGranularity,
-    ActivityPoint,
-} from "@/app/api/admin/activity/route"
+import {
+    METRIC_KEYS,
+    type AdminActivityResponse,
+    type ActivityGranularity,
+    type ActivityPoint,
+    type MetricKey,
+} from "@/lib/admin/activity-metrics"
 
 type RangeKey = "7d" | "1m" | "3m" | "6m" | "1y" | "5y" | "custom"
 
@@ -29,15 +25,20 @@ const RANGE_DAYS: Record<Exclude<RangeKey, "custom">, number> = {
 
 const RANGES: RangeKey[] = ["7d", "1m", "3m", "6m", "1y", "5y", "custom"]
 
+const METRIC_COLOR: Record<MetricKey, string> = {
+    totalUsers: "#a78bfa", // violet-400
+    anonymousUsers: "#94a3b8", // slate-400
+    authenticatedUsers: "#34d399", // emerald-400
+    interpretations: "#fbbf24", // amber-400
+    paidSubscribers: "#fb7185", // rose-400
+}
+
 // SVG coordinate space (scaled responsively via viewBox).
 const W = 760
-const H = 260
+const H = 280
 const PAD = { top: 16, right: 18, bottom: 30, left: 44 }
 const PLOT_W = W - PAD.left - PAD.right
 const PLOT_H = H - PAD.top - PAD.bottom
-
-const PLAYS_COLOR = "#fbbf24" // amber-400
-const SIGNUPS_COLOR = "#34d399" // emerald-400
 
 function toISODate(d: Date): string {
     const p = (n: number) => (n < 10 ? `0${n}` : `${n}`)
@@ -76,44 +77,38 @@ export default function AdminActivityChart() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
     const [hover, setHover] = useState<number | null>(null)
+    const [hidden, setHidden] = useState<Set<MetricKey>>(new Set())
     const wrapRef = useRef<HTMLDivElement>(null)
 
     const locale =
         typeof navigator !== "undefined" ? navigator.language : "en-US"
 
-    const fetchData = useCallback(
-        async (fromISO: string, toISO: string) => {
-            setLoading(true)
-            setError(false)
-            try {
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession()
-                if (!session) {
-                    setError(true)
-                    return
-                }
-                const res = await fetch(
-                    `/api/admin/activity?from=${fromISO}&to=${toISO}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${session.access_token}`,
-                        },
-                    },
-                )
-                if (!res.ok) {
-                    setError(true)
-                    return
-                }
-                setData((await res.json()) as AdminActivityResponse)
-            } catch {
+    const fetchData = useCallback(async (fromISO: string, toISO: string) => {
+        setLoading(true)
+        setError(false)
+        try {
+            const {
+                data: { session },
+            } = await supabase.auth.getSession()
+            if (!session) {
                 setError(true)
-            } finally {
-                setLoading(false)
+                return
             }
-        },
-        [],
-    )
+            const res = await fetch(
+                `/api/admin/activity?from=${fromISO}&to=${toISO}`,
+                { headers: { Authorization: `Bearer ${session.access_token}` } },
+            )
+            if (!res.ok) {
+                setError(true)
+                return
+            }
+            setData((await res.json()) as AdminActivityResponse)
+        } catch {
+            setError(true)
+        } finally {
+            setLoading(false)
+        }
+    }, [])
 
     // Resolve the active [from, to] window from the chosen range.
     useEffect(() => {
@@ -130,17 +125,20 @@ export default function AdminActivityChart() {
         fetchData(from, to)
     }, [range, customFrom, customTo, fetchData])
 
-    const points: ActivityPoint[] = useMemo(
-        () => data?.points ?? [],
-        [data],
-    )
+    const points: ActivityPoint[] = useMemo(() => data?.points ?? [], [data])
     const granularity = data?.granularity ?? "day"
+
+    const visibleKeys = useMemo(
+        () => METRIC_KEYS.filter((k) => !hidden.has(k)),
+        [hidden],
+    )
 
     const maxY = useMemo(() => {
         let m = 0
-        for (const p of points) m = Math.max(m, p.plays, p.signups)
+        for (const p of points)
+            for (const k of visibleKeys) m = Math.max(m, p[k])
         return niceCeil(m || 1)
-    }, [points])
+    }, [points, visibleKeys])
 
     const xFor = useCallback(
         (i: number) => {
@@ -155,7 +153,7 @@ export default function AdminActivityChart() {
     )
 
     const linePath = useCallback(
-        (key: "plays" | "signups") => {
+        (key: MetricKey) => {
             if (points.length === 0) return ""
             return points
                 .map(
@@ -186,16 +184,24 @@ export default function AdminActivityChart() {
             const rect = wrapRef.current?.getBoundingClientRect()
             if (!rect) return
             const xFrac = (e.clientX - rect.left) / rect.width
-            // Map pixel fraction into plot coordinates → nearest index.
-            const plotFrac =
-                (xFrac * W - PAD.left) / PLOT_W
+            const plotFrac = (xFrac * W - PAD.left) / PLOT_W
             const idx = Math.round(plotFrac * (points.length - 1))
             setHover(Math.max(0, Math.min(points.length - 1, idx)))
         },
         [points.length],
     )
 
-    const totals = data?.totals ?? { plays: 0, signups: 0 }
+    const toggle = useCallback((key: MetricKey) => {
+        setHidden((prev) => {
+            const next = new Set(prev)
+            // Keep at least one series visible.
+            if (next.has(key)) next.delete(key)
+            else if (next.size < METRIC_KEYS.length - 1) next.add(key)
+            return next
+        })
+    }, [])
+
+    const totals = data?.totals
 
     return (
         <div className='rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6'>
@@ -251,30 +257,37 @@ export default function AdminActivityChart() {
                 </div>
             ) : null}
 
-            {/* Legend + totals */}
-            <div className='mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm'>
-                <span className='flex items-center gap-2'>
-                    <span
-                        className='inline-block h-2.5 w-2.5 rounded-full'
-                        style={{ backgroundColor: PLAYS_COLOR }}
-                    />
-                    <span className='text-white/70'>{t("activityPlays")}</span>
-                    <span className='font-medium text-white'>
-                        {totals.plays.toLocaleString()}
-                    </span>
-                </span>
-                <span className='flex items-center gap-2'>
-                    <span
-                        className='inline-block h-2.5 w-2.5 rounded-full'
-                        style={{ backgroundColor: SIGNUPS_COLOR }}
-                    />
-                    <span className='text-white/70'>
-                        {t("activitySignups")}
-                    </span>
-                    <span className='font-medium text-white'>
-                        {totals.signups.toLocaleString()}
-                    </span>
-                </span>
+            {/* Legend — click a metric to toggle its line. */}
+            <div className='mt-4 flex flex-wrap gap-x-4 gap-y-2'>
+                {METRIC_KEYS.map((k) => {
+                    const isHidden = hidden.has(k)
+                    return (
+                        <button
+                            key={k}
+                            type='button'
+                            onClick={() => toggle(k)}
+                            className={`flex items-center gap-2 text-sm transition-opacity ${
+                                isHidden ? "opacity-35" : "opacity-100"
+                            }`}
+                        >
+                            <span
+                                className='inline-block h-2.5 w-2.5 rounded-full'
+                                style={{
+                                    backgroundColor: METRIC_COLOR[k],
+                                    ...(isHidden
+                                        ? { filter: "grayscale(1)" }
+                                        : {}),
+                                }}
+                            />
+                            <span className='text-white/70'>{t(k)}</span>
+                            {totals ? (
+                                <span className='font-medium text-white'>
+                                    {totals[k].toLocaleString()}
+                                </span>
+                            ) : null}
+                        </button>
+                    )
+                })}
             </div>
 
             {/* Chart */}
@@ -285,15 +298,15 @@ export default function AdminActivityChart() {
                 onMouseLeave={() => setHover(null)}
             >
                 {error ? (
-                    <div className='flex h-[260px] items-center justify-center rounded-xl border border-rose-400/20 bg-rose-400/5 text-sm text-rose-200/80'>
+                    <div className='flex h-[280px] items-center justify-center rounded-xl border border-rose-400/20 bg-rose-400/5 text-sm text-rose-200/80'>
                         {t("listError")}
                     </div>
                 ) : loading && !data ? (
-                    <div className='flex h-[260px] items-center justify-center text-white/40'>
+                    <div className='flex h-[280px] items-center justify-center text-white/40'>
                         <Loader2 className='h-6 w-6 animate-spin' />
                     </div>
                 ) : points.length === 0 ? (
-                    <div className='flex h-[260px] items-center justify-center text-sm text-white/40'>
+                    <div className='flex h-[280px] items-center justify-center text-sm text-white/40'>
                         {t("listEmpty")}
                     </div>
                 ) : (
@@ -361,52 +374,39 @@ export default function AdminActivityChart() {
                                 />
                             ) : null}
 
-                            {/* Lines */}
-                            <path
-                                d={linePath("plays")}
-                                fill='none'
-                                stroke={PLAYS_COLOR}
-                                strokeWidth={2}
-                                strokeLinejoin='round'
-                                strokeLinecap='round'
-                                vectorEffect='non-scaling-stroke'
-                            />
-                            <path
-                                d={linePath("signups")}
-                                fill='none'
-                                stroke={SIGNUPS_COLOR}
-                                strokeWidth={2}
-                                strokeLinejoin='round'
-                                strokeLinecap='round'
-                                vectorEffect='non-scaling-stroke'
-                            />
+                            {/* Lines (only visible metrics) */}
+                            {visibleKeys.map((k) => (
+                                <path
+                                    key={k}
+                                    d={linePath(k)}
+                                    fill='none'
+                                    stroke={METRIC_COLOR[k]}
+                                    strokeWidth={2}
+                                    strokeLinejoin='round'
+                                    strokeLinecap='round'
+                                    vectorEffect='non-scaling-stroke'
+                                />
+                            ))}
 
                             {/* Hover dots */}
-                            {hover != null ? (
-                                <>
-                                    <circle
-                                        cx={xFor(hover)}
-                                        cy={yFor(points[hover].plays)}
-                                        r={3.5}
-                                        fill={PLAYS_COLOR}
-                                    />
-                                    <circle
-                                        cx={xFor(hover)}
-                                        cy={yFor(points[hover].signups)}
-                                        r={3.5}
-                                        fill={SIGNUPS_COLOR}
-                                    />
-                                </>
-                            ) : null}
+                            {hover != null
+                                ? visibleKeys.map((k) => (
+                                      <circle
+                                          key={k}
+                                          cx={xFor(hover)}
+                                          cy={yFor(points[hover][k])}
+                                          r={3.5}
+                                          fill={METRIC_COLOR[k]}
+                                      />
+                                  ))
+                                : null}
                         </svg>
 
                         {/* Tooltip */}
                         {hover != null ? (
                             <div
                                 className='pointer-events-none absolute top-2 z-10 -translate-x-1/2 rounded-lg border border-white/15 bg-slate-900/95 px-3 py-2 text-xs shadow-xl'
-                                style={{
-                                    left: `${(xFor(hover) / W) * 100}%`,
-                                }}
+                                style={{ left: `${(xFor(hover) / W) * 100}%` }}
                             >
                                 <div className='mb-1 font-medium text-white/80'>
                                     {new Date(
@@ -420,32 +420,26 @@ export default function AdminActivityChart() {
                                                 : "numeric",
                                     })}
                                 </div>
-                                <div className='flex items-center gap-2 whitespace-nowrap'>
-                                    <span
-                                        className='inline-block h-2 w-2 rounded-full'
-                                        style={{ backgroundColor: PLAYS_COLOR }}
-                                    />
-                                    <span className='text-white/60'>
-                                        {t("activityPlays")}
-                                    </span>
-                                    <span className='ml-auto font-medium text-white'>
-                                        {points[hover].plays.toLocaleString()}
-                                    </span>
-                                </div>
-                                <div className='mt-0.5 flex items-center gap-2 whitespace-nowrap'>
-                                    <span
-                                        className='inline-block h-2 w-2 rounded-full'
-                                        style={{
-                                            backgroundColor: SIGNUPS_COLOR,
-                                        }}
-                                    />
-                                    <span className='text-white/60'>
-                                        {t("activitySignups")}
-                                    </span>
-                                    <span className='ml-auto font-medium text-white'>
-                                        {points[hover].signups.toLocaleString()}
-                                    </span>
-                                </div>
+                                {visibleKeys.map((k) => (
+                                    <div
+                                        key={k}
+                                        className='flex items-center gap-2 whitespace-nowrap'
+                                    >
+                                        <span
+                                            className='inline-block h-2 w-2 rounded-full'
+                                            style={{
+                                                backgroundColor:
+                                                    METRIC_COLOR[k],
+                                            }}
+                                        />
+                                        <span className='text-white/60'>
+                                            {t(k)}
+                                        </span>
+                                        <span className='ml-auto pl-3 font-medium text-white'>
+                                            {points[hover][k].toLocaleString()}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
                         ) : null}
 

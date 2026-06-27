@@ -1,29 +1,20 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import { supabaseAdmin } from "@/lib/supabase"
+import {
+    type ActivityGranularity,
+    type ActivityPoint,
+    type AdminActivityResponse,
+    type MetricKey,
+} from "@/lib/admin/activity-metrics"
 
 type AdminClient = NonNullable<typeof supabaseAdmin>
 
 export const dynamic = "force-dynamic"
 
-export type ActivityGranularity = "day" | "week" | "month"
-
-export type ActivityPoint = {
-    /** Bucket start as an ISO date (UTC midnight / month start). */
-    date: string
-    plays: number
-    signups: number
-}
-
-export type AdminActivityResponse = {
-    granularity: ActivityGranularity
-    points: ActivityPoint[]
-    totals: { plays: number; signups: number }
-}
-
 const DAY_MS = 24 * 60 * 60 * 1000
 const PAGE = 1000
-const MAX_PAGES = 60 // safety cap (≤ 60k rows per series)
+const MAX_PAGES = 60 // safety cap (≤ 60k rows per query)
 
 function pad(n: number): string {
     return n < 10 ? `0${n}` : `${n}`
@@ -80,7 +71,9 @@ function enumerateBuckets(
         const end = startOfMonthUTC(to)
         while (cur <= end) {
             out.push({ key: monthKey(cur), date: cur.toISOString() })
-            cur = new Date(Date.UTC(cur.getUTCFullYear(), cur.getUTCMonth() + 1, 1))
+            cur = new Date(
+                Date.UTC(cur.getUTCFullYear(), cur.getUTCMonth() + 1, 1),
+            )
         }
         return out
     }
@@ -94,26 +87,29 @@ function enumerateBuckets(
     return out
 }
 
-/** Page through a table's created_at within [fromISO, toISO). */
-async function fetchCreatedAts(
+type Row = { created_at: string | null; user_id?: string | null }
+
+/** Page through a table's rows within [fromISO, toISO). */
+async function fetchRows(
     admin: AdminClient,
     table: string,
+    columns: string,
     fromISO: string,
     toISO: string,
-): Promise<string[]> {
-    const out: string[] = []
+): Promise<Row[]> {
+    const out: Row[] = []
     for (let page = 0; page < MAX_PAGES; page++) {
         const offset = page * PAGE
         const { data, error } = await admin
             .from(table)
-            .select("created_at")
+            .select(columns)
             .gte("created_at", fromISO)
             .lt("created_at", toISO)
             .order("created_at", { ascending: true })
             .range(offset, offset + PAGE - 1)
         if (error) throw error
-        const rows = (data ?? []) as { created_at: string | null }[]
-        for (const r of rows) if (r.created_at) out.push(r.created_at)
+        const rows = (data ?? []) as unknown as Row[]
+        out.push(...rows)
         if (rows.length < PAGE) break
     }
     return out
@@ -129,7 +125,6 @@ export async function GET(request: NextRequest) {
     const toParam = sp.get("to")
     const fromParam = sp.get("from")
 
-    // `to` is exclusive of the following day so "today" is fully included.
     const toDate = toParam ? new Date(toParam) : now
     const fromDate = fromParam
         ? new Date(fromParam)
@@ -141,6 +136,8 @@ export async function GET(request: NextRequest) {
     // Normalise to whole-day boundaries; query window is [fromStart, toEnd).
     const fromStart = startOfDayUTC(fromDate)
     const toEndExclusive = new Date(startOfDayUTC(toDate).getTime() + DAY_MS)
+    const fromISO = fromStart.toISOString()
+    const toISO = toEndExclusive.toISOString()
     const spanDays = Math.max(
         1,
         Math.round((toEndExclusive.getTime() - fromStart.getTime()) / DAY_MS),
@@ -148,18 +145,15 @@ export async function GET(request: NextRequest) {
     const granularity = pickGranularity(spanDays)
 
     try {
-        const [playAts, signupAts] = await Promise.all([
-            fetchCreatedAts(
+        const [stars, sessions, subs] = await Promise.all([
+            fetchRows(admin, "stars", "created_at, user_id", fromISO, toISO),
+            fetchRows(admin, "chat_sessions", "created_at", fromISO, toISO),
+            fetchRows(
                 admin,
-                "chat_sessions",
-                fromStart.toISOString(),
-                toEndExclusive.toISOString(),
-            ),
-            fetchCreatedAts(
-                admin,
-                "profiles",
-                fromStart.toISOString(),
-                toEndExclusive.toISOString(),
+                "billing_subscriptions",
+                "created_at",
+                fromISO,
+                toISO,
             ),
         ])
 
@@ -167,22 +161,41 @@ export async function GET(request: NextRequest) {
         const index = new Map<string, number>()
         const points: ActivityPoint[] = buckets.map((b, i) => {
             index.set(b.key, i)
-            return { date: b.date, plays: 0, signups: 0 }
+            return {
+                date: b.date,
+                totalUsers: 0,
+                anonymousUsers: 0,
+                authenticatedUsers: 0,
+                interpretations: 0,
+                paidSubscribers: 0,
+            }
         })
 
-        for (const iso of playAts) {
-            const i = index.get(bucketKeyFor(iso, granularity))
-            if (i !== undefined) points[i].plays++
-        }
-        for (const iso of signupAts) {
-            const i = index.get(bucketKeyFor(iso, granularity))
-            if (i !== undefined) points[i].signups++
+        const totals: Record<MetricKey, number> = {
+            totalUsers: 0,
+            anonymousUsers: 0,
+            authenticatedUsers: 0,
+            interpretations: 0,
+            paidSubscribers: 0,
         }
 
-        const totals = {
-            plays: playAts.length,
-            signups: signupAts.length,
+        const bump = (iso: string | null, key: MetricKey) => {
+            if (!iso) return
+            const i = index.get(bucketKeyFor(iso, granularity))
+            if (i === undefined) return
+            points[i][key]++
+            totals[key]++
         }
+
+        // Stars rows are "users"; split into anonymous vs authenticated so
+        // anonymous + authenticated always reconciles to total.
+        for (const r of stars) {
+            bump(r.created_at, "totalUsers")
+            if (r.user_id) bump(r.created_at, "authenticatedUsers")
+            else bump(r.created_at, "anonymousUsers")
+        }
+        for (const r of sessions) bump(r.created_at, "interpretations")
+        for (const r of subs) bump(r.created_at, "paidSubscribers")
 
         return NextResponse.json(
             { granularity, points, totals } satisfies AdminActivityResponse,
