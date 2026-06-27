@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { Link } from "@/i18n/navigation"
 import { CardQuestionInput } from "./card-question-input"
@@ -46,8 +46,6 @@ export type CardArticleProps = {
         theReading: string
         continue: string
         readArticle: string
-        askHeading: string
-        askSubtitle: string
         askPlaceholder: string
         orientationGroup: string
         yesNo: string
@@ -101,6 +99,21 @@ export function CardArticle(props: CardArticleProps) {
     const [fading, setFading] = useState(false)
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+    // Keep the page clear of the fixed composer bar at the bottom (like home).
+    const barRef = useRef<HTMLDivElement>(null)
+    const [barHeight, setBarHeight] = useState(0)
+    useEffect(() => {
+        const el = barRef.current
+        if (!el) return
+        const ro = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setBarHeight(entry.contentRect.height)
+            }
+        })
+        ro.observe(el)
+        return () => ro.disconnect()
+    }, [])
+
     const view = content === "upright" ? upright : reversed
 
     const choose = useCallback(
@@ -135,11 +148,16 @@ export function CardArticle(props: CardArticleProps) {
         `${styles.swap}${fading ? ` ${styles.out}` : ""}${extra ? ` ${extra}` : ""}`
 
     return (
-        <div className={styles.root} data-orientation={orientation}>
-            {/* top hint pointing at the orientation toggle below */}
-            <header className={styles.head}>
-                <div className={styles.headMeta}>{props.topHint}</div>
-            </header>
+        <>
+            <div
+                className={styles.root}
+                data-orientation={orientation}
+                style={{ paddingBottom: barHeight ? barHeight + 8 : undefined }}
+            >
+                {/* top hint pointing at the orientation toggle below */}
+                <header className={styles.head}>
+                    <div className={styles.headMeta}>{props.topHint}</div>
+                </header>
 
             <main className={styles.wrap}>
                 {/* HERO — centered column: toggle → name → card → lede */}
@@ -267,17 +285,6 @@ export function CardArticle(props: CardArticleProps) {
                     </div>
                 </section>
 
-                {/* ASK — home-style composer to start a reading */}
-                <section className={styles.ask}>
-                    <div className={styles.sectionHead}>
-                        <span className={styles.num}>✦</span>
-                        <h2>{labels.askHeading}</h2>
-                        <span className={styles.rule} aria-hidden='true' />
-                    </div>
-                    <p className={styles.askSubtitle}>{labels.askSubtitle}</p>
-                    <CardQuestionInput placeholder={labels.askPlaceholder} />
-                </section>
-
                 {/* SUGGESTED */}
                 <section className={styles.more}>
                     <div className={styles.sectionHead}>
@@ -299,10 +306,21 @@ export function CardArticle(props: CardArticleProps) {
                 </section>
             </main>
 
-            {/* slim footer */}
-            <footer className={styles.foot}>
-                <div>{labels.rights}</div>
-            </footer>
-        </div>
+                {/* slim footer */}
+                <footer className={styles.foot}>
+                    <div>{labels.rights}</div>
+                </footer>
+            </div>
+
+            {/* fixed composer bar pinned to the bottom of the viewport (like home) */}
+            <div
+                ref={barRef}
+                className='fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 pb-3'
+            >
+                <div className='mx-auto w-full max-w-2xl px-4'>
+                    <CardQuestionInput placeholder={labels.askPlaceholder} />
+                </div>
+            </div>
+        </>
     )
 }

@@ -259,8 +259,6 @@ export default async function TarotCardArticlePage({
                     theReading: t("theReading"),
                     continue: t("continue"),
                     readArticle: t("readArticle"),
-                    askHeading: t("askHeading"),
-                    askSubtitle: t("askSubtitle", { card: card.name }),
                     askPlaceholder: t("askPlaceholder"),
                     orientationGroup: t("orientationGroup"),
                     yesNo: t("yesNo"),
