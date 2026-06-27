@@ -1,6 +1,9 @@
 import { generateObject } from "ai"
 import { z } from "zod"
-import type { PromptRedactionType } from "@/lib/privacy/prompt-redaction"
+import {
+    looksLikeCalendarDate,
+    type PromptRedactionType,
+} from "@/lib/privacy/prompt-redaction"
 
 const MODEL = "openai/gpt-4o-mini"
 
@@ -49,6 +52,7 @@ Categories:
 Rules:
 - Return ONLY items that genuinely look like PII. Do NOT redact standalone first names/nicknames, common nouns, zodiac signs, planets, tarot terms, deities, places, country names, days,
   months, weekdays, or generic relationships.
+- DATES OF BIRTH AND OTHER CALENDAR DATES ARE NOT PII. Never redact a calendar date in any format — e.g. "1990-04-12", "12/03/2025", "12.03.2025", "12-03-2025", "12 มี.ค. 2533", "12 มีนาคม 2568", "March 12, 1990", "Jan 5 1990" — regardless of how many digits the year contains or whether it looks phone-like. A horoscope feature reads dates of birth from the chat, so they must survive sanitisation.
 - REPETITIVE DIGITS: Never redact as phone, national_id, card, or passport any substring where, after removing spaces/dashes/punctuation, every digit is the same (e.g. "8888888888", "0000 0000", "99-99-99-99-99"). Such patterns are not realistic identifiers.
 - Each entry's "original" must be the EXACT substring as it appears in the
   user's text (preserve case, accents, scripts). Do NOT add quotes.
@@ -111,6 +115,15 @@ function filterTrivialRepetitiveNumbers(items: RawRedaction[]): RawRedaction[] {
     })
 }
 
+/**
+ * The LLM occasionally flags a date of birth (e.g. "1990-04-12") as a phone
+ * or national ID. Strip those — the horoscope extractor reads birthdates from
+ * the chat and they must survive sanitisation.
+ */
+function filterCalendarDates(items: RawRedaction[]): RawRedaction[] {
+    return items.filter((item) => !looksLikeCalendarDate(item.original))
+}
+
 export async function POST(req: Request) {
     let text = ""
     try {
@@ -152,8 +165,10 @@ export async function POST(req: Request) {
             maxRetries: 0,
         })
 
-        const redactions = filterTrivialRepetitiveNumbers(
-            dedupeAndFilter(object.redactions, text),
+        const redactions = filterCalendarDates(
+            filterTrivialRepetitiveNumbers(
+                dedupeAndFilter(object.redactions, text),
+            ),
         )
         const redactionTypes = Array.from(
             new Set(redactions.map((r) => r.type)),

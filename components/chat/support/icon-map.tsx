@@ -2,6 +2,7 @@
 
 import {
     BookOpen,
+    Calendar as CalendarIcon,
     Compass,
     CreditCard,
     HelpCircle,
@@ -37,6 +38,7 @@ export const SUPPORT_ICON_MAP: Record<string, LucideIcon> = {
     user: User,
     settings: Settings,
     info: Info,
+    calendar: CalendarIcon,
     "credit-card": CreditCard,
     compass: Compass,
     "log-in": LogIn,

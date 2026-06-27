@@ -6,8 +6,10 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -124,20 +126,11 @@ OUTPUT FORMAT:
 You MUST return a single valid JSON object that exactly matches the provided schema. Do not add any text outside the JSON.
 `
 
-function detectQuestionLanguage(text: string): string {
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[぀-ヿ一-鿿]/.test(text)) return "Japanese"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return "English"
-}
-
 function buildPrompt(
     body: z.infer<typeof requestSchema>,
     astrologyBlock: string,
 ) {
-    const { question, isFollowUp, history, contextSummary } = body
+    const { question, isFollowUp, history, contextSummary, locale } = body
     const historyText =
         history && history.length
             ? history
@@ -151,18 +144,19 @@ function buildPrompt(
             ? `Session context (previous readings / interactions):\n${contextSummary.trim()}\n\n`
             : ""
 
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(locale, question)
     const astrologySection = astrologyBlock ? `${astrologyBlock}\n\n` : ""
 
     return `
-${contextBlock}${astrologySection}Recent conversation:
+${contextBlock}${astrologySection}Recent conversation (background only):
 ${historyText}
 
-User message:
+Current user message (ANSWER THIS):
 ${question}
 
 Is follow-up: ${isFollowUp ? "yes" : "no"}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of the conversation history.
+ANSWER TARGET: Answer the CURRENT user message above. The recent conversation and session context are background only — use them to understand what an ambiguous message refers to; never re-answer an older question from them.
 
 Read the message together with the astrology context above and write the inner-energy reflection now. ANSWER what they asked, basing the answer on the active astrology_activities aspects, and weave in exactly ONE short, real astrological reference (the transit planet + the natal planet it touches) as the "why", then translate it to feeling. Lean into intuition when the message is vague or no astrology is supplied.
 `
@@ -189,6 +183,7 @@ export async function POST(req: Request) {
             schema: generalReplySchema,
             system: GENERAL_REPLY_SYSTEM_PROMPT,
             prompt: buildPrompt(body, astrologyContext?.promptBlock ?? ""),
+            providerOptions: deepseekThinking(false),
             onFinish: ({ object }) => {
                 const incoming = summarizePrivacyPlaceholdersInText(
                     body.question,

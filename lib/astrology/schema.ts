@@ -225,7 +225,7 @@ export const horoscopeInterpretationSchema = z.object({
         .max(4)
         .default([])
         .describe(
-            "3–4 very short, casual follow-up prompts the user might ask next (single line each; conversational, not textbook). Write in the same language as the question.",
+            "3–4 follow-up QUESTIONS the user would tap to ask next, written in the user's own voice and ending like a question (\"...ไหม\" / \"...เมื่อไหร่\" / \"...?\"). NOT advice or to-do items and NOT a restatement of the conclusion — never tell the user what to do; ask what they'd want to know next. Single line each, casual, all differing in angle. Write in the same language as the question.",
         ),
     relevance: z
         .array(

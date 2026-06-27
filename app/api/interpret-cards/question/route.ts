@@ -12,17 +12,10 @@ import {
     normalizeConversationContext,
 } from "@/lib/astrology/question-context"
 import { isSensitiveQuestionDomain } from "@/lib/chat/situation-schema"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
-
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
+const MODEL = "deepseek/deepseek-v4-pro"
 
 export async function POST(req: Request) {
     try {
@@ -134,7 +127,7 @@ ${prompt}`
             }
         }
 
-        const lang = detectQuestionLanguage(question)
+        const lang = resolveResponseLanguage(body.locale, question)
         const hasPriorReadingForFollowUp =
             Boolean(isFollowUp) &&
             typeof previousInterpretation === "string" &&
@@ -159,10 +152,12 @@ FOLLOW-UP — PRIOR READING IS BACKGROUND ONLY:
             // tarot reading "pop in" all at once instead of streaming.
             mode: "json",
             temperature: 0.6,
+            providerOptions: deepseekThinking(false),
             schema: tarotInterpretationSchema,
             system: TAROT_SYSTEM_PROMPT,
             prompt: `${prompt}
 
+ANSWER TARGET: The reading must answer the user's CURRENT question — the <current_question> block when present, otherwise <user_question>. Session context, conversation history, and any previous question/interpretation in the prompt are background only: use them to resolve what an ambiguous current question refers to, never as the question to answer. If history and the current question conflict, the current question wins.
 LANGUAGE: The user's question is in ${lang}. You MUST write ALL output fields (cardInsights, headline, subtitle, keyMessage, detailedHtml, perCard.sentence, nextStep, keywords, interpretation, conclusion, suggestions) in ${lang}. EMIT THE KEYS IN THIS EXACT DECLARATION ORDER so the streaming UI fills in matching sections in the same order they appear on screen (hero card quotes → headline → subtitle → keyMessage → detailedHtml → perCard → nextStep → keywords → interpretation → conclusion → suggestions). The only exception is perCard[i].cardName, which MUST echo the input card name verbatim. The card_energies and reading_direction are English internal data — translate them into ${lang}. NEVER output English when the question is in ${lang}. For the detailedHtml field, write the human-visible text content in ${lang} while keeping HTML tag names (p, span, etc.) and the literal class name "highlight-gold" in English. detailedHtml must NEVER name or quote a tarot card title (no "The Hermit", "Three of Swords", Thai card titles, etc.) — only meanings and energy in plain language, same rule as interpretation body.
 ${followUpPriorGuard}
 CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it as your answer skeleton.
@@ -193,9 +188,11 @@ CRITICAL NARRATOR RULE: If a <reading_direction> is provided, you MUST follow it
   - keyMessage = headline + ' ' + subtitle (joined into one short paragraph).
   - interpretation = perCard[].sentence joined together with spaces as one short paragraph.
   - conclusion = nextStep (verbatim).
+- suggestions are the NEXT QUESTIONS the user would tap to ASK next — write each as a question in the user's own voice (first person). Tapping a chip sends it as their next message, so it MUST read like a question, ending with "?" or a natural Thai question word (ไหม / มั้ย / ปะ / ยังไง / เมื่อไหร่ / ใคร).
+- suggestions are NOT advice, action items, or a to-do list, and NOT a restatement of nextStep / conclusion. NEVER tell the user what to DO. Bad (advice): "จัดโต๊ะทำงานใหม่", "ทำกับข้าวกินเอง", "Rearrange your desk", "Save more money". Good (questions): "ย้ายโต๊ะทำงานแล้วจะดีขึ้นไหม", "เดือนนี้การเงินจะรอดไหม", "Should I switch desks for focus?", "Will my savings hold this month?".
 - suggestions MUST contain EXACTLY 3–4 items — never fewer than 3, never more than 4.
-- Each suggestion must be VERY short (aim ≤8 Thai words or ≤6 English words), one line, like something a friend would text — not a long formal question.
-- All suggestions MUST be clearly different angles (different topic, perspective, or scope). They MUST NOT be paraphrases or near-rephrasings of each other.
+- Each suggestion must be short (aim ≤10 Thai words or ≤8 English words), one line, casual spoken phrasing — like something the user would actually text the oracle.
+- All suggestions MUST be clearly different angles (different topic, timing, person, or scope). They MUST NOT be paraphrases or near-rephrasings of each other.
 - suggestions must stay generic and user-relatable rather than depending on the exact wording of the generated reading.
 - suggestions must NOT quote or closely paraphrase the generated headline, subtitle, perCard, nextStep, keyMessage, interpretation, or conclusion.
 - TONE: Write like you're texting a close friend who reads patterns and energy — never as a judge declaring an absolute truth. In Thai, use casual language (ลอง, เวิร์ค, ปัง, เน้น, จัดเลย). AVOID formal/translated phrasing (ฉันรู้สึกว่า, การรักษาความยุติธรรม, ประสบความสำเร็จ, สะท้อนกลับมา).`,

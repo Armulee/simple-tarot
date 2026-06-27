@@ -27,17 +27,29 @@ const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
     tarot: "border-purple-400/30 focus:border-purple-400/60 focus:ring-purple-400/30",
     horoscope:
         "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
+    oracle: "border-amber-300/40 focus:border-amber-300/70 focus:ring-amber-300/30",
 }
 
 /** Shared with homepage quick cards so composer chips match exactly. */
 export const followUpChipClass =
-    "swiper-no-swiping inline-flex max-w-[min(92vw,20rem)] shrink-0 items-center whitespace-nowrap rounded-lg border border-white/12 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl px-3 py-1.5 text-left text-xs leading-tight text-white/80 transition-colors hover:border-white/28 hover:from-indigo-500/25 hover:via-purple-500/25 hover:to-cyan-500/25 hover:text-white cursor-pointer"
+    "inline-flex max-w-[min(92vw,20rem)] shrink-0 items-center whitespace-nowrap rounded-lg border border-white/12 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl px-3 py-1.5 text-left text-xs leading-tight text-white/80 transition-colors hover:border-white/28 hover:from-indigo-500/25 hover:via-purple-500/25 hover:to-cyan-500/25 hover:text-white cursor-pointer touch-pan-x"
 
 const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
     auto: "shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]",
     chat: "shadow-[0_10px_30px_-10px_rgba(52,211,153,0.3)]",
     tarot: "shadow-[0_10px_30px_-10px_rgba(168,85,247,0.3)]",
     horoscope: "shadow-[0_10px_30px_-10px_rgba(96,165,250,0.3)]",
+    oracle: "shadow-[0_10px_30px_-10px_rgba(252,211,77,0.35)]",
+}
+
+function chipKeyDown(
+    event: React.KeyboardEvent<HTMLDivElement>,
+    action: () => void,
+) {
+    if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault()
+        action()
+    }
 }
 
 export type ComposerFollowUpsProps = {
@@ -69,6 +81,7 @@ export default function QuestionInput({
     composerSettings,
     composerFollowUps,
     actionTrigger,
+    statusStrip,
     disclaimerText,
     showDisclaimer = true,
     error,
@@ -96,6 +109,12 @@ export default function QuestionInput({
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
+    /**
+     * Transient status display (e.g. share-image download progress). When
+     * set, it takes over the composer chrome row that normally hosts the
+     * follow-up suggestion strip / action trigger.
+     */
+    statusStrip?: React.ReactNode
     disclaimerText?: string
     showDisclaimer?: boolean
     error?: React.ReactNode
@@ -128,7 +147,8 @@ export default function QuestionInput({
     const showBottomChrome =
         actionTrigger != null ||
         composerFollowUps != null ||
-        composerSettings != null
+        composerSettings != null ||
+        statusStrip != null
 
     const handleStartReading = () => {
         const currentValue =
@@ -257,7 +277,8 @@ export default function QuestionInput({
                 </div>
                 <Swiper
                     modules={[FreeMode, Mousewheel]}
-                    noSwiping
+                    noSwiping={false}
+                    touchEventsTarget='container'
                     freeMode={{
                         enabled: true,
                         momentum: true,
@@ -270,16 +291,22 @@ export default function QuestionInput({
                     }}
                     slidesPerView='auto'
                     spaceBetween={8}
-                    className='composer-follow-up-swiper w-full !overflow-visible'
+                    className='composer-follow-up-swiper w-full touch-pan-x !overflow-visible'
                 >
                     {followUpItems.map((s, idx) => (
                         <SwiperSlide
                             key={`${composerFollowUps.messageId}-fu-${idx}`}
                             className='!w-auto !flex-shrink-0 min-w-0'
                         >
-                            <button
-                                type='button'
+                            <div
+                                role='button'
+                                tabIndex={0}
                                 onClick={() => composerFollowUps.onSelect(s)}
+                                onKeyDown={(e) =>
+                                    chipKeyDown(e, () =>
+                                        composerFollowUps.onSelect(s),
+                                    )
+                                }
                                 className={followUpChipClass}
                             >
                                 <CornerDownRight
@@ -292,7 +319,7 @@ export default function QuestionInput({
                                         aliases={aliases}
                                     />
                                 </span>
-                            </button>
+                            </div>
                         </SwiperSlide>
                     ))}
                 </Swiper>
@@ -369,7 +396,7 @@ export default function QuestionInput({
                     <div
                         className={`flex flex-col transition-[max-width] duration-500 ease-in-out ${inputWrapperClassName}`}
                     >
-                        {followUpRow ?? actionTrigger}
+                        {statusStrip ?? followUpRow ?? actionTrigger}
                         {inputContent}
                     </div>
                     {showDisclaimer && disclaimerText && (

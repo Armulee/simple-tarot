@@ -35,7 +35,8 @@ import type {
     MonthKey,
     TransitDayFetchState,
 } from "./types"
-import { monthKey } from "./utils"
+import { formatMonthHeading, monthKey } from "./utils"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import {
     AuthGateCard,
     BirthGateCard,
@@ -46,7 +47,34 @@ import {
     MonthOverview,
 } from "./ui"
 
-export default function CalendarClient() {
+type CalendarClientProps = {
+    /**
+     * When true, render only the calendar grid (with a compact prev/next
+     * month chip and auth/birth gates when applicable) — no Header,
+     * MonthOverview, DetailPanel, LockedPaywallDialog, or
+     * PageContextComposer.
+     */
+    embedded?: boolean
+    /**
+     * Embedded only. When provided, day clicks call this handler with the
+     * Date the user picked (and the loaded DayData if available) instead
+     * of triggering the paywall dialog / detail panel. Used by the inline
+     * horoscope calendar tool.
+     */
+    onDayClick?: (date: Date, dayData: DayData | null) => void
+    /**
+     * Embedded only. Externally-controlled "selected" highlight on the
+     * grid. When provided this overrides the internal selection state so
+     * the visual reflects whatever the parent is tracking.
+     */
+    selectedDateOverride?: Date | null
+}
+
+export default function CalendarClient({
+    embedded = false,
+    onDayClick,
+    selectedDateOverride,
+}: CalendarClientProps = {}) {
     const locale = useLocale()
     const tCalendar = useTranslations("Calendar")
     const { user, loading: authLoading } = useAuth()
@@ -396,7 +424,32 @@ export default function CalendarClient() {
         return !isDateAccessible(selectedDate)
     }, [selectedDate, today, isDateAccessible])
 
+    const canGoPrevMonth = useMemo(() => {
+        if (!embedded || !viewMonth || !today) return true
+        if (!Number.isFinite(windowDays)) return true
+        const candidate = new Date(viewMonth.year, viewMonth.month - 1, 1)
+        return !isMonthFullyOutsideWindow(
+            candidate.getFullYear(),
+            candidate.getMonth(),
+            today,
+            windowDays,
+        )
+    }, [embedded, viewMonth, today, windowDays])
+
+    const canGoNextMonth = useMemo(() => {
+        if (!embedded || !viewMonth || !today) return true
+        if (!Number.isFinite(windowDays)) return true
+        const candidate = new Date(viewMonth.year, viewMonth.month + 1, 1)
+        return !isMonthFullyOutsideWindow(
+            candidate.getFullYear(),
+            candidate.getMonth(),
+            today,
+            windowDays,
+        )
+    }, [embedded, viewMonth, today, windowDays])
+
     const goPrevMonth = () => {
+        if (!canGoPrevMonth) return
         setViewMonth((prev) => {
             if (!prev) return prev
             const d = new Date(prev.year, prev.month - 1, 1)
@@ -405,6 +458,7 @@ export default function CalendarClient() {
     }
 
     const goNextMonth = () => {
+        if (!canGoNextMonth) return
         setViewMonth((prev) => {
             if (!prev) return prev
             const d = new Date(prev.year, prev.month + 1, 1)
@@ -436,46 +490,100 @@ export default function CalendarClient() {
         [tCalendar],
     )
 
+    const outerClass = embedded
+        ? "relative isolate overflow-x-hidden"
+        : "relative isolate min-h-[calc(100dvh-64px)] overflow-x-hidden pb-[220px]"
+    const innerClass = embedded
+        ? "relative w-full space-y-5"
+        : "relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8"
+
+    const effectiveSelected = embedded
+        ? (selectedDateOverride ?? selectedDate)
+        : selectedDate
+    const renderGrid = (
+        <CalendarGrid
+            matrix={monthMatrix}
+            today={today}
+            selectedDate={effectiveSelected}
+            onSelect={(d) => {
+                if (embedded) {
+                    if (onDayClick) {
+                        const iso = toLocalIsoDate(d)
+                        const dayData = daysMap?.[iso] ?? null
+                        onDayClick(d, dayData)
+                    }
+                    return
+                }
+                if (today && !isDateAccessible(d)) {
+                    setLockedPaywallDate(d)
+                    return
+                }
+                setSelectedDate(d)
+            }}
+            unlockedDates={unlockedDates}
+            daysMap={daysMap}
+            windowDays={windowDays}
+            loading={currentMonthState?.status === "loading"}
+            error={
+                currentMonthState?.status === "error"
+                    ? currentMonthState.message
+                    : null
+            }
+        />
+    )
+
     return (
-        <div className='relative isolate min-h-[calc(100dvh-64px)] overflow-x-hidden pb-[220px]'>
-            <div className='relative max-w-6xl mx-auto px-4 lg:px-6 py-8 lg:py-14 space-y-6 lg:space-y-8'>
-                <Header
-                    viewMonth={viewMonth}
-                    onPrev={goPrevMonth}
-                    onNext={goNextMonth}
-                    todayData={todayData}
-                />
+        <div className={outerClass}>
+            <div className={innerClass}>
+                {embedded ? (
+                    <div className='flex items-center justify-between gap-2'>
+                        <button
+                            type='button'
+                            onClick={goPrevMonth}
+                            disabled={!canGoPrevMonth}
+                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/[0.04]'
+                            aria-label={tCalendar("prevMonth")}
+                        >
+                            <ChevronLeft className='h-4 w-4' />
+                        </button>
+                        <div className='text-sm font-medium text-white'>
+                            {viewMonth
+                                ? formatMonthHeading(
+                                      locale,
+                                      viewMonth.year,
+                                      viewMonth.month,
+                                  )
+                                : "—"}
+                        </div>
+                        <button
+                            type='button'
+                            onClick={goNextMonth}
+                            disabled={!canGoNextMonth}
+                            className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/80 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white/[0.04]'
+                            aria-label={tCalendar("nextMonth")}
+                        >
+                            <ChevronRight className='h-4 w-4' />
+                        </button>
+                    </div>
+                ) : (
+                    <Header
+                        viewMonth={viewMonth}
+                        onPrev={goPrevMonth}
+                        onNext={goNextMonth}
+                        todayData={todayData}
+                    />
+                )}
 
                 {showAuthGate ? (
                     <AuthGateCard />
                 ) : showBirthGate ? (
                     <BirthGateCard />
+                ) : embedded ? (
+                    renderGrid
                 ) : (
                     <>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-[1fr_400px] lg:gap-8'>
-                            <CalendarGrid
-                                matrix={monthMatrix}
-                                today={today}
-                                selectedDate={selectedDate}
-                                onSelect={(d) => {
-                                    if (today && !isDateAccessible(d)) {
-                                        setLockedPaywallDate(d)
-                                        return
-                                    }
-                                    setSelectedDate(d)
-                                }}
-                                unlockedDates={unlockedDates}
-                                daysMap={daysMap}
-                                windowDays={windowDays}
-                                loading={
-                                    currentMonthState?.status === "loading"
-                                }
-                                error={
-                                    currentMonthState?.status === "error"
-                                        ? currentMonthState.message
-                                        : null
-                                }
-                            />
+                            {renderGrid}
                             <MonthOverview overview={monthOverview} />
                             <DetailPanel
                                 data={selectedDayData}
@@ -508,13 +616,15 @@ export default function CalendarClient() {
                     </>
                 )}
             </div>
-            {calendarOriginContext ? (
+            {!embedded ? (
                 <PageContextComposer
                     originContext={calendarOriginContext}
                     placeholder={tCalendar("composerPlaceholder")}
                     suggestions={calendarSuggestions}
+                    onClearContext={() => setSelectedDate(null)}
                 />
             ) : null}
+            {!embedded ? (
             <LockedPaywallDialog
                 open={lockedPaywallDate !== null}
                 onOpenChange={(open) => {
@@ -547,6 +657,7 @@ export default function CalendarClient() {
                     setLockedPaywallDate(null)
                 }}
             />
+            ) : null}
         </div>
     )
 }

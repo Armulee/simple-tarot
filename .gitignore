@@ -46,3 +46,6 @@ askingfate-launch-heygen.mp4
 .heygen-astra-video-agent.log
 .heygen-launch-video-agent.log
 heygen-video-log.jsonl
+
+# i18n batch-translation temp files
+messages/_work_*.json

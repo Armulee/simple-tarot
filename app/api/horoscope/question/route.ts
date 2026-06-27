@@ -6,7 +6,9 @@ import {
     resolveBirthTime,
 } from "@/lib/astrology/intake"
 import { horoscopeInterpretationSchema } from "@/lib/astrology/schema"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 import { getHoroscopeInterpretationPrompt } from "@/lib/prompts"
+import { deepseekThinking } from "@/lib/chat/model-options"
 import {
     hydrateQuestionTimeRange,
     questionTimeRangePayloadSchema,
@@ -40,19 +42,10 @@ import {
 // Chart data (with aspects) is now served separately via /api/horoscope/chart-data.
 // This route only streams the AI interpretation.
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3
-
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
 
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
@@ -243,7 +236,7 @@ export async function POST(req: Request) {
         )
         const conversationContextText = conversationContext?.contextText ?? ""
 
-        const questionLang = detectQuestionLanguage(body.question)
+        const questionLang = resolveResponseLanguage(body.locale, body.question)
         const chartLocale =
             questionLang === "Thai" || questionLang === "Lao" ? "th" : "en"
 
@@ -391,6 +384,7 @@ export async function POST(req: Request) {
             // mode on DeepSeek, which buffers the whole JSON payload until the
             // tool call completes (the response then "pops in" all at once).
             mode: "json",
+            providerOptions: deepseekThinking(false),
             schema: horoscopeInterpretationSchema,
             system: `You are an expert astrologer who writes for a general audience with ZERO astrology knowledge.
 You respond as a female. Astra is a female oracle. Use feminine voice and perspective in all responses.
@@ -406,7 +400,7 @@ CRITICAL: When citing time periods, use dates in the SAME language as your outpu
 
 If the prompt includes a <calendar_recommendation> block, that block is the source of truth for any recommended single day. Follow its topCandidate date exactly and use the transit data only to explain why that day stands out.
 
-Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 very short, casual follow-up prompts the user could ask next — single line each, like quick texts, not long formal questions).`,
+Output structure: Provide interpretation (main reading), conclusion (short calming wrap-up), and suggestions (EXACTLY 3–4 follow-up QUESTIONS the user would tap to ask next — written in the user's own voice and ending like a question, e.g. "...ไหม" / "...เมื่อไหร่" / "...?"). suggestions are NOT advice or to-do items and NOT a restatement of the conclusion; never tell the user what to do — ask what they'd want to know next. Single line each, casual, all differing in angle.`,
             prompt,
             temperature: 0.6,
         })

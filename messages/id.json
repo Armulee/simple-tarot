@@ -1,0 +1,3149 @@
+{
+  "Navbar": {
+    "brand": "AskingFate",
+    "home": "Beranda",
+    "about": "Tentang",
+    "pricing": "Harga",
+    "newReading": "Bacaan Baru",
+    "signIn": "Masuk"
+  },
+  "Beta": {
+    "notice": "Kami masih dalam tahap beta! Kamu mungkin menemukan bug dan beberapa fitur masih dalam pengembangan."
+  },
+  "PageContextComposer": {
+    "eyebrow": "Konteks",
+    "hint": "konteks ini akan dikirim ke AI",
+    "error": "Maaf, terjadi kesalahan. Silakan coba lagi.",
+    "clear": "Clear context"
+  },
+  "Chat": {
+    "originContext": {
+      "attached": "Konteks terlampir: {label}"
+    }
+  },
+  "StarConsent": {
+    "modal": {
+      "eyebrow": "Sebelum menyibak takdirmu",
+      "noticeHeading": "Pemberitahuan & Persetujuan",
+      "languageLabel": "Bahasa",
+      "languageLoadingLabel": "Memuat terjemahan...",
+      "experienceSectionLabel": "Tentang pengalaman ini",
+      "experienceBody": "AskingFate menggunakan <b>Tarot</b> dan <b>Astrologi</b> (Barat & Veda) sebagai alat refleksi simbolik — bukan ramalan yang akurat — dan tidak dapat menggantikan saran profesional. Hasilnya mungkin <b>tidak selaras</b> dengan keyakinan pribadi atau agama.",
+      "liabilitySectionLabel": "Batasan Tanggung Jawab",
+      "liabilityBody": "Seluruh penafsiran, bacaan, dan analisis astrologi yang dihasilkan oleh layanan ini disediakan <b>semata-mata untuk tujuan hiburan dan refleksi diri pribadi</b>. Dalam keadaan apa pun, konten yang dihasilkan oleh AskingFate tidak boleh ditafsirkan sebagai nasihat profesional — baik medis, psikologis, finansial, hukum, maupun lainnya — dan tidak boleh dianggap sebagai pernyataan fakta objektif, kebenaran mutlak, atau penilaian definitif atas hal apa pun yang penting dalam kehidupan Pengguna. Pengguna dengan tegas mengakui bahwa setiap keputusan untuk bertindak berdasarkan, mengandalkan, atau memberikan bobot pada konten tersebut <b>tanpa verifikasi independen, bukti pendukung, atau bimbingan dari profesional yang berkualifikasi</b> sepenuhnya menjadi risiko Pengguna sendiri dan atas kebijaksanaannya sendiri. Penyedia, afiliasinya, pejabat, karyawan, dan agennya tidak menanggung <b>tanggung jawab apa pun</b> atas kerugian, kerusakan, atau konsekuensi merugikan — baik langsung, tidak langsung, insidental, konsekuensial, maupun lainnya — yang timbul dari ketergantungan tersebut. Selanjutnya, konten yang dihasilkan oleh layanan ini <b>tidak boleh dikutip, diajukan, dijadikan bukti, atau diandalkan dengan cara lain dalam proses hukum, yudisial, arbitrase, administratif, atau peraturan apa pun</b>, dan Penyedia menyangkal segala tanggung jawab atas setiap upaya untuk melakukannya.",
+      "religiousSectionLabel": "Kepekaan Agama & Budaya",
+      "religiousBody": "Layanan ini menggunakan ramalan tarot dan metodologi astrologi yang mungkin <b>tidak sesuai dengan, bertentangan dengan, atau secara tegas dilarang oleh</b> doktrin agama, hukum gerejawi, tradisi budaya, atau sistem keyakinan spiritual tertentu. Penyedia tidak membuat <b>pernyataan atau jaminan apa pun</b> mengenai kesesuaian layanan ini dengan tradisi iman, denominasi, sekte, atau tarekat keagamaan tertentu. Penyedia tidak bertanggung jawab atas konsekuensi apa pun yang timbul dari keterlibatan Pengguna dengan layanan ini, termasuk namun tidak terbatas pada <b>ekskomunikasi, teguran gerejawi, hukuman keagamaan, sanksi spiritual, kehilangan kedudukan dalam komunitas, tindakan disipliner yang dijatuhkan oleh otoritas keagamaan</b>, atau hasil merugikan lainnya yang dapat dikaitkan dengan partisipasi Pengguna. Dengan melanjutkan, Pengguna mengakui dan menerima tanggung jawab penuh untuk menentukan apakah penggunaan layanan ini selaras dengan kewajiban agama, keyakinan spiritual, dan standar komunitas Pengguna sendiri.",
+      "ageSectionLabel": "Kelayakan Usia",
+      "ageBody": "Layanan ini <b>tidak ditujukan untuk, dan tidak boleh digunakan oleh, anak-anak di bawah usia tiga belas (13) tahun</b>. Dengan melanjutkan, Pengguna menyatakan dan menjamin bahwa Pengguna berusia setidaknya tiga belas (13) tahun. Jika Pengguna berusia di bawah delapan belas (18) tahun, Pengguna hanya boleh menggunakan layanan ini dengan keterlibatan, pengawasan, dan persetujuan orang tua atau wali hukum, dan Penyedia dapat membatasi, menyaring, atau menahan fitur, perintah, atau respons tertentu sebagaimana mestinya.",
+      "safetySectionLabel": "Konten Sensitif & Moderasi",
+      "safetyBody": "Penyedia menghormati kebebasan berekspresi yang sah; namun, Penyedia berhak, atas kebijaksanaannya sendiri, untuk <b>menyaring, membatasi, menolak, atau memoderasi</b> perintah, respons, atau konten lain yang melibatkan materi seksual, ketelanjangan, eksploitasi, perawatan (grooming), pelecehan, melukai diri sendiri, bunuh diri, gangguan makan, penyalahgunaan zat, perilaku kriminal, pelecehan, perilaku kebencian, ekstremisme, atau kekerasan grafis. Untuk Pengguna di bawah usia delapan belas (18) tahun, standar moderasi akan menjadi <b>jauh lebih ketat</b>. Khususnya, respons kepada anak di bawah umur dapat dihilangkan, diringkas, disterilkan, atau ditolak apabila konten menyangkut tema seksual, anatomi eksplisit, fetisisme, perilaku intim, dinamika koersif, hubungan dewasa-anak, atau topik lain yang mungkin tidak aman, tidak sesuai usia, eksploitatif, atau melanggar hukum. Penyedia juga dapat menolak konten yang dapat memfasilitasi tindakan ilegal, mengeksploitasi kerentanan, atau membahayakan kesejahteraan fisik, mental, atau emosional anak di bawah umur.",
+      "legalLinksLabel": "Kebijakan terkait",
+      "privacyLink": "Kebijakan Privasi",
+      "termsLink": "Ketentuan Layanan",
+      "consentScrollRegionLabel": "Teks pemberitahuan dan persetujuan",
+      "scrollToEndHint": "Gulir ke bawah untuk melanjutkan.",
+      "checkboxMain": "Saya memahami penafian dan batasan tanggung jawab ini.",
+      "checkboxSub": "Saya memahami bahwa konten ini hanya untuk hiburan dan refleksi diri.",
+      "enterButton": "Masuk ke Bacaan"
+    },
+    "ageGate": {
+      "blockedTitle": "Akses tidak tersedia",
+      "blockedBody": "AskingFate tidak tersedia untuk anak-anak di bawah usia tiga belas (13) tahun. Berdasarkan tanggal lahir yang diberikan, perangkat ini saat ini tidak memenuhi syarat untuk menggunakan platform.",
+      "blockedSupportLabel": "Hubungi dukungan",
+      "blockedBirthLabel": "Tanggal lahir yang tercatat",
+      "gateTitle": "Penyusunan bagan kelahiran",
+      "gateIntro": "Sebelum melanjutkan, silakan masukkan tanggal lahirmu dan, jika diketahui, waktu lahirmu agar kami dapat menghitung bagan kelahiranmu serta memverifikasi batasan usia yang ditetapkan dalam kebijakan kami.",
+      "gateTimeNote": "Waktu lahir membantu meningkatkan akurasi bagan kelahiran. Jika kamu tidak mengetahuinya, kamu dapat membiarkannya sebagai 00:00 dan kami tetap akan menggunakan tanggal lahirmu untuk menerapkan kebijakan batasan usia kami.",
+      "optionalTimeLabel": "Waktu lahir (opsional)",
+      "optionalTimeHint": "Biarkan waktu sebagai 00:00 jika kamu tidak mengetahuinya.",
+      "optionalLocationLabel": "Lokasi (opsional)",
+      "optionalLocationHint": "Pilih negara dan provinsimu, atau izinkan deteksi lokasi untuk mengisinya secara otomatis demi akurasi horoskop.",
+      "detectLocationButton": "Deteksi lokasi",
+      "detectLocationLoading": "Mendeteksi...",
+      "detectLocationError": "Kami tidak dapat mendeteksi lokasimu. Kamu dapat memilihnya secara manual atau melanjutkan tanpanya.",
+      "scrollHint": "Gulir untuk detail opsional",
+      "statusSummary": "Kami menggunakan detail kelahiranmu untuk menghitung bagan kelahiranmu dan untuk menentukan apakah kamu diblokir karena di bawah 13 tahun, diklasifikasikan sebagai anak di bawah umur (13-17), atau diklasifikasikan sebagai dewasa (18+). Status tersebut akan disimpan secara lokal dan digunakan nanti untuk menerapkan perlindungan kebijakan yang sesuai.",
+      "invalidDateMessage": "Silakan masukkan tanggal lahir yang valid. Waktu lahir bersifat opsional, tetapi tanggalnya wajib diisi.",
+      "continueButton": "Lanjutkan",
+      "dayLabel": "Tanggal",
+      "monthLabel": "Bulan",
+      "yearLabel": "Tahun",
+      "hourLabel": "Jam",
+      "minuteLabel": "Menit",
+      "deletingAccount": "Menghapus akun karena batasan usia...",
+      "accountDeletedToast": "Akunmu telah dihapus karena kamu berusia di bawah 13 tahun.",
+      "accountDeletionFailedToast": "Kami tidak dapat menyelesaikan penghapusan akunmu. Silakan hubungi dukungan."
+    },
+    "cookies": {
+      "bannerTitle": "Preferensi cookie",
+      "bannerDescription": "Kami menggunakan cookie untuk meningkatkan pengalamanmu dan menganalisis lalu lintas.",
+      "managePreferences": "Kelola Preferensi",
+      "closePreferencesMenu": "Tutup menu preferensi",
+      "acceptAll": "Terima Semua",
+      "rejectAll": "Tolak Semua",
+      "savePreferences": "Simpan Preferensi",
+      "preferencesTitle": "Kelola kategori cookie",
+      "preferencesDescription": "Kategori non-esensial tetap nonaktif sampai kamu mengaktifkannya secara eksplisit.",
+      "essentialTitle": "Cookie esensial",
+      "essentialDescription": "Diperlukan untuk fungsi inti situs, sesi yang aman, dan kesinambungan saldo bintang anonim.",
+      "analyticsTitle": "Cookie analitik",
+      "analyticsDescription": "Mengizinkan Vercel Analytics yang ramah privasi agar kami dapat memahami lalu lintas dan menyempurnakan produk.",
+      "marketingTitle": "Cookie pemasaran",
+      "marketingDescription": "Disediakan untuk alat kampanye atau personalisasi di masa mendatang. Tidak ada skrip pemasaran yang berjalan kecuali kamu menyetujuinya.",
+      "alwaysOnLabel": "Selalu aktif",
+      "learnMoreLabel": "Pelajari lebih lanjut dalam Kebijakan Privasi kami"
+    }
+  },
+  "Admin": {
+    "title": "Dasbor Admin",
+    "subtitle": "Metrik langsung dari AskingFate",
+    "loading": "Memuat metrik...",
+    "notFoundTitle": "404",
+    "notFoundDescription": "Halaman ini tidak dapat ditemukan.",
+    "metricsError": "Gagal memuat metrik.",
+    "totalUsers": "Total pengguna",
+    "anonymousUsers": "Pengguna anonim",
+    "authenticatedUsers": "Pengguna terautentikasi",
+    "interpretations": "Penafsiran",
+    "paidSubscribers": "Pelanggan berbayar"
+  },
+  "Sidebar": {
+    "services": "Layanan",
+    "comingSoon": "Segera Hadir",
+    "privacyPolicy": "Kebijakan Privasi",
+    "termsOfService": "Ketentuan Layanan",
+    "home": "Beranda",
+    "about": "Tentang",
+    "pricing": "Harga",
+    "articles": "Artikel & Panduan",
+    "contactSupport": "Kontak & Dukungan",
+    "planOptions": "Pilihan paket",
+    "proTopUpOnly": "Pelanggan Pro dapat membeli tambahan bintang.",
+    "userMenu": "Pengguna"
+  },
+  "Services": {
+    "tarot": "Tarot",
+    "birthChart": "Bagan Kelahiran",
+    "astrology": "Astrologi",
+    "namelogy": "Namelogi",
+    "numerology": "Numerologi",
+    "luckyColors": "Warna Keberuntungan",
+    "palmistry": "Ramalan Telapak Tangan",
+    "fatedRelations": "Jodoh Takdir"
+  },
+  "Languages": {
+    "en": "English",
+    "th": "ไทย",
+    "lo": "ລາວ",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ja": "日本語",
+    "ko": "한국어",
+    "id": "Bahasa Indonesia",
+    "es": "Español",
+    "pt-BR": "Português (Brasil)",
+    "my": "မြန်မာ"
+  },
+  "Profile": {
+    "title": "Pengaturan Profil",
+    "subtitle": "Sesuaikan informasi profil dan preferensi bacaanmu untuk memperkaya perjalanan mistismu",
+    "authRequired": "Silakan masuk untuk mengakses profilmu",
+    "loading": "Memuat profil...",
+    "profileInformation": "Informasi Profil",
+    "fullName": "Nama Lengkap",
+    "fullNameRequired": "Nama Lengkap *",
+    "fullNamePlaceholder": "Masukkan nama lengkapmu",
+    "gender": "Jenis Kelamin",
+    "genderPlaceholder": "Pilih jenis kelamin",
+    "genderOptions": {
+      "male": "Laki-laki",
+      "female": "Perempuan",
+      "nonBinary": "Non-biner",
+      "preferNotToSay": "Memilih untuk tidak menyebutkan"
+    },
+    "bio": "Bio",
+    "bioPlaceholder": "Ceritakan tentang dirimu...",
+    "occupation": "Pekerjaan",
+    "occupationPlaceholder": "Profesi atau pekerjaanmu",
+    "birthPlace": "Tempat Lahir",
+    "birthPlacePlaceholder": "Kota, Negara",
+    "birthDate": "Tanggal Lahir",
+    "birthDateRequired": "Tanggal Lahir *",
+    "birthDateRequiredError": "Tanggal lahir wajib diisi.",
+    "under13Error": "Kamu harus berusia setidaknya 13 tahun.",
+    "birthTime": "Waktu Lahir",
+    "saveChanges": "Simpan Perubahan",
+    "saving": "Menyimpan...",
+    "profileUpdated": "Profil berhasil diperbarui!",
+    "updateFailed": "Gagal memperbarui profil",
+    "signInRequired": "Silakan masuk untuk memperbarui profilmu"
+  },
+  "Account": {
+    "title": "Pengaturan Akun",
+    "subtitle": "Kelola informasi akun, pengaturan keamanan, dan preferensimu",
+    "authRequired": "Silakan masuk untuk mengakses pengaturan akun",
+    "loading": "Memuat pengaturan akun...",
+    "email": "Email",
+    "phone": "Telepon",
+    "authentication": "Autentikasi",
+    "password": "Kata Sandi",
+    "accountDeletionLabel": "Penghapusan Akun",
+    "emailSettings": {
+      "title": "Email",
+      "currentEmail": "Email Saat Ini",
+      "addEmail": "Tambah Email",
+      "editEmail": "Edit Email",
+      "verifyEmail": "Verifikasi Email",
+      "emailVerified": "Email terverifikasi",
+      "emailNotVerified": "Email belum terverifikasi",
+      "changeEmail": "Ubah Email",
+      "addNewEmail": "Tambah Email Baru",
+      "emailPlaceholder": "Masukkan alamat email baru",
+      "cancel": "Batal",
+      "save": "Simpan",
+      "verify": "Verifikasi",
+      "resendCode": "Kirim Ulang Kode",
+      "enterOtp": "Masukkan kode verifikasi",
+      "otpPlaceholder": "Masukkan kode 6 digit",
+      "otpSent": "Kode verifikasi telah dikirim ke emailmu",
+      "otpExpired": "Kode kedaluwarsa. Silakan minta yang baru.",
+      "otpInvalid": "Kode tidak valid. Silakan coba lagi.",
+      "otpSuccess": "Email berhasil diverifikasi!",
+      "otpFailed": "Verifikasi gagal. Silakan coba lagi.",
+      "emailUpdated": "Email berhasil diperbarui!",
+      "emailUpdateFailed": "Gagal memperbarui email",
+      "otpRequired": "Silakan masukkan kode verifikasi",
+      "emailRequired": "Silakan masukkan alamat email",
+      "invalidEmail": "Silakan masukkan alamat email yang valid"
+    },
+    "phoneSettings": {
+      "title": "Telepon",
+      "currentPhone": "Telepon Saat Ini",
+      "addPhone": "Tambah Telepon",
+      "editPhone": "Edit Telepon",
+      "verifyPhone": "Verifikasi Telepon",
+      "phoneVerified": "Telepon terverifikasi",
+      "phoneNotVerified": "Telepon belum terverifikasi",
+      "changePhone": "Ubah Telepon",
+      "addNewPhone": "Tambah Telepon Baru",
+      "phonePlaceholder": "Masukkan nomor telepon",
+      "cancel": "Batal",
+      "save": "Simpan",
+      "verify": "Verifikasi",
+      "resendCode": "Kirim Ulang Kode",
+      "enterOtp": "Masukkan kode verifikasi",
+      "otpPlaceholder": "Masukkan kode 6 digit",
+      "otpSent": "Kode verifikasi telah dikirim ke teleponmu",
+      "otpExpired": "Kode kedaluwarsa. Silakan minta yang baru.",
+      "otpInvalid": "Kode tidak valid. Silakan coba lagi.",
+      "otpSuccess": "Telepon berhasil diverifikasi!",
+      "otpFailed": "Verifikasi gagal. Silakan coba lagi.",
+      "phoneUpdated": "Telepon berhasil diperbarui!",
+      "phoneUpdateFailed": "Gagal memperbarui telepon",
+      "otpRequired": "Silakan masukkan kode verifikasi",
+      "phoneRequired": "Silakan masukkan nomor telepon",
+      "invalidPhone": "Silakan masukkan nomor telepon yang valid"
+    },
+    "loginMethods": {
+      "title": "Autentikasi",
+      "activeProvider": "Penyedia Aktif",
+      "availableMethods": "Metode Masuk yang Tersedia",
+      "emailPassword": "Email & Kata Sandi",
+      "google": "Google",
+      "link": "Tautkan",
+      "unlink": "Lepaskan Tautan",
+      "linking": "Menautkan...",
+      "unlinking": "Melepaskan tautan...",
+      "linkSuccess": "Penyedia berhasil ditautkan!",
+      "linkFailed": "Gagal menautkan penyedia",
+      "unlinkSuccess": "Tautan penyedia berhasil dilepaskan!",
+      "unlinkFailed": "Gagal melepaskan tautan penyedia",
+      "emailPasswordSetup": "Penyiapan Email & Kata Sandi",
+      "emailPasswordDescription": "Silakan gunakan bagian Pengaturan Kata Sandi di bawah ini untuk menyiapkan email dan kata sandimu.",
+      "googleSignIn": "Masuk dengan Google",
+      "googleSignInDescription": "Tautkan akun Google-mu untuk masuk dengan mudah",
+      "googleUnlinkDescription": "Lepaskan tautan akun Google-mu",
+      "noteLabel": "Catatan:",
+      "note": "Kamu dapat menautkan beberapa metode autentikasi ke akunmu. Kamu harus menjaga setidaknya satu metode tetap aktif. Gunakan bagian Pengaturan Kata Sandi di bawah ini untuk mengelola kredensial email dan kata sandimu."
+    },
+    "passwordSettings": {
+      "title": "Kata Sandi",
+      "description": "Ubah kata sandimu untuk menjaga keamanan akunmu",
+      "currentPassword": "Kata Sandi Saat Ini",
+      "currentPasswordPlaceholder": "Masukkan kata sandi saat ini",
+      "newPassword": "Kata Sandi Baru",
+      "newPasswordPlaceholder": "Masukkan kata sandi baru",
+      "confirmPassword": "Konfirmasi Kata Sandi",
+      "confirmPasswordPlaceholder": "Konfirmasi kata sandi baru",
+      "changePassword": "Ubah Kata Sandi",
+      "changing": "Mengubah...",
+      "passwordChanged": "Kata sandi berhasil diubah!",
+      "passwordChangeFailed": "Gagal mengubah kata sandi",
+      "currentPasswordRequired": "Silakan masukkan kata sandi saat ini",
+      "newPasswordRequired": "Silakan masukkan kata sandi baru",
+      "confirmPasswordRequired": "Silakan konfirmasi kata sandi baru",
+      "passwordsDoNotMatch": "Kata sandi tidak cocok",
+      "passwordTooShort": "Kata sandi harus terdiri dari setidaknya 6 karakter",
+      "currentPasswordIncorrect": "Kata sandi saat ini salah"
+    },
+    "accountDeletion": {
+      "title": "Penghapusan Akun",
+      "description": "Hapus akunmu beserta semua data terkait secara permanen",
+      "warning": "Tindakan ini tidak dapat dibatalkan. Semua datamu akan dihapus secara permanen.",
+      "deleteAccount": "Hapus Akun",
+      "confirmDeletion": "Konfirmasi Penghapusan",
+      "typeToConfirm": "Ketik 'DELETE' untuk mengonfirmasi",
+      "confirmPlaceholder": "Ketik DELETE untuk mengonfirmasi",
+      "deleting": "Menghapus...",
+      "accountDeleted": "Akun berhasil dihapus!",
+      "deletionFailed": "Gagal menghapus akun",
+      "confirmationRequired": "Silakan ketik 'DELETE' untuk mengonfirmasi",
+      "confirmationMismatch": "Teks konfirmasi tidak cocok",
+      "cancel": "Batal"
+    }
+  },
+  "Home": {
+    "hero": {
+      "line1": "Tanyakan apa saja",
+      "line2": "tentang takdirmu",
+      "rotatingPhrasesWhite": [
+        "Masuki Dunia ",
+        "Biarkan Tarot ",
+        "Bimbingan Lewat Bahasa ",
+        "Bacaan Tarot ",
+        "Tanyakan pada ",
+        "Temukan Apa yang ",
+        "Tertulis di ",
+        "Cetak Biru Kosmismu ",
+        "Langit Punya Pesan ",
+        "Horoskop Harian & ",
+        "Wawasan ",
+        "Jelajahi ",
+        "Bimbingan Berbasis "
+      ],
+      "rotatingPhrasesGradient": [
+        "Kartu.",
+        "Ungkap Jalanmu.",
+        "Simbol.",
+        "yang Personal.",
+        "Kartu.",
+        "Disimpan Kartu.",
+        "Bintang.",
+        "Menanti.",
+        "untukmu.",
+        "Personal.",
+        "Astrologi.",
+        "Peta Kelahiranmu.",
+        "Bintang."
+      ]
+    },
+    "description": "Peramal AI yang dipersonalisasi untukmu",
+    "prompts": [
+      "Apakah mantanku akan kembali?",
+      "Apakah dia masih memikirkanku?",
+      "Haruskah aku berhenti dari pekerjaanku?",
+      "Kapan aku akan bertemu seseorang yang tulus?",
+      "Kenapa aku selalu jatuh cinta pada orang yang salah?",
+      "Apakah tahun ini akan menjadi lebih baik untukku?"
+    ],
+    "astrologyFeature": {
+      "title1": "Transit Berhias Bintang",
+      "title2": "Bacaan Astrologi",
+      "tagline": "Bacaan horoskop personal berdasarkan data kelahiranmu dan langit hari ini.",
+      "instruction": "Masukkan data kelahiranmu, biarkan Transit diatur ke sekarang (atau pilih sebuah tanggal), tambahkan pertanyaan jika mau, lalu ketuk Mulai untuk membuat horoskopmu.",
+      "cta": "Mulai bacaan astrologimu"
+    },
+    "getStarted": "Mulai Sekarang",
+    "tourInstruction": "Ketik di sini pertanyaan yang ingin kamu tanyakan pada takdirmu:",
+    "tourExamples": "mis. \"Pesan apa yang perlu aku dengar hari ini?\" atau \"Bagaimana aku bisa menemukan kejelasan dalam karierku?\"",
+    "learnMore": "Pelajari Selengkapnya",
+    "quickFeaturesLabel": "Coba fitur kami",
+    "quickCards": {
+      "tarotCard": "Kartu Tarot",
+      "birthChart": "Peta Kelahiran",
+      "horoscope": "Horoskop",
+      "calendarYear": "Cosmic Calendar"
+    },
+    "quickCardQuestions": {
+      "tarotCard": "Tarikkan kartu tarot untukku",
+      "birthChart": "Ceritakan peta kelahiranku",
+      "horoscope": "Apa horoskopku untuk hari ini",
+      "calendarYear": "Show me my cosmic calendar"
+    },
+    "selectedCards": "Kamu telah memilih {selectedCount}/{cardsToSelect} kartu",
+    "consulting": "Berkonsultasi",
+    "enterBirthDate": "Silakan masukkan tanggal lahirmu",
+    "streamStopped": "Respons dihentikan",
+    "scrollToBottom": "Gulir ke bawah",
+    "scrollToBottomAria": "Gulir ke bagian bawah percakapan",
+    "checkingStars": "Memeriksa saldo bintangmu...",
+    "disclaimer": "Jangan percaya atau bergantung pada interpretasi ini secara membabi buta. AskingFate menggunakan AI dan bisa saja keliru. Untuk keputusan penting, mohon konsultasikan dengan profesional yang berkompeten.",
+    "readAloud": {
+      "play": "Bacakan dengan suara",
+      "stop": "Hentikan pembacaan",
+      "error": "Tidak dapat membuat audio.",
+      "insufficientStars": "Bintang tidak cukup.",
+      "starCost": "bintang untuk membuat",
+      "confirmTitle": "Buat suara",
+      "confirmDescription": "Membuat suara membutuhkan satu bintang.",
+      "doNotShowAgain": "Jangan tampilkan lagi",
+      "confirm": "Buat",
+      "cancel": "Batal"
+    },
+    "copyPrompt": "Salin prompt",
+    "copyPromptSuccess": "Prompt disalin ke papan klip",
+    "copyPromptFailed": "Tidak dapat menyalin prompt",
+    "copyPromptUnavailable": "Penyalinan tidak tersedia dalam konteks ini",
+    "privacyRedactedNotice": "Detail pribadi disembunyikan sebelum diproses.",
+    "privacyRedactedPopoverTitle": "Tentang pemberitahuan ini",
+    "privacyRedactedPopoverIntro": "Detail sensitif dalam pesan ini dihapus atau diganti sebelum dikirim ke server kami, disimpan, atau ditampilkan kepada AI — sehingga data pribadi tidak tersimpan dalam riwayat bacaanmu.",
+    "privacyRedactedPopoverCriteria": {
+      "name": "Nama",
+      "email": "Alamat email",
+      "phone": "Nomor telepon",
+      "handle": "Nama akun media sosial",
+      "address": "Alamat jalan atau alamat surat"
+    },
+    "privacyRedactedReadGuide": "Baca panduan lengkap",
+    "privacyHighlightedTooltipTitle": "Bagaimana AI akan melihat pesan ini",
+    "privacyHighlightedAriaLabel": "{type} terlindungi: {value}",
+    "privacyHighlightedType": {
+      "person": "Nama",
+      "email": "Email",
+      "phone": "Nomor telepon",
+      "handle": "Nama akun",
+      "address": "Alamat",
+      "card": "Kartu",
+      "passport": "Paspor",
+      "national_id": "KTP"
+    },
+    "sanitizingPrompt": "Memurnikan",
+    "horoscopeAuthGate": {
+      "intro": "Pertanyaan ini akan lebih baik dijawab lewat <pill>horoskop</pill>mu. Kamu perlu ",
+      "introSignedIn": "Pertanyaan ini paling tepat dijawab lewat <pill>horoskop</pill>mu.",
+      "signInLabel": "masuk",
+      "introSuffix": " untuk melanjutkan.",
+      "fallback": "Kamu juga bisa memakai kartu tarot, tapi keakuratannya akan menurun.",
+      "cardAriaLabel": "Cuplikan kartu tarot: {name}",
+      "deckCaption": "Gulir tumpukan kartu, ketuk sebuah kartu, lalu geser ke atas untuk memilihnya — pratinjau tarot singkat tanpa perlu masuk.",
+      "deckCaptionSignedIn": "Gulir tumpukan kartu, ketuk sebuah kartu, lalu geser ke atas untuk memilihnya — pratinjau tarot singkat.",
+      "deckSwipeHint": "Ketuk sebuah kartu, lalu geser ke atas untuk memilihnya.",
+      "reversedMark": " (terbalik)",
+      "pickedTeaser": "Kamu memilih {name}{reversedLabel}. Masuk di atas untuk horoskopmu."
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
+    }
+  },
+  "ActionTrigger": {
+    "autoPickLabel": "Pilih kartu otomatis",
+    "autoPickOn": "aktif",
+    "autoPickOff": "nonaktif",
+    "composerSuggestionsLabel": "Saran balasan",
+    "composerSuggestionsOn": "aktif",
+    "composerSuggestionsOff": "nonaktif",
+    "newBirthInfo": "Info kelahiran baru",
+    "editBirthInfo": "Ubah info kelahiran",
+    "birthInfo": "Info kelahiran: {date}",
+    "chooseCardInstead": "Pilih kartu saja",
+    "location": "Lokasi: {value}",
+    "locationUnknown": "Lokasi saat ini",
+    "cancelIntake": "Batal",
+    "birthTimeHelper": "Tambahkan juga jam kelahiranmu untuk bacaan paling akurat.",
+    "locationDialogTitle": "Pengaturan lokasi",
+    "locationDialogDescription": "Pilih negara dan provinsi atau wilayahmu. Kami akan menggunakannya untuk menyempurnakan lokasi horoskopmu.",
+    "latitude": "Lintang",
+    "longitude": "Bujur",
+    "saveLocation": "Simpan lokasi",
+    "shareAccess": "Share access"
+  },
+  "InterpretationMode": {
+    "auto": "Otomatis",
+    "tarot": "Tarot",
+    "horoscope": "Horoskop",
+    "chat": "Obrolan",
+    "horoscopeLoginRequired": "Masuk untuk menggunakan horoskop",
+    "composerSettingsAriaLabel": "Pengaturan bacaan",
+    "composerSettingsPanelTitle": "Pengaturan",
+    "composerSettingsSectionPreferences": "Preferensi",
+    "composerSettingsSectionActions": "Tindakan",
+    "oracle": "Spiritual"
+  },
+  "About": {
+    "whatIs": "Apa itu",
+    "brand": "AskingFate?",
+    "tagline": "Kami memadukan simbolisme yang telah teruji waktu dengan AI modern untuk menghadirkan bimbingan yang menenangkan dan bermanfaat yang bisa kamu gunakan hari ini.",
+    "learnMore": "Pelajari lebih lanjut di halaman Tentang",
+    "requestDemo": "Minta demo",
+    "askYourFate": "Tanyakan pada takdirmu",
+    "Services": {
+      "title": "Layanan Kami",
+      "subtitle": "Layanan Mistis",
+      "description": "Temukan seni kuno peramalan dan penemuan diri",
+      "status": {
+        "available": "Tersedia",
+        "comingSoon": "Segera Hadir"
+      },
+      "items": {
+        "tarot": {
+          "name": "Bacaan Tarot AI",
+          "description": "Dapatkan bacaan kartu tarot yang dipersonalisasi, didukung teknologi AI canggih"
+        },
+        "birthChart": {
+          "name": "Analisis Peta Kelahiran",
+          "description": "Temukan cetak biru kosmismu melalui analisis peta kelahiran astrologi yang mendetail"
+        },
+        "astrology": {
+          "name": "Astrologi",
+          "description": "Terima wawasan harian yang dipersonalisasi berdasarkan zodiakmu dan pergerakan planet"
+        },
+        "namelogy": {
+          "name": "Namalogi",
+          "description": "Ungkap makna dan getaran tersembunyi di balik nama melalui analisis huruf kuno"
+        },
+        "numerology": {
+          "name": "Numerologi",
+          "description": "Pecahkan makna mistis angka dalam hidupmu melalui kebijaksanaan numerologi"
+        },
+        "luckyColors": {
+          "name": "Warna Keberuntungan",
+          "description": "Temukan palet warna pribadimu untuk keberuntungan, kesuksesan, dan energi positif"
+        },
+        "palmistry": {
+          "name": "Ramalan Garis Tangan",
+          "description": "Baca garis-garis takdir yang tertulis di telapak tanganmu melalui kebijaksanaan ramalan tangan kuno"
+        },
+        "fatedRelations": {
+          "name": "Jodoh & Hubungan Takdir",
+          "description": "Temukan koneksi kosmis dan kecocokan antara dirimu dan orang-orang yang kamu sayangi"
+        }
+      }
+    },
+    "Roadmap": {
+      "title": "Peta Jalan",
+      "label": "Peta Jalan Pengembangan",
+      "description": "Perjalanan kami untuk menghadirkan pengalaman mistis paling lengkap bagimu",
+      "progress": "Kemajuan",
+      "status": {
+        "completed": "Selesai",
+        "inDevelopment": "Dalam Pengembangan",
+        "planned": "Direncanakan"
+      },
+      "phases": {
+        "completed": "Selesai",
+        "may_2026": "Mei 2026",
+        "jul_2026": "Juli 2026",
+        "aug_2026": "Agustus 2026",
+        "sep_2026": "September 2026",
+        "oct_2026": "Oktober 2026",
+        "nov_2026": "November 2026",
+        "dec_2026": "Desember 2026"
+      },
+      "tarot": {
+        "title": "Bacaan Tarot AI",
+        "eta": "Tersedia Sekarang",
+        "features": [
+          "Dapatkan bacaan kartu tarot yang dipersonalisasi, didukung AI canggih",
+          "Ajukan pertanyaan lanjutan untuk wawasan yang lebih dalam",
+          "Simpan dan baca ulang bacaanmu kapan saja"
+        ]
+      },
+      "birthChart": {
+        "title": "Peta Kelahiran",
+        "eta": "Mei 2026",
+        "features": [
+          "Ringkasan statistik dari peta kelahiran pribadimu",
+          "Posisi planet dan sudut aspek yang dipetakan ke kekuatan",
+          "Selami lebih dalam cetak biru kosmismu"
+        ]
+      },
+      "astrology": {
+        "title": "Astrologi",
+        "eta": "Mei 2026",
+        "features": [
+          "Prakiraan transit dari data kelahiran dan tanggal tujuanmu",
+          "Bacaan transit yang dipersonalisasi",
+          "Mengobrol dengan AI untuk bimbingan transit yang lebih dalam"
+        ]
+      },
+      "namelogy": {
+        "title": "Namalogi",
+        "eta": "Juli 2026",
+        "features": [
+          "Pecahkan getaran dalam nama",
+          "Ungkap keselarasan spiritual, kekuatan, dan hal yang perlu diwaspadai",
+          "Tanya AI bagaimana nama bisa membentuk jalanmu"
+        ]
+      },
+      "numerology": {
+        "title": "Numerologi",
+        "eta": "Agustus 2026",
+        "features": [
+          "Pecahkan getaran dalam angka",
+          "Soroti pola angka yang mendukung dan menantang",
+          "Tanya AI tentang hasil yang terkait dengan setiap angka"
+        ]
+      },
+      "luckyColors": {
+        "title": "Warna Keberuntungan",
+        "eta": "September 2026",
+        "features": [
+          "Palet harian yang dipadukan dengan penguasa planet",
+          "Rekomendasi busana dan ruang kerja",
+          "Ritual warna musiman yang bisa kamu coba di rumah"
+        ]
+      },
+      "mobileApp": {
+        "title": "Aplikasi Seluler",
+        "eta": "November 2026",
+        "features": [
+          "Pengalaman peluncuran asli iOS dan Android",
+          "Bawa bacaanmu ke mana saja dengan akses luring",
+          "Widget dengan kartu harian dan cuplikan astrologi"
+        ]
+      },
+      "fatedRelations": {
+        "title": "Jodoh & Hubungan Takdir",
+        "eta": "Oktober 2026",
+        "features": [
+          "Jelajahi kecocokan dan dinamika hubungan",
+          "Bedah dinamika hubungan dan potensi bersama",
+          "Tanya AI untuk bimbingan lebih dalam tentang koneksi tersebut"
+        ]
+      },
+      "palmistry": {
+        "title": "Ramalan Garis Tangan",
+        "eta": "Desember 2026",
+        "features": [
+          "Bacaan telapak tangan berbasis webcam",
+          "Tafsirkan garis tentang keberuntungan, kehidupan, dan takdir",
+          "Ajukan pertanyaan spesifik tentang apa yang diungkap telapak tanganmu"
+        ]
+      },
+      "eta": "Perkiraan"
+    },
+    "Technology": {
+      "title": "Teknologi & Inovasi",
+      "label": "Teknologi Mutakhir",
+      "description": "Didukung teknologi terkini untuk menghadirkan wawasan yang akurat dan bermakna",
+      "aiPowered": {
+        "title": "Didukung AI",
+        "desc": "Algoritma machine learning canggih memberikan bacaan yang dipersonalisasi dan akurat",
+        "features": [
+          "AI Canggih",
+          "Machine Learning",
+          "Pemrosesan Bahasa Alami"
+        ]
+      },
+      "securePrivate": {
+        "title": "Aman & Privat",
+        "desc": "Enkripsi ujung ke ujung memastikan data pribadi dan bacaanmu tetap rahasia",
+        "features": [
+          "Enkripsi Ujung ke Ujung",
+          "Privasi yang Utama",
+          "Penyimpanan Aman"
+        ]
+      },
+      "globalAccess": {
+        "title": "Akses Global",
+        "desc": "Tersedia di seluruh dunia dengan dukungan multibahasa dan adaptasi budaya",
+        "features": [
+          "Akses Seluruh Dunia",
+          "Multibahasa",
+          "Infrastruktur Cloud"
+        ]
+      }
+    },
+    "Testimonials": {
+      "title": "Apa Kata Pengguna Kami",
+      "label": "Testimoni Pengguna",
+      "description": "Dengarkan cerita para pengguna tentang perjalanan mistis mereka",
+      "autoPlay": {
+        "autoPlaying": "Berputar otomatis",
+        "clickToAutoPlay": "Klik untuk putar otomatis"
+      },
+      "items": [
+        {
+          "quote": "Aku memakainya hampir setiap pagi untuk menetapkan niat. Itu membantuku memulai hari dengan perasaan lebih membumi.",
+          "author": "Yui",
+          "role": "Pengguna awal",
+          "initial": "Y"
+        },
+        {
+          "quote": "Refleksinya terasa seimbang—membantu tanpa memaksa. Ini menjadi ritual tenang yang membantuku berpikir lebih jernih.",
+          "author": "Daniel",
+          "role": "Pengguna awal",
+          "initial": "D"
+        },
+        {
+          "quote": "Aku suka caranya langsung ke inti. Kata kuncinya memudahkanku mengingat apa yang harus difokuskan.",
+          "author": "Mina",
+          "role": "Pembaca harian",
+          "initial": "M"
+        },
+        {
+          "quote": "Mengejutkan, terasa menenangkan. Bahkan saat aku tidak setuju dengan semuanya, ia tetap membantuku berhenti sejenak dan merenung sebelum bertindak.",
+          "author": "Chris",
+          "role": "Skeptis tapi penasaran",
+          "initial": "C"
+        },
+        {
+          "quote": "Pertanyaan lanjutannya favoritku. Rasanya seperti percakapan sungguhan yang membantuku mengurai pikiranku.",
+          "author": "Nok",
+          "role": "Pengguna setia",
+          "initial": "N"
+        }
+      ]
+    },
+    "Statistics": {
+      "title": "Statistik singkat",
+      "label": "Dampak Kami",
+      "description": "Angka yang mencerminkan komitmen kami pada keunggulan mistis",
+      "growing": "Data waktu nyata",
+      "items": [
+        {
+          "key": "totalUsers",
+          "label": "Total pemain"
+        },
+        {
+          "key": "profiles",
+          "label": "Pengguna terdaftar"
+        },
+        {
+          "key": "interpretations",
+          "label": "Interpretasi AI"
+        }
+      ]
+    },
+    "CTA": {
+      "title": "Siap Memulai Perjalananmu?",
+      "label": "Siap Memulai?",
+      "subheading": "Perjalananmu Menanti",
+      "desc": "Bergabunglah dengan ribuan pengguna yang telah menemukan jalan mereka lewat bimbingan mistis kami yang didukung AI.",
+      "primary": "Mulai Bacaanmu",
+      "secondary": "Pelajari Selengkapnya",
+      "features": {
+        "instantAccess": "Akses Instan",
+        "premiumQuality": "Kualitas Premium",
+        "mysticalExperience": "Pengalaman Mistis"
+      }
+    }
+  },
+  "QuestionInput": {
+    "label": "Pertanyaanmu",
+    "placeholder": "Ketik pertanyaanmu...",
+    "followUpSuggestionLabel": "Saran lanjutan",
+    "dismissFollowUpStrip": "Tutup saran dan pintasan komposer"
+  },
+  "Prompts": {
+    "title": "Prompt yang menginspirasi",
+    "label": "Prompt Saran",
+    "show": "Tampilkan",
+    "hide": "Sembunyikan",
+    "selectCategory": "Pilih kategori",
+    "categories": {
+      "daily-life": {
+        "name": "Kehidupan Sehari-hari",
+        "questions": [
+          "Bagaimana menemukan keseimbangan?",
+          "Apa yang harus dilepaskan?",
+          "Membuat keputusan lebih baik?",
+          "Pesan semesta untukku?",
+          "Fokus hari ini?",
+          "Memperbaiki rutinitasku?",
+          "Kebiasaan yang harus diubah?",
+          "Lebih penuh kesadaran?"
+        ]
+      },
+      "work-career": {
+        "name": "Pekerjaan & Karier",
+        "questions": [
+          "Fokus karier sekarang?",
+          "Ambil peluang ini?",
+          "Berkembang dalam peranku?",
+          "Keterampilan yang perlu dikembangkan?",
+          "Saatnya ganti karier?",
+          "Hubungan kerja lebih baik?",
+          "Apa yang menghambat pertumbuhanku?",
+          "Memulai usaha sendiri?"
+        ]
+      },
+      "financial": {
+        "name": "Keuangan",
+        "questions": [
+          "Memperbaiki keuanganku?",
+          "Lakukan investasi ini?",
+          "Masa depan keuanganku?",
+          "Menabung lebih banyak?",
+          "Saat yang tepat untuk membeli?",
+          "Tujuan keuangan yang perlu ditetapkan?",
+          "Mengurangi pengeluaranku?",
+          "Mengubah strategi investasi?"
+        ]
+      },
+      "love-romance": {
+        "name": "Cinta & Asmara",
+        "questions": [
+          "Tentang kisah cintaku?",
+          "Apakah orang ini tepat?",
+          "Menarik pasangan yang tepat?",
+          "Mengungkapkan perasaanku?",
+          "Apa yang menghambat kisah cintaku?",
+          "Memperbaiki hubungan ini?",
+          "Saatnya melangkah maju?",
+          "Masa depanku dalam cinta?"
+        ]
+      },
+      "family": {
+        "name": "Keluarga",
+        "questions": [
+          "Ikatan keluarga lebih baik?",
+          "Apa yang keluarga butuhkan?",
+          "Menyelesaikan konflik keluarga?",
+          "Lakukan obrolan sulit ini?",
+          "Peranku dalam keluarga?",
+          "Mendukung keluarga lebih baik?",
+          "Pola keluarga yang harus diputus?",
+          "Menciptakan keharmonisan keluarga?"
+        ]
+      },
+      "friendship-relationships": {
+        "name": "Persahabatan & Hubungan",
+        "questions": [
+          "Memperbaiki hubunganku?",
+          "Akhiri persahabatan ini?",
+          "Menjalin teman baru?",
+          "Penyebab konflik?",
+          "Menjadi teman yang lebih baik?",
+          "Percayai orang ini?",
+          "Menyelesaikan konflik ini?",
+          "Batasan yang perlu ditetapkan?"
+        ]
+      },
+      "personal-growth": {
+        "name": "Pengembangan Diri",
+        "questions": [
+          "Apa yang menghambat pertumbuhanku?",
+          "Mengatasi tantanganku?",
+          "Tujuan jiwaku?",
+          "Mengembangkan intuisiku?",
+          "Keyakinan yang harus dilepaskan?",
+          "Membangun lebih banyak percaya diri?",
+          "Jalan spiritualku?",
+          "Menemukan kedamaian batin?"
+        ]
+      }
+    }
+  },
+  "Footer": {
+    "copyright": "AskingFate, LLC. Hak cipta dilindungi."
+  },
+  "AboutLegacy": {
+    "hero": {
+      "title1": "Kebijaksanaan kuno",
+      "title2": "bertemu AI modern",
+      "subtitle": "Lihat bagaimana kami memadukan tradisi tarot yang telah lama ada dengan AI untuk menghadirkan bimbingan kosmis personal khusus untukmu."
+    },
+    "features": {
+      "ai": {
+        "title": "Wawasan jernih bertenaga AI",
+        "desc": "Interpretasi penuh maksud yang disesuaikan dengan pertanyaanmu"
+      },
+      "cosmic": {
+        "title": "Pengalaman yang fokus",
+        "desc": "Ruang tenang untuk membaca, merenung, dan menyimpan yang penting"
+      },
+      "personal": {
+        "title": "Dirancang untukmu",
+        "desc": "Dibuat untuk keputusan sehari-hari dan perenungan yang lembut"
+      }
+    },
+    "story": {
+      "title": "Mengapa kami membangun ini",
+      "p1": "AskingFate berawal dari satu gagasan: menawarkan tempat yang tenang dan tepercaya untuk berhenti sejenak dan berpikir jernih. Tanpa keriuhan—hanya bacaan singkat dan ajakan untuk merenung.",
+      "p2": "Kami menjaganya tetap sederhana dan praktis, terus membaik dari minggu ke minggu bersama pengguna awal. Jika ini membantumu membuat satu keputusan yang lebih baik, itulah keberhasilan."
+    },
+    "mission": {
+      "title": "Misi kami",
+      "p": "Membantu orang berhenti sejenak, merenung, dan membuat keputusan sehari-hari dengan lebih penuh maksud—melalui alat yang tetap tenang, jernih, dan benar-benar bermanfaat."
+    },
+    "vision": {
+      "title": "Visi kami",
+      "p": "Menjadi pendamping tepercaya untuk keputusan yang penuh maksud: mudah digunakan siapa saja, dan selalu menghormati privasi."
+    },
+    "valuesSection": {
+      "title": "Nilai-nilai kami",
+      "privacyFirst": {
+        "title": "Privasi yang utama",
+        "desc": "Pertanyaan dan bacaanmu tetap privat. Kami tidak pernah menjual data."
+      },
+      "clarity": {
+        "title": "Kejelasan di atas sensasi",
+        "desc": "Interpretasi singkat dengan bahasa sederhana yang bisa langsung kamu terapkan."
+      },
+      "inclusive": {
+        "title": "Inklusif secara alami",
+        "desc": "Bermanfaat bagi pemula maupun praktisi; menyambut beragam latar belakang dan keyakinan."
+      }
+    },
+    "quickStatsSection": {
+      "title": "Statistik singkat",
+      "users": "Pengguna awal",
+      "cards": "Kartu yang ditarik",
+      "updates": "Pembaruan mingguan",
+      "availability": "Tersedia sekarang"
+    },
+    "pressSection": {
+      "title": "Pers, mitra, atau pertanyaan",
+      "desc": "Kami masih tahap awal dan menyambut kolaborasi yang penuh pertimbangan. Hubungi kami untuk peninjauan singkat atau detail lebih lanjut.",
+      "primary": "Minta demo",
+      "secondary": "Hubungi kami"
+    },
+    "aiSection": {
+      "title": "Cara kerjanya",
+      "p1": "Kamu mengajukan pertanyaan. Kami menarik sebuah kartu dan menyusun interpretasi ringkas yang berakar pada makna tradisional dan disesuaikan untuk kejelasan.",
+      "p2": "Ini adalah bimbingan untuk dipertimbangkan, bukan vonis. Kamu tetap memegang kendali atas setiap keputusan."
+    },
+    "values": {
+      "respectfulTradition": {
+        "title": "Menghormati tradisi",
+        "description": "Kami menghormati akar sakral tarot sambil membuatnya mudah diakses para pencari makna modern."
+      },
+      "personalizedGuidance": {
+        "title": "Bimbingan yang dipersonalisasi",
+        "description": "Setiap bacaan berbeda karena dibentuk oleh pertanyaan dan konteks hidupmu."
+      },
+      "inclusiveCommunity": {
+        "title": "Komunitas yang inklusif",
+        "description": "Kami menyambut para pencari makna dari setiap latar belakang dan keyakinan, menciptakan ruang aman untuk menjelajah."
+      }
+    },
+    "cta": {
+      "title": "Siap memulai?",
+      "desc": "Kami baru saja diluncurkan—bergabunglah dengan pengguna awal yang menjelajahi bimbingan yang tenang, jernih, dan praktis.",
+      "primary": "Mulai bacaan pertamamu",
+      "secondary": "Pelajari selengkapnya"
+    }
+  },
+  "Demo": {
+    "hero": {
+      "title": "Minta demo",
+      "subtitle": "Lihat peninjauan singkat dan coba pratinjau interaktif yang sederhana."
+    },
+    "links": {
+      "about": "Pelajari tentang produk",
+      "tryReading": "Coba bacaan sekarang"
+    },
+    "preview": {
+      "title": "Pratinjau interaktif",
+      "subtitle": "Ajukan pertanyaan sederhana, lihat contoh kartu dan petunjuk",
+      "shuffle": "Kocok",
+      "questionLabel": "Pertanyaanmu",
+      "questionPlaceholder": "Ketik pertanyaan singkat...",
+      "cardLabel": "Kartu"
+    },
+    "form": {
+      "name": "Nama",
+      "namePlaceholder": "Namamu",
+      "email": "Email",
+      "emailPlaceholder": "kamu@contoh.com",
+      "teamSize": "Ukuran tim (opsional)",
+      "teamSizePlaceholder": "Hanya saya, 2-10, 10+",
+      "goals": "Apa yang ingin kamu lihat?",
+      "goalsPlaceholder": "Contoh: bacaan tersimpan, berbagi tim, API",
+      "notes": "Catatan (opsional)",
+      "notesPlaceholder": "Ada pertanyaan atau konteks tertentu?",
+      "submit": "Minta demo",
+      "submitting": "Menjadwalkan...",
+      "footer": "Kami akan menghubungi lewat email dalam 1–2 hari kerja."
+    }
+  },
+  "PrivacyPolicy": {
+    "title": "Kebijakan Privasi",
+    "lastUpdated": "Terakhir diperbarui"
+  },
+  "TermsOfService": {
+    "title": "Ketentuan Layanan",
+    "backToHome": "Kembali ke Beranda",
+    "lastUpdated": "Terakhir diperbarui"
+  },
+  "Reading": {
+    "types": {
+      "simple": {
+        "title": "Pembacaan Sederhana",
+        "description": "Kejelasan instan, energi harian, jawaban yang sederhana"
+      },
+      "general": {
+        "title": "Pembacaan Umum",
+        "description": "Memahami alur dan pergerakan"
+      },
+      "detailed": {
+        "title": "Pertanyaan Mendetail",
+        "description": "Pengambilan keputusan, pemecahan masalah"
+      },
+      "expanded": {
+        "title": "Detail yang Lebih Luas",
+        "description": "Hubungan, jalur karier, pengaruh yang berlapis"
+      },
+      "celtic": {
+        "title": "Celtic Cross",
+        "description": "Situasi hidup yang mendalam, pola yang tak terhindarkan"
+      }
+    }
+  },
+  "BirthChart": {
+    "title": "Pahami",
+    "subtitle": "Cetak Biru Kosmismu",
+    "description": "Masukkan tanggal, waktu, dan lokasi kelahiranmu. Kami akan mendeteksi secara otomatis zona waktu dan lokasimu saat ini untuk membantu menghasilkan peta kelahiran yang akurat.",
+    "pageTitle": "Peta Kelahiranmu",
+    "planetaryStrengths": "Kekuatan Planet",
+    "yourHouses": "Rumah-rumahmu",
+    "planetaryPositions": "Posisi Planet",
+    "birthDetailsTitle": "Detail Kelahiran",
+    "birthDateLabel": "Tanggal lahir",
+    "birthTimeLabel": "Waktu lahir",
+    "planetarySectionLabel": "Planet",
+    "lifeAreasSectionLabel": "Area Kehidupan",
+    "transitDetailsTitle": "Detail Transit",
+    "transitDateLabel": "Tanggal transit",
+    "shareTitle": "Bagikan Peta Kelahiranmu",
+    "shareDescription": "Bagikan cetak biru kosmismu kepada teman-teman",
+    "questionLabel": "Tanyakan tentang Petamu",
+    "questionPlaceholder": "Tanyakan tentang cinta, karier, kepribadian...",
+    "composerPlaceholder": "Tanyakan apa saja tentang petamu…",
+    "composerContextLabel": "Peta kelahiranmu",
+    "disclaimer": "Pembacaan peta kelahiran hanya untuk tujuan hiburan. Interpretasi yang diberikan dihasilkan oleh AI dan tidak boleh dianggap sebagai nasihat profesional. Jangan percaya atau bergantung pada ini secara membabi buta. Gunakan sebagai salah satu sudut pandang dan ingatlah bahwa interpretasinya mungkin tidak akurat. Selalu konsultasikan dengan profesional yang berkualifikasi untuk keputusan hidup yang penting.",
+    "authRequired": "Silakan masuk untuk melihat peta kelahiranmu",
+    "loadingChart": "Memuat peta kelahiranmu…",
+    "computingChart": "Menyusun petamu dari bintang-bintang…",
+    "computeFailed": "Kami tidak dapat menghasilkan peta kelahiranmu. Silakan coba lagi.",
+    "computeFailedTitle": "Tidak dapat menghasilkan petamu",
+    "retry": "Coba lagi",
+    "needsBirthInfoTitle": "Beri tahu kami kapan dan di mana kamu lahir",
+    "needsBirthInfoDescription": "Kami akan menyimpan ini ke profilmu dan menghitung peta kelahiran pribadimu.",
+    "birthPlaceLabel": "Tempat lahir",
+    "selectDate": "Pilih tanggal",
+    "selectTimeOptional": "Pilih waktu (opsional)",
+    "selectPlace": "Pilih negara dan provinsi",
+    "optional": "opsional",
+    "back": "Kembali",
+    "backToCountries": "Kembali ke daftar negara",
+    "searchCountry": "Cari negara…",
+    "searchState": "Cari provinsi…",
+    "noResults": "Tidak ada yang cocok",
+    "saveAndGenerate": "Simpan & buat petaku",
+    "savingAndGenerating": "Menyimpan…",
+    "saveFailed": "Tidak dapat menyimpan info kelahiranmu. Silakan coba lagi.",
+    "stats": {
+      "archetypes": {
+        "Sun": "Kepemimpinan",
+        "Moon": "Emosi",
+        "Mars": "Dorongan",
+        "Mercury": "Kecerdasan",
+        "Jupiter": "Kebijaksanaan",
+        "Venus": "Romansa",
+        "Saturn": "Disiplin",
+        "Rahu": "Ambisi",
+        "Ketu": "Spiritualitas"
+      },
+      "descriptions": {
+        "Sun": "Jiwa, Ego, Vitalitas, Otoritas",
+        "Moon": "Pikiran, Kenyamanan, Intuisi, Kedamaian",
+        "Mars": "Energi, Tindakan, Keberanian, Saudara",
+        "Mercury": "Ucapan, Bisnis, Logika, Perdagangan",
+        "Jupiter": "Kekayaan, Pertumbuhan, Guru, Keberuntungan",
+        "Venus": "Keindahan, Kemewahan, Hasrat, Seni",
+        "Saturn": "Karma, Penundaan, Kerja Keras, Struktur",
+        "Rahu": "Obsesi, Inovasi, Ilusi, Asing",
+        "Ketu": "Kelepasan, Pembebasan, Masa Lalu, Mistisisme"
+      },
+      "status": {
+        "exalted": "Mulia",
+        "ownSign": "Zodiak Sendiri",
+        "debilitated": "Lemah",
+        "normal": "Normal",
+        "retrograde": "Retrograde"
+      }
+    },
+    "planets": {
+      "Sun": "Matahari",
+      "Moon": "Bulan",
+      "Mars": "Mars",
+      "Mercury": "Merkurius",
+      "Jupiter": "Jupiter",
+      "Venus": "Venus",
+      "Saturn": "Saturnus",
+      "Rahu": "Rahu",
+      "Ketu": "Ketu",
+      "Uranus": "Uranus",
+      "Neptune": "Neptunus",
+      "Pluto": "Pluto",
+      "Ascendant": "Ascendant"
+    },
+    "in": "di",
+    "house": "Rumah",
+    "houseRuler": "Penguasa Rumah",
+    "zodiacSigns": {
+      "Aries": "Aries",
+      "Taurus": "Taurus",
+      "Gemini": "Gemini",
+      "Cancer": "Cancer",
+      "Leo": "Leo",
+      "Virgo": "Virgo",
+      "Libra": "Libra",
+      "Scorpio": "Scorpio",
+      "Sagittarius": "Sagittarius",
+      "Capricorn": "Capricorn",
+      "Aquarius": "Aquarius",
+      "Pisces": "Pisces"
+    },
+    "systemWestern": "Barat (Tropis)",
+    "systemVedic": "Veda (Sideris)",
+    "tabBirthChart": "Peta Kelahiran",
+    "tabTransitChart": "Peta Transit",
+    "loading": "Memuat…",
+    "houseMeanings": {
+      "1": "Diri & Identitas",
+      "2": "Uang & Harta Benda",
+      "3": "Komunikasi & Saudara",
+      "4": "Rumah & Keluarga",
+      "5": "Kreativitas & Romansa",
+      "6": "Kesehatan & Rutinitas",
+      "7": "Kemitraan & Pernikahan",
+      "8": "Transformasi & Misteri",
+      "9": "Filsafat & Perjalanan",
+      "10": "Karier & Reputasi",
+      "11": "Teman & Keuntungan",
+      "12": "Alam Bawah Sadar & Kesendirian"
+    },
+    "houseDescriptions": {
+      "1": "Rumah ini mewakili kepribadian luarmu, penampilan fisik, dan cara kamu menjalani hidup.",
+      "2": "Rumah ini menguasai keuangan pribadimu, harta benda materi, dan rasa harga dirimu.",
+      "3": "Rumah ini menguasai komunikasi, kecerdasan, pendidikan dini, saudara, dan perjalanan singkat.",
+      "4": "Rumah ini menandakan rumah, akar, keluarga, ibu, dan fondasi emosionalmu.",
+      "5": "Rumah ini mencakup ekspresi diri, kreativitas, romansa, anak-anak, dan kesenangan.",
+      "6": "Rumah ini berkaitan dengan pekerjaan harian, kesehatan, pelayanan, dan pengembangan diri.",
+      "7": "Rumah ini berfokus pada kemitraan serius, pernikahan, kontrak bisnis, dan musuh yang terbuka.",
+      "8": "Rumah ini berhubungan dengan transformasi, kematian, kelahiran kembali, sumber daya bersama, dan hal-hal gaib.",
+      "9": "Rumah ini menguasai pembelajaran tinggi, filsafat, agama, perjalanan jarak jauh, dan hukum.",
+      "10": "Rumah ini mewakili karier, citra publik, reputasi, ayah, dan figur otoritasmu.",
+      "11": "Rumah ini menguasai persahabatan, kelompok sosial, harapan, keinginan, dan minat kemanusiaan.",
+      "12": "Rumah ini mencakup alam bawah sadar, rahasia, musuh tersembunyi, institusi, dan karma."
+    },
+    "planetInHouse": {
+      "Sun": {
+        "1": "Identitas dan ekspresi dirimu menjadi pusat kepribadianmu. Kamu bersinar melalui keunikanmu dan memiliki kualitas kepemimpinan yang kuat. Ego dan vitalitasmu terungkap langsung melalui kepribadian luarmu.",
+        "2": "Identitasmu terikat pada sumber daya dan nilai-nilaimu. Kamu menemukan kepercayaan diri melalui keamanan materi dan mungkin mengekspresikan dirimu melalui harta benda. Harga dirimu terhubung dengan apa yang kamu miliki dan kumpulkan.",
+        "3": "Identitasmu terungkap melalui komunikasi dan pembelajaran. Kamu bersinar melalui kata-kata, gagasan, dan kegiatan intelektualmu. Egomu terikat pada kemampuanmu untuk mengekspresikan diri dan berbagi pengetahuan.",
+        "4": "Identitasmu berakar pada rumah dan keluarga. Kamu menemukan kepercayaan diri melalui keamanan emosional dan akar-akarmu. Egomu terhubung dengan kehidupan pribadimu dan fondasi yang telah kamu bangun.",
+        "5": "Identitasmu terungkap melalui kreativitas dan ekspresi diri. Kamu bersinar melalui bakat, romansa, dan kemampuanmu untuk bersenang-senang. Egomu terikat pada hasil kreativitas dan ekspresi pribadimu.",
+        "6": "Identitasmu terungkap melalui pelayanan dan pekerjaan harian. Kamu menemukan kepercayaan diri dengan menolong orang lain dan menjaga kesehatan. Egomu terhubung dengan kemampuanmu untuk berguna dan memperbaiki segala hal.",
+        "7": "Identitasmu terungkap melalui kemitraan dan hubungan. Kamu bersinar melalui kemampuanmu untuk berhubungan dengan orang lain. Egomu terikat pada bagaimana kamu tampil dalam kemitraan dan kemampuanmu menjaga keseimbangan.",
+        "8": "Identitasmu melibatkan transformasi dan sumber daya bersama. Kamu menemukan kepercayaan diri melalui perubahan mendalam dan regenerasi. Egomu terhubung dengan kemampuanmu untuk bertransformasi dan menangani intensitas.",
+        "9": "Identitasmu terungkap melalui filsafat dan pembelajaran tinggi. Kamu bersinar melalui keyakinan, kebijaksanaan, dan pencarian kebenaranmu. Egomu terikat pada pandangan duniamu dan pemahaman spiritualmu.",
+        "10": "Identitasmu terungkap melalui karier dan citra publik. Kamu menemukan kepercayaan diri melalui pencapaian dan pengakuan. Egomu terhubung dengan reputasi dan kesuksesan profesionalmu.",
+        "11": "Identitasmu terungkap melalui persahabatan dan harapan. Kamu bersinar melalui koneksi sosial dan idealisme kemanusiaanmu. Egomu terikat pada kemampuanmu untuk terhubung dengan kelompok dan mewujudkan mimpi.",
+        "12": "Identitasmu melibatkan alam bawah sadar dan hal-hal tersembunyi. Kamu menemukan kepercayaan diri melalui koneksi spiritual dan melepaskan ego. Egomu terhubung dengan dunia batin dan pertumbuhan spiritualmu."
+      },
+      "Moon": {
+        "1": "Emosimu terlihat dan menjadi bagian dari kepribadian luarmu. Kamu ekspresif secara emosional dan orang lain dapat melihat perasaanmu. Kebutuhan emosionalmu terikat pada cara kamu menampilkan diri.",
+        "2": "Emosimu terikat pada keamanan dan sumber daya. Kamu merasa aman melalui kestabilan materi dan mungkin memiliki keterikatan emosional pada harta benda. Perasaanmu terhubung dengan nilai-nilaimu.",
+        "3": "Emosimu terungkap melalui komunikasi dan pembelajaran. Kamu mengolah perasaan melalui berbicara dan kegiatan intelektual. Kebutuhan emosionalmu melibatkan stimulasi mental dan variasi.",
+        "4": "Emosimu terhubung dalam dengan rumah dan keluarga. Ini adalah rumah alamiahmu. Kamu merasa paling aman di rumah dan memiliki ikatan emosional yang kuat dengan keluarga dan akar-akarmu.",
+        "5": "Emosimu terungkap melalui kreativitas dan romansa. Kamu merasa aman melalui ekspresi diri dan kesenangan. Kebutuhan emosionalmu melibatkan menjadi kreatif dan menikmati hidup.",
+        "6": "Emosimu terikat pada pekerjaan harian dan pelayanan. Kamu merasa aman melalui rutinitas dan menolong orang lain. Kebutuhan emosionalmu melibatkan menjadi berguna dan menjaga kesehatan.",
+        "7": "Emosimu terungkap melalui kemitraan. Kamu merasa aman melalui hubungan dan mungkin secara emosional bergantung pada pasangan. Perasaanmu terikat pada cara orang lain memandangmu.",
+        "8": "Emosimu melibatkan transformasi dan intensitas. Kamu merasa aman melalui ikatan emosional yang mendalam dan mungkin memiliki pengalaman emosional yang kuat. Perasaanmu terhubung dengan sumber daya bersama.",
+        "9": "Emosimu terungkap melalui filsafat dan ekspansi. Kamu merasa aman melalui pembelajaran dan menjelajahi keyakinan. Kebutuhan emosionalmu melibatkan pencarian kebenaran dan makna.",
+        "10": "Emosimu terikat pada karier dan citra publik. Kamu merasa aman melalui pencapaian dan mungkin secara emosional terikat pada reputasimu. Perasaanmu terhubung dengan kehidupan profesionalmu.",
+        "11": "Emosimu terungkap melalui persahabatan dan harapan. Kamu merasa aman melalui koneksi sosial dan mungkin memiliki keterikatan emosional pada kelompok. Perasaanmu terikat pada mimpi-mimpimu.",
+        "12": "Emosimu melibatkan alam bawah sadar dan hal-hal tersembunyi. Kamu merasa aman melalui koneksi spiritual dan mungkin memiliki pola emosional yang dalam dan tersembunyi. Perasaanmu terhubung dengan dunia batinmu."
+      },
+      "Mercury": {
+        "1": "Pemikiran dan komunikasimu menjadi pusat identitasmu. Kamu mengekspresikan diri melalui kata-kata dan gagasan. Pikiranmu cepat dan kamu dikenal karena gaya komunikasimu.",
+        "2": "Pemikiranmu terfokus pada sumber daya dan nilai-nilai. Kamu berkomunikasi tentang uang dan harta benda. Pikiranmu praktis dan kamu memikirkan keamanan materi.",
+        "3": "Pemikiranmu secara alami serbaguna dan komunikatif. Ini adalah rumah alamiahmu. Kamu unggul dalam belajar, menulis, dan berbagi gagasan. Pikiranmu penasaran dan adaptif.",
+        "4": "Pemikiranmu terikat pada rumah dan keluarga. Kamu berkomunikasi tentang hal-hal emosional dan mungkin memikirkan akar-akarmu. Pikiranmu terhubung dengan kehidupan pribadimu.",
+        "5": "Pemikiranmu kreatif dan ekspresif. Kamu berkomunikasi melalui seni, permainan, dan ekspresi diri. Pikiranmu imajinatif dan kamu memikirkan kesenangan dan romansa.",
+        "6": "Pemikiranmu praktis dan berorientasi pada pelayanan. Kamu berkomunikasi tentang pekerjaan dan kesehatan. Pikiranmu analitis dan kamu memikirkan perbaikan serta detail.",
+        "7": "Pemikiranmu terfokus pada kemitraan. Kamu berkomunikasi melalui hubungan dan mungkin memikirkan keseimbangan. Pikiranmu diplomatis dan kamu mempertimbangkan sudut pandang orang lain.",
+        "8": "Pemikiranmu melibatkan transformasi dan kedalaman. Kamu berkomunikasi tentang topik yang intens dan mungkin memikirkan misteri. Pikiranmu tajam dan kamu mencari kebenaran yang tersembunyi.",
+        "9": "Pemikiranmu filosofis dan ekspansif. Kamu berkomunikasi tentang keyakinan dan pembelajaran tinggi. Pikiranmu mencari kebenaran dan kamu memikirkan makna serta tujuan.",
+        "10": "Pemikiranmu terfokus pada karier dan reputasi. Kamu berkomunikasi tentang profesi dan citra publikmu. Pikiranmu berorientasi pada tujuan dan kamu memikirkan pencapaian.",
+        "11": "Pemikiranmu melibatkan persahabatan dan harapan. Kamu berkomunikasi tentang kelompok dan ideal. Pikiranmu inovatif dan kamu memikirkan masa depan serta tujuan kemanusiaan.",
+        "12": "Pemikiranmu melibatkan alam bawah sadar dan hal-hal tersembunyi. Kamu berkomunikasi secara intuitif dan mungkin memikirkan hal-hal spiritual. Pikiranmu kreatif dan kamu mengolah informasi secara tak sadar."
+      },
+      "Venus": {
+        "1": "Nilai-nilai dan sifat cintamu menjadi bagian dari kepribadian luarmu. Kamu menarik dan memikat. Caramu memandang cinta dan keindahan terlihat oleh orang lain.",
+        "2": "Nilai-nilaimu terikat pada sumber daya dan harta benda. Ini adalah rumah alamiahmu. Kamu menemukan keindahan dalam hal-hal materi dan mungkin memperoleh penghasilan melalui estetika. Sifat cintamu sensual dan stabil.",
+        "3": "Nilai-nilaimu terungkap melalui komunikasi dan pembelajaran. Kamu menemukan keindahan dalam gagasan dan mungkin mencintai melalui kata-kata. Sifat cintamu menyenangkan dan intelektual.",
+        "4": "Nilai-nilaimu terikat pada rumah dan keluarga. Kamu menemukan keindahan dalam akar-akarmu dan mungkin mencintai melalui pengasuhan. Sifat cintamu emosional dan protektif.",
+        "5": "Nilai-nilaimu terungkap melalui kreativitas dan romansa. Kamu menemukan keindahan dalam ekspresi diri dan mencintai melalui kesenangan. Sifat cintamu penuh gairah dan dramatis.",
+        "6": "Nilai-nilaimu terikat pada pelayanan dan pekerjaan harian. Kamu menemukan keindahan dalam menolong orang lain dan mungkin mencintai melalui pelayanan. Sifat cintamu praktis dan suka menolong.",
+        "7": "Nilai-nilaimu terungkap melalui kemitraan. Ini juga rumah alamiahmu. Kamu menemukan keindahan dalam hubungan dan mencintai melalui kemitraan. Sifat cintamu seimbang dan harmonis.",
+        "8": "Nilai-nilaimu melibatkan transformasi dan intensitas. Kamu menemukan keindahan dalam kedalaman dan mungkin mencintai dengan intens. Sifat cintamu penuh gairah dan transformatif.",
+        "9": "Nilai-nilaimu terungkap melalui filsafat dan ekspansi. Kamu menemukan keindahan dalam keyakinan dan mungkin mencintai melalui pembelajaran. Sifat cintamu optimis dan penuh petualangan.",
+        "10": "Nilai-nilaimu terikat pada karier dan reputasi. Kamu menemukan keindahan dalam pencapaian dan mungkin mencintai melalui profesimu. Sifat cintamu ambisius dan tradisional.",
+        "11": "Nilai-nilaimu melibatkan persahabatan dan harapan. Kamu menemukan keindahan dalam kelompok dan mungkin mencintai melalui persahabatan. Sifat cintamu mandiri dan humanis.",
+        "12": "Nilai-nilaimu melibatkan alam bawah sadar dan hal-hal spiritual. Kamu menemukan keindahan dalam mimpi dan mungkin mencintai melalui welas asih. Sifat cintamu idealis dan tanpa pamrih."
+      },
+      "Mars": {
+        "1": "Energi dan doronganmu menjadi pusat identitasmu. Kamu tegas dan berorientasi pada tindakan. Caramu menghadapi konflik dan hasrat bersifat langsung dan terlihat.",
+        "2": "Energimu terfokus pada sumber daya dan nilai-nilai. Kamu bertindak untuk membangun keamanan dan mungkin terdorong oleh tujuan materi. Ketegasanmu terikat pada harta benda.",
+        "3": "Energimu terungkap melalui komunikasi dan pembelajaran. Kamu bertindak melalui kata-kata dan gagasan. Doronganmu melibatkan kegiatan mental dan variasi.",
+        "4": "Energimu terikat pada rumah dan keluarga. Kamu bertindak untuk melindungi akar-akarmu dan mungkin terdorong oleh keamanan emosional. Ketegasanmu terhubung dengan kehidupan pribadimu.",
+        "5": "Energimu terungkap melalui kreativitas dan romansa. Kamu bertindak melalui ekspresi diri dan kesenangan. Doronganmu melibatkan gairah dan permainan.",
+        "6": "Energimu terfokus pada pelayanan dan pekerjaan harian. Kamu bertindak dengan menolong orang lain dan menjaga kesehatan. Doronganmu melibatkan perbaikan dan rutinitas.",
+        "7": "Energimu terungkap melalui kemitraan. Kamu bertindak melalui hubungan dan mungkin terdorong oleh tujuan kemitraan. Ketegasanmu terikat pada caramu berhubungan.",
+        "8": "Energimu melibatkan transformasi dan intensitas. Ini juga rumah alamiahmu. Kamu bertindak melalui perubahan mendalam dan mungkin terdorong oleh kekuasaan. Doronganmu intens dan transformatif.",
+        "9": "Energimu terungkap melalui filsafat dan ekspansi. Kamu bertindak melalui keyakinan dan mungkin terdorong oleh pencarian kebenaran. Doronganmu melibatkan petualangan dan pembelajaran.",
+        "10": "Energimu terfokus pada karier dan reputasi. Kamu bertindak melalui profesimu dan mungkin terdorong oleh pencapaian. Ketegasanmu terikat pada citra publikmu.",
+        "11": "Energimu melibatkan persahabatan dan harapan. Kamu bertindak melalui kelompok dan mungkin terdorong oleh ideal. Doronganmu melibatkan inovasi dan tujuan kemanusiaan.",
+        "12": "Energimu melibatkan alam bawah sadar dan hal-hal tersembunyi. Kamu bertindak melalui praktik spiritual dan mungkin menahan tindakan langsung. Doronganmu bersifat batin dan mungkin melibatkan pelayanan."
+      },
+      "Jupiter": {
+        "1": "Pertumbuhan dan ekspansimu menjadi pusat identitasmu. Kamu optimis dan filosofis. Caramu memandang hidup bersifat ekspansif dan kamu mencari makna melalui kepribadianmu.",
+        "2": "Pertumbuhanmu terikat pada sumber daya dan nilai-nilai. Kamu berkembang dengan membangun keamanan dan mungkin menemukan keberuntungan melalui harta benda. Optimismemu terhubung dengan kelimpahan materi.",
+        "3": "Pertumbuhanmu terungkap melalui komunikasi dan pembelajaran. Kamu berkembang melalui pengetahuan dan mungkin menemukan keberuntungan melalui gagasan. Optimismemu melibatkan kegiatan mental.",
+        "4": "Pertumbuhanmu terikat pada rumah dan keluarga. Kamu berkembang melalui keamanan emosional dan mungkin menemukan keberuntungan melalui akar-akarmu. Optimismemu terhubung dengan fondasimu.",
+        "5": "Pertumbuhanmu terungkap melalui kreativitas dan romansa. Kamu berkembang melalui ekspresi diri dan mungkin menemukan keberuntungan melalui kesenangan. Optimismemu melibatkan permainan dan kreativitas.",
+        "6": "Pertumbuhanmu terfokus pada pelayanan dan pekerjaan harian. Kamu berkembang dengan menolong orang lain dan mungkin menemukan keberuntungan melalui kesehatan. Optimismemu melibatkan perbaikan dan rutinitas.",
+        "7": "Pertumbuhanmu terungkap melalui kemitraan. Kamu berkembang melalui hubungan dan mungkin menemukan keberuntungan melalui orang lain. Optimismemu terhubung dengan keseimbangan dan keharmonisan.",
+        "8": "Pertumbuhanmu melibatkan transformasi dan sumber daya bersama. Kamu berkembang melalui perubahan mendalam dan mungkin menemukan keberuntungan melalui transformasi. Optimismemu terhubung dengan regenerasi.",
+        "9": "Pertumbuhanmu terungkap melalui filsafat dan pembelajaran tinggi. Ini adalah rumah alamiahmu. Kamu berkembang melalui keyakinan dan menemukan keberuntungan dengan mencari kebenaran. Optimismemu melibatkan makna dan tujuan.",
+        "10": "Pertumbuhanmu terfokus pada karier dan reputasi. Kamu berkembang melalui pencapaian dan mungkin menemukan keberuntungan melalui profesimu. Optimismemu terhubung dengan citra publikmu.",
+        "11": "Pertumbuhanmu melibatkan persahabatan dan harapan. Kamu berkembang melalui kelompok dan mungkin menemukan keberuntungan melalui ideal. Optimismemu melibatkan tujuan kemanusiaan dan inovasi.",
+        "12": "Pertumbuhanmu melibatkan alam bawah sadar dan hal-hal spiritual. Ini juga rumah alamiahmu. Kamu berkembang melalui koneksi spiritual dan mungkin menemukan keberuntungan melalui welas asih. Optimismemu melibatkan transendensi."
+      },
+      "Saturn": {
+        "1": "Tantangan dan disiplinmu menjadi pusat identitasmu. Kamu serius dan bertanggung jawab. Caramu memandang hidup melibatkan struktur dan kamu mungkin merasa terbatas dalam ekspresi diri.",
+        "2": "Tantanganmu terikat pada sumber daya dan nilai-nilai. Kamu membangun keamanan melalui disiplin dan mungkin menghadapi keterbatasan dengan uang. Tanggung jawabmu melibatkan kestabilan materi.",
+        "3": "Tantanganmu terungkap melalui komunikasi dan pembelajaran. Kamu membangun pengetahuan melalui disiplin dan mungkin menghadapi keterbatasan dalam berekspresi. Tanggung jawabmu melibatkan pendidikan.",
+        "4": "Tantanganmu terikat pada rumah dan keluarga. Kamu membangun keamanan melalui disiplin dan mungkin menghadapi keterbatasan dengan akar-akarmu. Tanggung jawabmu melibatkan fondasi emosional.",
+        "5": "Tantanganmu terungkap melalui kreativitas dan romansa. Kamu membangun ekspresi diri melalui disiplin dan mungkin menghadapi keterbatasan dalam bermain. Tanggung jawabmu melibatkan karya kreatif.",
+        "6": "Tantanganmu terfokus pada pelayanan dan pekerjaan harian. Kamu membangun kesehatan melalui disiplin dan mungkin menghadapi keterbatasan dalam rutinitas. Tanggung jawabmu melibatkan pelayanan dan perbaikan.",
+        "7": "Tantanganmu terungkap melalui kemitraan. Kamu membangun hubungan melalui disiplin dan mungkin menghadapi keterbatasan dalam berhubungan. Tanggung jawabmu melibatkan komitmen dan keseimbangan.",
+        "8": "Tantanganmu melibatkan transformasi dan sumber daya bersama. Kamu membangun perubahan melalui disiplin dan mungkin menghadapi keterbatasan dengan intensitas. Tanggung jawabmu melibatkan regenerasi.",
+        "9": "Tantanganmu terungkap melalui filsafat dan pembelajaran tinggi. Kamu membangun keyakinan melalui disiplin dan mungkin menghadapi keterbatasan dalam ekspansi. Tanggung jawabmu melibatkan pencarian kebenaran.",
+        "10": "Tantanganmu terfokus pada karier dan reputasi. Ini adalah rumah alamiahmu. Kamu membangun pencapaian melalui disiplin dan mungkin menghadapi keterbatasan secara profesional. Tanggung jawabmu melibatkan citra publikmu.",
+        "11": "Tantanganmu melibatkan persahabatan dan harapan. Kamu membangun kelompok melalui disiplin dan mungkin menghadapi keterbatasan dengan ideal. Tanggung jawabmu melibatkan inovasi dan tujuan kemanusiaan.",
+        "12": "Tantanganmu melibatkan alam bawah sadar dan hal-hal tersembunyi. Kamu membangun spiritualitas melalui disiplin dan mungkin menghadapi keterbatasan dengan ilusi. Tanggung jawabmu melibatkan kerja batin dan melepaskan."
+      },
+      "Rahu": {
+        "1": "Hasratmu melibatkan menjadi mandiri dan mengambil inisiatif. Kamu tertarik pada kepemimpinan dan mungkin terobsesi untuk menjadi yang pertama. Ambisimu terikat pada identitasmu.",
+        "2": "Hasratmu melibatkan mengumpulkan sumber daya dan keamanan materi. Kamu tertarik pada harta benda dan mungkin terobsesi pada uang. Ambisimu terikat pada nilai-nilai.",
+        "3": "Hasratmu melibatkan komunikasi dan pembelajaran. Kamu tertarik pada pengetahuan dan mungkin terobsesi pada gagasan. Ambisimu terikat pada kegiatan mental.",
+        "4": "Hasratmu melibatkan rumah dan keamanan keluarga. Kamu tertarik pada akar-akarmu dan mungkin terobsesi pada kestabilan emosional. Ambisimu terikat pada fondasimu.",
+        "5": "Hasratmu melibatkan kreativitas dan pengakuan. Kamu tertarik pada ekspresi diri dan mungkin terobsesi untuk dikagumi. Ambisimu terikat pada permainan dan romansa.",
+        "6": "Hasratmu melibatkan pelayanan dan kesempurnaan. Kamu tertarik untuk menolong orang lain dan mungkin terobsesi pada kesehatan. Ambisimu terikat pada perbaikan.",
+        "7": "Hasratmu melibatkan kemitraan dan keseimbangan. Kamu tertarik pada hubungan dan mungkin terobsesi untuk menemukan pasangan yang sempurna. Ambisimu terikat pada keharmonisan.",
+        "8": "Hasratmu melibatkan transformasi dan kekuasaan. Kamu tertarik pada intensitas dan mungkin terobsesi pada kendali. Ambisimu terikat pada perubahan mendalam.",
+        "9": "Hasratmu melibatkan filsafat dan ekspansi. Kamu tertarik pada pencarian kebenaran dan mungkin terobsesi pada keyakinan. Ambisimu terikat pada pembelajaran tinggi.",
+        "10": "Hasratmu melibatkan karier dan pencapaian. Kamu tertarik pada pengakuan dan mungkin terobsesi pada status. Ambisimu terikat pada citra publikmu.",
+        "11": "Hasratmu melibatkan persahabatan dan inovasi. Kamu tertarik pada kelompok dan mungkin terobsesi pada ideal. Ambisimu terikat pada tujuan kemanusiaan.",
+        "12": "Hasratmu melibatkan spiritualitas dan pelarian. Kamu tertarik pada transendensi dan mungkin terobsesi pada ilusi. Ambisimu terikat pada melepaskan."
+      },
+      "Ketu": {
+        "1": "Kamu sedang melepaskan keterikatan pada ego dan identitas. Jalan spiritualmu melibatkan belajar kerendahan hati dan melepaskan kebutuhan untuk menjadi yang pertama. Kamu mencari kelepasan dari diri.",
+        "2": "Kamu sedang melepaskan keterikatan pada harta benda dan keamanan materi. Jalan spiritualmu melibatkan belajar menghargai hal-hal non-materi. Kamu mencari kelepasan dari sumber daya.",
+        "3": "Kamu sedang melepaskan keterikatan pada komunikasi dan kegiatan mental. Jalan spiritualmu melibatkan belajar keheningan dan melampaui kata-kata. Kamu mencari kelepasan dari gagasan.",
+        "4": "Kamu sedang melepaskan keterikatan pada pola rumah dan keluarga. Jalan spiritualmu melibatkan belajar kemandirian dan melepaskan masa lalu. Kamu mencari kelepasan dari akar-akarmu.",
+        "5": "Kamu sedang melepaskan keterikatan pada kreativitas dan pengakuan. Jalan spiritualmu melibatkan belajar kerendahan hati dan melepaskan kebutuhan akan perhatian. Kamu mencari kelepasan dari ekspresi diri.",
+        "6": "Kamu sedang melepaskan keterikatan pada pelayanan dan kesempurnaan. Jalan spiritualmu melibatkan belajar menerima ketidaksempurnaan. Kamu mencari kelepasan dari perbaikan.",
+        "7": "Kamu sedang melepaskan keterikatan pada kemitraan dan keseimbangan. Jalan spiritualmu melibatkan belajar kemandirian dan melepaskan kebutuhan akan orang lain. Kamu mencari kelepasan dari hubungan.",
+        "8": "Kamu sedang melepaskan keterikatan pada kekuasaan dan kendali. Jalan spiritualmu melibatkan belajar melepaskan dan menemukan kedamaian dalam penyerahan. Kamu mencari kelepasan dari transformasi.",
+        "9": "Kamu sedang melepaskan keterikatan pada keyakinan dan ekspansi. Jalan spiritualmu melibatkan belajar hadir di saat ini dan melepaskan kebutuhan untuk mencari lebih banyak. Kamu mencari kelepasan dari filsafat.",
+        "10": "Kamu sedang melepaskan keterikatan pada karier dan pencapaian. Jalan spiritualmu melibatkan belajar fleksibilitas dan melepaskan kebutuhan akan status. Kamu mencari kelepasan dari reputasi.",
+        "11": "Kamu sedang melepaskan keterikatan pada persahabatan dan inovasi. Jalan spiritualmu melibatkan belajar koneksi dan melepaskan kebutuhan untuk menjadi berbeda. Kamu mencari kelepasan dari kelompok.",
+        "12": "Kamu sedang melepaskan keterikatan pada ilusi dan pelarian. Jalan spiritualmu melibatkan belajar menghadapi kenyataan dan melepaskan kebutuhan untuk melampaui. Kamu mencari kelepasan dari alam bawah sadar."
+      },
+      "Ascendant": {
+        "1": "Kepribadian luarmu adalah identitasmu. Ini adalah rumah alamiahmu. Cara orang lain memandangmu menjadi pusat dari siapa dirimu. Caramu memandang hidup menentukan esensimu.",
+        "2": "Kepribadian luarmu terikat pada sumber daya dan nilai-nilai. Orang lain memandangmu sebagai pribadi yang stabil dan berorientasi pada nilai. Caramu memandang hidup melibatkan membangun keamanan.",
+        "3": "Kepribadian luarmu komunikatif dan serbaguna. Orang lain memandangmu sebagai pribadi yang penasaran dan adaptif. Caramu memandang hidup melibatkan belajar dan berbagi gagasan.",
+        "4": "Kepribadian luarmu pengasuh dan protektif. Orang lain memandangmu sebagai pribadi yang emosional dan berorientasi pada keluarga. Caramu memandang hidup melibatkan menciptakan keamanan.",
+        "5": "Kepribadian luarmu kreatif dan ekspresif. Orang lain memandangmu sebagai pribadi yang menyenangkan dan dramatis. Caramu memandang hidup melibatkan ekspresi diri dan kesenangan.",
+        "6": "Kepribadian luarmu praktis dan berorientasi pada pelayanan. Orang lain memandangmu sebagai pribadi yang suka menolong dan teliti pada detail. Caramu memandang hidup melibatkan perbaikan dan pelayanan.",
+        "7": "Kepribadian luarmu diplomatis dan berfokus pada hubungan. Orang lain memandangmu sebagai pribadi yang seimbang dan kooperatif. Caramu memandang hidup melibatkan kemitraan dan keharmonisan.",
+        "8": "Kepribadian luarmu intens dan misterius. Orang lain memandangmu sebagai pribadi yang transformatif dan mendalam. Caramu memandang hidup melibatkan intensitas dan regenerasi.",
+        "9": "Kepribadian luarmu optimis dan filosofis. Orang lain memandangmu sebagai pribadi yang penuh petualangan dan pencari kebenaran. Caramu memandang hidup melibatkan ekspansi dan pembelajaran.",
+        "10": "Kepribadian luarmu serius dan ambisius. Orang lain memandangmu sebagai pribadi yang bertanggung jawab dan berorientasi pada tujuan. Caramu memandang hidup melibatkan pencapaian dan struktur.",
+        "11": "Kepribadian luarmu unik dan mandiri. Orang lain memandangmu sebagai pribadi yang inovatif dan humanis. Caramu memandang hidup melibatkan kebebasan dan ideal.",
+        "12": "Kepribadian luarmu pemimpi dan intuitif. Orang lain memandangmu sebagai pribadi yang artistik dan penuh welas asih. Caramu memandang hidup melibatkan spiritualitas dan kerja batin."
+      }
+    },
+    "planetInSign": {
+      "Sun": {
+        "Aries": "Identitasmu berani, mandiri, dan suka memelopori. Kamu adalah pemimpin alami yang mengambil inisiatif dan tidak takut menjadi yang pertama. Kepercayaan dirimu berasal dari tindakan dan keberanian.",
+        "Taurus": "Identitasmu stabil, dapat diandalkan, dan membumi. Kamu menghargai keamanan, keindahan, dan kenyamanan. Kepercayaan dirimu berasal dari membangun sesuatu yang langgeng dan nyata.",
+        "Gemini": "Identitasmu penuh rasa ingin tahu, komunikatif, dan serbaguna. Kamu adaptif dan suka belajar. Kepercayaan dirimu berasal dari pengetahuan dan kemampuan mengekspresikan gagasan.",
+        "Cancer": "Identitasmu pengasuh, protektif, dan emosional. Kamu menghargai keluarga dan keamanan. Kepercayaan dirimu berasal dari koneksi emosional dan kepedulian terhadap orang lain.",
+        "Leo": "Identitasmu percaya diri, kreatif, dan dramatis. Kamu suka menjadi pusat perhatian dan mengekspresikan diri. Kepercayaan dirimu berasal dari ekspresi diri dan pengakuan.",
+        "Virgo": "Identitasmu praktis, analitis, dan berorientasi pada pelayanan. Kamu menemukan kepercayaan diri melalui perbaikan dan menolong. Kamu menghargai ketelitian dan efisiensi.",
+        "Libra": "Identitasmu diplomatis, estetis, dan berfokus pada hubungan. Kepercayaan dirimu berasal dari keharmonisan, keindahan, dan kemitraan. Kamu mencari keseimbangan dalam segala hal.",
+        "Scorpio": "Identitasmu intens, transformatif, dan kuat. Kepercayaan dirimu berasal dari kedalaman dan kemampuan untuk beregenerasi. Kamu tertarik pada misteri dan kebenaran yang tersembunyi.",
+        "Sagittarius": "Identitasmu optimis, penuh petualangan, dan filosofis. Kepercayaan dirimu berasal dari pencarian kebenaran dan memperluas cakrawala. Kamu menghargai kebebasan dan kejujuran.",
+        "Capricorn": "Identitasmu ambisius, disiplin, dan tradisional. Kepercayaan dirimu berasal dari pencapaian dan membangun struktur. Kamu menghargai tanggung jawab dan rasa hormat.",
+        "Aquarius": "Identitasmu unik, mandiri, dan berpikiran maju. Kepercayaan dirimu berasal dari inovasi dan nilai-nilai kemanusiaan. Kamu melangkah mengikuti irama dirimu sendiri.",
+        "Pisces": "Identitasmu penuh impian, welas asih, dan intuitif. Kepercayaan dirimu berasal dari kreativitas dan koneksi spiritual. Kamu artistik dan penuh empati."
+      },
+      "Moon": {
+        "Aries": "Emosimu cepat, berapi-api, dan impulsif. Kamu merasakan segala hal dengan intens dan bereaksi seketika. Kamu butuh kemandirian dan tindakan untuk merasa aman.",
+        "Taurus": "Emosimu stabil, mantap, dan sensual. Kamu merasa aman melalui kenyamanan, keindahan, dan kestabilan. Kamu menghargai rutinitas dan keamanan materi.",
+        "Gemini": "Emosimu berubah-ubah, penuh rasa ingin tahu, dan mental. Kamu mengolah perasaan melalui komunikasi dan variasi. Kamu butuh stimulasi mental untuk merasa aman.",
+        "Cancer": "Emosimu dalam, pengasuh, dan protektif. Ini adalah zodiak alamiahmu, sehingga perasaan menjadi pusat. Kamu butuh keamanan emosional dan koneksi keluarga.",
+        "Leo": "Emosimu hangat, dramatis, dan penuh kebanggaan. Kamu merasa aman melalui pengakuan dan ekspresi diri. Kamu butuh merasa istimewa dan dikagumi.",
+        "Virgo": "Emosimu praktis, analitis, dan berorientasi pada pelayanan. Kamu mengolah perasaan dengan menolong orang lain dan memperbaiki segala hal. Kamu butuh keteraturan untuk merasa aman.",
+        "Libra": "Emosimu seimbang, harmonis, dan berfokus pada hubungan. Kamu merasa aman melalui kemitraan dan keindahan. Kamu butuh keharmonisan untuk merasa stabil secara emosional.",
+        "Scorpio": "Emosimu intens, dalam, dan transformatif. Kamu merasakan segala hal dengan kuat dan mungkin menyembunyikan perasaan. Kamu butuh kedalaman dan intensitas untuk merasa aman.",
+        "Sagittarius": "Emosimu optimis, penuh petualangan, dan filosofis. Kamu merasa aman melalui kebebasan dan ekspansi. Kamu butuh petualangan dan makna untuk merasa terpenuhi.",
+        "Capricorn": "Emosimu terkendali, disiplin, dan tertahan. Kamu mungkin menahan perasaan dan butuh struktur untuk merasa aman. Kamu menghargai tanggung jawab emosional.",
+        "Aquarius": "Emosimu terlepas, mandiri, dan humanis. Kamu merasa aman melalui kebebasan dan inovasi. Kamu mungkin mengintelektualisasi perasaan.",
+        "Pisces": "Emosimu penuh impian, welas asih, dan intuitif. Kamu merasakan segala hal dengan dalam dan mungkin menyerap emosi orang lain. Kamu butuh koneksi spiritual untuk merasa aman."
+      },
+      "Mercury": {
+        "Aries": "Pemikiranmu cepat, langsung, dan tegas. Kamu berkomunikasi dengan berani dan membuat keputusan dengan cepat. Kamu lugas dan mungkin tidak sabar dengan pemikir yang lambat.",
+        "Taurus": "Pemikiranmu praktis, mantap, dan membumi. Kamu berkomunikasi secara perlahan dan penuh pertimbangan. Kamu memikirkan keamanan materi dan hal-hal praktis.",
+        "Gemini": "Pemikiranmu serbaguna, penuh rasa ingin tahu, dan cepat. Ini adalah zodiak alamiahmu, sehingga komunikasi menjadi pusat. Kamu suka belajar dan berbagi gagasan.",
+        "Virgo": "Pemikiranmu analitis, presisi, dan teliti pada detail. Ini juga zodiak alamiahmu. Kamu unggul dalam analisis dan pemecahan masalah praktis.",
+        "Cancer": "Pemikiranmu emosional, intuitif, dan berfokus pada ingatan. Kamu berkomunikasi dengan perasaan dan mengingat detail emosional. Kamu memikirkan keamanan dan keluarga.",
+        "Leo": "Pemikiranmu kreatif, dramatis, dan percaya diri. Kamu berkomunikasi dengan gaya dan suka berbagi gagasan. Kamu memikirkan ekspresi diri dan pengakuan.",
+        "Libra": "Pemikiranmu seimbang, diplomatis, dan estetis. Kamu berkomunikasi secara harmonis dan mempertimbangkan semua sudut pandang. Kamu memikirkan hubungan dan keindahan.",
+        "Scorpio": "Pemikiranmu intens, tajam menembus, dan penuh rahasia. Kamu berkomunikasi dengan kedalaman dan mungkin menyimpan beberapa pikiran untuk diri sendiri. Kamu memikirkan transformasi dan misteri.",
+        "Sagittarius": "Pemikiranmu filosofis, optimis, dan ekspansif. Kamu berkomunikasi dengan antusias dan suka berbagi pengetahuan. Kamu memikirkan kebenaran dan makna.",
+        "Capricorn": "Pemikiranmu serius, terstruktur, dan berorientasi pada tujuan. Kamu berkomunikasi dengan maksud dan memikirkan rencana jangka panjang serta tanggung jawab.",
+        "Aquarius": "Pemikiranmu inovatif, mandiri, dan orisinal. Kamu berkomunikasi secara unik dan memikirkan masa depan serta ideal kemanusiaan.",
+        "Pisces": "Pemikiranmu intuitif, kreatif, dan penuh impian. Kamu berkomunikasi dengan imajinasi dan mungkin berpikir dalam bentuk gambar atau simbol. Kamu sangat intuitif."
+      },
+      "Venus": {
+        "Aries": "Kamu tertarik pada orang yang berani dan mandiri serta hubungan yang penuh gairah. Cinta itu seru dan langsung. Kamu menghargai kemandirian dan tindakan dalam hubungan.",
+        "Taurus": "Kamu tertarik pada orang yang stabil dan sensual serta hubungan yang setia. Ini adalah zodiak alamiahmu. Kamu menghargai keamanan, keindahan, dan kenyamanan fisik dalam cinta.",
+        "Gemini": "Kamu tertarik pada orang yang komunikatif dan intelektual serta hubungan yang menyenangkan. Kamu menghargai koneksi mental dan variasi dalam cinta. Kamu mungkin memiliki banyak minat.",
+        "Cancer": "Kamu tertarik pada orang yang pengasuh dan emosional serta hubungan yang protektif. Kamu menghargai keamanan dan koneksi emosional. Kamu penuh kepedulian dan setia.",
+        "Leo": "Kamu tertarik pada orang yang percaya diri dan kreatif serta hubungan yang dramatis. Kamu menghargai kekaguman dan ekspresi diri. Kamu suka dipuja dan memberikan kasih sayang.",
+        "Virgo": "Kamu tertarik pada orang yang praktis dan suka menolong serta hubungan yang berorientasi pada pelayanan. Kamu menunjukkan cinta melalui tindakan pelayanan dan menghargai perbaikan dalam hubungan.",
+        "Libra": "Kamu tertarik pada orang yang seimbang dan estetis serta hubungan yang harmonis. Ini adalah zodiak alamiahmu. Kamu menghargai kemitraan, keindahan, dan keharmonisan dalam cinta.",
+        "Scorpio": "Kamu tertarik pada orang yang intens dan transformatif serta hubungan yang penuh gairah. Kamu menghargai kedalaman dan intensitas. Cinta itu transformatif dan menyeluruh.",
+        "Sagittarius": "Kamu tertarik pada orang yang penuh petualangan dan filosofis serta hubungan yang berjiwa bebas. Kamu menghargai kejujuran dan pertumbuhan. Kamu butuh kebebasan dalam hubungan.",
+        "Capricorn": "Kamu tertarik pada orang yang serius dan ambisius serta hubungan yang tradisional. Kamu menghargai komitmen dan keamanan jangka panjang. Cinta itu praktis dan penuh tanggung jawab.",
+        "Aquarius": "Kamu tertarik pada orang yang unik dan mandiri serta hubungan yang tidak konvensional. Kamu menghargai persahabatan dan kebebasan. Cinta itu inovatif dan tidak tradisional.",
+        "Pisces": "Kamu tertarik pada orang yang penuh impian dan welas asih serta hubungan yang idealis. Kamu menghargai koneksi spiritual dan empati. Cinta itu romantis dan tanpa pamrih."
+      },
+      "Mars": {
+        "Aries": "Energimu langsung, impulsif, dan kompetitif. Ini adalah zodiak alamiahmu. Kamu bertindak seketika dan tidak takut pada konflik. Kamu adalah pejuang alami.",
+        "Taurus": "Energimu mantap, gigih, dan sensual. Kamu bertindak secara perlahan namun gigih. Kamu menyalurkan energi untuk membangun keamanan dan kenyamanan materi.",
+        "Gemini": "Energimu cepat, serbaguna, dan komunikatif. Kamu bertindak melalui kata-kata dan gagasan. Kamu mungkin memiliki banyak proyek dan butuh stimulasi mental.",
+        "Cancer": "Energimu emosional, protektif, dan defensif. Kamu bertindak untuk melindungi orang-orang yang dicintai. Kamu mungkin menahan amarah dan butuh keamanan emosional untuk bertindak.",
+        "Leo": "Energimu dramatis, percaya diri, dan kreatif. Kamu bertindak dengan gaya dan suka diakui. Kamu menyalurkan energi ke dalam ekspresi diri dan kepemimpinan.",
+        "Virgo": "Energimu praktis, presisi, dan berorientasi pada pelayanan. Kamu bertindak melalui pekerjaan yang teliti dan perbaikan. Kamu menyalurkan energi untuk menolong dan menyempurnakan.",
+        "Libra": "Energimu seimbang, diplomatis, dan berfokus pada hubungan. Kamu mungkin menghindari konflik langsung dan bertindak melalui kemitraan. Kamu menyalurkan energi ke dalam keharmonisan.",
+        "Scorpio": "Energimu intens, fokus, dan transformatif. Ini juga zodiak alamiahmu. Kamu bertindak dengan tekad dan menyalurkan energi ke dalam transformasi yang mendalam.",
+        "Sagittarius": "Energimu penuh petualangan, optimis, dan ekspansif. Kamu bertindak melalui petualangan dan eksplorasi. Kamu menyalurkan energi untuk mencari kebenaran dan makna.",
+        "Capricorn": "Energimu disiplin, ambisius, dan berorientasi pada tujuan. Kamu bertindak secara sistematis dan menyalurkan energi untuk membangun struktur serta mencapai tujuan.",
+        "Aquarius": "Energimu inovatif, mandiri, dan pemberontak. Kamu bertindak melalui inovasi dan menyalurkan energi untuk melepaskan diri dari tradisi.",
+        "Pisces": "Energimu intuitif, penuh welas asih, dan kadang pasif. Kamu mungkin menghindari tindakan langsung dan menyalurkan energi ke dalam kreativitas, pelayanan, atau pencarian spiritual."
+      },
+      "Jupiter": {
+        "Aries": "Pertumbuhanmu datang melalui kepemimpinan, inisiatif, dan memelopori. Kamu optimis tentang awal yang baru dan menemukan keberuntungan dengan bertindak serta menjadi yang pertama.",
+        "Taurus": "Pertumbuhanmu datang melalui membangun keamanan, mengumpulkan sumber daya, dan menghargai keindahan. Kamu menemukan keberuntungan melalui usaha yang mantap dan kestabilan materi.",
+        "Gemini": "Pertumbuhanmu datang melalui pembelajaran, komunikasi, dan variasi. Kamu menemukan keberuntungan melalui pengetahuan, mengajar, dan terhubung dengan orang lain secara intelektual.",
+        "Cancer": "Pertumbuhanmu datang melalui keamanan emosional, keluarga, dan pengasuhan. Ini adalah zodiak alamiahmu. Kamu menemukan keberuntungan dengan merawat orang lain dan membangun fondasi emosional.",
+        "Leo": "Pertumbuhanmu datang melalui kreativitas, ekspresi diri, dan pengakuan. Kamu menemukan keberuntungan dengan berbagi bakat dan dikagumi. Kamu murah hati dan optimis.",
+        "Virgo": "Pertumbuhanmu datang melalui pelayanan, perbaikan, dan kebijaksanaan praktis. Kamu menemukan keberuntungan dengan menolong orang lain dan menyempurnakan keterampilanmu. Kamu menghargai kesehatan dan efisiensi.",
+        "Libra": "Pertumbuhanmu datang melalui kemitraan, keharmonisan, dan estetika. Kamu menemukan keberuntungan melalui hubungan dan menciptakan keindahan. Kamu menghargai keadilan dan keseimbangan.",
+        "Scorpio": "Pertumbuhanmu datang melalui transformasi, kedalaman, dan sumber daya bersama. Kamu menemukan keberuntungan melalui regenerasi dan menyingkap kebenaran yang tersembunyi. Kamu tertarik pada misteri.",
+        "Sagittarius": "Pertumbuhanmu datang melalui ekspansi, filsafat, dan petualangan. Ini adalah zodiak alamiahmu. Kamu menemukan keberuntungan melalui pencarian kebenaran, perjalanan, dan pembelajaran tinggi.",
+        "Capricorn": "Pertumbuhanmu datang melalui disiplin, struktur, dan pencapaian. Kamu menemukan keberuntungan dengan membangun fondasi yang langgeng dan mengemban tanggung jawab. Kamu menghargai tradisi.",
+        "Aquarius": "Pertumbuhanmu datang melalui inovasi, kemandirian, dan ideal kemanusiaan. Kamu menemukan keberuntungan dengan melepaskan diri dari tradisi dan merangkul keunikan.",
+        "Pisces": "Pertumbuhanmu datang melalui spiritualitas, welas asih, dan kreativitas. Ini juga zodiak alamiahmu. Kamu menemukan keberuntungan melalui intuisi, seni, dan koneksi spiritual."
+      },
+      "Saturn": {
+        "Aries": "Tantanganmu melibatkan belajar kesabaran, mengendalikan keimpulsifan, dan bertanggung jawab atas tindakanmu. Kamu membangun disiplin melalui kepemimpinan dan inisiatif.",
+        "Taurus": "Tantanganmu melibatkan keamanan finansial, kestabilan materi, dan belajar menghargai apa yang kamu miliki. Kamu membangun disiplin melalui usaha yang mantap dan kegigihan.",
+        "Gemini": "Tantanganmu melibatkan fokus, komunikasi, dan belajar berkomitmen pada gagasan. Kamu membangun disiplin melalui pendidikan dan pemikiran yang jernih.",
+        "Cancer": "Tantanganmu melibatkan keamanan emosional, tanggung jawab keluarga, dan belajar melindungi dirimu. Kamu membangun disiplin melalui pengasuhan dan kedewasaan emosional.",
+        "Leo": "Tantanganmu melibatkan ego, kreativitas, dan belajar kerendahan hati. Kamu membangun disiplin melalui ekspresi diri dan bertanggung jawab atas bakatmu.",
+        "Virgo": "Tantanganmu melibatkan perfeksionisme, pelayanan, dan belajar menerima ketidaksempurnaan. Kamu membangun disiplin melalui pekerjaan praktis dan menolong orang lain.",
+        "Libra": "Tantanganmu melibatkan hubungan, keseimbangan, dan belajar membuat keputusan. Kamu membangun disiplin melalui kemitraan dan menciptakan keharmonisan.",
+        "Scorpio": "Tantanganmu melibatkan transformasi, kekuasaan, dan belajar melepaskan. Kamu membangun disiplin melalui perubahan mendalam dan menghadapi sisi gelapmu.",
+        "Sagittarius": "Tantanganmu melibatkan keyakinan, ekspansi, dan belajar menjadi realistis. Kamu membangun disiplin melalui pencarian kebenaran dan bertanggung jawab atas filsafat hidupmu.",
+        "Capricorn": "Tantanganmu melibatkan struktur, otoritas, dan belajar menyeimbangkan pekerjaan dan kehidupan. Ini adalah zodiak alamiahmu. Kamu membangun disiplin melalui pencapaian dan tradisi.",
+        "Aquarius": "Tantanganmu melibatkan kemandirian, inovasi, dan belajar menyeimbangkan kebebasan dengan tanggung jawab. Kamu membangun disiplin dengan melepaskan diri sambil tetap membumi.",
+        "Pisces": "Tantanganmu melibatkan batasan, ilusi, dan belajar menghadapi kenyataan. Kamu membangun disiplin melalui praktik spiritual dan belajar membedakan kebenaran dari ilusi."
+      },
+      "Rahu": {
+        "Aries": "Hasratmu melibatkan menjadi mandiri dan mengambil inisiatif. Kamu tertarik pada kepemimpinan dan mungkin terobsesi untuk menjadi yang pertama. Ambisimu terikat pada identitasmu.",
+        "Taurus": "Hasratmu melibatkan mengumpulkan sumber daya dan keamanan materi. Kamu tertarik pada harta benda dan mungkin terobsesi pada uang. Ambisimu terikat pada nilai-nilai.",
+        "Gemini": "Hasratmu melibatkan komunikasi dan pembelajaran. Kamu tertarik pada pengetahuan dan mungkin terobsesi pada gagasan. Ambisimu terikat pada kegiatan mental.",
+        "Cancer": "Hasratmu melibatkan rumah dan keamanan keluarga. Kamu tertarik pada akar-akarmu dan mungkin terobsesi pada kestabilan emosional. Ambisimu terikat pada fondasimu.",
+        "Leo": "Hasratmu melibatkan kreativitas dan pengakuan. Kamu tertarik pada ekspresi diri dan mungkin terobsesi untuk dikagumi. Ambisimu terikat pada permainan dan romansa.",
+        "Virgo": "Hasratmu melibatkan pelayanan dan kesempurnaan. Kamu tertarik untuk menolong orang lain dan mungkin terobsesi pada kesehatan. Ambisimu terikat pada perbaikan.",
+        "Libra": "Hasratmu melibatkan kemitraan dan keseimbangan. Kamu tertarik pada hubungan dan mungkin terobsesi untuk menemukan pasangan yang sempurna. Ambisimu terikat pada keharmonisan.",
+        "Scorpio": "Hasratmu melibatkan transformasi dan kekuasaan. Kamu tertarik pada intensitas dan mungkin terobsesi pada kendali. Ambisimu terikat pada perubahan mendalam.",
+        "Sagittarius": "Hasratmu melibatkan filsafat dan ekspansi. Kamu tertarik pada pencarian kebenaran dan mungkin terobsesi pada keyakinan. Ambisimu terikat pada pembelajaran tinggi.",
+        "Capricorn": "Hasratmu melibatkan karier dan pencapaian. Kamu tertarik pada pengakuan dan mungkin terobsesi pada status. Ambisimu terikat pada citra publikmu.",
+        "Aquarius": "Hasratmu melibatkan persahabatan dan inovasi. Kamu tertarik pada kelompok dan mungkin terobsesi pada ideal. Ambisimu terikat pada tujuan kemanusiaan.",
+        "Pisces": "Hasratmu melibatkan spiritualitas dan pelarian. Kamu tertarik pada transendensi dan mungkin terobsesi pada ilusi. Ambisimu terikat pada melepaskan."
+      },
+      "Ketu": {
+        "Aries": "Kamu sedang melepaskan keterikatan pada ego dan identitas. Jalan spiritualmu melibatkan belajar kerendahan hati dan melepaskan kebutuhan untuk menjadi yang pertama. Kamu mencari kelepasan dari diri.",
+        "Taurus": "Kamu sedang melepaskan keterikatan pada harta benda dan keamanan materi. Jalan spiritualmu melibatkan belajar menghargai hal-hal non-materi. Kamu mencari kelepasan dari sumber daya.",
+        "Gemini": "Kamu sedang melepaskan keterikatan pada komunikasi dan kegiatan mental. Jalan spiritualmu melibatkan belajar keheningan dan melampaui kata-kata. Kamu mencari kelepasan dari gagasan.",
+        "Cancer": "Kamu sedang melepaskan keterikatan pada pola rumah dan keluarga. Jalan spiritualmu melibatkan belajar kemandirian dan melepaskan masa lalu. Kamu mencari kelepasan dari akar-akarmu.",
+        "Leo": "Kamu sedang melepaskan keterikatan pada kreativitas dan pengakuan. Jalan spiritualmu melibatkan belajar kerendahan hati dan melepaskan kebutuhan akan perhatian. Kamu mencari kelepasan dari ekspresi diri.",
+        "Virgo": "Kamu sedang melepaskan keterikatan pada pelayanan dan kesempurnaan. Jalan spiritualmu melibatkan belajar menerima ketidaksempurnaan. Kamu mencari kelepasan dari perbaikan.",
+        "Libra": "Kamu sedang melepaskan keterikatan pada kemitraan dan keseimbangan. Jalan spiritualmu melibatkan belajar kemandirian dan melepaskan kebutuhan akan orang lain. Kamu mencari kelepasan dari hubungan.",
+        "Scorpio": "Kamu sedang melepaskan keterikatan pada kekuasaan dan kendali. Jalan spiritualmu melibatkan belajar melepaskan dan menemukan kedamaian dalam penyerahan. Kamu mencari kelepasan dari transformasi.",
+        "Sagittarius": "Kamu sedang melepaskan keterikatan pada keyakinan dan ekspansi. Jalan spiritualmu melibatkan belajar hadir di saat ini dan melepaskan kebutuhan untuk mencari lebih banyak. Kamu mencari kelepasan dari filsafat.",
+        "Capricorn": "Kamu sedang melepaskan keterikatan pada karier dan pencapaian. Jalan spiritualmu melibatkan belajar fleksibilitas dan melepaskan kebutuhan akan status. Kamu mencari kelepasan dari reputasi.",
+        "Aquarius": "Kamu sedang melepaskan keterikatan pada persahabatan dan inovasi. Jalan spiritualmu melibatkan belajar koneksi dan melepaskan kebutuhan untuk menjadi berbeda. Kamu mencari kelepasan dari kelompok.",
+        "Pisces": "Kamu sedang melepaskan keterikatan pada ilusi dan pelarian. Jalan spiritualmu melibatkan belajar menghadapi kenyataan dan melepaskan kebutuhan untuk melampaui. Kamu mencari kelepasan dari alam bawah sadar."
+      },
+      "Ascendant": {
+        "Aries": "Kamu tampak berani, mandiri, dan berorientasi pada tindakan. Orang lain memandangmu sebagai pemimpin alami yang mengambil inisiatif. Kamu menjalani hidup dengan keberanian dan kelugasan.",
+        "Taurus": "Kamu tampak stabil, dapat diandalkan, dan membumi. Orang lain memandangmu sebagai pribadi yang sabar dan sensual. Kamu menjalani hidup dengan kegigihan dan menghargai keamanan serta kenyamanan.",
+        "Gemini": "Kamu tampak penuh rasa ingin tahu, komunikatif, dan serbaguna. Orang lain memandangmu sebagai pribadi yang cerdas dan adaptif. Kamu menjalani hidup dengan rasa ingin tahu dan suka belajar.",
+        "Cancer": "Kamu tampak pengasuh, sensitif, dan protektif. Orang lain memandangmu sebagai pribadi yang emosional dan intuitif. Kamu menjalani hidup dengan kepedulian dan menghargai keamanan serta keluarga.",
+        "Leo": "Kamu tampak percaya diri, kreatif, dan dramatis. Orang lain memandangmu sebagai pribadi yang karismatik dan hangat. Kamu menjalani hidup dengan antusiasme dan suka diakui.",
+        "Virgo": "Kamu tampak analitis, praktis, dan teliti pada detail. Orang lain memandangmu sebagai pribadi yang teratur dan suka menolong. Kamu menjalani hidup dengan presisi dan menghargai perbaikan.",
+        "Libra": "Kamu tampak diplomatis, memikat, dan seimbang. Orang lain memandangmu sebagai pribadi yang kooperatif dan estetis. Kamu menjalani hidup dengan mencari keharmonisan dan keindahan.",
+        "Scorpio": "Kamu tampak intens, misterius, dan kuat. Orang lain memandangmu sebagai pribadi yang transformatif dan mendalam. Kamu menjalani hidup dengan intensitas dan tertarik pada misteri.",
+        "Sagittarius": "Kamu tampak optimis, penuh petualangan, dan filosofis. Orang lain memandangmu sebagai pribadi yang berjiwa bebas dan jujur. Kamu menjalani hidup dengan mencari kebenaran dan ekspansi.",
+        "Capricorn": "Kamu tampak serius, ambisius, dan disiplin. Orang lain memandangmu sebagai pribadi yang bertanggung jawab dan tradisional. Kamu menjalani hidup dengan struktur dan menghargai pencapaian.",
+        "Aquarius": "Kamu tampak unik, mandiri, dan berpikiran maju. Orang lain memandangmu sebagai pribadi yang inovatif dan humanis. Kamu menjalani hidup dengan orisinalitas dan menghargai kebebasan.",
+        "Pisces": "Kamu tampak penuh impian, welas asih, dan intuitif. Orang lain memandangmu sebagai pribadi yang artistik dan penuh empati. Kamu menjalani hidup dengan imajinasi dan kepekaan spiritual."
+      }
+    },
+    "form": {
+      "birthInformation": "Informasi Kelahiranmu",
+      "birthInformationTooltip": "Tanggal lahirmu menetapkan kerangka planet inti yang digunakan untuk menghasilkan petamu. Memberikan waktu lahirmu bersifat opsional, namun secara signifikan meningkatkan presisi karena posisi planet bergeser sepanjang hari. Memberikan lokasi kelahiranmu semakin menyempurnakan perhitungan dengan memungkinkan sistem menyelaraskan koordinat langit dengan titik asal geografismu yang tepat.",
+      "selectDate": "Pilih tanggal",
+      "selectTime": "Pilih waktu",
+      "selectLocation": "Pilih lokasi",
+      "backToHour": "Kembali ke jam",
+      "enterBirthHour": "Masukkan jam kelahiranmu",
+      "enterBirthMinute": "Masukkan menit kelahiranmu",
+      "backToCountry": "Kembali ke negara",
+      "searchCountries": "Cari negara...",
+      "useCurrentLocation": "Gunakan lokasi saat ini",
+      "searchStatesProvinces": "Cari provinsi/wilayah...",
+      "generating": "Menghasilkan...",
+      "generateChart": "Buat Peta",
+      "errors": {
+        "calculateFailed": "Gagal menghitung peta kelahiran",
+        "createFailed": "Gagal membuat entri peta kelahiran. Pastikan tabel birth_charts ada di basis datamu.",
+        "unexpectedError": "Terjadi kesalahan yang tidak terduga"
+      }
+    }
+  },
+  "ReadingPage": {
+    "disclaimer": "Interpretasi ini dihasilkan oleh AI untuk tujuan informasi dan perenungan. Interpretasi AI mungkin mengandung kesalahan. Gunakanlah sebagai salah satu sudut pandang dan ingatlah bahwa ramalan bisa saja kurang tepat. Jangan memercayai atau mengandalkan interpretasi ini sepenuhnya. Selalu konsultasikan dengan profesional untuk keputusan penting; jangan hanya bergantung pada interpretasi ini.",
+    "questionHeading": "Pertanyaan",
+    "viewDetails": "Lihat detail lengkap",
+    "followUp": {
+      "badge": "Lanjutan",
+      "title": "Pembacaan Lanjutan",
+      "desc": "Pertanyaan lanjutan menggunakan pembacaan satu kartu sederhana untuk panduan yang lebih terfokus",
+      "simple": "Pembacaan Sederhana - 1 Kartu"
+    },
+    "chooseType": {
+      "title": "Pilih Jenis Pembacaanmu",
+      "desc": "Pilih kedalaman panduan yang kamu cari"
+    },
+    "chooseCards": {
+      "title": "Pilih Kartumu",
+      "desc": "Percayai intuisimu dan pilih {amount} dari hamparan kosmik",
+      "reversed": "Terbalik",
+      "selectFromSpread": "{count, plural, one {Pilih # kartu dari hamparan kosmik} other {Pilih # kartu dari hamparan kosmik}}",
+      "selectedCount": "{selected} dari {total} terpilih",
+      "swipeUpToSelect": "Geser kartu ke atas untuk memilih",
+      "circular": "Melingkar",
+      "linear": "Lurus",
+      "confirm": "Konfirmasi Pilihan ({selected}/{total})",
+      "shuffle": "Kocok",
+      "consumeStar": "Memulai interpretasi akan menggunakan 1 bintang.",
+      "random": "Pilihkan untuk Saya",
+      "options": "Opsi",
+      "manualSelect": "Pilih Kartu Secara Manual",
+      "manualSelectTitle": "Pilih Kartumu",
+      "manualSelectDesc": "Pilih {count} {count, plural, one {kartu} other {kartu}} dari seluruh dek",
+      "majorArcana": "Arcana Mayor",
+      "minorArcana": "Arcana Minor",
+      "cups": "Cawan",
+      "swords": "Pedang",
+      "wands": "Tongkat",
+      "pentacles": "Pentakel",
+      "manualSelected": "{selected} dari {total} terpilih",
+      "upright": "Tegak",
+      "reversedTab": "Terbalik",
+      "freeTierMaxCardsHint": "Paket gratis dapat menarik hingga {max} kartu. Tingkatkan untuk lebih banyak.",
+      "manualPickPaywallTitle": "Pemilihan kartu manual adalah fitur pelanggan",
+      "manualPickPaywallDesc": "Pilih kartu apa pun yang kamu suka dari seluruh dek. Tingkatkan ke Basic atau Pro untuk membukanya — pembayaran ditangani oleh Stripe di halaman berikutnya.",
+      "manualPickPaywallFeature": "Pemilihan kartu manual dari seluruh dek",
+      "manualPickPaywallInsufficient": "Perlu ditingkatkan",
+      "manualPickPaywallNote": "Memilih paket akan membawamu ke pembayaran aman Stripe."
+    },
+    "editQuestion": {
+      "title": "Ubah Pertanyaanmu",
+      "label": "Pertanyaanmu",
+      "placeholder": "Tanyakan pertanyaanmu kepada alam kosmik...",
+      "hint": "Tekan Ctrl+Enter untuk menyimpan, Escape untuk membatalkan",
+      "reset": "Atur Ulang",
+      "cancel": "Batal",
+      "save": "Simpan Perubahan",
+      "saving": "Menyimpan..."
+    },
+    "interpretation": {
+      "title": "Pembacaanmu",
+      "sectionTitle": "Interpretasi",
+      "sectionSubtitle": "Analisis kartumu yang ditenagai AI",
+      "detailed": {
+        "label": "Terperinci"
+      },
+      "professionalAdviceBadge": "Perlu nasihat profesional",
+      "professionalAdviceBadgeAria": "Topik sensitif: pelajari arti lencana ini",
+      "professionalAdviceHoverTitle": "Arti lencana ini",
+      "professionalAdviceHoverIntro": "Pertanyaanmu tergolong menyentuh bidang yang panduan mengikatnya diberikan oleh profesional berlisensi—bukan tarot. Kartu di sini hanya menawarkan perenungan simbolis.",
+      "professionalAdviceHoverHowTitle": "Cara kami menandai bidang sensitif",
+      "professionalAdviceHoverLegal": "Hukum: kontrak, sengketa, hak, strategi pengadilan, aturan imigrasi, dan hal serupa.",
+      "professionalAdviceHoverMedical": "Medis: gejala, diagnosis, pengobatan, obat-obatan, atau kesehatan mental klinis maupun darurat.",
+      "professionalAdviceHoverFinancial": "Keuangan: investasi, perdagangan, pelaporan pajak, restrukturisasi utang, atau perencanaan pensiun yang diatur.",
+      "professionalAdviceHint": "Pembacaan ini hanya untuk perenungan dan bukan nasihat hukum, medis, atau keuangan. Konsultasikan dengan profesional yang berkualifikasi untuk keputusan di bidang ini.",
+      "error": "Gagal menghasilkan interpretasi. Silakan coba lagi.",
+      "loading": {
+        "title": "Menganalisis kartumu...",
+        "subtitle": "Menghasilkan interpretasi personalmu..."
+      },
+      "perCard": {
+        "singleHeader": "Kartu ini berkata",
+        "multiHeader": "Setiap kartu berkata"
+      },
+      "actionsHeader": "Tindakan",
+      "actionsDesc": "Kelola dan berinteraksi dengan pembacaanmu",
+      "dialogs": {
+        "report": {
+          "title": "Laporkan pembacaan ini",
+          "desc": "Pilih alasan dan tambahkan detail jika perlu.",
+          "submit": "Kirim",
+          "cancel": "Batal",
+          "placeholder": "Mohon jelaskan...",
+          "reasons": {
+            "select": "Pilih alasan",
+            "inappropriate": "Konten tidak pantas",
+            "spam": "Spam atau menyesatkan",
+            "harassment": "Pelecehan atau kebencian",
+            "privacy": "Masalah privasi",
+            "other": "Lainnya"
+          }
+        },
+        "feedback": {
+          "title": "Bagikan masukanmu",
+          "desc": "Seberapa membantu interpretasi ini?",
+          "placeholder": "Komentar opsional",
+          "submit": "Kirim",
+          "cancel": "Batal"
+        },
+        "unavailable": {
+          "title": "Berbagi tidak tersedia",
+          "desc": "Berbagi ke {label} saat ini tidak tersedia. Unduh medianya dan unggah secara manual sebagai gantinya.",
+          "ok": "OK"
+        }
+      },
+      "share": {
+        "title": "Bagikan Pembacaanmu",
+        "desc": "Dapatkan 5 bintang gratis untuk setiap orang baru yang mengunjungi tautan yang kamu bagikan ({earned}/{max})",
+        "learnMore": "Pelajari lebih lanjut",
+        "more": "Lainnya",
+        "facebook": "Facebook",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X",
+        "line": "LINE",
+        "whatsapp": "WhatsApp",
+        "telegram": "Telegram",
+        "snapchat": "Snapchat",
+        "discord": "Discord",
+        "pinterest": "Pinterest",
+        "tumblr": "Tumblr",
+        "wechat": "WeChat",
+        "reddit": "Reddit",
+        "sms": "SMS",
+        "email": "Email",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
+      },
+      "buttons": {
+        "regenerate": "Hasilkan Ulang Pembacaan",
+        "newReading": "Pembacaan Baru"
+      },
+      "actions": {
+        "copyLink": "Salin Tautan",
+        "copiedLink": "Tersalin!",
+        "linkCopiedDesc": "Tautan disalin ke papan klip",
+        "shareDesc": "Bagikan pembacaan ini",
+        "share": "Bagikan",
+        "downloadReadingText": "Unduh pembacaan sebagai berkas teks",
+        "downloadReadingImage": "Unduh pembacaan sebagai gambar",
+        "copyResult": "Salin Interpretasi",
+        "askFollowUp": "Ajukan Pertanyaan Lanjutan",
+        "askFollowUpPrompt": "Bisakah kamu menjelaskan lebih lanjut pembacaan ini untukku?",
+        "keyMessage": "Pesan Utama",
+        "textCopiedDesc": "Teks disalin ke papan klip",
+        "download": "Unduh",
+        "downloadDesc": "Simpan gambar",
+        "downloadSheetTitleImage": "Unduh gambar",
+        "downloadSheetTitleVideo": "Unduh video",
+        "downloadSheetDesc": "Pilih gaya dan lihat pratinjau sebelum menyimpan.",
+        "downloadPreviewTitle": "Pratinjau",
+        "downloadPreviewAlt": "Pratinjau unduhan",
+        "downloadPreviewFallback": "Pratinjau akan muncul di sini",
+        "downloadPreviewError": "Tidak dapat memuat pratinjau",
+        "downloadStylesTitle": "Gaya",
+        "downloadStylesHint": "Ketuk untuk memilih",
+        "downloadBrandingTitle": "Branding",
+        "downloadBrandingHint": "Pratinjau menyertakan branding",
+        "downloadStyleStory": "Story",
+        "downloadStyleSquare": "Persegi",
+        "downloadStyleLandscape": "Lanskap",
+        "downloadTabImage": "Gambar",
+        "downloadTabVideo": "Video",
+        "downloadVideoButton": "Unduh video",
+        "downloadVideoError": "Gagal menghasilkan video.",
+        "downloadVideoPreviewFallback": "Pratinjau video akan muncul di sini",
+        "downloadCancel": "Batal",
+        "cancel": "Batal",
+        "downloadButton": "Unduh",
+        "downloadError": "Gagal menghasilkan gambar.",
+        "versions": "Versi",
+        "versionsDesc": "Lihat versi lain",
+        "report": "Laporkan",
+        "reportDesc": "Laporkan pembacaan ini",
+        "feedback": "Bagikan Masukan",
+        "feedbackDesc": "Bagikan masukanmu",
+        "voteUp": "Membantu",
+        "voteUpDesc": "Ini membantu",
+        "voteDown": "Tidak membantu",
+        "voteDownDesc": "Ini tidak membantu",
+        "removeVoteUpDesc": "Hapus suara",
+        "removeVoteDownDesc": "Hapus suara",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
+      },
+      "followUp": {
+        "badge": "Lanjutan",
+        "label": "Ajukan pertanyaan lanjutan",
+        "placeholder": "Ketik pertanyaan lanjutanmu di sini..."
+      },
+      "disclaimer": "Jangan memercayai atau mengandalkan interpretasi ini sepenuhnya. Interpretasi ini dihasilkan oleh AI untuk tujuan informasi. Gunakanlah sebagai salah satu sudut pandang dan ingatlah bahwa interpretasi bisa saja kurang tepat. Selalu konsultasikan dengan profesional yang berkualifikasi untuk keputusan hidup yang penting.",
+      "adViewing": {
+        "title": "Tonton Iklan untuk Membuka Pembacaanmu",
+        "description": "Silakan tonton iklan singkat ini untuk membuka interpretasi tarot personalmu. Dukunganmu membantu kami menyediakan pembacaan gratis."
+      }
+    },
+    "adViewing": {
+      "title": "Tonton Iklan untuk Membuka Pembacaanmu",
+      "description": "Silakan tonton iklan singkat ini untuk membuka interpretasi tarot personalmu. Dukunganmu membantu kami menyediakan pembacaan gratis.",
+      "followUp": {
+        "badge": "Lanjutan"
+      },
+      "disclaimer": "Menonton iklan ini membantu kami menjaga layanan tetap gratis. Kamu boleh melewatinya jika perlu, tetapi kami menghargai dukunganmu."
+    },
+    "rewardedAd": {
+      "title": "Buka Pembacaanmu",
+      "subtitle": "Tonton iklan singkat untuk mengungkap panduan kosmikmu",
+      "reward": "Pembacaan Gratis",
+      "loading": "Memuat iklan...",
+      "ready": {
+        "title": "Iklan Siap",
+        "description": "Klik untuk mulai menonton dan membuka pembacaanmu",
+        "button": "Tonton Iklan"
+      },
+      "playing": {
+        "title": "Menonton Iklan",
+        "timeRemaining": "{seconds} detik tersisa",
+        "progress": "Kemajuan",
+        "skip": "Lewati"
+      },
+      "completed": {
+        "title": "Iklan Selesai!",
+        "description": "Terima kasih sudah menonton. Pembacaanmu kini telah terbuka.",
+        "button": "Dapatkan Pembacaanku"
+      },
+      "error": {
+        "title": "Kesalahan Iklan",
+        "retry": "Coba Lagi",
+        "skip": "Lewati Iklan"
+      }
+    },
+    "adViewingDialog": {
+      "title": "Tonton Iklan untuk Membuka Pembacaanmu",
+      "questionLabel": "Pertanyaanmu:",
+      "selectedCards": "Kartu Terpilih:",
+      "benefits": {
+        "title": "Yang Akan Kamu Dapatkan:",
+        "freeReading": "Interpretasi tarot lengkap",
+        "detailedInterpretation": "Panduan kosmik personal",
+        "supportService": "Bantu menjaga layanan kami tetap gratis"
+      },
+      "duration": "Durasi Iklan: ~30 detik",
+      "rememberPreference": "Jangan tampilkan pesan ini lagi (putar iklan otomatis)",
+      "disclaimer": "Menonton iklan ini membantu kami menyediakan pembacaan gratis. Kamu boleh melewatinya jika perlu.",
+      "skip": "Lewati Iklan",
+      "backToCardSelection": "Kembali ke Pemilihan Kartu",
+      "watchAd": "Tonton Iklan"
+    },
+    "optimizedRewardedAd": {
+      "title": "Buka Pembacaanmu",
+      "subtitle": "Tonton iklan singkat untuk mengungkap panduan kosmikmu",
+      "reward": "Pembacaan Gratis",
+      "optimized": "Dioptimalkan",
+      "loading": "Memuat iklan...",
+      "preparingReading": "Menyiapkan pembacaanmu...",
+      "preparingInterpretation": "Menyiapkan interpretasi...",
+      "interpretationReady": "Interpretasi siap!",
+      "ready": {
+        "title": "Iklan Siap",
+        "description": "Klik untuk mulai menonton dan membuka pembacaanmu",
+        "button": "Tonton Iklan"
+      },
+      "playing": {
+        "title": "Menonton Iklan",
+        "timeRemaining": "{seconds} detik tersisa",
+        "progress": "Kemajuan",
+        "skip": "Lewati"
+      },
+      "completed": {
+        "title": "Iklan Selesai!",
+        "description": "Terima kasih sudah menonton. Pembacaanmu kini telah terbuka.",
+        "button": "Dapatkan Pembacaanku"
+      },
+      "error": {
+        "title": "Kesalahan Iklan",
+        "retry": "Coba Lagi",
+        "skip": "Lewati Iklan"
+      }
+    }
+  },
+  "Meta": {
+    "Site": {
+      "siteName": "AskingFate",
+      "url": "https://askingfate.com"
+    },
+    "Layout": {
+      "title": "Peramal AI - askingfate.com",
+      "description": "Temukan pembacaan ramalan bertenaga AI di bidang tarot, astrologi, numerologi, namelogi, dan lainnya. Wawasan personal untuk membantumu menavigasi takdirmu. Tarot tampil di halaman utama untuk saat ini.",
+      "keywords": "peramal AI, peramal AI gratis, ramalan online, pembacaan tarot AI, pembacaan tarot gratis, panduan spiritual, AskingFate, Asking Fate"
+    },
+    "Home": {
+      "title": "Peramal AI - askingfate.com",
+      "description": "Dapatkan pembacaan kartu tarot bertenaga AI dan panduan spiritual secara gratis. Tanyakan apa pun tentang takdirmu dan terima wawasan personal dari sistem tarot AI canggih kami.",
+      "keywords": "peramal AI, peramal AI gratis, ramalan online, pembacaan tarot AI, pembacaan tarot gratis, panduan spiritual, pertanyaan takdir, interpretasi kartu tarot, AskingFate, Asking Fate",
+      "ogTitle": "Peramal AI - askingfate.com",
+      "ogDescription": "Dapatkan pembacaan kartu tarot bertenaga AI dan panduan spiritual secara gratis. Tanyakan apa pun tentang takdirmu.",
+      "twitterTitle": "Peramal AI - askingfate.com",
+      "twitterDescription": "Dapatkan pembacaan kartu tarot bertenaga AI dan panduan spiritual secara gratis. Tanyakan apa pun tentang takdirmu."
+    },
+    "About": {
+      "title": "Tentang Pembacaan Ramalan AI - AskingFate",
+      "description": "Temukan bagaimana AskingFate memadukan tradisi tarot berusia berabad-abad dengan teknologi AI mutakhir untuk memberikan panduan kosmik dan wawasan spiritual yang personal.",
+      "keywords": "teknologi tarot AI, sejarah pembacaan tarot, panduan spiritual AI, tradisi mistis, teknologi interpretasi kartu tarot",
+      "ogTitle": "Tentang - Teknologi Pembacaan Tarot AI",
+      "ogDescription": "Temukan bagaimana kami memadukan kearifan tarot kuno dengan teknologi AI modern untuk panduan spiritual yang personal.",
+      "twitterTitle": "Tentang - Teknologi Pembacaan Tarot AI",
+      "twitterDescription": "Temukan bagaimana kami memadukan kearifan tarot kuno dengan teknologi AI modern untuk panduan spiritual yang personal."
+    },
+    "Reading": {
+      "title": "Pembacaan Kartu Tarot AI - AskingFate",
+      "description": "Dapatkan pembacaan kartu tarot AI yang personal secara gratis. Ajukan pertanyaanmu dan terima interpretasi terperinci beserta panduan spiritual dari sistem AI canggih kami.",
+      "keywords": "pembacaan kartu tarot, pembacaan tarot AI, pembacaan tarot gratis, interpretasi kartu tarot, panduan spiritual, pembacaan tarot online",
+      "ogTitle": "Pembacaan Kartu Tarot AI - Dapatkan Pembacaan Gratismu",
+      "ogDescription": "Dapatkan pembacaan kartu tarot AI yang personal secara gratis. Ajukan pertanyaanmu dan terima interpretasi terperinci.",
+      "twitterTitle": "Pembacaan Kartu Tarot AI - Dapatkan Pembacaan Gratismu",
+      "twitterDescription": "Dapatkan pembacaan kartu tarot AI yang personal secara gratis. Ajukan pertanyaanmu dan terima interpretasi terperinci."
+    },
+    "BirthChart": {
+      "title": "Bagan Kelahiran - AskingFate",
+      "description": "Buat bagan kelahiran astrologi personalmu dengan memasukkan tanggal, waktu, dan lokasi kelahiranmu. Temukan cetak biru kosmikmu dengan posisi planet dan rumah yang terperinci.",
+      "keywords": "bagan kelahiran, bagan natal, bagan astrologi, cetak biru kosmik, posisi planet, astrologi, horoskop",
+      "ogTitle": "Bagan Kelahiran - Pecahkan Cetak Biru Kosmikmu",
+      "ogDescription": "Buat bagan kelahiran astrologi personalmu dengan memasukkan tanggal, waktu, dan lokasi kelahiranmu.",
+      "twitterTitle": "Bagan Kelahiran - Pecahkan Cetak Biru Kosmikmu",
+      "twitterDescription": "Buat bagan kelahiran astrologi personalmu dengan memasukkan tanggal, waktu, dan lokasi kelahiranmu."
+    },
+    "Contact": {
+      "title": "Hubungi Kami - AskingFate",
+      "description": "Punya pertanyaan tentang pengalaman pembacaan tarot AI-mu? Hubungi tim dukungan kami untuk bantuan dalam perjalanan kosmik dan panduan spiritualmu.",
+      "keywords": "dukungan pembacaan tarot, bantuan tarot AI, kontak panduan spiritual, pertanyaan pembacaan tarot, dukungan pelanggan",
+      "ogTitle": "Hubungi Kami - Dapatkan Bantuan untuk Pembacaan Tarot AI-mu",
+      "ogDescription": "Punya pertanyaan tentang pengalaman pembacaan tarot AI-mu? Hubungi tim dukungan kami untuk bantuan.",
+      "twitterTitle": "Hubungi Kami - Dapatkan Bantuan untuk Pembacaan Tarot AI-mu",
+      "twitterDescription": "Punya pertanyaan tentang pengalaman pembacaan tarot AI-mu? Hubungi tim dukungan kami untuk bantuan."
+    },
+    "PrivacyPolicy": {
+      "title": "Kebijakan Privasi - AskingFate",
+      "description": "Pelajari bagaimana AskingFate melindungi privasi dan informasi pribadimu saat menggunakan layanan pembacaan tarot AI kami. Baca kebijakan privasi kami yang lengkap.",
+      "keywords": "kebijakan privasi, perlindungan data, privasi tarot AI, keamanan informasi pribadi, privasi pembacaan tarot, perlindungan data pengguna",
+      "ogTitle": "Kebijakan Privasi - Perlindungan Data & Hak Privasimu",
+      "ogDescription": "Pelajari bagaimana AskingFate melindungi privasi dan informasi pribadimu saat menggunakan layanan pembacaan tarot AI kami.",
+      "twitterTitle": "Kebijakan Privasi - Perlindungan Data & Hak Privasimu",
+      "twitterDescription": "Pelajari bagaimana AskingFate melindungi privasi dan informasi pribadimu saat menggunakan layanan pembacaan tarot AI kami."
+    },
+    "TermsOfService": {
+      "title": "Ketentuan Layanan - AskingFate",
+      "description": "Baca ketentuan layanan untuk platform pembacaan tarot bertenaga AI dari AskingFate. Pahami hak dan tanggung jawabmu saat menggunakan layanan panduan spiritual kami.",
+      "keywords": "ketentuan layanan, syarat dan ketentuan, ketentuan tarot AI, ketentuan pembacaan tarot, perjanjian layanan, perjanjian pengguna",
+      "ogTitle": "Ketentuan Layanan - Syarat & Ketentuan Pembacaan Tarot AI",
+      "ogDescription": "Baca ketentuan layanan untuk platform pembacaan tarot bertenaga AI dari AskingFate dan pahami hak serta tanggung jawabmu.",
+      "twitterTitle": "Ketentuan Layanan - Syarat & Ketentuan Pembacaan Tarot AI",
+      "twitterDescription": "Baca ketentuan layanan untuk platform pembacaan tarot bertenaga AI dari AskingFate dan pahami hak serta tanggung jawabmu."
+    },
+    "Demo": {
+      "title": "Minta Demo - AskingFate",
+      "description": "Lihat AskingFate beraksi. Minta panduan langsung singkat dan coba pratinjau interaktif."
+    },
+    "Articles": {
+      "title": "Artikel & Panduan - AskingFate",
+      "description": "Panduan bergaya dokumentasi: cara bermain, membagikan pembacaan, mereferensikan teman, membuat konten, bantuan & FAQ."
+    },
+    "PrivacyRedactionArticle": {
+      "title": "Privasi pesan & penyuntingan PII - AskingFate",
+      "description": "Bagaimana AskingFate mendeteksi informasi pribadi dalam prompt dan apa arti pemberitahuan di obrolan."
+    }
+  },
+  "Articles": {
+    "title": "Artikel & Panduan",
+    "subtitle": "Panduan bergaya dokumentasi yang bermanfaat tentang AskingFate.",
+    "knowledgeHub": "Pusat Pengetahuan",
+    "searchPlaceholder": "Cari artikel...",
+    "cantFind": "Tidak menemukan yang kamu cari?",
+    "contactSupport": "Hubungi dukungan",
+    "badges": {
+      "earn": "Kumpulkan bintang",
+      "basics": "Dasar",
+      "support": "Dukungan",
+      "faq": "FAQ",
+      "privacy": "Privasi"
+    },
+    "items": {
+      "tarot": {
+        "title": "Makna Kartu Tarot",
+        "description": "Jelajahi makna tegak dan terbalik untuk seluruh 78 kartu (Arcana Mayor & Minor)."
+      },
+      "createContent": {
+        "title": "Buat Konten Tentang Kami",
+        "description": "Tulis, posting, atau rekam tentang AskingFate dan kumpulkan bintang."
+      },
+      "shareReading": {
+        "title": "Bagikan Pembacaan",
+        "description": "Bagikan tautan pembacaanmu dan kumpulkan hingga 3 bintang/hari."
+      },
+      "referFriend": {
+        "title": "Referensikan Teman",
+        "description": "Undang teman. Kalian berdua mendapat bintang saat mereka bergabung."
+      },
+      "howToPlay": {
+        "title": "Cara Bermain",
+        "description": "Ajukan pertanyaan, pilih kartu, dan renungkan—langkah demi langkah."
+      },
+      "helpSupport": {
+        "title": "Bantuan & Dukungan",
+        "description": "Dapatkan bantuan, hubungi dukungan, dan tips pemecahan masalah."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Jawaban atas pertanyaan umum tentang pembacaan dan bintang."
+      },
+      "privacyRedaction": {
+        "title": "Privasi pesan & penyuntingan PII",
+        "description": "Apa arti pemberitahuan di obrolan dan bagaimana kami mendeteksi detail pribadi dalam prompt-mu."
+      }
+    }
+  },
+  "PrivacyRedactionArticle": {
+    "title": "Privasi pesan & penyuntingan PII",
+    "subtitle": "Apa arti pemberitahuan kecil di bawah pesanmu, apa yang kami anggap sebagai informasi pribadi, dan bagaimana deteksi bekerja.",
+    "updated": "Mei 2026",
+    "onThisPage": "Di halaman ini",
+    "sections": {
+      "notice": {
+        "title": "Apa arti pemberitahuan itu",
+        "p1": "Jika kamu melihat “Informasi pribadi dihapus sebelum diproses” di bawah prompt-mu, sistem kami mengenali detail yang dapat mengidentifikasi seseorang atau menghubungi mereka, dan menghapus atau mengganti potongan-potongan itu sebelum teks diproses lebih lanjut.",
+        "p2": "Kamu mungkin masih melihat kata-kata aslimu di perangkat ini ketika kami dapat memulihkannya dari sesi peramban-mu. Salinan yang disimpan atau diteruskan menggunakan placeholder netral alih-alih nama, email, atau nomor asli."
+      },
+      "criteria": {
+        "title": "Apa yang kami anggap sebagai informasi pribadi",
+        "intro": "Deteksi berfokus pada kategori umum informasi yang dapat mengidentifikasi pribadi, termasuk:",
+        "person": "Nama orang dan rujukan yang dapat mengidentifikasi individu",
+        "email": "Alamat email",
+        "phone": "Nomor telepon (biasanya rangkaian dengan cukup banyak angka sehingga tampak seperti saluran asli)",
+        "handle": "Handle sosial atau platform (misalnya @namapengguna)",
+        "address": "Alamat jalan atau alamat surat"
+      },
+      "how": {
+        "title": "Bagaimana deteksi bekerja",
+        "p1": "Saat kamu mengirim pesan, kami menjalankan peninjauan otomatis yang mencari pola-pola semacam itu beserta konteksnya sebelum prompt disimpan atau diteruskan ke AI.",
+        "p2": "Tahap sekunder menerapkan pemeriksaan berbasis aturan (misalnya bentuk email yang jelas, @handle, dan rangkaian angka mirip nomor telepon) sehingga kebocoran yang jelas tetap tertangkap jika tahap utama melewatkan sesuatu."
+      },
+      "placeholders": {
+        "title": "Placeholder yang mungkin kamu lihat",
+        "p1": "Teks yang telah disanitasi mungkin mengandung token seperti [Person], [Email], [Phone], [Handle], atau [Address]. Asisten diinstruksikan untuk menjawab dengan bermanfaat tanpa mengulangi token tersebut atau mengarang fakta pribadi di baliknya.",
+        "privacyPolicyLink": "Untuk praktik data yang lebih luas, lihat",
+        "privacyPolicy": "Kebijakan Privasi kami"
+      },
+      "fallback": {
+        "title": "Privasimu di luar pemberitahuan ini",
+        "p1": "Panduan ini menjelaskan penyuntingan prompt dalam obrolan. Untuk bagaimana kami menangani cookie, akun, dan penggunaan data secara keseluruhan, baca Kebijakan Privasi kami."
+      }
+    }
+  },
+  "TarotArticle": {
+    "overviewUpright": "Ringkasan (Tegak)",
+    "overviewReversed": "Ringkasan (Terbalik)",
+    "relationships": "Hubungan",
+    "work": "Pekerjaan & Karier",
+    "finance": "Keuangan",
+    "health": "Kesehatan",
+    "upright": "Tegak",
+    "reversed": "Terbalik",
+    "yesNo": "Ya/Tidak",
+    "zodiac": "Zodiak",
+    "element": "Elemen"
+  },
+  "Auth": {
+    "SignIn": {
+      "title": "Selamat Datang Kembali",
+      "subtitle": "Masuk untuk melanjutkan perjalanan kosmikmu",
+      "google": "Masuk dengan Google",
+      "emailLabel": "Alamat Email",
+      "emailPlaceholder": "Masukkan email-mu",
+      "passwordLabel": "Kata Sandi",
+      "passwordPlaceholder": "Masukkan kata sandimu",
+      "forgot": "Lupa kata sandi?",
+      "button": "Masuk",
+      "buttonLoading": "Sedang Masuk...",
+      "signupPrompt": "Baru di AskingFate?",
+      "signupLink": "Buat akun"
+    },
+    "SignUp": {
+      "title": "Bergabunglah dengan Kosmos",
+      "subtitle": "Buat akunmu dan mulai perjalanan mistismu",
+      "google": "Daftar dengan Google",
+      "success": "Akun berhasil dibuat! Silakan periksa email-mu untuk memverifikasi akunmu. Mengalihkan ke halaman masuk...",
+      "nameLabel": "Nama Lengkap",
+      "namePlaceholder": "Masukkan nama lengkapmu",
+      "emailLabel": "Alamat Email",
+      "emailPlaceholder": "Masukkan email-mu",
+      "passwordLabel": "Kata Sandi",
+      "passwordPlaceholder": "Buat kata sandi",
+      "confirmPasswordLabel": "Konfirmasi Kata Sandi",
+      "confirmPasswordPlaceholder": "Konfirmasi kata sandimu",
+      "agreePrefix": "Saya menyetujui",
+      "terms": "Ketentuan Layanan",
+      "and": "dan",
+      "privacy": "Kebijakan Privasi",
+      "button": "Buat Akun",
+      "buttonLoading": "Membuat Akun...",
+      "signinPrompt": "Sudah punya akun?",
+      "signinLink": "Masuk"
+    }
+  },
+  "UserProfile": {
+    "notifications": "Notifikasi",
+    "yourReading": "Pembacaanmu",
+    "calendar": "Kalenderku",
+    "birthChart": "Bagan Kelahiranku",
+    "profile": "Profil",
+    "account": "Akun",
+    "theme": "Tema",
+    "billing": "Penagihan",
+    "settings": "Pengaturan",
+    "signOut": "Keluar",
+    "signingOut": "Sedang keluar...",
+    "themes": {
+      "default": "Bawaan",
+      "antiverse": "Anti-Verse",
+      "zodiac": "Zodiak",
+      "singularity": "Singularity",
+      "luminous": "Luminous",
+      "mystic": "Mystic"
+    }
+  },
+  "Calendar": {
+    "eyebrow": "Kalenderku",
+    "title": "Kalender Keberuntunganku",
+    "subtitle": "Dihitung dari posisi planet sebenarnya dan bagan natalmu. Ketuk hari mana pun untuk melihat detail lebih dalam.",
+    "prevMonth": "Bulan sebelumnya",
+    "nextMonth": "Bulan berikutnya",
+    "todayGlance": "Hari ini",
+    "auth": {
+      "title": "Masuk untuk menggunakan kalendermu",
+      "body": "Kami menggunakan tanggal lahirmu untuk menghitung keberuntungan setiap hari. Informasi itu tersimpan di profilmu.",
+      "cta": "Masuk"
+    },
+    "birth": {
+      "title": "Tambahkan tanggal lahirmu ke profilmu",
+      "body": "Kami memerlukan tanggal lahirmu untuk menghitung astrologi harian yang personal.",
+      "cta": "Buka profil"
+    },
+    "overview": {
+      "luckyDaysLabel": "Hari Beruntung",
+      "luckyDaysSub": "Hari-hari ketika bintang mendukungmu",
+      "cautionDaysLabel": "Hari Waspada",
+      "cautionDaysSub": "Waspada + hindari digabungkan",
+      "peakDayLabel": "Hari Puncak",
+      "peakDaySub": "Skor keseluruhan {score}/10",
+      "daysSuffix": "hari"
+    },
+    "weekdays": {
+      "sun": "Min",
+      "mon": "Sen",
+      "tue": "Sel",
+      "wed": "Rab",
+      "thu": "Kam",
+      "fri": "Jum",
+      "sat": "Sab"
+    },
+    "grid": {
+      "loadError": "Tidak dapat memuat bulan ini: {error}"
+    },
+    "detail": {
+      "missingTitle": "Tidak ada data langit untuk hari ini",
+      "missingBody": "Hari ini berada di luar rentang codex yang tersedia saat ini.",
+      "selectPrompt": "Pilih satu hari dari kalender untuk melihat detail.",
+      "scoreCaption": "Skor harian dari posisi planet sebenarnya pada tanggal tersebut",
+      "highlightsWarnings": "Sorotan & Peringatan",
+      "selectedTransitTitle": "Transit Untuk Hari Ini",
+      "selectedTransitError": "Tidak dapat memuat detail transit untuk hari ini. Coba lagi sebentar.",
+      "vitality": "Bagaimana Perasaanmu Saat Ini",
+      "eventSignals": "Paling Cocok Untuk",
+      "lucky": "Detail Keberuntungan"
+    },
+    "quality": {
+      "excellent": "Sangat Baik",
+      "good": "Baik",
+      "neutral": "Netral",
+      "caution": "Waspada",
+      "avoid": "Hindari"
+    },
+    "vitalityLabels": {
+      "career": "Karier",
+      "love": "Cinta",
+      "finance": "Keuangan",
+      "health": "Kesehatan",
+      "social": "Sosial",
+      "spiritual": "Spiritual"
+    },
+    "eventLabels": {
+      "job_change": "Pindah Pekerjaan",
+      "resignation": "Pengunduran Diri",
+      "marriage": "Pernikahan / Pertunangan",
+      "contract_sign": "Menandatangani Kontrak",
+      "travel_long": "Perjalanan Jauh",
+      "major_purchase": "Pembelian Besar"
+    },
+    "lucky": {
+      "labels": {
+        "colors": "Warna Keberuntungan",
+        "numbers": "Angka Keberuntungan",
+        "direction": "Arah Keberuntungan",
+        "time": "Waktu Keberuntungan"
+      },
+      "compassNorth": "U",
+      "colors": {
+        "gold": "Emas",
+        "silver": "Perak",
+        "purple": "Ungu",
+        "sky": "Biru Langit",
+        "emerald": "Zamrud",
+        "maroon": "Merah Marun",
+        "pearlWhite": "Putih Mutiara",
+        "rosePink": "Merah Muda Mawar",
+        "goldenBrown": "Cokelat Keemasan",
+        "mustardYellow": "Kuning Mustar",
+        "azure": "Biru Azure",
+        "seaGreen": "Hijau Laut",
+        "amberOrange": "Oranye Amber"
+      },
+      "directions": {
+        "north": "Utara",
+        "northEast": "Timur Laut",
+        "east": "Timur",
+        "southEast": "Tenggara",
+        "south": "Selatan",
+        "southWest": "Barat Daya",
+        "west": "Barat",
+        "northWest": "Barat Laut"
+      }
+    },
+    "premium": {
+      "label": "Premium",
+      "badge": "Diskon 30%",
+      "title": "Buka kalender setahun penuh",
+      "body": "Lihat hari-hari mendatang tanpa batas, simpan wawasan, dan dapatkan pengingat untuk tanggal-tanggal penting.",
+      "cta": "Tingkatkan ฿199/bulan"
+    },
+    "locked": {
+      "title": "Buka hari ini",
+      "paywallTitle": "Membuka tanggal adalah fitur pelanggan",
+      "paywallDesc": "Lihat wawasan planet untuk tanggal mana pun dalam setahun. Tingkatkan ke Basic atau Pro untuk membukanya — pembayaran ditangani oleh Stripe di halaman berikutnya.",
+      "paywallFeature": "Akses kalender di luar jendela gratis ±30 hari milikmu",
+      "paywallInsufficient": "Perlu ditingkatkan",
+      "paywallNote": "Memilih paket akan membawamu ke pembayaran aman Stripe.",
+      "dialogBody": "Lihat wawasan planet untuk tanggal mana pun. Berlangganan Basic atau Pro untuk membukanya — pembayaran ditangani oleh Stripe di halaman berikutnya.",
+      "bodyFree": "Tanggal ini berada di luar jendela gratismu (±30 hari). Berlangganan Basic untuk membukanya segera — sekitar {price}/bulan untuk akses kalender ±1 tahun. Pembayaran ditangani oleh Stripe di halaman berikutnya.",
+      "bodyBasic": "Tanggal ini berada di luar jendela Basic-mu (±1 tahun). Tingkatkan ke Pro untuk akses kalender tanpa batas — mulai dari {price}/bulan. Pembayaran ditangani oleh Stripe di halaman berikutnya.",
+      "noteFree": "Basic mencakup jatah bintang bulanan untuk pembacaan obrolan; pembukaan kalender tidak ditagih per hari.",
+      "ctaFree": "Buka pembayaran Basic (Stripe)",
+      "ctaBasic": "Buka pembayaran Pro (Stripe)",
+      "cta": "Tingkatkan",
+      "cellHint": "Tersedia di Basic"
+    },
+    "starUnlock": {
+      "description": "Atau gunakan satu bintang untuk membuka tanggal ini saja. Pembukaan tersimpan ke akunmu dan tetap tersedia selamanya.",
+      "cta": "Buka dengan {cost} Bintang",
+      "insufficient": "Bintangmu tidak cukup untuk membuka tanggal ini.",
+      "error": "Tidak dapat membuka tanggal ini. Silakan coba lagi."
+    },
+    "ai": {
+      "title": "Tanya kalendermu",
+      "body": "Pilih satu pertanyaan dan aku akan memindai hari-harimu yang dapat diakses untuk peluang terkuat.",
+      "bestDay": "Hari terbaik",
+      "confidenceLabel": "Keyakinan",
+      "signalScore": "Skor sinyal",
+      "overallScore": "Skor keseluruhan",
+      "warningCount": "Peringatan",
+      "topHighlight": "Mengapa hari ini menonjol",
+      "watchOut": "Hati-hati",
+      "noResult": "Belum ada hari menonjol yang dapat diakses dalam jendelamu saat ini.",
+      "error": "Aku tidak dapat memindai kalendermu sekarang. Silakan coba lagi.",
+      "summary": "Tanggal ini menunjukkan sinyal {action} terkuat di antara hari-hari yang dapat kamu akses saat ini.",
+      "confidence": {
+        "high": "Tinggi",
+        "medium": "Sedang",
+        "low": "Rendah"
+      },
+      "prompts": {
+        "resignation": "Hari terbaik untuk mengundurkan diri",
+        "contract_sign": "Hari terbaik untuk menandatangani kontrak",
+        "travel_long": "Hari terbaik untuk bepergian",
+        "major_purchase": "Hari terbaik untuk pembelian besar"
+      }
+    },
+    "suggestions": {
+      "focusToday": "Apa yang sebaiknya kufokuskan di hari ini?",
+      "goodDecisionDay": "Apakah ini hari yang baik untuk keputusan besar?",
+      "activitiesForToday": "Aktivitas apa yang cocok dengan energi hari ini?",
+      "warnings": "Adakah hal yang perlu kuwaspadai?"
+    },
+    "cta": {
+      "title": "Apa yang ingin kamu tanyakan selanjutnya?",
+      "body": "Biarkan AskingFate membantu menafsirkan situasi spesifikmu.",
+      "button": "Tanya AskingFate"
+    },
+    "composerPlaceholder": "Tanyakan tentang hari ini…"
+  },
+  "Notifications": {
+    "title": "Notifikasi",
+    "noNotifications": "Tidak ada notifikasi",
+    "noNotificationsDescription": "Kamu sudah membaca semuanya! Kami akan memberitahumu tentang pembaruan penting."
+  },
+  "Billing": {
+    "title": "Riwayat Transaksi",
+    "subtitle": "Lihat catatan pembelian dan informasi penagihanmu",
+    "authRequired": "Silakan masuk untuk mengakses penagihan",
+    "loading": "Memuat riwayat penagihan...",
+    "currentPlan": "Paket Saat Ini",
+    "starterPlan": "Paket Starter",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "monthly": "Bulanan",
+    "yearly": "Tahunan",
+    "planSuffix": "Paket",
+    "renewalSuffix": "Perpanjangan",
+    "active": "AKTIF",
+    "ending": "BERAKHIR",
+    "starsPerPeriod": "Bintang per periode",
+    "planDetails": "Detail Paket",
+    "billingHistory": "Riwayat Penagihan",
+    "paymentMethod": "Metode Pembayaran",
+    "managePaymentMethod": "Kelola metode pembayaran",
+    "nextBilling": "Penagihan Berikutnya",
+    "manageSubscription": "Kelola Langganan",
+    "upgradePlan": "Tingkatkan Paket",
+    "buyAddons": "Beli add-on",
+    "viewInvoices": "Lihat Faktur",
+    "noTransactions": "Tidak ada transaksi ditemukan",
+    "transactionId": "ID Transaksi",
+    "amount": "Jumlah",
+    "status": "Status",
+    "date": "Tanggal",
+    "viewDetails": "Lihat Detail",
+    "filterByDate": "Saring berdasarkan Tanggal",
+    "pickDate": "Pilih tanggal",
+    "clearFilters": "Hapus Saringan",
+    "loadingHistory": "Memuat riwayat ajaibmu...",
+    "noPurchases": "Belum ada pembelian",
+    "noPurchasesDescription": "Perjalanan ajaibmu dimulai dengan pembelian bintang pertamamu",
+    "stars": "Bintang",
+    "purchase": "Pembelian",
+    "subscription": "Langganan",
+    "digitalWallet": "Dompet Digital",
+    "payment": "Pembayaran",
+    "cancelSubscription": "Batalkan Langganan",
+    "cancelling": "Membatalkan...",
+    "subscriptionCancelled": "Langganan berhasil dibatalkan",
+    "confirmCancel": "Batalkan Langganan?",
+    "cancelWarning": "Langgananmu akan tetap aktif hingga akhir periode penagihan saat ini. Setelah itu, bintangmu akan terisi ulang ke batas paket gratis.",
+    "back": "Kembali",
+    "receipt": "Tanda Terima",
+    "totalAmount": "Jumlah Total",
+    "subscriptionAccessDesc": "Pengisian ulang bintang bulanan atau tahunan dengan wawasan premium.",
+    "addonPacks": "Paket add-on",
+    "addonStars": "bintang add-on",
+    "noAddons": "Belum ada paket add-on.",
+    "estimatedTotal": "Perkiraan total",
+    "refund": "Pengembalian Dana",
+    "refunded": "Dana Dikembalikan",
+    "confirmRefund": "Minta pengembalian dana?",
+    "refundWarning": "Pengembalian dana tersedia dalam 7 hari setelah pembelian untuk transaksi yang memenuhi syarat.",
+    "keepPurchase": "Pertahankan pembelian",
+    "confirmRefundAction": "Ya, kembalikan dana",
+    "refundSuccess": "Pengembalian dana diminta",
+    "refundFailed": "Pengembalian dana gagal",
+    "revertDowngrade": "Batalkan penurunan paket",
+    "revertDowngradeSuccess": "Penurunan paket dibatalkan",
+    "revertDowngradeFailed": "Gagal membatalkan penurunan paket",
+    "removeAddon": "Hapus",
+    "addonRemoved": "Add-on dihapus",
+    "addonRemoveFailed": "Gagal menghapus add-on",
+    "confirmRemoveAddon": "Hapus paket add-on?",
+    "removeAddonWarning": "Add-on ini akan dihapus dari siklus penagihan berikutnya. Kamu masih bisa menggunakan bintangnya hingga saat itu.",
+    "keepAddon": "Pertahankan add-on",
+    "confirmRemoveAddonAction": "Ya, hapus add-on",
+    "transactionDetails": "Detail Transaksi",
+    "reference": "Referensi",
+    "currency": "Mata Uang",
+    "identifiers": "Pengidentifikasi",
+    "providerId": "ID Penyedia",
+    "needHelp": "Butuh Bantuan?",
+    "supportDesc": "Jika kamu punya pertanyaan tentang transaksi ini, tim dukungan ajaib kami siap membantumu.",
+    "contactSupport": "Hubungi Dukungan",
+    "transactionNotFound": "Transaksi Tidak Ditemukan",
+    "starPurchase": "Pembelian Bintang",
+    "starPackDesc": "Mata uang langit untuk pembacaan kosmik."
+  },
+  "Contact": {
+    "title": "Kontak & Dukungan",
+    "subtitle": "Butuh bantuan? Punya pertanyaan? Kami di sini untuk membantumu dalam perjalanan mistismu.",
+    "faqTitle": "Pertanyaan yang Sering Diajukan",
+    "stillNeedHelp": "Masih Butuh Bantuan?",
+    "stillNeedHelpDescription": "Jika kamu tidak menemukan yang kamu cari, jangan ragu untuk menghubungi kami. Tim dukungan kami berdedikasi untuk membantumu mendapatkan pengalaman terbaik dengan AskingFate.",
+    "sendMessage": "Kirim Pesan kepada Kami",
+    "emailSupport": "Dukungan Email",
+    "emailSupportDescription": "Dapatkan bantuan melalui email",
+    "responseTime24h": "Respons 24-48 jam",
+    "liveChat": "Obrolan Langsung",
+    "liveChatDescription": "Mengobrol dengan tim dukungan kami",
+    "availableHours": "Tersedia pukul 9 pagi - 6 sore EST",
+    "weekdays": "Sen-Jum",
+    "responseTime": "Waktu Respons",
+    "responseTimeDescription": "Waktu respons tipikal",
+    "responseTimeValue": "Dalam 24-48 jam",
+    "businessDays": "Hari kerja",
+    "faq": {
+      "howToGetStars": "Bagaimana cara mendapatkan lebih banyak bintang?",
+      "howToGetStarsAnswer": "Kamu dapat membeli bintang melalui halaman penagihan kami atau mengumpulkannya melalui promosi khusus. Periksa halaman harga untuk paket terbaru.",
+      "refundPolicy": "Bisakah saya mendapatkan pengembalian dana?",
+      "refundPolicyAnswer": "Kami menawarkan pengembalian dana dalam 7 hari setelah pembelian untuk bintang yang belum terpakai. Hubungi kami dengan detail transaksimu untuk bantuan.",
+      "dataPrivacy": "Apakah data pembacaanku bersifat pribadi?",
+      "dataPrivacyAnswer": "Ya, semua pembacaan dan informasi pribadimu dijaga sepenuhnya pribadi dan aman. Kami tidak pernah membagikan datamu kepada pihak ketiga.",
+      "readingAccuracy": "Seberapa akurat pembacaannya?",
+      "readingAccuracyAnswer": "Interpretasi bertenaga AI kami memberikan panduan yang mendalam berdasarkan kearifan tarot tradisional. Gunakanlah sebagai alat untuk perenungan dan pertumbuhan pribadi."
+    },
+    "form": {
+      "name": "Nama",
+      "namePlaceholder": "Namamu",
+      "email": "Email",
+      "emailPlaceholder": "email@kamu.com",
+      "subject": "Subjek",
+      "subjectPlaceholder": "Apa yang bisa kami bantu?",
+      "message": "Pesan",
+      "messagePlaceholder": "Mohon jelaskan pertanyaan atau keluhanmu secara terperinci...",
+      "submit": "Kirim Pesan",
+      "submitting": "Mengirim...",
+      "success": "Pesan berhasil dikirim! Kami akan segera menghubungimu kembali.",
+      "error": "Gagal mengirim pesan. Silakan coba lagi."
+    }
+  },
+  "Pricing": {
+    "title": "Paket Harga",
+    "subtitle": "Pilih paket yang sempurna untuk perjalanan mistismu",
+    "heroTitle": "Pilih bintangmu, buka wawasan yang lebih dalam",
+    "heroDescription": "Pilih Basic atau Pro untuk bintang bulanan atau tahunan.",
+    "priceNote": "Harga dalam THB. Paket tahunan ditagih sekali.",
+    "currency": "Mata Uang",
+    "changeCurrency": "Ganti Mata Uang",
+    "currencySearchPlaceholder": "Cari mata uang atau kode...",
+    "currencyNoResults": "Tidak ada mata uang yang cocok dengan pencarianmu.",
+    "subscriptionPlans": "paket langganan",
+    "oneTimePacks": "paket bintang tambahan",
+    "monthly": "Bulanan",
+    "yearly": "Tahunan",
+    "mostPopular": "Paling Populer",
+    "getStarted": "Mulai Sekarang",
+    "currentPlan": "Paket Saat Ini",
+    "owned": "Dimiliki",
+    "upgradeSuccess": "Peningkatan berhasil",
+    "downgradeSuccess": "Penurunan berhasil",
+    "upgradeError": "Peningkatan gagal",
+    "signInToUpgrade": "Silakan masuk untuk meningkatkan",
+    "upgradePlan": "Tingkatkan Paket",
+    "monthlySubscription": "Langganan bulanan",
+    "firstMonthOffer": "Penawaran bulan pertama saja",
+    "thenRegularPrice": "lalu {price}/bulan",
+    "annualSubscription": "Langganan tahunan",
+    "perMonth": "per bulan",
+    "perYear": "per tahun",
+    "autoRenew": "perpanjangan otomatis",
+    "cancelAnytime": "batalkan kapan saja",
+    "billedYearly": "ditagih per tahun",
+    "save17": "Hemat 17%",
+    "savePercent": "Hemat {percent}%",
+    "oneTime": "Tambahan",
+    "instantDelivery": "pengiriman instan",
+    "days": "hari",
+    "stars": "bintang",
+    "popular": "Populer",
+    "bestValue": "Nilai terbaik",
+    "ongoingSupport": "Dukungan berkelanjutan untuk fitur baru",
+    "bonusStars": "Bintang bonus & perk sesekali",
+    "cancelFromAccount": "Batalkan kapan saja dari akunmu",
+    "bestValueYearly": "Paket tahunan dengan nilai terbaik",
+    "samePerks": "Perk yang sama dengan paket bulanan",
+    "cancelRenewal": "Batalkan perpanjangan kapan saja",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "basicDescription": "100 bintang setiap bulan untuk panduan yang stabil.",
+    "proDescription": "599 bintang setiap bulan untuk eksplorasi yang lebih dalam.",
+    "subscribeNow": "Berlangganan sekarang",
+    "downgradePlan": "Turunkan Paket",
+    "planChange": {
+      "upgradeTitle": "Konfirmasi peningkatan",
+      "upgradeDescription": "Kamu hanya akan dikenai selisih antara paketmu saat ini dan paket ini ({amount}). Periode penagihanmu tetap sama.",
+      "downgradeTitle": "Konfirmasi penurunan",
+      "downgradeDescription": "Paketmu akan berubah pada siklus penagihan berikutnya. Kamu akan dikenai harga baru saat itu dan dapat tetap menggunakan jatah bintangmu saat ini hingga tanggal tersebut.",
+      "summaryTitle": "Ringkasan pembayaran",
+      "starsSummaryTitle": "Dampak bintang",
+      "currentPlanLabel": "Paket saat ini",
+      "targetPlanLabel": "Paket baru",
+      "differenceLabel": "Selisih hari ini",
+      "refillLabel": "Tanggal pengisian ulang",
+      "currentStarsLabel": "Bintang saat ini",
+      "projectedStarsLabel": "Setelah perubahan",
+      "confirm": "Konfirmasi",
+      "cancel": "Batal"
+    },
+    "proOnlyPacks": "Paket bintang tambahan hanya tersedia untuk pelanggan Pro.",
+    "starsPerMonth": "Bintang per bulan",
+    "starsPerYear": "Bintang per tahun",
+    "includesBonus": "Termasuk bintang bonus",
+    "secureCheckout": "Pembayaran aman",
+    "oneTimePayment": "Pembayaran sekali, tanpa perpanjangan otomatis",
+    "bonus": "bonus",
+    "limitedOffer": "Penawaran terbatas",
+    "unlimitedReadings": "Pembacaan Kosmik Tanpa Batas",
+    "howItWorks": "Cara kerjanya",
+    "signIn": "Masuk",
+    "signInDesc": "Buat atau masuk ke akunmu",
+    "pickPack": "Pilih paket",
+    "pickPackDesc": "Kami otomatis memilih mata uang lokal. Paket yang lebih besar termasuk bintang bonus.",
+    "paySecurely": "Bayar dengan aman",
+    "paySecurelyDesc": "Diproses oleh penyedia tepercaya",
+    "instantDeliveryDesc": "Bintang muncul tepat setelah pembayaran",
+    "trustedTransparent": "Tepercaya & transparan",
+    "trustedTransparentDesc": "Harga yang jelas. Tanpa biaya tersembunyi. Bintang untuk pembacaan.",
+    "secureCheckoutDesc": "Pembayaran ditangani oleh prosesor terpercaya dengan enkripsi.",
+    "ongoingImprovements": "Peningkatan berkelanjutan",
+    "ongoingImprovementsDesc": "Dukunganmu membantu kami menghadirkan pembacaan AI dan fitur yang lebih baik.",
+    "howFastStars": "Seberapa cepat bintang tiba?",
+    "howFastStarsAnswer": "Langsung setelah pembayaran. Jika kamu tidak melihatnya, segarkan halaman bintang.",
+    "whatIsBonus": "Apa itu bonus?",
+    "whatIsBonusAnswer": "฿1 selalu setara dengan 60 bintang. Paket yang lebih besar termasuk bintang bonus ekstra di atas jumlah dasarnya.",
+    "pricingFaqTitle": "FAQ Harga & pengisian ulang",
+    "pricingFaq": {
+      "refillQuestion": "Bagaimana cara kerja pengisian ulang langganan?",
+      "refillAnswer": "Setiap akun mengisi ulang hingga 6 bintang harian (1 bintang per 2 jam). Paket Basic dan Pro menambahkan kumpulan paket terpisah yang disetel ulang ke jumlah paket pada tanggal penagihanmu. Paket tambahan membuat kumpulan terpisah yang juga mengisi ulang setiap periode penagihan.",
+      "changeQuestion": "Apa yang terjadi saat aku meningkatkan atau menurunkan paket?",
+      "changeAnswer": "Peningkatan berlaku segera dan hanya mengenakan selisihnya. Penurunan berlaku pada periode penagihan berikutnya, dan bintang paketmu mengisi ulang ke jumlah baru saat itu.",
+      "addonsQuestion": "Siapa yang bisa membeli paket bintang tambahan?",
+      "addonsAnswer": "Paket tambahan tersedia untuk pelanggan Pro. Paket ini menambahkan kumpulan bintang berulang yang mengisi ulang setiap periode penagihan hingga dihapus.",
+      "refundQuestion": "Bisakah aku meminta pengembalian dana?",
+      "refundAnswer": "Kamu bisa meminta pengembalian dana jika belum menggunakan bintang apa pun dari paketmu saat ini. Permintaan pengembalian dana harus diajukan dalam 7 hari sejak tanggal penagihan."
+    },
+    "features": {
+      "unlimitedReadings": "Pembacaan Tanpa Batas",
+      "premiumInsights": "Wawasan Premium",
+      "prioritySupport": "Dukungan Prioritas",
+      "exclusiveContent": "Konten Eksklusif",
+      "advancedAnalytics": "Analitik Lanjutan"
+    }
+  },
+  "Stars": {
+    "title": "Saldo Bintang",
+    "subtitle": "Kelola mata uang kosmikmu",
+    "currentBalance": "Saldo Saat Ini",
+    "addStars": "Tambah Bintang",
+    "purchaseHistory": "Riwayat Pembelian",
+    "howItWorks": "Cara Kerjanya",
+    "starPackages": {
+      "small": "Paket Kecil",
+      "medium": "Paket Sedang",
+      "large": "Paket Besar",
+      "mega": "Paket Mega"
+    },
+    "transactions": {
+      "purchase": "Pembelian",
+      "spent": "Terpakai",
+      "refund": "Pengembalian Dana",
+      "bonus": "Bonus"
+    }
+  },
+  "Checkout": {
+    "purchase": "Beli",
+    "subscribe": "Berlangganan",
+    "addOn": "Tambahan",
+    "checkout": "Pembayaran",
+    "loading": "Memuat...",
+    "redirecting": "Mengalihkan ke pembayaran aman...",
+    "addonSuccess": "Tambahan ditambahkan",
+    "done": "Selesai",
+    "back": "Kembali",
+    "unavailable": "Tidak tersedia",
+    "signInToSubscribe": "Masuk untuk berlangganan",
+    "sessionError": "Kami tidak dapat memulai pembayaran. Silakan coba lagi.",
+    "comingSoonTitle": "Pembelian bintang segera hadir",
+    "comingSoonDescription": "Kami sedang menyempurnakan cara baru untuk membeli bintang dengan aman di dalam Askingfate.",
+    "comingSoonHelper": "Terima kasih atas kesabaranmu! Sementara itu, kamu bisa terus menjelajahi pembacaan gratis dan mendapatkan bintang bonus dari aktivitas komunitas.",
+    "close": "Tutup",
+    "stripeReady": "Kunci Stripe terdeteksi — tambahkan kunci rahasia di server untuk mengaktifkan pembayaran.",
+    "stripeMissing": "Tersedia saat {countdown}",
+    "countdownUnknown": "rilis berikutnya siap"
+  },
+  "StarsPurchase": {
+    "badge": "Segera hadir",
+    "title": "Pembelian bintang segera hadir",
+    "description": "Kami sedang membangun ulang alur pembelian agar setiap paket dan langganan terasa lebih aman dan mulus.",
+    "helper": "Sementara kami menyelesaikan pembaruan, kamu bisa terus menikmati pembacaan gratis, rujukan, dan hadiah komunitas untuk menambah saldomu.",
+    "backToPricing": "Kembali ke harga",
+    "ctaBackToStars": "Buka dasbor bintang",
+    "ctaEarnFree": "Dapatkan bintang gratis"
+  },
+  "ReadingHistory": {
+    "title": "Riwayat Pembacaanmu",
+    "authRequired": "Silakan masuk untuk mengakses riwayat pembacaanmu",
+    "loading": "Memuat riwayat pembacaan...",
+    "subtitle": "Jelajahi pembacaan tarot dan wawasan masa lalumu",
+    "searchPlaceholder": "Cari pembacaan atau kartu...",
+    "filters": {
+      "allTime": "Sepanjang waktu",
+      "today": "Hari ini",
+      "thisWeek": "Minggu ini",
+      "thisMonth": "Bulan ini",
+      "customRange": "Rentang khusus",
+      "allTypes": "Semua jenis",
+      "simple": "Sederhana",
+      "intermediate": "Menengah",
+      "advanced": "Lanjutan"
+    },
+    "clearFilters": "Hapus filter",
+    "noReadings": "Tidak ada pembacaan ditemukan",
+    "noReadingsDesc": "Kamu belum membuat pembacaan tarot apa pun. Mulailah perjalanan mistismu dengan pembacaan pertamamu!",
+    "startReading": "Mulai Pembacaan",
+    "loadingReadings": "Memuat pembacaanmu...",
+    "error": "Gagal memuat pembacaan",
+    "errorDesc": "Terjadi kesalahan saat memuat riwayat pembacaanmu. Silakan coba lagi.",
+    "retry": "Coba Lagi",
+    "loadMore": "Gulir untuk memuat lebih banyak",
+    "loadingMore": "Memuat lebih banyak pembacaan...",
+    "noQuestion": "(Tanpa pertanyaan)",
+    "readingTypes": {
+      "simple": "Sederhana",
+      "intermediate": "Menengah",
+      "advanced": "Lanjutan"
+    },
+    "delete": "Hapus",
+    "deleteSuccess": "Pembacaan berhasil dihapus",
+    "deleteError": "Gagal menghapus pembacaan",
+    "swipeToDelete": "Geser ke kiri untuk menghapus",
+    "contextMenu": {
+      "openReading": "Buka pembacaan",
+      "openInNewTab": "Buka di tab baru",
+      "copyLink": "Salin tautan",
+      "share": "Bagikan",
+      "linkCopied": "Tautan disalin ke papan klip",
+      "shareError": "Tidak dapat membagikan"
+    }
+  },
+  "StarsBalance": {
+    "available": "Bintang tersedia",
+    "nextRefill": "Pengisian ulang berikutnya",
+    "planLabel": "{plan}",
+    "balance": "Saldo: {current}/{total}",
+    "dailyBalance": "Bintang harian: {current}/{total}",
+    "planBalance": "Bintang paket: {current}/{total}",
+    "addonBalance": "Bintang tambahan: {current}/{total}",
+    "engagementBalance": "Bintang keterlibatan: {current}/{total}",
+    "nextBilling": "Penagihan berikutnya {date}",
+    "buyAddons": "Beli tambahan",
+    "anonymousPrefix": "Pengguna Anonim:",
+    "anonymousRefill": "Mengisi ulang ke 3 bintang saat tengah malam (UTC+7). Hitung mundur menunjukkan waktu hingga penyelarasan kosmik berikutnya.",
+    "autoRefill": "Mengisi ulang otomatis 1 bintang setiap 2 jam (hingga {cap} bintang).",
+    "subscriptionRefill": "Mengisi ulang hingga {cap} bintang setiap periode penagihan.",
+    "dailyRefillNote": "Bintang harian mengisi ulang 1 setiap 2 jam (hingga {cap}).",
+    "planRefillNote": "Paket {plan} milikmu mengisi ulang ke {cap} bintang pada tanggal penagihan berikutnya."
+  },
+  "SignInAccordion": {
+    "title": "Masuk",
+    "description": "Akun baru dimulai dengan 6 bintang. Mengisi ulang otomatis 1 bintang setiap 2 jam (batas {cap}).",
+    "button": "Masuk"
+  },
+  "OneTapTopUp": {
+    "packs": {
+      "starter": "Pemula",
+      "explorer": "Penjelajah",
+      "seeker": "Pencari",
+      "mystic": "Mistikus",
+      "master": "Master",
+      "grandMaster": "Grand Master",
+      "ultimate": "Ultimate"
+    }
+  },
+  "SubscribeDropdown": {
+    "aria": "Pilih jangka waktu langganan",
+    "monthly": "Bulanan",
+    "monthlyPrice": "$9.99/bulan",
+    "annual": "Tahunan",
+    "annualPrice": "$99.99/tahun"
+  },
+  "StarsPage": {
+    "comingSoon": "Segera Hadir",
+    "hero": {
+      "badge": "Sistem Bintang"
+    },
+    "subscribe": {
+      "title": "Paket langganan",
+      "subtitle": "Pilih bintang bulanan atau tahunan untuk paketmu",
+      "features": {
+        "unlimitedReadings": "Pembacaan tanpa batas",
+        "premiumFeatures": "Fitur premium",
+        "prioritySupport": "Dukungan prioritas"
+      },
+      "button": "Berlangganan",
+      "monthly": "Bulanan",
+      "annual": "Tahunan",
+      "starsPerMonth": "Bintang per bulan",
+      "starsPerYear": "Bintang per tahun",
+      "priceLabel": "{price} ditagih {cycle}",
+      "notConfigured": "Harga belum dikonfigurasi.",
+      "downgrade": "Turunkan",
+      "mostPopular": "Paling populer",
+      "saveStarsPercent": "Hemat {percent}% (dari {from} ke {to} bintang)",
+      "savePercent": "Hemat {percent}%",
+      "upgrade": "Tingkatkan",
+      "upgradeSuccess": "Peningkatan berhasil",
+      "downgradeSuccess": "Penurunan berhasil",
+      "upgradeError": "Peningkatan gagal",
+      "signInToUpgrade": "Silakan masuk untuk meningkatkan",
+      "upgradeDialogTitle": "Konfirmasi peningkatan",
+      "upgradeDialogDescription": "Kamu hanya akan dikenai selisih antara paketmu saat ini dan paket ini ({amount}). Periode penagihanmu tetap sama.",
+      "downgradeDialogTitle": "Konfirmasi penurunan",
+      "downgradeDialogDescription": "Paketmu akan berubah pada siklus penagihan berikutnya. Kamu akan dikenai harga baru saat itu dan dapat tetap menggunakan jatah bintangmu saat ini hingga tanggal tersebut.",
+      "summaryTitle": "Ringkasan pembayaran",
+      "starsSummaryTitle": "Dampak bintang",
+      "currentPlanLabel": "Paket saat ini",
+      "targetPlanLabel": "Paket baru",
+      "differenceLabel": "Selisih hari ini",
+      "refillLabel": "Tanggal pengisian ulang",
+      "currentStarsLabel": "Bintang saat ini",
+      "projectedStarsLabel": "Setelah perubahan",
+      "dialogConfirm": "Konfirmasi",
+      "dialogCancel": "Batal",
+      "basic": {
+        "title": "Basic",
+        "subtitle": "100 bintang per bulan"
+      },
+      "pro": {
+        "title": "Pro",
+        "subtitle": "599 bintang per bulan"
+      },
+      "custom": {
+        "title": "Custom",
+        "subtitle": "Hubungi kami melalui formulir ini"
+      }
+    },
+    "earn": {
+      "comingSoon": "Segera Hadir",
+      "title": "Cara Mendapatkan Bintang",
+      "subtitle": "Jelajahi berbagai jalur untuk mengumpulkan energi kosmik dan membuka pengalaman mistis yang lebih dalam",
+      "purchase": {
+        "title": "Beli Bintang",
+        "subtitle": "Isi ulang instan",
+        "body": "Butuh bintang sekarang juga? Pilih paket dan dapatkan bintang yang langsung ditambahkan ke saldomu setelah pembayaran. Lihat harga untuk membandingkan pilihan.",
+        "viewPricing": "Lihat Harga",
+        "instant": "Instan"
+      },
+      "social": {
+        "title": "Ikuti kami di media sosial",
+        "subtitle": "Dapatkan +5 bintang per platform (hingga 25 total).",
+        "description": "Ketuk sebuah platform, ikuti AskingFate, dan kami akan menambahkan bonusmu secara instan. Setiap platform bisa diklaim sekali.",
+        "rewardLabel": "Hadiah +5 bintang",
+        "followCta": "Ikuti kami",
+        "openCta": "Buka tautan",
+        "claimed": "Diklaim",
+        "signIn": "Masuk untuk mengklaim hadiah media sosial ini.",
+        "success": "Terima kasih sudah mengikuti kami di {platform}! +5 bintang ditambahkan.",
+        "alreadyClaimed": "Kamu sudah mengklaim {platform}.",
+        "error": "Kami tidak dapat memberikan bintang sekarang. Silakan coba lagi.",
+        "progress": "{claimed}/{total} diklaim"
+      },
+      "platforms": {
+        "facebook": "Facebook",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X (Twitter)"
+      },
+      "content": {
+        "title": "Buat Konten Tentang Kami",
+        "subtitle": "Buat konten. Dapatkan bintang.",
+        "body": "Buat konten tentang AskingFate—teks, gambar, atau video—dan dapatkan bintang berdasarkan formatnya. Kirimkan tautan publik; kami meninjau dalam 24–48 jam.",
+        "items": {
+          "textTitle": "Artikel teks atau postingan blog",
+          "textSubtitle": "Bagikan wawasanmu secara tertulis",
+          "imageTitle": "Postingan gambar (media sosial)",
+          "imageSubtitle": "Konten visual dengan keterangan",
+          "videoTitle": "Konten video",
+          "videoSubtitle": "YouTube, TikTok, atau Reels"
+        },
+        "note": "💡 Bagikan tautan publik ke kontenmu. Kami akan meninjau dan menyetujui secara manual dalam 24-48 jam.",
+        "learnMore": "Pelajari Lebih Lanjut",
+        "submitContent": "Kirim Konten"
+      },
+      "share": {
+        "title": "Bagikan Pembacaan",
+        "subtitle": "Bagikan tautan. Dapatkan dari hingga 3 kunjungan/hari.",
+        "body": "Dapatkan +5 bintang untuk setiap pengunjung unik yang membuka pembacaan yang kamu bagikan—dibatasi hingga 3 kunjungan berhadiah per hari. Hadiah berlaku otomatis.",
+        "learnMore": "Pelajari Lebih Lanjut"
+      },
+      "refer": {
+        "title": "Ajak Teman",
+        "subtitle": "Undang teman. Dapatkan bersama.",
+        "body": "Bagikan tautan rujukanmu. Kamu dan temanmu masing-masing mendapatkan 20 bintang (hingga 10 teman per minggu). Jika 10 teman mendaftar dalam seminggu, kamu menerima bonus 50 bintang. Bintang diberikan saat teman yang diundang menyelesaikan pendaftaran.",
+        "learnMore": "Pelajari Lebih Lanjut",
+        "viewReferral": "Lihat Tautan Rujukan"
+      }
+    }
+  },
+  "CheckoutSuccess": {
+    "badge": "Pembayaran Berhasil",
+    "title": "Terima Kasih atas Pembelianmu!",
+    "description": "Pembayaranmu telah berhasil diproses. Bintang-bintangmu telah ditambahkan ke akunmu dan siap digunakan.",
+    "descriptionWithStars": "Pembayaranmu telah berhasil diproses. {stars} bintang telah ditambahkan ke akunmu dan siap digunakan.",
+    "emailLabel": "Tanda terima telah dikirim ke alamat emailmu:",
+    "viewStars": "Lihat Bintangku",
+    "viewBilling": "Riwayat Penagihan",
+    "backToPricing": "Kembali ke Harga",
+    "backToStars": "Kembali ke Bintang",
+    "supportText": "Jika kamu punya pertanyaan, silakan email"
+  },
+  "InsufficientStars": {
+    "title": "Bintang Tidak Cukup",
+    "descriptionLoggedIn": "Kamu butuh setidaknya 1 bintang untuk menarik kartu dan mendapatkan pembacaanmu. Isi ulang bintangmu untuk melanjutkan perjalanan mistismu.",
+    "descriptionAnonymous": "Kamu butuh setidaknya 1 bintang untuk menarik kartu. Masuk untuk membuka 6 bintang gratis dengan pengisian ulang otomatis setiap 2 jam!",
+    "descriptionHoroscopeLoggedIn": "Kamu butuh setidaknya 1 bintang untuk mendapatkan tafsir horoskopmu. Isi ulang bintangmu untuk melanjutkan perjalanan kosmikmu.",
+    "descriptionHoroscopeAnonymous": "Kamu butuh setidaknya 1 bintang untuk mendapatkan tafsir horoskopmu. Masuk untuk membuka 6 bintang gratis dengan pengisian ulang otomatis setiap 2 jam!",
+    "quickTopUp": "Isi Ulang Cepat",
+    "packsNotConfigured": "Paket bintang belum dikonfigurasi.",
+    "proRequired": "Paket tambahan hanya tersedia untuk pelanggan Pro.",
+    "viewAllOptions": "Lihat semua pilihan harga",
+    "benefit1Title": "6 Bintang Gratis",
+    "benefit1Desc": "Mulai dengan 6 bintang secara instan",
+    "benefit2Title": "Isi Ulang Otomatis",
+    "benefit2Desc": "Dapatkan bintang setiap 2 jam",
+    "signInButton": "Masuk untuk Melanjutkan",
+    "signInNote": "Buat akun gratis dan dapatkan 6 bintang untuk memulai perjalanan tarotmu",
+    "chatMessageLoggedIn": "Sepertinya kamu tidak punya cukup bintang untuk menarik kartu sekarang. Kamu butuh setidaknya 1 bintang untuk melanjutkan pembacaanmu. Kamu bisa mengisi ulang bintangmu secara instan menggunakan salah satu pilihan di bawah, atau menunggu bintangmu terisi ulang secara otomatis.",
+    "chatMessageAnonymous": "Sepertinya kamu tidak punya cukup bintang untuk menarik kartu sekarang. Masuk untuk membuka 6 bintang gratis dengan pengisian ulang otomatis setiap 2 jam, atau buat akun untuk memulai perjalanan mistismu!",
+    "promoBasicTitle": "Tingkatkan ke Pro untuk lebih banyak bintang",
+    "promoGuestTitle": "Buka lebih banyak bintang secara instan",
+    "promoBasicDescription": "Kamu sedang menggunakan Basic. Beralih ke Pro untuk mendapatkan tambahan bintang bulanan yang lebih besar dan akses ke paket tambahan.",
+    "promoGuestDescription": "Pilih paket di bawah dan lanjutkan pembacaanmu tanpa menunggu.",
+    "monthly": "Bulanan",
+    "annual": "Tahunan",
+    "unavailable": "Tidak tersedia",
+    "bestValue": "Nilai terbaik",
+    "proPlan": "Paket Pro",
+    "basicPlan": "Paket Basic",
+    "proShort": "Pro",
+    "basicShort": "Basic",
+    "starsPerMonthLabel": "{stars} bintang / bulan",
+    "starsPerYearLabel": "{stars} bintang / tahun",
+    "perMonth": "/ bulan",
+    "owned": "Dimiliki",
+    "upgradeNow": "Tingkatkan sekarang",
+    "getPlan": "Dapatkan {plan}",
+    "savePercent": "Hemat {percent}%"
+  },
+  "BirthForm": {
+    "datePlaceholder": "dd/mm/yyyy",
+    "yearEraCE": "M",
+    "yearEraBE": "BE",
+    "dateErrorDay": "Tanggal harus antara 1 dan 31",
+    "dateErrorMonth": "Bulan harus antara 1 dan 12",
+    "missingTimeHint": "Kami butuh waktu lahirmu untuk ketepatan.",
+    "missingDateHint": "Kami butuh tanggal lahirmu.",
+    "inlineAccuracyHint": "Tambahkan tanggal dan waktu lahirmu di sini sebelum mengirim.",
+    "timeAccuracyHint": "Waktu lahir yang tepat memberikan pembacaan paling akurat. Jika kamu tidak tahu, pilih siang atau malam dan akurasinya mungkin berkurang.",
+    "timePlaceholder": "jj:mm",
+    "timePickerTitle": "Pilih waktu",
+    "timePickerHour": "Jam",
+    "timePickerMinute": "Menit",
+    "timePickerDone": "Selesai",
+    "birthDate": "Tanggal lahir",
+    "birthTime": "Waktu lahir",
+    "exactTime": "Waktu tepat",
+    "daytime": "Siang hari",
+    "nighttime": "Malam hari",
+    "birthPlace": "Tempat lahir (opsional)",
+    "country": "Negara",
+    "stateProvince": "Negara Bagian / Provinsi",
+    "locationSettings": "Pengaturan lokasi",
+    "useCurrentLocation": "Gunakan lokasi saat ini",
+    "advanced": "Lanjutan (lat, lng, zona waktu)",
+    "latitude": "Lintang",
+    "longitude": "Bujur",
+    "timezone": "Zona waktu (mis. 7)",
+    "rememberBirth": "Ingat tanggal lahirku",
+    "removeBirth": "Hapus"
+  },
+  "HoroscopeChat": {
+    "usingSavedBirthDate": "Menggunakan tanggal lahir tersimpanmu untuk tafsir ini...",
+    "loading": "Membaca bagan kelahiranmu...",
+    "fallbackAnswerError": "Aku belum bisa membaca bagan ini.",
+    "analysisFailed": "Maaf, analisis horoskop gagal. Silakan coba lagi.",
+    "parseFailed": "Aku tidak dapat memahami detail kelahiran tersebut. Silakan coba lagi.",
+    "askBirthDate": "Silakan kirim tanggal lahirmu terlebih dahulu (DD/MM/YYYY atau YYYY-MM-DD).",
+    "askBirthTime": "Sekarang bagikan waktu lahirmu. Jika tidak tahu, beri tahu aku siang atau malam saja. Ascendant bisa bergeser kira-kira setiap 2 jam, jadi waktu perkiraan dapat mengurangi akurasi.",
+    "askBirthPlace": "Silakan bagikan tempat lahirmu (kota/negara). Jika tidak tahu, aku bisa menggunakan lokasimu saat ini, tetapi pembacaannya mungkin kurang akurat.",
+    "usingLocationFallback": "Menggunakan lokasimu saat ini sebagai cadangan. Ini dapat mengurangi ketepatan untuk rumah dan ascendant.",
+    "processFailed": "Maaf, aku tidak dapat memproses detail horoskop sekarang.",
+    "paywallOtherPersonAssistantText": "Membaca bagan orang lain tidak termasuk dalam paket gratis — kamu bisa <drawPill>menarik kartu saja</drawPill> dan aku akan membacanya untukmu.",
+    "paywallOtherPersonTitle": "Membaca orang lain membutuhkan paket berbayar",
+    "paywallOtherPersonBody": "Akun gratis hanya bisa melihat bagannya sendiri. Tingkatkan ke Basic atau Pro untuk membaca bagi teman, keluarga, atau pasangan.",
+    "paywallOtherPersonPaywallTitle": "Membaca orang lain adalah fitur pelanggan",
+    "paywallOtherPersonPaywallDesc": "Gunakan bintangmu untuk membaca bagi teman, keluarga, atau pasangan. Tingkatkan ke Basic atau Pro untuk membukanya — pembayaran ditenagai oleh Stripe di halaman berikutnya.",
+    "paywallOtherPersonPaywallFeature": "Baca bagan orang lain dari detail kelahirannya",
+    "paywallOtherPersonPaywallInsufficient": "Peningkatan diperlukan",
+    "paywallOtherPersonPaywallNote": "Memilih paket akan membawamu ke pembayaran Stripe yang aman.",
+    "paywallUpgradeCta": "Tingkatkan paket",
+    "transitDateLabel": "Tanggal transit",
+    "birthFormTitle": "Isi detail kelahiranmu",
+    "birthFormSubmit": "Gunakan data kelahiran ini",
+    "composerBirthPlaceholder": "Ketik tanggal lahir, waktu lahir, dan lokasimu di sini. Format tanggal apa pun boleh.",
+    "underAgeWarningTitle": "Tanggal lahir tidak diizinkan",
+    "underAgeWarningBody": "AskingFate tidak tersedia untuk pengguna di bawah tiga belas (13) tahun. Tanggal lahirmu sebelumnya telah dipulihkan.",
+    "underAgeWarningClose": "Tutup",
+    "tabs": {
+      "overview": "Ikhtisar",
+      "aspect": "Aspek yang Berpengaruh",
+      "transit": "Informasi Teknis",
+      "birthChartInfo": "Informasi Bagan Kelahiran"
+    },
+    "natalSpotlight": {
+      "title": "Sorotan bagan kelahiranmu",
+      "subtitle": "Penempatan yang menjawab pertanyaan ini",
+      "titleTransit": "Posisi langit saat ini",
+      "subtitleTransit": "Di mana planet-planet ini berada sekarang"
+    },
+    "verdict": {
+      "moodGood": "Hari Baik",
+      "moodCaution": "Berhati-hatilah",
+      "moodRest": "Hari Istirahat",
+      "answerHeading": "Untuk pertanyaanmu",
+      "watchHeading": "Satu catatan",
+      "focusHeading": "Fokus",
+      "dateRelativeToday": "Hari ini",
+      "dateRelativeTomorrow": "Besok",
+      "dateRelativeYesterday": "Kemarin"
+    },
+    "transit": {
+      "feedTitle": "Transit aktif",
+      "showMore": "Tampilkan lebih banyak",
+      "showLess": "Tampilkan lebih sedikit",
+      "transitLabel": "Transit",
+      "natalLabel": "Natal",
+      "emptyFallback": "Menampilkan pembacaan lengkap untuk hari ini.",
+      "aspectConjunction": "Konjungsi",
+      "aspectOpposition": "Oposisi",
+      "aspectSquare": "Kuadrat",
+      "aspectTrine": "Trine",
+      "aspectSextile": "Sekstil"
+    },
+    "timeline": {
+      "title": "Apa yang mungkin terjadi",
+      "subtitleHourly": "Jam demi jam untuk hari ini",
+      "subtitleDaily": "Hari demi hari sepanjang rentang ini",
+      "granularityHourly": "Tampilan per jam",
+      "granularityDaily": "Tampilan per hari",
+      "loading": "Menyusun lini masamu...",
+      "moodGood": "Mengalir",
+      "moodCaution": "Berhati-hatilah",
+      "moodRest": "Pelan-pelan",
+      "moodMixed": "Sinyal campuran",
+      "focusHeading": "Fokus",
+      "hourBuckets": {
+        "lateNight": "Larut malam",
+        "dawn": "Subuh",
+        "morning": "Pagi",
+        "midday": "Tengah hari",
+        "afternoon": "Sore",
+        "evening": "Petang",
+        "night": "Malam"
+      }
+    }
+  },
+  "Settings": {
+    "title": "Pengaturan",
+    "subtitle": "Kelola preferensi akun dan pengaturan pemasaran emailmu",
+    "loading": "Memuat pengaturan...",
+    "saving": "Menyimpan...",
+    "save": "Simpan Pengaturan",
+    "saveSuccess": "Pengaturan berhasil disimpan",
+    "saveError": "Gagal menyimpan pengaturan",
+    "fetchError": "Gagal memuat pengaturan",
+    "authRequired": "Silakan masuk untuk mengakses pengaturan",
+    "emailMarketing": {
+      "title": "Pemasaran Email",
+      "enable": "Aktifkan Pemasaran Email",
+      "enableDesc": "Terima email pemasaran dari kami",
+      "promotional": "Email Promosi",
+      "promotionalDesc": "Penawaran khusus dan diskon",
+      "newsletter": "Buletin",
+      "newsletterDesc": "Pembaruan dan wawasan mingguan",
+      "productUpdates": "Pembaruan Produk",
+      "productUpdatesDesc": "Fitur dan peningkatan baru",
+      "readingReminders": "Pengingat Pembacaan",
+      "readingRemindersDesc": "Pengingat untuk memeriksa pembacaanmu",
+      "specialOffers": "Penawaran Khusus",
+      "specialOffersDesc": "Penawaran dan promosi eksklusif"
+    },
+    "notifications": {
+      "title": "Notifikasi Push",
+      "enable": "Aktifkan Notifikasi Push",
+      "enableDesc": "Terima notifikasi push di perangkatmu",
+      "readingReminders": "Pengingat Pembacaan",
+      "specialOffers": "Penawaran Khusus",
+      "systemUpdates": "Pembaruan Sistem"
+    },
+    "privacy": {
+      "title": "Pengaturan Privasi",
+      "profileVisibility": "Visibilitas Profil",
+      "private": "Privat",
+      "public": "Publik",
+      "friends": "Hanya Teman",
+      "showEmail": "Tampilkan Email",
+      "showEmailDesc": "Tampilkan emailmu di profilmu",
+      "showBirthDate": "Tampilkan Tanggal Lahir",
+      "showBirthDateDesc": "Tampilkan tanggal lahirmu di profilmu",
+      "allowMessages": "Izinkan Pesan",
+      "allowMessagesDesc": "Izinkan orang lain mengirimimu pesan"
+    },
+    "reading": {
+      "title": "Preferensi Pembacaan",
+      "autoSave": "Simpan Pembacaan Otomatis",
+      "autoSaveDesc": "Simpan pembacaanmu secara otomatis",
+      "shareByDefault": "Bagikan Pembacaan Secara Bawaan",
+      "shareByDefaultDesc": "Bagikan pembacaan baru secara otomatis"
+    },
+    "localization": {
+      "title": "Bahasa & Pelokalan",
+      "language": "Bahasa",
+      "timeFormat": "Format Waktu"
+    },
+    "accessibility": {
+      "title": "Aksesibilitas",
+      "reducedMotion": "Kurangi Gerakan",
+      "reducedMotionDesc": "Kurangi animasi dan transisi",
+      "highContrast": "Kontras Tinggi",
+      "highContrastDesc": "Tingkatkan kontras untuk visibilitas yang lebih baik",
+      "fontSize": "Ukuran Font",
+      "small": "Kecil",
+      "medium": "Sedang",
+      "large": "Besar"
+    }
+  },
+  "PlanetaryPanel": {
+    "transitSuffix": " Transit",
+    "natalSuffix": " Natal",
+    "noChartPosition": "Tidak ada posisi bagan",
+    "defaultKeyword": "Aspek yang dipersonalisasi",
+    "exactDatePrefix": "Pada {date}",
+    "rangeDate": "Mulai {start} (puncak {peak})",
+    "rangeDateStart": "Mulai {start}",
+    "rangeDatePeak": "Puncak {peak}",
+    "rangeDateEnd": "Berakhir {end}",
+    "mainEvents": "Peristiwa Utama",
+    "showDailyVibes": "Tampilkan Vibe Harian ({count})",
+    "showLifeSituation": "Tampilkan Semua Aspek Planet ({count})",
+    "showRelatedAspects": "Tampilkan Terkait ({count})",
+    "showAllAspects": "Tampilkan Semua ({count})",
+    "showMore": "Tampilkan lebih banyak",
+    "showTechnical": "Tampilkan data teknis",
+    "hideTechnical": "Sembunyikan data teknis",
+    "timelineAriaLabel": "Aspek dari {start} hingga puncak {peak} sampai {end}",
+    "timelineToday": "Hari ini",
+    "timelineUpcoming": "dalam {days}h",
+    "timelinePassed": "{days}h lalu",
+    "defaultInsight": "Aspek ini menandai pergeseran yang terlihat dalam cara area kehidupan ini meminta perhatian.",
+    "impactLabel": "Domain: ",
+    "intensityLabel": "Tingkat: ",
+    "intensity": {
+      "low": "Rendah",
+      "medium": "Sedang",
+      "high": "Tinggi"
+    },
+    "dignity": {
+      "exalted": "Eksaltasi",
+      "ownSign": "Rumah sendiri",
+      "debilitated": "Debilitasi",
+      "retrograde": "Retrograd"
+    },
+    "orbLabel": "Orb (hari ini)",
+    "peakLabel": "Puncak",
+    "longTermSectionLabel": "Pengaruh jangka panjang",
+    "showBirthDetails": "Tampilkan Detail Kelahiran",
+    "showTransitDetails": "Tampilkan Detail Transit",
+    "birthDetails": "Detail Kelahiran",
+    "transitDetails": "Detail Transit",
+    "birthDateLabel": "Tanggal Lahir",
+    "birthTimeLabel": "Waktu Lahir",
+    "transitDateLabel": "Tanggal Transit",
+    "transitTimeLabel": "Waktu Transit",
+    "locationLabel": "Lokasi",
+    "systemLabel": "Sistem",
+    "ascendantLabel": "Ascendant",
+    "sunLabel": "Matahari",
+    "moonLabel": "Bulan",
+    "planets": {
+      "Sun": "Matahari",
+      "Moon": "Bulan",
+      "Mercury": "Merkurius",
+      "Venus": "Venus",
+      "Mars": "Mars",
+      "Jupiter": "Jupiter",
+      "Saturn": "Saturnus",
+      "Rahu": "Rahu",
+      "Ketu": "Ketu",
+      "Uranus": "Uranus",
+      "Neptune": "Neptunus",
+      "Pluto": "Pluto",
+      "Ascendant": "Ascendant"
+    },
+    "aspects": {
+      "conjunction": "Konjungsi",
+      "opposition": "Oposisi",
+      "square": "Kuadrat",
+      "trine": "Trine",
+      "sextile": "Sekstil"
+    },
+    "zodiac": {
+      "Aries": "Aries",
+      "Taurus": "Taurus",
+      "Gemini": "Gemini",
+      "Cancer": "Cancer",
+      "Leo": "Leo",
+      "Virgo": "Virgo",
+      "Libra": "Libra",
+      "Scorpio": "Scorpio",
+      "Sagittarius": "Sagittarius",
+      "Capricorn": "Capricorn",
+      "Aquarius": "Aquarius",
+      "Pisces": "Pisces"
+    },
+    "askMore": "Tanya lebih lanjut",
+    "readDescription": "Baca deskripsi",
+    "askAspectQuestion": "Bagaimana transit {transit} {aspect} natal {natal} memengaruhiku?"
+  },
+  "SupportBlock": {
+    "openPage": "Buka halaman",
+    "readArticle": "Baca artikel",
+    "readFullMeaning": "Baca makna lengkap",
+    "majorArcana": "Major Arcana",
+    "minorArcana": "Minor · {suit}",
+    "minorArcanaShort": "Minor Arcana",
+    "suits": {
+      "wands": "Tongkat",
+      "cups": "Piala",
+      "swords": "Pedang",
+      "pentacles": "Koin"
+    },
+    "topics": {
+      "pricing": {
+        "title": "Paket harga",
+        "description": "Pilih langganan Basic atau Pro, lihat bintang bulanan vs tahunan, dan lanjutkan ke pembayaran."
+      },
+      "star-packs": {
+        "title": "Bintang & paket tambahan",
+        "description": "Lihat saldo bintangmu, aturan pengisian ulang, dan paket tambahan sekali beli untuk pelanggan Pro."
+      },
+      "contact": {
+        "title": "Hubungi dukungan",
+        "description": "Kirimi kami pesan. Kami biasanya membalas dalam 1 hari kerja di admin@askingfate.com."
+      },
+      "help": {
+        "title": "Bantuan & dukungan",
+        "description": "Pemecahan masalah umum untuk akun, pembacaan, penagihan, dan bintang."
+      },
+      "faq": {
+        "title": "Pertanyaan yang sering diajukan",
+        "description": "Jawaban cepat tentang pembacaan, bintang, akurasi, dan penagihan."
+      },
+      "how-to-play": {
+        "title": "Cara bermain",
+        "description": "Ajukan pertanyaan, pilih kartu, dan renungkan maknanya — langkah demi langkah."
+      },
+      "privacy-redaction": {
+        "title": "Privasi & penyuntingan PII",
+        "description": "Bagaimana AskingFate mendeteksi dan menghapus detail pribadi dari promptmu."
+      },
+      "privacy-policy": {
+        "title": "Kebijakan privasi",
+        "description": "Bagaimana kami mengumpulkan, menggunakan, dan melindungi datamu."
+      },
+      "terms-of-service": {
+        "title": "Ketentuan layanan",
+        "description": "Ketentuan kami, penggunaan yang dapat diterima, dan kebijakan pembayaran."
+      },
+      "refer-a-friend": {
+        "title": "Ajak teman",
+        "description": "Undang teman ke AskingFate. Kalian berdua mendapatkan bintang saat mereka bergabung."
+      },
+      "share-reading": {
+        "title": "Bagikan pembacaan",
+        "description": "Bagikan tautan pembacaanmu dan dapatkan hingga 3 bintang per hari dari kunjungan."
+      },
+      "create-content": {
+        "title": "Buat konten & dapatkan bintang",
+        "description": "Tulis, posting, atau rekam tentang AskingFate dan dapatkan bintang saat kontenmu disetujui."
+      },
+      "tarot-card": {
+        "title": "Kartu tarot",
+        "description": "Makna tegak dan terbalik dengan panduan praktis.",
+        "indexListing": {
+          "title": "Makna kartu tarot",
+          "description": "Jelajahi semua 78 kartu — Major Arcana dan empat seri Minor Arcana."
+        }
+      },
+      "tarot-cards-index": {
+        "title": "Semua kartu tarot",
+        "description": "Jelajahi semua 78 kartu — Major Arcana dan empat seri Minor Arcana."
+      },
+      "birth-chart": {
+        "title": "Bagan kelahiran",
+        "description": "Lihat bagan kelahiran Swiss Ephemeris yang dipersonalisasi, planet, dan rumahmu."
+      },
+      "horoscope": {
+        "title": "Horoskop yang dipersonalisasi",
+        "description": "Pembacaan horoskop harian, bulanan, dan tahunan berdasarkan kelahiranmu dan langit hari ini."
+      },
+      "account": {
+        "title": "Akun",
+        "description": "Kelola profil, langganan, dan info kelahiran tersimpanmu."
+      },
+      "settings": {
+        "title": "Pengaturan",
+        "description": "Sesuaikan tampilan, lokal, notifikasi, dan preferensi pembacaan."
+      },
+      "about": {
+        "title": "Tentang AskingFate",
+        "description": "Misi kami, bagaimana kami membangun produk, dan apa yang membuat pembacaan kami berbeda."
+      },
+      "articles": {
+        "title": "Artikel & panduan",
+        "description": "Panduan bergaya dokumentasi yang mencakup semua hal di AskingFate."
+      },
+      "sign-in": {
+        "title": "Masuk",
+        "description": "Masuk untuk menyimpan pembacaan, bintang, dan profil kelahiranmu."
+      },
+      "sign-up": {
+        "title": "Buat akun",
+        "description": "Buat akun gratis untuk menyimpan pembacaan, bintang, dan profil kelahiranmu."
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
+      }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
+    }
+  }
+}

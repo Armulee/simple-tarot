@@ -6,6 +6,8 @@ import {
     getPredictionTimelinePrompt,
     type PredictionTimelineSlotScaffold,
 } from "@/lib/prompts"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 import {
     hydrateQuestionTimeRange,
     questionTimeRangePayloadSchema,
@@ -33,18 +35,9 @@ import {
 } from "@/lib/astrology/transit-aspects"
 import { getDefaultAstrologySystem } from "@/lib/astrology/intake"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const MAX_DAILY_SLOTS = 21
-
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
 
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
@@ -279,9 +272,13 @@ export async function POST(req: Request) {
 
         const codexTransit = await getCodexTransitWindow(questionRange)
 
+        const questionLanguageForChart = resolveResponseLanguage(
+            body.locale,
+            body.question,
+        )
         const chartLocale =
-            detectQuestionLanguage(body.question) === "Thai" ||
-            detectQuestionLanguage(body.question) === "Lao"
+            questionLanguageForChart === "Thai" ||
+            questionLanguageForChart === "Lao"
                 ? "th"
                 : "en"
 
@@ -360,7 +357,10 @@ export async function POST(req: Request) {
             timeStyle: "long",
             timeZone: "UTC",
         })
-        const questionLanguage = detectQuestionLanguage(body.question)
+        const questionLanguage = resolveResponseLanguage(
+            body.locale,
+            body.question,
+        )
         const resolvedClassification: QuestionClassification = body.classification
             ? hydrateRelevantPlanets(body.classification)
             : (() => {
@@ -409,6 +409,7 @@ export async function POST(req: Request) {
             // arrive incrementally and the Overview tab paints slot-by-slot
             // — instead of buffering until the whole object is ready.
             mode: "json",
+            providerOptions: deepseekThinking(false),
             schema: predictionTimelineSchema,
             system: `You are Astra, a female oracle. Produce ONLY the predictionTimeline JSON. Plain language, no astrology jargon, no planet names. Output language: ${questionLanguage}.
 

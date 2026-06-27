@@ -75,7 +75,7 @@ export const generalReplySchema = z.object({
         .min(3)
         .max(4)
         .describe(
-            "EXACTLY 3-4 very short follow-up prompts the user might tap next. Each item is a single line, ≤8 Thai words or ≤6 English words when possible. SAME language as the message. All MUST differ in angle.",
+            "EXACTLY 3-4 follow-up QUESTIONS the user would tap to ask next, written in the user's own voice and ending like a question (\"...ไหม\" / \"...?\"). NOT advice, to-do items, or a restatement of the closing line — never tell the user what to do; ask what they'd want to know next. Each item a single line, ≤10 Thai words or ≤8 English words when possible. SAME language as the message. All MUST differ in angle.",
         ),
 })
 

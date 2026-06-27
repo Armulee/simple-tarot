@@ -13,6 +13,7 @@ import type {
     SupportTopic,
 } from "@/lib/chat/support-topics"
 import type { GeneralReply } from "@/lib/chat/general-reply-schema"
+import type { SupportedLocale } from "@/lib/detect-input-language"
 
 export type AspectInsightItem = {
     aspectKey: string
@@ -143,7 +144,34 @@ export type ChatMessage = {
     perCard?: PerCardSentence[]
     /** New tarot result schema: soft, non-commanding next step. */
     nextStep?: string
-    variant?: "plain" | "box" | "horoscope" | "paywall"
+    /**
+     * Snapshot of the session's originContext at the moment this message
+     * was submitted. Lets MessageList render a per-message context chip
+     * (e.g. the calendar-day pill) above the bubble so the viewer sees
+     * which date the question was read for, even after subsequent days
+     * have been selected.
+     */
+    originContextSnapshot?: OriginContext | null
+    /**
+     * For tool-render assistant messages (e.g. `horoscope-calendar`),
+     * the language the response should be displayed in — derived from
+     * the triggering user message's text via detectInputLanguage so the
+     * chips, intro, and follow-up sentence match what the user wrote
+     * regardless of the app's UI locale.
+     */
+    responseLocale?: SupportedLocale
+    variant?:
+        | "plain"
+        | "box"
+        | "horoscope"
+        | "horoscope-calendar"
+        | "paywall"
+        | "oracle"
+    /**
+     * Streamed oracle-mode reading. Populated on assistant messages
+     * with `variant === "oracle"`. The renderer is `OracleHero`.
+     */
+    oracleReading?: import("@/lib/chat/oracle-reading-schema").StreamingOracleReading | null
     /**
      * Reply strategy resolved by /api/horoscope/extract. Drives which
      * downstream route renders the reading and which tabs the
@@ -160,6 +188,11 @@ export type ChatMessage = {
     detailedHtml?: string
     cardMeanings?: string[]
     isLoading?: boolean
+    /**
+     * Live chain-of-thought ("reasoning_content") streamed from the model
+     * before/while the answer streams in. Drives the DynamicThinking indicator.
+     */
+    reasoningText?: string
     spreadType?: ChatDecision["spreadType"] | null
     aspectInsights?: AspectInsightItem[]
     relevance?: RelevanceStat[]
@@ -186,6 +219,18 @@ export type ChatMessage = {
     houseMeanings?: Record<string, string> | null
     /** Birth data for loading horoscope (used for display and cancel) */
     horoscopeBirthData?: HoroscopeBirthData | null
+    /**
+     * When the asker (paid) included a 3rd party's birth in the chat
+     * (e.g. "วันนี้จะเป็นยังไงสำหรับคนที่เกิด 17 กค 2545"), the reading
+     * runs on THAT person's chart. We carry the resolved DOB and the
+     * optional name here so the assistant bubble can show a "Reading for…"
+     * badge above the verdict.
+     */
+    horoscopeForOtherPerson?: {
+        name?: string | null
+        relationshipHint?: string | null
+        birthDate: { day: number; month: number; year: number }
+    } | null
     /** From /api/situation: whether the question touches legal / medical / financial advice. */
     questionDomain?: QuestionDomain
     /** Sanitized question persisted for assistant messages. */
@@ -206,6 +251,11 @@ export type ChatMessage = {
     sourceAspectKey?: string
     /** Event data for rendering a compact card at the top of the response */
     sourceAspectEvent?: SourceAspectEvent
+    /**
+     * Horoscope explanation replies: the aspect events whose planets the
+     * paragraph actually mentions, rendered as cards under the text.
+     */
+    explainAspectEvents?: SourceAspectEvent[]
     /** Cached interpretations per astrology system for instant restore when switching back */
     interpretationCache?: Record<
         string,
@@ -273,7 +323,7 @@ export type HoroscopeAuthGate = {
 }
 
 export type ChatDecision = {
-    type: "chat" | "draw" | "horoscope" | "support"
+    type: "chat" | "draw" | "horoscope" | "support" | "oracle"
     spreadType?: string
     cardCount?: number
     spreadReason?: string
@@ -284,6 +334,36 @@ export type ChatDecision = {
     supportTopic?: SupportTopic
     /** When supportTopic === "tarot-card": canonical card slug. */
     supportCardSlug?: string
+    /**
+     * When type === "horoscope" and horoscopeMode === "calendar", the
+     * assistant turn renders the interactive horoscope calendar tool
+     * instead of an immediate streamed reading. No stars are spent for
+     * this turn; the follow-up reading triggered by a chip click is what
+     * counts.
+     */
+    horoscopeMode?: "calendar"
+    /**
+     * When type === "chat": the user is questioning the REASONING behind a
+     * previous horoscope/timing recommendation. The client streams a
+     * data-grounded explanation paragraph (/api/horoscope/explain) instead
+     * of re-running the reading or the inner-energy reflection.
+     */
+    horoscopeExplain?: boolean
+    /** When horoscopeExplain: the alternative date the user proposed, resolved to YYYY-MM-DD. */
+    comparisonDateIso?: string
+    /**
+     * When type === "chat": the user is questioning the REASONING behind a
+     * previous TAROT reading. The client streams a paragraph explaining the
+     * prior reading from the drawn cards instead of doing a new draw.
+     */
+    tarotExplain?: boolean
+    /**
+     * When type === "chat": the user is just talking (greeting, venting,
+     * "I want to talk to you") and does not want a reading/prediction. The
+     * client answers with a gentle plain-text conversation (no inner-energy
+     * reflection, no support block).
+     */
+    conversational?: boolean
 }
 
 /**
@@ -342,6 +422,15 @@ export type SupportBlockPayload =
           description: string
           iconId?: string
       }
+    | {
+          kind: "calendar-year"
+          topic: SupportTopic
+          href: string
+          title: string
+          description: string
+          /** Year shown in the inline preview (defaults to current year on the client). */
+          year: number
+      }
 
 export type SupportBlockPayloadKind = SupportBlockKind
 
@@ -397,6 +486,11 @@ export type ChatSessionPayload = {
     owner_user_id?: string | null
     showInsufficientStars?: boolean
     showCardDraw?: boolean
+    /**
+     * Server-side check: did this device create the session? Used to grant
+     * compose access to anonymous owners (the original creator's device).
+     */
+    youAreCreatorDevice?: boolean
 }
 
 export type ConversationContext = ConversationContextPayload

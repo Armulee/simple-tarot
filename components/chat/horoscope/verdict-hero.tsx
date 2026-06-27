@@ -1,8 +1,16 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Image from "next/image"
-import { AlertTriangle, Moon, Sparkles, Target } from "lucide-react"
+import {
+    AlertTriangle,
+    Download,
+    Moon,
+    Share2,
+    Sparkles,
+    Target,
+} from "lucide-react"
+import { toast } from "sonner"
 import { useFormatter, useTranslations } from "next-intl"
 import CosmicCenteredLoader from "@/components/cosmic-centered-loader"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
@@ -15,10 +23,20 @@ import type {
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import { getPlanetImageSrc } from "@/lib/astrology/planet-images"
 import { classifyQuestionTopic } from "@/lib/astrology/question-intent"
-import { getPlanetDignity } from "@/lib/birth-chart-utils"
+import {
+    canonicalPlanetName,
+    getPlanetDignity,
+    isKnownPlanetName,
+} from "@/lib/birth-chart-utils"
 import { unmaskTextWithAliases } from "@/lib/privacy/prompt-redaction"
 import ShareSection from "@/components/tarot/interpretation/share"
+import ReadingDownloadDialog from "@/components/share/reading-download-dialog"
+import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import TransitOrbitVisual from "@/components/chat/horoscope/transit-orbit-visual"
+
+/** Mirrors the tarot reply's headline-box export icon button. */
+const VERDICT_EXPORT_ICON_BTN =
+    "group relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition hover:scale-105 hover:border-accent/40 hover:shadow-[0_12px_32px_-10px_rgba(139,92,246,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 
 type NatalPlacementForHero = {
     planet: string
@@ -57,6 +75,8 @@ type VerdictHeroProps = {
     overviewReady?: boolean
     /** Same message as the horoscope reading; powers the transit aspect list under the verdict. */
     transitSourceMessage: ChatMessage
+    /** Regenerate handler for the verdict's action bar (mirrors the tarot reply). */
+    onRegenerateHoroscope?: (messageId: string) => void
 }
 
 type MoodStyle = {
@@ -270,9 +290,10 @@ function resolveHeroPlacements(
             ? data?.transit?.charts?.[0]?.planets ?? {}
             : data?.charts?.[0]?.planets ?? {}
     return relevantPlanets.map((rp) => {
-        const point = planets[rp.planet]
+        const planet = canonicalPlanetName(rp.planet)
+        const point = planets[planet] ?? planets[rp.planet]
         return {
-            planet: rp.planet,
+            planet,
             sign: point?.sign,
             degree: typeof point?.degree === "number" ? point.degree : undefined,
             retrograde: !!point?.retrograde,
@@ -347,10 +368,11 @@ function NatalHeroCrest({
                     }`}
                 >
                     {visible.map(({ planet, sign, degree, retrograde }) => {
-                        const planetName = tAstro(`planets.${planet}`, {
-                            defaultValue: planet,
-                        })
-                        const src = getPlanetImageSrc(planet)
+                        const canonicalPlanet = canonicalPlanetName(planet)
+                        const planetName = isKnownPlanetName(canonicalPlanet)
+                            ? tAstro(`planets.${canonicalPlanet}`)
+                            : canonicalPlanet
+                        const src = getPlanetImageSrc(canonicalPlanet)
                         const canonical = sign ? canonicalSign(sign) : null
                         const signName = canonical
                             ? tAstro(`zodiacSigns.${canonical}`, {
@@ -358,7 +380,7 @@ function NatalHeroCrest({
                               })
                             : null
                         const dignity = canonical
-                            ? getPlanetDignity(planet, canonical)
+                            ? getPlanetDignity(canonicalPlanet, canonical)
                             : null
                         const dignityNameClass = dignity?.isExalted
                             ? "text-amber-200"
@@ -551,9 +573,11 @@ export default function VerdictHero({
     isLoading = false,
     overviewReady = false,
     transitSourceMessage,
+    onRegenerateHoroscope,
 }: VerdictHeroProps) {
     const tChat = useTranslations("HoroscopeChat")
     const t = useTranslations("HoroscopeChat.verdict")
+    const tActions = useTranslations("ReadingPage.interpretation")
     const formatter = useFormatter()
     const style = MOOD_STYLES[verdict.mood]
     const aliases = privacyAliases ?? []
@@ -648,10 +672,18 @@ export default function VerdictHero({
     )
     // Technical verdicts hoist the orbit visual into the hero slot (replacing
     // the planet portraits). Natal verdicts keep the planet-portrait crest.
+    // Daily / fallback verdicts also surface the orbit when we have chart
+    // data — it replaces the legacy mood icon so the overview tab carries the
+    // visual that used to live in the transit tab.
     const showTechnicalOrbit = isTechnicalMode
     const showNatalHeroCrest =
         isNatalMode && heroPlacements.length > 0
     const showTimingHeroCrest = isTimingMode && !!verdict.timingWindow
+    const showDailyOrbit =
+        !isTechnicalMode &&
+        !showNatalHeroCrest &&
+        !showTimingHeroCrest &&
+        Boolean(transitSourceMessage.chartData)
     const hasVerdictText =
         verdict.headline.trim().length > 0 ||
         keyMessageHeadline.length > 0 ||
@@ -665,6 +697,63 @@ export default function VerdictHero({
         detailedHtml.length > 0 ||
         showShare ||
         showLoadingState
+
+    // ----- Daily-verdict share / actions -----
+    // The verdict reply carries the same action bar as the tarot reply
+    // (regenerate, copy, download, share…). The download share-image mirrors
+    // the tarot poster but swaps in the solar-system skies via the astrology
+    // theme, feeding the verdict headline / mood tagline / detailed reading.
+    // Technical (ephemeris) verdicts use the orbit-wheel poster; the other
+    // verdict flavors use the daily linear solar-system poster.
+    const shareTheme: "astrology" | "astrology-technical" = isTechnicalMode
+        ? "astrology-technical"
+        : "astrology"
+    const unmask = (text: string) => unmaskTextWithAliases(text, aliases)
+    const posterQuestion = unmask(questionText)
+    const posterHeadline = unmask(verdict.headline.trim() || keyMessageHeadline)
+    const posterSubtitle = unmask(keyMessageSubtitle || moodLabel || "")
+    const posterDetailedHtml = unmask(detailedHtml)
+    const posterInterpretation = unmask(
+        (transitSourceMessage.text || detailedHtml)
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim(),
+    )
+    // Today's transit positions (sign + degree), stamped under the painted
+    // planets on the share poster — sourced from the same chart the orbit
+    // visual reads.
+    const transitPlanets = useMemo(
+        () => extractTransitPlanets(transitSourceMessage.chartData),
+        [transitSourceMessage.chartData],
+    )
+    const [downloadOpen, setDownloadOpen] = useState(false)
+    const handleVerdictShare = async () => {
+        const shareText = [posterHeadline, posterInterpretation]
+            .filter(Boolean)
+            .join("\n\n")
+        const url =
+            typeof window !== "undefined" ? window.location.href : undefined
+        const nav =
+            typeof navigator !== "undefined"
+                ? (navigator as Navigator & {
+                      share?: (data: ShareData) => Promise<void>
+                  })
+                : undefined
+        if (nav?.share) {
+            try {
+                await nav.share({ title: "AskingFate", text: shareText, url })
+                return
+            } catch {
+                return
+            }
+        }
+        try {
+            await navigator.clipboard.writeText(
+                url ? `${shareText}\n\n${url}` : shareText,
+            )
+            toast.success(tActions("actions.copiedLink"))
+        } catch {}
+    }
 
     return (
         <section
@@ -697,19 +786,43 @@ export default function VerdictHero({
                                 moodShadow={style.iconShadow}
                             />
                         </div>
-                    ) : (
+                    ) : showDailyOrbit ? null : (
                         <MoodIcon
                             mood={verdict.mood}
                             className={`h-12 w-12 mb-2 ${style.accent} ${style.iconShadow}`}
                         />
                     )}
+
+                    {/* Daily-verdict header: small star + date pill above the
+                        serif headline, subtitle below, and the orbit visual
+                        rendered AFTER this text block. Matches the
+                        premium-fortune layout in the reference. */}
+                    {showDailyOrbit && (
+                        <div className='flex items-center justify-center gap-2.5 text-amber-200/85'>
+                            <span aria-hidden className='inline-flex h-px w-6 bg-gradient-to-r from-transparent to-amber-300/60' />
+                            <span aria-hidden className='text-base leading-none'>✦</span>
+                            <span aria-hidden className='inline-flex h-px w-6 bg-gradient-to-l from-transparent to-amber-300/60' />
+                        </div>
+                    )}
                     {dateLabel && (
-                        <p className='text-center text-[11px] uppercase tracking-[0.22em] text-white/45'>
+                        <p
+                            className={
+                                showDailyOrbit
+                                    ? 'text-center text-[12px] uppercase tracking-[0.32em] text-amber-200/80'
+                                    : 'text-center text-[11px] uppercase tracking-[0.22em] text-white/45'
+                            }
+                        >
                             {dateLabel}
                         </p>
                     )}
 
-                    <h2 className='max-w-[28ch] text-balance text-xl font-semibold leading-[1.25] text-white'>
+                    <h2
+                        className={
+                            showDailyOrbit
+                                ? 'max-w-[24ch] text-balance font-serif text-3xl font-semibold leading-[1.15] text-amber-50 sm:text-4xl'
+                                : 'max-w-[28ch] text-balance text-xl font-semibold leading-[1.25] text-white'
+                        }
+                    >
                         <PrivacyHighlightedText
                             text={verdict.headline}
                             aliases={aliases}
@@ -717,15 +830,32 @@ export default function VerdictHero({
                         />
                     </h2>
 
-                    {moodLabel && (
-                        <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
-                            <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
+                    {moodLabel &&
+                        (showDailyOrbit ? (
+                            <p className='max-w-[36ch] text-balance text-center text-sm leading-relaxed text-amber-100/75'>
                                 <PrivacyHighlightedText
                                     text={moodLabel}
                                     aliases={aliases}
                                     supportMarkdown
                                 />
                             </p>
+                        ) : (
+                            <div className='relative w-fit max-w-md rounded-xl border border-indigo-300/20 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.06] to-cyan-500/[0.05] py-2.5 pr-4 pl-5 shadow-[0_8px_28px_-12px_rgba(129,140,248,0.55)] animate-fade-in before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-gradient-to-b before:from-transparent before:via-[#a78bfa]/70 before:to-transparent'>
+                                <p className='text-[11px] font-serif font-semibold italic uppercase leading-relaxed tracking-[0.18em] text-indigo-200/76'>
+                                    <PrivacyHighlightedText
+                                        text={moodLabel}
+                                        aliases={aliases}
+                                        supportMarkdown
+                                    />
+                                </p>
+                            </div>
+                        ))}
+
+                    {showDailyOrbit && (
+                        <div className='mt-2 w-full animate-fade-in'>
+                            <TransitOrbitVisual
+                                chartData={transitSourceMessage.chartData}
+                            />
                         </div>
                     )}
                 </div>
@@ -736,6 +866,17 @@ export default function VerdictHero({
                             <InterpretationHeaderBar
                                 isLoading={isLoading}
                                 showActions={overviewReady || !isLoading}
+                                mode='horoscope'
+                                theme={shareTheme}
+                                allowVideo={false}
+                                planets={transitPlanets}
+                                question={posterQuestion}
+                                interpretation={posterInterpretation}
+                                headline={posterHeadline}
+                                subtitle={posterSubtitle}
+                                detailedHtml={posterDetailedHtml}
+                                messageId={transitSourceMessage.id}
+                                onRegenerateHoroscope={onRegenerateHoroscope}
                             />
                         </div>
                         {showLoadingState && (
@@ -747,24 +888,82 @@ export default function VerdictHero({
                         )}
                         {keyMessageHeadline.length > 0 && (
                             <div className='rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-4 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)] animate-fade-in'>
-                                <h3 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug'>
-                                    <PrivacyHighlightedText
-                                        text={keyMessageHeadline}
-                                        aliases={aliases}
-                                        supportMarkdown
-                                    />
-                                </h3>
-                                {keyMessageSubtitle.length > 0 && (
-                                    <p className='mt-2 text-sm sm:text-[15px] leading-6 text-white/65'>
-                                        <PrivacyHighlightedText
-                                            text={keyMessageSubtitle}
-                                            aliases={aliases}
-                                            supportMarkdown
-                                        />
-                                    </p>
-                                )}
+                                <div className='flex items-start justify-between gap-3'>
+                                    <div className='min-w-0 flex-1'>
+                                        <h3 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white leading-snug'>
+                                            <PrivacyHighlightedText
+                                                text={keyMessageHeadline}
+                                                aliases={aliases}
+                                                supportMarkdown
+                                            />
+                                        </h3>
+                                        {keyMessageSubtitle.length > 0 && (
+                                            <p className='mt-2 text-sm sm:text-[15px] leading-6 text-white/65'>
+                                                <PrivacyHighlightedText
+                                                    text={keyMessageSubtitle}
+                                                    aliases={aliases}
+                                                    supportMarkdown
+                                                />
+                                            </p>
+                                        )}
+                                    </div>
+                                    {showShare && (
+                                        <div className='flex shrink-0 items-start gap-2'>
+                                            <button
+                                                type='button'
+                                                onClick={handleVerdictShare}
+                                                className={VERDICT_EXPORT_ICON_BTN}
+                                                aria-label={tActions(
+                                                    "actions.share",
+                                                )}
+                                                title={tActions(
+                                                    "actions.share",
+                                                )}
+                                            >
+                                                <span
+                                                    aria-hidden
+                                                    className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
+                                                />
+                                                <Share2 className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
+                                            </button>
+                                            <button
+                                                type='button'
+                                                onClick={() =>
+                                                    setDownloadOpen(true)
+                                                }
+                                                className={VERDICT_EXPORT_ICON_BTN}
+                                                aria-label={tActions(
+                                                    "actions.downloadReadingImage",
+                                                )}
+                                                title={tActions(
+                                                    "actions.downloadReadingImage",
+                                                )}
+                                            >
+                                                <span
+                                                    aria-hidden
+                                                    className='pointer-events-none absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400/45 via-purple-400/45 to-cyan-400/45 opacity-80 transition group-hover:opacity-0'
+                                                />
+                                                <Download className='relative z-10 h-4.5 w-4.5 shrink-0 drop-shadow-sm' />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
+
+                        <ReadingDownloadDialog
+                            open={downloadOpen}
+                            onOpenChange={setDownloadOpen}
+                            theme={shareTheme}
+                            allowVideo={false}
+                            filenameBase='askingfate-horoscope'
+                            question={posterQuestion || undefined}
+                            cards={[]}
+                            headline={posterHeadline}
+                            subtitle={posterSubtitle}
+                            detailedHtml={posterDetailedHtml}
+                            planets={transitPlanets}
+                        />
 
                         {!showLoadingState &&
                             (detailedHtml.length > 0 || showShare) && (
@@ -787,20 +986,8 @@ export default function VerdictHero({
                                     >
                                         <ShareSection
                                             variant='embedded'
-                                            question={unmaskTextWithAliases(
-                                                questionText,
-                                                aliases,
-                                            )}
-                                            interpretation={unmaskTextWithAliases(
-                                                (
-                                                    transitSourceMessage.text ||
-                                                    detailedHtml
-                                                )
-                                                    .replace(/<[^>]+>/g, " ")
-                                                    .replace(/\s+/g, " ")
-                                                    .trim(),
-                                                aliases,
-                                            )}
+                                            question={posterQuestion}
+                                            interpretation={posterInterpretation}
                                         />
                                     </div>
                                 )}

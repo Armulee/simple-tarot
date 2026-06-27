@@ -128,6 +128,14 @@ export const TAROT_CARDS: TarotCard[] = [
     ),
 ]
 
+/**
+ * Locales that ship hand-written card-meaning JSON under
+ * `lib/tarot/meanings/<locale>/`. Only these get statically generated tarot
+ * article pages (with real, indexable content); other locales fall back to
+ * dynamic rendering / 404 for card detail pages until translations exist.
+ */
+export const TAROT_ARTICLE_LOCALES = ["en", "th"] as const
+
 export function getCardBySlug(slug: string): TarotCard | undefined {
     return TAROT_CARDS.find((c) => c.slug === slug)
 }

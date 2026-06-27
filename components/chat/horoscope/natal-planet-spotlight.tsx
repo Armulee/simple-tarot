@@ -6,7 +6,11 @@ import { Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PLANET_IMAGE_ASSETS } from "@/lib/astrology/planet-images"
-import { getPlanetDignity } from "@/lib/birth-chart-utils"
+import {
+    canonicalPlanetName,
+    getPlanetDignity,
+    isKnownPlanetName,
+} from "@/lib/birth-chart-utils"
 import type { NatalRelevantPlanet } from "@/components/chat/types"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 
@@ -104,10 +108,11 @@ export default function NatalPlanetSpotlight({
                 : data?.charts?.[0]?.planets ?? {}
         return relevantPlanets
             .map((rp) => {
-                const point = planets[rp.planet]
+                const planet = canonicalPlanetName(rp.planet)
+                const point = planets[planet] ?? planets[rp.planet]
                 if (!point) return null
                 return {
-                    planet: rp.planet,
+                    planet,
                     reason: rp.reason,
                     point,
                 }
@@ -158,9 +163,9 @@ export default function NatalPlanetSpotlight({
 
             <ul className='list-none space-y-3 p-0'>
                 {cards.map(({ planet, reason, point }, idx) => {
-                    const planetName = tAstro(`planets.${planet}`, {
-                        defaultValue: planet,
-                    })
+                    const planetName = isKnownPlanetName(planet)
+                        ? tAstro(`planets.${planet}`)
+                        : planet
                     const canonical = canonicalSign(point.sign)
                     const signName = tAstro(`zodiacSigns.${canonical}`, {
                         defaultValue: point.sign,

@@ -12,7 +12,9 @@ import {
     getTimingVerdictPrompt,
     type NatalPlacementForPrompt,
 } from "@/lib/prompts"
+import { deepseekThinking } from "@/lib/chat/model-options"
 import { findNextSignIngresses } from "@/lib/astrology/next-ingress"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 import {
     hydrateQuestionTimeRange,
     questionTimeRangePayloadSchema,
@@ -50,19 +52,10 @@ import {
 // /api/horoscope/chart-data so the VerdictHero can mount well before the
 // long-form interpretation finishes streaming.
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
 const MIN_FILTERED_EVENTS = 3
-
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
 
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
@@ -286,6 +279,7 @@ function streamDailyVerdictResponse({
         // headline / key message / detailed HTML incrementally instead of
         // waiting for the whole object to finish.
         mode: "json",
+        providerOptions: deepseekThinking(false),
         schema: streamingDailyVerdictSchema,
         system: `${system}
 
@@ -303,8 +297,8 @@ async function handleTimingVerdict(
     providedQuestionRange: QuestionTimeRange,
 ) {
     const chartLocale =
-        detectQuestionLanguage(body.question) === "Thai" ||
-        detectQuestionLanguage(body.question) === "Lao"
+        resolveResponseLanguage(body.locale, body.question) === "Thai" ||
+        resolveResponseLanguage(body.locale, body.question) === "Lao"
             ? "th"
             : "en"
 
@@ -411,7 +405,7 @@ async function handleTimingVerdict(
         timeStyle: "long",
         timeZone: "UTC",
     })
-    const questionLanguage = detectQuestionLanguage(body.question)
+    const questionLanguage = resolveResponseLanguage(body.locale, body.question)
 
     const prompt = getTimingVerdictPrompt({
         question: body.question,
@@ -434,6 +428,7 @@ async function handleTimingVerdict(
 
     const result = await generateObject({
         model: MODEL,
+        providerOptions: deepseekThinking(false),
         schema: dailyVerdictSchema,
         system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a TIMING question, including timingWindow.startDateIso and timingWindow.endDateIso. Plain language, no astrology jargon, no planet names in user-facing strings. Output language: ${questionLanguage}.`,
         prompt,
@@ -578,8 +573,8 @@ function sanitizeTimingWindow(
 
 async function handleNatalVerdict(body: VerdictRequestBody) {
     const chartLocale =
-        detectQuestionLanguage(body.question) === "Thai" ||
-        detectQuestionLanguage(body.question) === "Lao"
+        resolveResponseLanguage(body.locale, body.question) === "Thai" ||
+        resolveResponseLanguage(body.locale, body.question) === "Lao"
             ? "th"
             : "en"
 
@@ -607,7 +602,7 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
         timeStyle: "long",
         timeZone: "UTC",
     })
-    const questionLanguage = detectQuestionLanguage(body.question)
+    const questionLanguage = resolveResponseLanguage(body.locale, body.question)
 
     const prompt = getNatalVerdictPrompt({
         question: body.question,
@@ -635,8 +630,8 @@ async function handleNatalVerdict(body: VerdictRequestBody) {
  */
 async function handleTechnicalVerdict(body: VerdictRequestBody) {
     const chartLocale =
-        detectQuestionLanguage(body.question) === "Thai" ||
-        detectQuestionLanguage(body.question) === "Lao"
+        resolveResponseLanguage(body.locale, body.question) === "Thai" ||
+        resolveResponseLanguage(body.locale, body.question) === "Lao"
             ? "th"
             : "en"
 
@@ -702,7 +697,7 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
         timeStyle: "long",
         timeZone: "UTC",
     })
-    const questionLanguage = detectQuestionLanguage(body.question)
+    const questionLanguage = resolveResponseLanguage(body.locale, body.question)
 
     const prompt = getTechnicalVerdictPrompt({
         question: body.question,
@@ -721,6 +716,7 @@ async function handleTechnicalVerdict(body: VerdictRequestBody) {
     // it in a single response (the same pattern as the timing verdict).
     const result = await generateObject({
         model: MODEL,
+        providerOptions: deepseekThinking(false),
         schema: dailyVerdictSchema,
         system: `You are Astra, a female oracle. Produce ONLY the daily verdict JSON for a TECHNICAL ephemeris / astrology-knowledge question. Output language: ${questionLanguage}. Always set mode to "technical". Astrology vocabulary IS allowed because the user is asking about planetary mechanics.`,
         prompt,
@@ -853,7 +849,7 @@ export async function POST(req: Request) {
         const codexTransit = await codexTransitPromise
 
         const appLocale = body.locale || "en"
-        const questionLanguage = detectQuestionLanguage(body.question)
+        const questionLanguage = resolveResponseLanguage(body.locale, body.question)
         const chartLocale =
             questionLanguage === "Thai" || questionLanguage === "Lao"
                 ? "th"

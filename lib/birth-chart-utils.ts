@@ -29,6 +29,95 @@ export const PLANETS = [
     "Ketu",
 ]
 
+const KNOWN_PLANET_NAMES = new Set<string>(PLANETS)
+
+/** Unambiguous single-letter codes the model sometimes emits. */
+const PLANET_SINGLE_LETTER: Record<string, string> = {
+    S: "Sun",
+    V: "Venus",
+    J: "Jupiter",
+    U: "Uranus",
+    N: "Neptune",
+    P: "Pluto",
+    R: "Rahu",
+    K: "Ketu",
+    A: "Ascendant",
+}
+
+/** Common abbreviations / localized labels → canonical English planet keys. */
+const PLANET_ALIASES: Record<string, string> = {
+    Mon: "Moon",
+    Mer: "Mercury",
+    Ven: "Venus",
+    Mar: "Mars",
+    Jup: "Jupiter",
+    Sat: "Saturn",
+    Ura: "Uranus",
+    Nep: "Neptune",
+    Plu: "Pluto",
+    Rah: "Rahu",
+    Ket: "Ketu",
+    Asc: "Ascendant",
+    Asd: "Ascendant",
+    Lagna: "Ascendant",
+    Chiron: "Chiron",
+    ดวงอาทิตย์: "Sun",
+    อาทิตย์: "Sun",
+    ดวงจันทร์: "Moon",
+    จันทร์: "Moon",
+    ดาวอังคาร: "Mars",
+    อังคาร: "Mars",
+    ดาวพุธ: "Mercury",
+    พุธ: "Mercury",
+    ดาวพฤหัสบดี: "Jupiter",
+    พฤหัสบดี: "Jupiter",
+    พฤหัส: "Jupiter",
+    ดาวศุกร์: "Venus",
+    ศุกร์: "Venus",
+    ดาวเสาร์: "Saturn",
+    เสาร์: "Saturn",
+    ราหู: "Rahu",
+    เกตุ: "Ketu",
+    ลัคนา: "Ascendant",
+}
+
+function resolveUniquePlanetPrefix(value: string): string | null {
+    const lower = value.toLowerCase()
+    const matches = [...KNOWN_PLANET_NAMES].filter((name) =>
+        name.toLowerCase().startsWith(lower),
+    )
+    return matches.length === 1 ? matches[0]! : null
+}
+
+/**
+ * Map chart / AI planet labels (abbreviations, Thai, casing variants) to the
+ * canonical English keys used in chartData and BirthChart.planets messages.
+ */
+export function canonicalPlanetName(planet: string | null | undefined): string {
+    if (!planet) return ""
+    const trimmed = planet.trim()
+    if (!trimmed) return ""
+    const alias = PLANET_ALIASES[trimmed]
+    if (alias) return alias
+    if (trimmed.length === 1) {
+        const letter = PLANET_SINGLE_LETTER[trimmed.toUpperCase()]
+        if (letter) return letter
+    }
+    const exact = PLANETS.find((p) => p === trimmed)
+    if (exact) return exact
+    const ci = PLANETS.find((p) => p.toLowerCase() === trimmed.toLowerCase())
+    if (ci) return ci
+    const byPrefix = resolveUniquePlanetPrefix(trimmed)
+    if (byPrefix) return byPrefix
+    return trimmed
+}
+
+/** True when the value resolves to a key present in BirthChart.planets messages. */
+export function isKnownPlanetName(planet: string | null | undefined): boolean {
+    const canonical = canonicalPlanetName(planet)
+    return canonical !== "" && KNOWN_PLANET_NAMES.has(canonical)
+}
+
 export const SANSKRIT_SIGNS: Record<string, string> = {
     "Mesha": "Aries",
     "Vrishabha": "Taurus",

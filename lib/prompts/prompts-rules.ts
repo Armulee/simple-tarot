@@ -112,7 +112,7 @@ Return valid JSON only. CRITICAL streaming order: cardInsights → headline → 
   "interpretation": "Back-compat. Set this to perCard[].sentence joined together as one short paragraph. Do not invent new content.",
   "nextStep": "A soft suggestion. MUST start with a non-commanding verb (ลอง / อาจ / try / consider / maybe). NEVER start with ต้อง / ควร framed as command / must / should.",
   "conclusion": "Back-compat. Set this equal to nextStep. Do not invent new content.",
-  "suggestions": ["Short casual prompt 1", "Short casual prompt 2", "Short casual prompt 3"]
+  "suggestions": ["Next question the user would ask 1?", "Next question 2?", "Next question 3?"]
 }
 </output_schema>
 
@@ -161,10 +161,12 @@ Return valid JSON only. CRITICAL streaming order: cardInsights → headline → 
 </next_step_rules>
 
 <suggestion_rules>
+- suggestions are the NEXT QUESTIONS the user would tap to ASK the oracle — write each one as a question in the user's own voice (first person), the way they'd actually type it. Tapping a chip sends it as their next message.
+- They are NOT advice, NOT action items, NOT a to-do list, and NOT a restatement of nextStep / conclusion. NEVER tell the user what to DO. Bad (advice): "จัดโต๊ะทำงานใหม่", "ทำกับข้าวกินเอง", "เก็บเงินให้มากขึ้น", "Rearrange your desk", "Cook for yourself". Good (questions): "ย้ายโต๊ะทำงานแล้วจะดีขึ้นไหม", "ช่วงนี้ทำกับข้าวเองดีกว่าไหม", "เดือนนี้การเงินจะรอดไหม", "Should I switch desks for focus?", "Will my savings hold this month?".
 - Return EXACTLY 3–4 suggestions — never fewer than 3, never more than 4.
-- Each one must be VERY short (aim ≤8 Thai words or ≤6 English words), single line, casual human phrasing — like quick text ideas, not essay prompts.
-- All suggestions MUST be distinctly different angles (topic, perspective, or scope) — not paraphrases of each other.
-- Keep them generic enough to stand on their own — do NOT depend on the exact wording of the generated headline/subtitle/perCard/nextStep, and do NOT quote or closely paraphrase any generated text.
+- Each one short (aim ≤10 Thai words or ≤8 English words), single line, casual spoken phrasing, and clearly a QUESTION — end with "?" or a natural Thai question word (ไหม / มั้ย / ปะ / ยังไง / เมื่อไหร่ / ใคร).
+- All suggestions MUST be distinctly different angles (topic, timing, person, or scope) — not paraphrases of each other.
+- Keep them able to stand on their own — do NOT depend on, quote, or closely paraphrase the generated headline/subtitle/perCard/nextStep/conclusion.
 - Same language as the user's question.
 </suggestion_rules>
 

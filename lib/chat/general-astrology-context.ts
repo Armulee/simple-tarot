@@ -41,10 +41,29 @@ type ActivitySummary = {
     keyword?: string
 }
 
+/**
+ * Card-ready aspect event (matches the chat's SourceAspectCard fields) for
+ * the same contacts summarized in `activities` — lets callers render the
+ * aspect cards for the planets a reply actually talks about.
+ */
+export type AspectCardEvent = {
+    aspectKey: string
+    transitPlanet: string
+    natalPlanet: string
+    aspectType: string
+    orb?: number
+    keyword?: string
+    sentiment?: "good" | "bad" | "neutral"
+    transitPositionText?: string
+    natalPositionText?: string
+}
+
 export type GeneralAstrologyContext = {
     natal: PlacementSummary[]
     transit: PlacementSummary[]
     activities: ActivitySummary[]
+    /** Full card-ready events backing `activities`, same order/dedupe. */
+    aspectEvents: AspectCardEvent[]
     /** Pre-rendered block ready to drop into the prompt. */
     promptBlock: string
 }
@@ -94,30 +113,46 @@ function buildPlacementSummary(
     return out
 }
 
-function collectActivities(
-    aspects: PersonalizedTransitAspectsResult | null,
-): ActivitySummary[] {
-    if (!aspects) return []
+function collectActivities(aspects: PersonalizedTransitAspectsResult | null): {
+    activities: ActivitySummary[]
+    aspectEvents: AspectCardEvent[]
+} {
+    if (!aspects) return { activities: [], aspectEvents: [] }
     const events = [
         ...(aspects.exact?.events ?? []),
-        ...(aspects.range?.events ?? []),
+        ...(aspects.range?.events ?? []).map((event) => ({
+            ...event,
+            orb: event.minOrb,
+        })),
     ]
     const seen = new Set<string>()
-    const out: ActivitySummary[] = []
+    const activities: ActivitySummary[] = []
+    const aspectEvents: AspectCardEvent[] = []
     for (const event of events) {
         const key = `${event.transitPlanet}-${event.natalPlanet}-${event.aspectType}`
         if (seen.has(key)) continue
         seen.add(key)
-        out.push({
+        activities.push({
             transitPlanet: event.transitPlanet,
             natalPlanet: event.natalPlanet,
             aspectType: event.aspectType,
             sentiment: event.sentiment,
             keyword: event.keyword,
         })
-        if (out.length >= MAX_ACTIVITIES) break
+        aspectEvents.push({
+            aspectKey: event.aspectKey,
+            transitPlanet: event.transitPlanet,
+            natalPlanet: event.natalPlanet,
+            aspectType: event.aspectType,
+            orb: Number.isFinite(event.orb) ? event.orb : undefined,
+            keyword: event.keyword,
+            sentiment: event.sentiment,
+            transitPositionText: event.transitPositionText,
+            natalPositionText: event.natalPositionText,
+        })
+        if (activities.length >= MAX_ACTIVITIES) break
     }
-    return out
+    return { activities, aspectEvents }
 }
 
 function buildPromptBlock(
@@ -150,6 +185,7 @@ export async function buildGeneralAstrologyContext({
     system,
     locale = "en",
     targetDateIso,
+    activityWindowDays = ACTIVITY_WINDOW_DAYS,
 }: {
     birth: GeneralAstrologyBirth
     system?: "western_tropical" | "vedic_sidereal" | "both"
@@ -160,6 +196,12 @@ export async function buildGeneralAstrologyContext({
      * aspect window. Defaults to today when omitted/invalid.
      */
     targetDateIso?: string | null
+    /**
+     * How many days of activities to collect from the anchor date. The
+     * default (30) paints a month-long mood; pass 1 for a sharp single-day
+     * picture (e.g. when comparing two candidate dates).
+     */
+    activityWindowDays?: number
 }): Promise<GeneralAstrologyContext | null> {
     try {
         const parsedTarget = targetDateIso
@@ -176,13 +218,14 @@ export async function buildGeneralAstrologyContext({
                 anchor.getUTCDate(),
             ),
         )
-        const endUtc = addUtcDays(anchorUtc, ACTIVITY_WINDOW_DAYS)
+        const windowDays = Math.max(1, Math.round(activityWindowDays))
+        const endUtc = addUtcDays(anchorUtc, windowDays)
         const questionRange: QuestionTimeRange = {
             startDate: anchorUtc,
             endDate: endUtc,
             startDateIso: toIsoDate(anchorUtc),
             endDateIso: toIsoDate(endUtc),
-            durationDays: ACTIVITY_WINDOW_DAYS,
+            durationDays: windowDays,
             source: "default_30d",
             granularity: "daily",
         }
@@ -192,8 +235,7 @@ export async function buildGeneralAstrologyContext({
             endDate: addUtcDays(endUtc, ASPECT_PADDING_DAYS),
             startDateIso: toIsoDate(addUtcDays(anchorUtc, -ASPECT_PADDING_DAYS)),
             endDateIso: toIsoDate(addUtcDays(endUtc, ASPECT_PADDING_DAYS)),
-            durationDays:
-                ACTIVITY_WINDOW_DAYS + ASPECT_PADDING_DAYS * 2,
+            durationDays: windowDays + ASPECT_PADDING_DAYS * 2,
         }
 
         const codexTransitPromise = getCodexTransitWindow(questionRange)
@@ -249,7 +291,9 @@ export async function buildGeneralAstrologyContext({
 
         const natal = buildPlacementSummary(primaryBirthChart)
         const transit = buildPlacementSummary(primaryTransitChart)
-        const activities = collectActivities(personalizedTransitAspects)
+        const { activities, aspectEvents } = collectActivities(
+            personalizedTransitAspects,
+        )
 
         if (!natal.length && !transit.length && !activities.length) {
             return null
@@ -259,6 +303,7 @@ export async function buildGeneralAstrologyContext({
             natal,
             transit,
             activities,
+            aspectEvents,
             promptBlock: buildPromptBlock(natal, transit, activities),
         }
     } catch (error) {
