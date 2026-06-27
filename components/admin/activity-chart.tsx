@@ -33,10 +33,10 @@ const METRIC_COLOR: Record<MetricKey, string> = {
     paidSubscribers: "#fb7185", // rose-400
 }
 
-// SVG coordinate space (scaled responsively via viewBox).
-const W = 760
-const H = 280
-const PAD = { top: 16, right: 18, bottom: 30, left: 44 }
+// Per-metric chart coordinate space (scaled responsively via viewBox).
+const W = 420
+const H = 190
+const PAD = { top: 14, right: 14, bottom: 26, left: 36 }
 const PLOT_W = W - PAD.left - PAD.right
 const PLOT_H = H - PAD.top - PAD.bottom
 
@@ -76,9 +76,6 @@ export default function AdminActivityChart() {
     const [data, setData] = useState<AdminActivityResponse | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
-    const [hover, setHover] = useState<number | null>(null)
-    const [hidden, setHidden] = useState<Set<MetricKey>>(new Set())
-    const wrapRef = useRef<HTMLDivElement>(null)
 
     const locale =
         typeof navigator !== "undefined" ? navigator.language : "en-US"
@@ -128,17 +125,114 @@ export default function AdminActivityChart() {
     const points: ActivityPoint[] = useMemo(() => data?.points ?? [], [data])
     const granularity = data?.granularity ?? "day"
 
-    const visibleKeys = useMemo(
-        () => METRIC_KEYS.filter((k) => !hidden.has(k)),
-        [hidden],
+    return (
+        <div className='space-y-5'>
+            <div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
+                <div>
+                    <div className='flex items-center gap-2 text-amber-400/80'>
+                        <Activity className='h-4 w-4' />
+                        <span className='text-xs font-medium uppercase tracking-wider'>
+                            {t("activityLabel")}
+                        </span>
+                    </div>
+                    <h2 className='mt-1.5 font-serif text-xl font-semibold text-white'>
+                        {t("activityTitle")}
+                    </h2>
+                </div>
+
+                <div className='flex flex-col items-start gap-2 sm:items-end'>
+                    <div className='flex flex-wrap gap-1.5'>
+                        {RANGES.map((r) => (
+                            <button
+                                key={r}
+                                type='button'
+                                onClick={() => setRange(r)}
+                                className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
+                                    range === r
+                                        ? "bg-amber-400/20 text-amber-200 ring-1 ring-amber-400/40"
+                                        : "text-white/55 hover:bg-white/5 hover:text-white/80"
+                                }`}
+                            >
+                                {t(`range_${r}`)}
+                            </button>
+                        ))}
+                    </div>
+                    {range === "custom" ? (
+                        <div className='flex flex-wrap items-center gap-2 text-sm'>
+                            <input
+                                type='date'
+                                value={customFrom}
+                                max={customTo || toISODate(new Date())}
+                                onChange={(e) => setCustomFrom(e.target.value)}
+                                className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
+                            />
+                            <span className='text-white/40'>—</span>
+                            <input
+                                type='date'
+                                value={customTo}
+                                min={customFrom}
+                                max={toISODate(new Date())}
+                                onChange={(e) => setCustomTo(e.target.value)}
+                                className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
+                            />
+                        </div>
+                    ) : null}
+                </div>
+            </div>
+
+            {error ? (
+                <div className='flex h-40 items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-400/5 text-sm text-rose-200/80'>
+                    {t("listError")}
+                </div>
+            ) : (
+                <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
+                    {METRIC_KEYS.map((k) => (
+                        <MetricChart
+                            key={k}
+                            metric={k}
+                            color={METRIC_COLOR[k]}
+                            label={t(k)}
+                            total={data?.totals[k] ?? null}
+                            points={points}
+                            granularity={granularity}
+                            locale={locale}
+                            loading={loading && !data}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
     )
+}
+
+function MetricChart({
+    metric,
+    color,
+    label,
+    total,
+    points,
+    granularity,
+    locale,
+    loading,
+}: {
+    metric: MetricKey
+    color: string
+    label: string
+    total: number | null
+    points: ActivityPoint[]
+    granularity: ActivityGranularity
+    locale: string
+    loading: boolean
+}) {
+    const t = useTranslations("Admin")
+    const [hover, setHover] = useState<number | null>(null)
+    const wrapRef = useRef<HTMLDivElement>(null)
 
     const maxY = useMemo(() => {
         let m = 0
-        for (const p of points)
-            for (const k of visibleKeys) m = Math.max(m, p[k])
+        for (const p of points) m = Math.max(m, p[metric])
         return niceCeil(m || 1)
-    }, [points, visibleKeys])
+    }, [points, metric])
 
     const xFor = useCallback(
         (i: number) => {
@@ -152,26 +246,37 @@ export default function AdminActivityChart() {
         [maxY],
     )
 
-    const linePath = useCallback(
-        (key: MetricKey) => {
-            if (points.length === 0) return ""
-            return points
-                .map(
-                    (p, i) =>
-                        `${i === 0 ? "M" : "L"}${xFor(i).toFixed(1)},${yFor(p[key]).toFixed(1)}`,
-                )
-                .join(" ")
-        },
-        [points, xFor, yFor],
-    )
+    const linePath = useMemo(() => {
+        if (points.length === 0) return ""
+        return points
+            .map(
+                (p, i) =>
+                    `${i === 0 ? "M" : "L"}${xFor(i).toFixed(1)},${yFor(p[metric]).toFixed(1)}`,
+            )
+            .join(" ")
+    }, [points, metric, xFor, yFor])
+
+    const areaPath = useMemo(() => {
+        if (points.length === 0) return ""
+        const baseY = yFor(0)
+        const top = points
+            .map(
+                (p, i) =>
+                    `${i === 0 ? "M" : "L"}${xFor(i).toFixed(1)},${yFor(p[metric]).toFixed(1)}`,
+            )
+            .join(" ")
+        const lastX = xFor(points.length - 1)
+        const firstX = xFor(0)
+        return `${top} L${lastX.toFixed(1)},${baseY.toFixed(1)} L${firstX.toFixed(1)},${baseY.toFixed(1)} Z`
+    }, [points, metric, xFor, yFor])
 
     const yTicks = useMemo(() => {
-        const n = 4
+        const n = 3
         return Array.from({ length: n + 1 }, (_, i) => (maxY / n) * i)
     }, [maxY])
 
     const xTickIdx = useMemo(() => {
-        const n = Math.min(points.length, 6)
+        const n = Math.min(points.length, 4)
         if (points.length <= 1) return points.map((_, i) => i)
         return Array.from({ length: n }, (_, i) =>
             Math.round((i / (n - 1)) * (points.length - 1)),
@@ -191,122 +296,39 @@ export default function AdminActivityChart() {
         [points.length],
     )
 
-    const toggle = useCallback((key: MetricKey) => {
-        setHidden((prev) => {
-            const next = new Set(prev)
-            // Keep at least one series visible.
-            if (next.has(key)) next.delete(key)
-            else if (next.size < METRIC_KEYS.length - 1) next.add(key)
-            return next
-        })
-    }, [])
-
-    const totals = data?.totals
+    const gradId = `area-${metric}`
 
     return (
-        <div className='rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6'>
-            <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-                <div>
-                    <div className='flex items-center gap-2 text-amber-400/80'>
-                        <Activity className='h-4 w-4' />
-                        <span className='text-xs font-medium uppercase tracking-wider'>
-                            {t("activityLabel")}
-                        </span>
-                    </div>
-                    <h2 className='mt-1.5 font-serif text-xl font-semibold text-white'>
-                        {t("activityTitle")}
-                    </h2>
+        <div className='rounded-2xl border border-white/10 bg-white/[0.02] p-4'>
+            <div className='flex items-center justify-between gap-2'>
+                <div className='flex items-center gap-2'>
+                    <span
+                        className='inline-block h-2.5 w-2.5 rounded-full'
+                        style={{ backgroundColor: color }}
+                    />
+                    <span className='text-sm font-medium text-white/75'>
+                        {label}
+                    </span>
                 </div>
-
-                <div className='flex flex-wrap gap-1.5'>
-                    {RANGES.map((r) => (
-                        <button
-                            key={r}
-                            type='button'
-                            onClick={() => setRange(r)}
-                            className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                                range === r
-                                    ? "bg-amber-400/20 text-amber-200 ring-1 ring-amber-400/40"
-                                    : "text-white/55 hover:bg-white/5 hover:text-white/80"
-                            }`}
-                        >
-                            {t(`range_${r}`)}
-                        </button>
-                    ))}
-                </div>
+                {total != null ? (
+                    <span className='font-serif text-lg font-semibold text-white'>
+                        {total.toLocaleString()}
+                    </span>
+                ) : null}
             </div>
 
-            {range === "custom" ? (
-                <div className='mt-4 flex flex-wrap items-center gap-2 text-sm'>
-                    <input
-                        type='date'
-                        value={customFrom}
-                        max={customTo || toISODate(new Date())}
-                        onChange={(e) => setCustomFrom(e.target.value)}
-                        className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
-                    />
-                    <span className='text-white/40'>—</span>
-                    <input
-                        type='date'
-                        value={customTo}
-                        min={customFrom}
-                        max={toISODate(new Date())}
-                        onChange={(e) => setCustomTo(e.target.value)}
-                        className='rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white outline-none focus:border-amber-400/40 [color-scheme:dark]'
-                    />
-                </div>
-            ) : null}
-
-            {/* Legend — click a metric to toggle its line. */}
-            <div className='mt-4 flex flex-wrap gap-x-4 gap-y-2'>
-                {METRIC_KEYS.map((k) => {
-                    const isHidden = hidden.has(k)
-                    return (
-                        <button
-                            key={k}
-                            type='button'
-                            onClick={() => toggle(k)}
-                            className={`flex items-center gap-2 text-sm transition-opacity ${
-                                isHidden ? "opacity-35" : "opacity-100"
-                            }`}
-                        >
-                            <span
-                                className='inline-block h-2.5 w-2.5 rounded-full'
-                                style={{
-                                    backgroundColor: METRIC_COLOR[k],
-                                    ...(isHidden
-                                        ? { filter: "grayscale(1)" }
-                                        : {}),
-                                }}
-                            />
-                            <span className='text-white/70'>{t(k)}</span>
-                            {totals ? (
-                                <span className='font-medium text-white'>
-                                    {totals[k].toLocaleString()}
-                                </span>
-                            ) : null}
-                        </button>
-                    )
-                })}
-            </div>
-
-            {/* Chart */}
             <div
                 ref={wrapRef}
-                className='relative mt-4'
+                className='relative mt-2'
                 onMouseMove={onMove}
                 onMouseLeave={() => setHover(null)}
             >
-                {error ? (
-                    <div className='flex h-[280px] items-center justify-center rounded-xl border border-rose-400/20 bg-rose-400/5 text-sm text-rose-200/80'>
-                        {t("listError")}
-                    </div>
-                ) : loading && !data ? (
-                    <div className='flex h-[280px] items-center justify-center text-white/40'>
-                        <Loader2 className='h-6 w-6 animate-spin' />
+                {loading ? (
+                    <div className='flex h-[150px] items-center justify-center text-white/40'>
+                        <Loader2 className='h-5 w-5 animate-spin' />
                     </div>
                 ) : points.length === 0 ? (
-                    <div className='flex h-[280px] items-center justify-center text-sm text-white/40'>
+                    <div className='flex h-[150px] items-center justify-center text-xs text-white/40'>
                         {t("listEmpty")}
                     </div>
                 ) : (
@@ -317,7 +339,27 @@ export default function AdminActivityChart() {
                             style={{ height: "auto" }}
                             preserveAspectRatio='none'
                         >
-                            {/* Y gridlines + labels */}
+                            <defs>
+                                <linearGradient
+                                    id={gradId}
+                                    x1='0'
+                                    y1='0'
+                                    x2='0'
+                                    y2='1'
+                                >
+                                    <stop
+                                        offset='0%'
+                                        stopColor={color}
+                                        stopOpacity={0.28}
+                                    />
+                                    <stop
+                                        offset='100%'
+                                        stopColor={color}
+                                        stopOpacity={0}
+                                    />
+                                </linearGradient>
+                            </defs>
+
                             {yTicks.map((v, i) => {
                                 const y = yFor(v)
                                 return (
@@ -331,10 +373,10 @@ export default function AdminActivityChart() {
                                             strokeWidth={1}
                                         />
                                         <text
-                                            x={PAD.left - 8}
+                                            x={PAD.left - 6}
                                             y={y + 3}
                                             textAnchor='end'
-                                            fontSize={10}
+                                            fontSize={9}
                                             fill='rgba(255,255,255,0.4)'
                                         >
                                             {Math.round(v)}
@@ -343,14 +385,13 @@ export default function AdminActivityChart() {
                                 )
                             })}
 
-                            {/* X labels */}
                             {xTickIdx.map((idx) => (
                                 <text
                                     key={idx}
                                     x={xFor(idx)}
-                                    y={H - 10}
+                                    y={H - 9}
                                     textAnchor='middle'
-                                    fontSize={10}
+                                    fontSize={9}
                                     fill='rgba(255,255,255,0.4)'
                                 >
                                     {formatTick(
@@ -361,7 +402,8 @@ export default function AdminActivityChart() {
                                 </text>
                             ))}
 
-                            {/* Hover guide */}
+                            <path d={areaPath} fill={`url(#${gradId})`} />
+
                             {hover != null ? (
                                 <line
                                     x1={xFor(hover)}
@@ -374,41 +416,32 @@ export default function AdminActivityChart() {
                                 />
                             ) : null}
 
-                            {/* Lines (only visible metrics) */}
-                            {visibleKeys.map((k) => (
-                                <path
-                                    key={k}
-                                    d={linePath(k)}
-                                    fill='none'
-                                    stroke={METRIC_COLOR[k]}
-                                    strokeWidth={2}
-                                    strokeLinejoin='round'
-                                    strokeLinecap='round'
-                                    vectorEffect='non-scaling-stroke'
-                                />
-                            ))}
+                            <path
+                                d={linePath}
+                                fill='none'
+                                stroke={color}
+                                strokeWidth={2}
+                                strokeLinejoin='round'
+                                strokeLinecap='round'
+                                vectorEffect='non-scaling-stroke'
+                            />
 
-                            {/* Hover dots */}
-                            {hover != null
-                                ? visibleKeys.map((k) => (
-                                      <circle
-                                          key={k}
-                                          cx={xFor(hover)}
-                                          cy={yFor(points[hover][k])}
-                                          r={3.5}
-                                          fill={METRIC_COLOR[k]}
-                                      />
-                                  ))
-                                : null}
+                            {hover != null ? (
+                                <circle
+                                    cx={xFor(hover)}
+                                    cy={yFor(points[hover][metric])}
+                                    r={3.5}
+                                    fill={color}
+                                />
+                            ) : null}
                         </svg>
 
-                        {/* Tooltip */}
                         {hover != null ? (
                             <div
-                                className='pointer-events-none absolute top-2 z-10 -translate-x-1/2 rounded-lg border border-white/15 bg-slate-900/95 px-3 py-2 text-xs shadow-xl'
+                                className='pointer-events-none absolute top-1 z-10 -translate-x-1/2 rounded-lg border border-white/15 bg-slate-900/95 px-2.5 py-1.5 text-xs shadow-xl'
                                 style={{ left: `${(xFor(hover) / W) * 100}%` }}
                             >
-                                <div className='mb-1 font-medium text-white/80'>
+                                <div className='font-medium text-white/70'>
                                     {new Date(
                                         points[hover].date,
                                     ).toLocaleDateString(locale, {
@@ -420,32 +453,15 @@ export default function AdminActivityChart() {
                                                 : "numeric",
                                     })}
                                 </div>
-                                {visibleKeys.map((k) => (
-                                    <div
-                                        key={k}
-                                        className='flex items-center gap-2 whitespace-nowrap'
-                                    >
-                                        <span
-                                            className='inline-block h-2 w-2 rounded-full'
-                                            style={{
-                                                backgroundColor:
-                                                    METRIC_COLOR[k],
-                                            }}
-                                        />
-                                        <span className='text-white/60'>
-                                            {t(k)}
-                                        </span>
-                                        <span className='ml-auto pl-3 font-medium text-white'>
-                                            {points[hover][k].toLocaleString()}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : null}
-
-                        {loading ? (
-                            <div className='absolute right-2 top-2'>
-                                <Loader2 className='h-4 w-4 animate-spin text-white/40' />
+                                <div className='mt-0.5 flex items-center gap-2 whitespace-nowrap'>
+                                    <span
+                                        className='inline-block h-2 w-2 rounded-full'
+                                        style={{ backgroundColor: color }}
+                                    />
+                                    <span className='font-medium text-white'>
+                                        {points[hover][metric].toLocaleString()}
+                                    </span>
+                                </div>
                             </div>
                         ) : null}
                     </>
