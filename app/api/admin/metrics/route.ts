@@ -57,9 +57,8 @@ export async function GET(request: NextRequest) {
                 })(),
                 (async () => {
                     const { count, error } = await supabaseAdmin
-                        .from("tarot_readings")
+                        .from("chat_sessions")
                         .select("*", { count: "exact", head: true })
-                        .not("interpretation", "is", null)
                     if (error) throw error
                     return count ?? 0
                 })(),

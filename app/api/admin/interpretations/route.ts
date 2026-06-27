@@ -14,18 +14,50 @@ export type AdminInterpretationItem = {
     isAuthenticated: boolean
 }
 
-const COLS = "id, question, cards, interpretation, owner_user_id, created_at"
+const COLS = "id, question, topic, messages, owner_user_id, created_at"
 const SEARCH_CAP = 1000
 const UUID_RE =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-type ReadingRow = {
+type ChatMessage = {
+    role?: string | null
+    text?: string | null
+    cards?: { name?: string | null }[] | null
+}
+
+type SessionRow = {
     id: string
     question: string | null
-    cards: string[] | null
-    interpretation: string | null
+    topic: string | null
+    messages: ChatMessage[] | null
     owner_user_id: string | null
     created_at: string | null
+}
+
+/** Latest assistant reply is the "interpretation" we surface as a snippet. */
+function deriveSnippet(row: SessionRow): string {
+    const msgs = Array.isArray(row.messages) ? row.messages : []
+    const lastAssistant = [...msgs]
+        .reverse()
+        .find((m) => m?.role === "assistant" && (m?.text ?? "").trim())
+    const base = (
+        lastAssistant?.text ??
+        row.topic ??
+        row.question ??
+        ""
+    ).trim()
+    return base.length > 160 ? `${base.slice(0, 157).trimEnd()}…` : base
+}
+
+/** Cards from the most recent message that drew any (mirrors reading history). */
+function deriveCards(row: SessionRow): string[] {
+    const msgs = Array.isArray(row.messages) ? row.messages : []
+    const withCards = [...msgs]
+        .reverse()
+        .find((m) => Array.isArray(m?.cards) && m.cards.length > 0)
+    return (withCards?.cards ?? [])
+        .map((c) => (typeof c?.name === "string" ? c.name : null))
+        .filter((n): n is string => !!n)
 }
 
 export async function GET(request: NextRequest) {
@@ -36,13 +68,13 @@ export async function GET(request: NextRequest) {
     const q = (request.nextUrl.searchParams.get("q") ?? "").trim()
 
     try {
-        let rows: ReadingRow[] = []
+        let rows: SessionRow[] = []
         let total = 0
 
         if (q) {
-            // Search matches the session topic (question) or the owner's
-            // name. Run both as separate queries (no user input in .or()
-            // filter strings), merge, dedupe, then page in memory.
+            // Search matches the session topic/question or the owner's name.
+            // Run each as a separate query (no user input in .or() filter
+            // strings), merge, dedupe, then page in memory.
             const like = `%${q}%`
             const { data: namedProfiles } = await admin
                 .from("profiles")
@@ -52,28 +84,33 @@ export async function GET(request: NextRequest) {
             const ownerIdsByName = (namedProfiles ?? []).map(
                 (p) => p.id as string,
             )
-            const [byQuestion, byOwner] = await Promise.all([
+            const [byQuestion, byTopic, byOwner] = await Promise.all([
                 admin
-                    .from("tarot_readings")
+                    .from("chat_sessions")
                     .select(COLS)
-                    .not("interpretation", "is", null)
                     .ilike("question", like)
+                    .order("created_at", { ascending: false })
+                    .limit(SEARCH_CAP),
+                admin
+                    .from("chat_sessions")
+                    .select(COLS)
+                    .ilike("topic", like)
                     .order("created_at", { ascending: false })
                     .limit(SEARCH_CAP),
                 ownerIdsByName.length > 0
                     ? admin
-                          .from("tarot_readings")
+                          .from("chat_sessions")
                           .select(COLS)
-                          .not("interpretation", "is", null)
                           .in("owner_user_id", ownerIdsByName)
                           .order("created_at", { ascending: false })
                           .limit(SEARCH_CAP)
-                    : Promise.resolve({ data: [] as ReadingRow[] }),
+                    : Promise.resolve({ data: [] as SessionRow[] }),
             ])
-            const byId = new Map<string, ReadingRow>()
+            const byId = new Map<string, SessionRow>()
             for (const r of [
-                ...((byQuestion.data ?? []) as ReadingRow[]),
-                ...((byOwner.data ?? []) as ReadingRow[]),
+                ...((byQuestion.data ?? []) as SessionRow[]),
+                ...((byTopic.data ?? []) as SessionRow[]),
+                ...((byOwner.data ?? []) as SessionRow[]),
             ]) {
                 byId.set(r.id, r)
             }
@@ -84,13 +121,12 @@ export async function GET(request: NextRequest) {
             rows = merged.slice(offset, offset + limit)
         } else {
             const { data, count, error } = await admin
-                .from("tarot_readings")
+                .from("chat_sessions")
                 .select(COLS, { count: "exact" })
-                .not("interpretation", "is", null)
                 .order("created_at", { ascending: false })
                 .range(offset, offset + limit - 1)
             if (error) throw error
-            rows = (data ?? []) as ReadingRow[]
+            rows = (data ?? []) as SessionRow[]
             total = count ?? 0
         }
 
@@ -123,15 +159,11 @@ export async function GET(request: NextRequest) {
         const items: AdminInterpretationItem[] = rows.map((r) => {
             const owner = r.owner_user_id
             const prof = owner ? profiles.get(owner) : undefined
-            const interpretation = String(r.interpretation ?? "")
             return {
                 id: r.id,
-                question: r.question ?? "",
-                cards: Array.isArray(r.cards) ? r.cards : [],
-                snippet:
-                    interpretation.length > 160
-                        ? `${interpretation.slice(0, 157).trimEnd()}…`
-                        : interpretation,
+                question: r.topic ?? r.question ?? "",
+                cards: deriveCards(r),
+                snippet: deriveSnippet(r),
                 createdAt: r.created_at ?? null,
                 ownerName: prof?.name ?? null,
                 ownerAvatarUrl: prof?.avatar_url ?? null,
