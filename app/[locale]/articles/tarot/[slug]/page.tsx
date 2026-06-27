@@ -441,29 +441,27 @@ export default async function TarotCardArticlePage({
             />
             <ArticleLayout
                 title={card.name}
-                subtitle={`Upright and reversed meanings with practical guidance.`}
-            tocIds={["upright-overview", "reversed-overview"]}
-            backHref='/articles/tarot'
-            backLabel='Tarot'
-            onThisPageLabel='On this page'
-            sections={sections}
-            related={[
-                {
-                    href: "/articles/tarot",
-                    title: "All Tarot Cards",
-                    description: "Browse all 78 cards by arcana and suit.",
-                },
-                {
-                    href: "/articles/how-to-play",
-                    title: "How to Play",
-                    description:
-                        "Follow a simple flow for meaningful readings.",
-                },
-                {
-                    href: "/articles/faq",
-                    title: "FAQ",
-                    description:
-                        "Answers to common questions about readings and stars.",
+                subtitle={t("cardSubtitle")}
+                tocIds={["upright-overview", "reversed-overview"]}
+                backHref='/articles/tarot'
+                backLabel={t("backToTarot")}
+                onThisPageLabel={t("onThisPage")}
+                sections={sections}
+                related={[
+                    {
+                        href: "/articles/tarot",
+                        title: t("relatedAllCardsTitle"),
+                        description: t("relatedAllCardsDesc"),
+                    },
+                    {
+                        href: "/articles/how-to-play",
+                        title: t("relatedHowToPlayTitle"),
+                        description: t("relatedHowToPlayDesc"),
+                    },
+                    {
+                        href: "/articles/faq",
+                        title: t("relatedFaqTitle"),
+                        description: t("relatedFaqDesc"),
                     },
                 ]}
             />
