@@ -121,7 +121,17 @@
     "noResults": "No matches found.",
     "searchUsersPlaceholder": "Search by name…",
     "searchInterpretationsPlaceholder": "Search by topic or user…",
-    "searchSubscribersPlaceholder": "Search by name…"
+    "searchSubscribersPlaceholder": "Search by name…",
+    "select": "Select",
+    "cancel": "Cancel",
+    "selectAll": "Select all",
+    "clearSelection": "Clear",
+    "selectedCount": "{count, plural, =0 {None selected} =1 {# selected} other {# selected}}",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "deleteConfirm": "Delete {count, plural, =1 {this interpretation} other {these # interpretations}}? This permanently removes it from the database and can't be undone.",
+    "deleteSuccess": "{count, plural, =1 {Deleted 1 interpretation} other {Deleted # interpretations}}.",
+    "deleteError": "Couldn't delete. Please try again."
   },
   "Sidebar": {
     "services": "Services",

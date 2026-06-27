@@ -121,7 +121,17 @@
     "noResults": "ไม่พบรายการที่ตรงกัน",
     "searchUsersPlaceholder": "ค้นหาจากชื่อผู้ใช้…",
     "searchInterpretationsPlaceholder": "ค้นหาจากหัวข้อ session หรือชื่อผู้ใช้…",
-    "searchSubscribersPlaceholder": "ค้นหาจากชื่อผู้ใช้…"
+    "searchSubscribersPlaceholder": "ค้นหาจากชื่อผู้ใช้…",
+    "select": "เลือก",
+    "cancel": "ยกเลิก",
+    "selectAll": "เลือกทั้งหมด",
+    "clearSelection": "ล้าง",
+    "selectedCount": "{count, plural, =0 {ยังไม่ได้เลือก} other {เลือกแล้ว # รายการ}}",
+    "delete": "ลบ",
+    "deleting": "กำลังลบ…",
+    "deleteConfirm": "ลบ {count, plural, other {# รายการ}} นี้ใช่ไหม? ข้อมูลจะถูกลบออกจากฐานข้อมูลอย่างถาวรและกู้คืนไม่ได้",
+    "deleteSuccess": "{count, plural, other {ลบแล้ว # รายการ}}",
+    "deleteError": "ลบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",

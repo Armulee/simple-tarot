@@ -1,6 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useState, type ReactNode } from "react"
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useState,
+    type ReactNode,
+} from "react"
 import { ArrowLeft, Loader2, Inbox, Search, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Link } from "@/i18n/navigation"
@@ -26,7 +32,15 @@ export function useDebouncedValue<T>(value: T, delayMs = 300): T {
  * Supabase session token as a Bearer (the routes gate on the `admins` table)
  * and accumulates pages for a "load more" UX.
  */
-export function useAdminList<T>(endpoint: string) {
+export function useAdminList<T>(
+    endpoint: string,
+    opts?: { getItemId?: (item: T) => string },
+) {
+    const optGetItemId = opts?.getItemId
+    const getItemId = useMemo(
+        () => optGetItemId ?? ((item: T) => (item as { id: string }).id),
+        [optGetItemId],
+    )
     const [items, setItems] = useState<T[]>([])
     const [total, setTotal] = useState(0)
     const [hasMore, setHasMore] = useState(false)
@@ -80,7 +94,20 @@ export function useAdminList<T>(endpoint: string) {
         })
     }, [fetchPage])
 
-    return { items, total, hasMore, loading, error, loadMore }
+    /** Drop locally after a successful delete, keeping the total in sync. */
+    const removeItems = useCallback(
+        (ids: string[]) => {
+            const idSet = new Set(ids)
+            setItems((prev) => {
+                const next = prev.filter((it) => !idSet.has(getItemId(it)))
+                setTotal((t) => Math.max(0, t - (prev.length - next.length)))
+                return next
+            })
+        },
+        [getItemId],
+    )
+
+    return { items, total, hasMore, loading, error, loadMore, removeItems }
 }
 
 /** Round avatar with the user's photo, falling back to a gradient initial. */
@@ -183,6 +210,7 @@ export function AdminListShell({
     onSearchChange,
     searchPlaceholder,
     searching,
+    toolbar,
     children,
 }: {
     title: string
@@ -198,6 +226,8 @@ export function AdminListShell({
     searchPlaceholder?: string
     /** True while a typed query is still settling / fetching. */
     searching?: boolean
+    /** Optional row between the search box and the list (e.g. bulk actions). */
+    toolbar?: ReactNode
     children: ReactNode
 }) {
     const t = useTranslations("Admin")
@@ -256,6 +286,8 @@ export function AdminListShell({
                         ) : null}
                     </div>
                 ) : null}
+
+                {toolbar}
 
                 {error ? (
                     <div className='rounded-xl border border-rose-400/20 bg-rose-400/5 px-4 py-8 text-center text-sm text-rose-200/80'>
