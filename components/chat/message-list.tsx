@@ -537,7 +537,9 @@ export default function MessageList({
                                     className='flex flex-col items-end gap-2'
                                 >
                                     {message.originContextSnapshot?.kind ===
-                                    "calendar-day" ? (
+                                        "calendar-day" ||
+                                    message.originContextSnapshot?.kind ===
+                                        "tarot-card" ? (
                                         <div
                                             className='inline-flex max-w-[80%] items-center gap-1.5 text-xs text-amber-200/70'
                                             role='note'

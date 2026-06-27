@@ -7,7 +7,6 @@ import {
     TAROT_CARDS,
 } from "@/lib/tarot/cards"
 import { getPathname } from "@/i18n/navigation"
-import { TAROT_DECK } from "@/lib/tarot/tarot-deck"
 import { buildTarotCardOriginContext } from "@/lib/chat/origin-context"
 import { CardArticle, type AreaView, type OrientationView } from "./card-article"
 
@@ -239,7 +238,6 @@ export default async function TarotCardArticlePage({
                 eyebrow={eyebrow}
                 topHint={t("tapToFlip")}
                 originContext={originContext}
-                deckId={TAROT_DECK.indexOf(card.name)}
                 imageSrc={`/assets/rider-waite-tarot/${card.slug}.png`}
                 badges={{
                     yesNo: meaning.upright.overview.yesNo,
@@ -276,9 +274,6 @@ export default async function TarotCardArticlePage({
                     askPlaceholder: t("askPlaceholder"),
                     askEyebrow: t("askEyebrow"),
                     askHint: t("askHint"),
-                    ctaPaid: t("ctaPaid"),
-                    ctaFree: t("ctaFree"),
-                    ctaNote: t("ctaNote"),
                     orientationGroup: t("orientationGroup"),
                     yesNo: t("yesNo"),
                     zodiac: t("zodiac"),

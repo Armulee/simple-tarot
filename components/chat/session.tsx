@@ -3457,6 +3457,22 @@ export default function ChatSession({
 
     const applyInterpretationModeOverride = useCallback(
         (decision: ChatDecision): ChatDecision => {
+            // Tarot-card page context: this chat only EXPLAINS the card.
+            // Meaning/detail questions (classifier → chat/support) are answered
+            // as text. Anything else (an event/reading question — "will my ex
+            // come back?") can't be read from a single card here, so it goes to
+            // the tarot deck (free: draw; paid: manual-pick that card, gated by
+            // the existing manual-pick paywall). Applies regardless of the
+            // locked interpretation mode.
+            if (activeOriginContextRef.current?.kind === "tarot-card") {
+                if (
+                    decision.type === "chat" ||
+                    decision.type === "support"
+                ) {
+                    return decision
+                }
+                return { ...decision, type: "draw" }
+            }
             if (interpretationMode === "auto") return decision
             // "Why" explanations are chat-type answers ABOUT a previous
             // reading. Keep them even when a reading mode is locked — otherwise
