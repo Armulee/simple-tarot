@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react"
 import Image from "next/image"
 import { Link } from "@/i18n/navigation"
+import { CardQuestionInput } from "./card-question-input"
 import styles from "./card-article.module.css"
 
 type Orientation = "upright" | "reversed"
@@ -45,6 +46,9 @@ export type CardArticleProps = {
         theReading: string
         continue: string
         readArticle: string
+        askHeading: string
+        askSubtitle: string
+        askPlaceholder: string
         orientationGroup: string
         yesNo: string
         zodiac: string
@@ -261,6 +265,17 @@ export function CardArticle(props: CardArticleProps) {
                             </article>
                         ))}
                     </div>
+                </section>
+
+                {/* ASK — home-style composer to start a reading */}
+                <section className={styles.ask}>
+                    <div className={styles.sectionHead}>
+                        <span className={styles.num}>✦</span>
+                        <h2>{labels.askHeading}</h2>
+                        <span className={styles.rule} aria-hidden='true' />
+                    </div>
+                    <p className={styles.askSubtitle}>{labels.askSubtitle}</p>
+                    <CardQuestionInput placeholder={labels.askPlaceholder} />
                 </section>
 
                 {/* SUGGESTED */}

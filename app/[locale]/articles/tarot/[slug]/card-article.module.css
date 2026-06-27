@@ -772,6 +772,22 @@
     line-height: 1.7;
 }
 
+/* ---------- ask composer ---------- */
+.ask {
+    margin-top: clamp(60px, 8vw, 96px);
+    text-align: center;
+}
+.ask .sectionHead {
+    justify-content: center;
+}
+.askSubtitle {
+    margin: 0 auto 22px;
+    max-width: 52ch;
+    color: var(--mist);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
 /* ---------- suggested ---------- */
 .more {
     margin-top: clamp(70px, 9vw, 120px);
