@@ -38,7 +38,6 @@ export type CardArticleProps = {
     reversed: OrientationView
     related: RelatedLink[]
     labels: {
-        brand: string
         upright: string
         reversed: string
         lightGathers: string
@@ -133,14 +132,8 @@ export function CardArticle(props: CardArticleProps) {
 
     return (
         <div className={styles.root} data-orientation={orientation}>
-            {/* slim breadcrumb header */}
+            {/* centered breadcrumb header */}
             <header className={styles.head}>
-                <span className={styles.brand}>
-                    <svg className={styles.mk} viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'>
-                        <path d='M14.5 2a8.5 8.5 0 1 0 7.5 12.6A7 7 0 0 1 14.5 2Z' />
-                    </svg>
-                    {labels.brand}
-                </span>
                 <div className={styles.headMeta}>{props.breadcrumb}</div>
             </header>
 

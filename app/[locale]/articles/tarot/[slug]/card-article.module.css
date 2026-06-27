@@ -67,37 +67,40 @@
     padding: 0 24px;
 }
 
-/* ---------- slim breadcrumb header ---------- */
+/* ---------- centered breadcrumb header ---------- */
 .head {
     position: relative;
     z-index: 2;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 22px 24px;
+    justify-content: center;
+    gap: clamp(12px, 3vw, 22px);
+    padding: clamp(20px, 4vw, 32px) 24px 0;
     max-width: var(--maxw);
     margin: 0 auto;
-    border-bottom: 1px solid var(--line);
 }
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--serif);
-    font-size: 1.35rem;
-    letter-spacing: 0.5px;
+/* gold hairlines flanking the breadcrumb — shift to silver when reversed */
+.head::before,
+.head::after {
+    content: "";
+    height: 1px;
+    width: min(140px, 16vw);
+    transition: background 0.6s var(--ease);
 }
-.brand .mk {
-    width: 22px;
-    height: 22px;
-    color: var(--accent);
+.head::before {
+    background: linear-gradient(90deg, transparent, var(--line-strong));
+}
+.head::after {
+    background: linear-gradient(90deg, var(--line-strong), transparent);
 }
 .headMeta {
-    font-size: 0.72rem;
-    letter-spacing: 0.22em;
+    font-size: clamp(0.62rem, 1.6vw, 0.72rem);
+    letter-spacing: 0.34em;
     text-transform: uppercase;
-    color: var(--mist);
+    color: var(--accent);
+    white-space: nowrap;
+    text-align: center;
+    transition: color 0.6s var(--ease);
 }
 
 /* ---------- hero ---------- */
@@ -426,9 +429,9 @@
 }
 .area p {
     margin: 0;
-    color: var(--mist);
-    font-size: 1.01rem;
-    line-height: 1.66;
+    color: #c3c1da;
+    font-size: 1.02rem;
+    line-height: 1.7;
 }
 
 /* ---------- suggested ---------- */
@@ -553,8 +556,9 @@
     .moreGrid {
         grid-template-columns: 1fr;
     }
-    .headMeta {
-        display: none;
+    .head::before,
+    .head::after {
+        width: min(60px, 12vw);
     }
     .badge {
         padding: 11px 16px;

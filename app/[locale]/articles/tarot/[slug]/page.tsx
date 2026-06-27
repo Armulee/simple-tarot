@@ -282,7 +282,6 @@ export default async function TarotCardArticlePage({
                     },
                 ]}
                 labels={{
-                    brand: "AskingFate",
                     upright: t("upright"),
                     reversed: t("reversed"),
                     lightGathers: t("lightGathers"),
