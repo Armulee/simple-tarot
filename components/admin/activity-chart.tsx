@@ -388,6 +388,25 @@ export function MetricChart({
                             vectorEffect='non-scaling-stroke'
                         />
 
+                        {/* Value labels — shown when the line isn't too dense. */}
+                        {points.length <= 16
+                            ? points.map((p, i) =>
+                                  p[metric] > 0 ? (
+                                      <text
+                                          key={i}
+                                          x={xFor(i)}
+                                          y={yFor(p[metric]) - 6}
+                                          textAnchor='middle'
+                                          fontSize={9}
+                                          fontWeight={600}
+                                          fill='rgba(255,255,255,0.85)'
+                                      >
+                                          {p[metric].toLocaleString()}
+                                      </text>
+                                  ) : null,
+                              )
+                            : null}
+
                         {hover != null ? (
                             <circle
                                 cx={xFor(hover)}

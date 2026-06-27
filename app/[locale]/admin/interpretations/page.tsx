@@ -14,6 +14,7 @@ import {
     useShortDate,
 } from "@/components/admin/admin-list"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Link } from "@/i18n/navigation"
 import { supabase } from "@/lib/supabase"
 import type { AdminInterpretationItem } from "@/app/api/admin/interpretations/route"
 
@@ -205,7 +206,16 @@ export default function AdminInterpretationsPage() {
                     />
                 )
 
-                if (!selectMode) return <div key={r.id}>{row}</div>
+                if (!selectMode)
+                    return (
+                        <Link
+                            key={r.id}
+                            href={`/${r.id}`}
+                            className='block'
+                        >
+                            {row}
+                        </Link>
+                    )
 
                 const checked = selected.has(r.id)
                 return (
