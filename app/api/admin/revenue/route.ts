@@ -105,3 +105,33 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "FAILED_TO_LOAD" }, { status: 500 })
     }
 }
+
+/** Bulk-delete transaction records by id. Admin only. */
+export async function DELETE(request: NextRequest) {
+    const auth = await requireAdmin(request)
+    if (!auth.ok) return auth.response
+    const { admin } = auth
+
+    try {
+        const body = (await request.json().catch(() => null)) as {
+            ids?: unknown
+        } | null
+        const ids = Array.isArray(body?.ids)
+            ? body.ids.filter((x): x is string => typeof x === "string")
+            : []
+        if (ids.length === 0) {
+            return NextResponse.json({ error: "NO_IDS" }, { status: 400 })
+        }
+
+        const { error } = await admin
+            .from("billing_transactions")
+            .delete()
+            .in("id", ids)
+        if (error) throw error
+
+        return NextResponse.json({ deleted: ids.length }, { status: 200 })
+    } catch (error) {
+        console.error("[admin/revenue] delete failed", error)
+        return NextResponse.json({ error: "FAILED_TO_DELETE" }, { status: 500 })
+    }
+}
