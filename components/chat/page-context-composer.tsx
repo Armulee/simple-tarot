@@ -14,6 +14,7 @@ import "swiper/css/free-mode"
 import { useAuth } from "@/hooks/use-auth"
 import QuestionInput from "@/components/question-input"
 import OriginContextStrip from "@/components/chat/origin-context-strip"
+import { ConsultingBadge } from "@/components/consulting-badge"
 import { CARD_UI_TEXT, normalizeLocale } from "@/components/chat/card-ui"
 import {
     detectInputLanguage,
@@ -71,6 +72,12 @@ type PageContextComposerProps = {
      * disappears (and can come back when a new date is picked).
      */
     onClearContext?: () => void
+    /**
+     * Glassy backdrop-blur on the fixed bar. Defaults on (calendar). The tarot
+     * article page turns it off because the blur's hard top edge reads as a
+     * seam line cutting across the page above the context strip.
+     */
+    blurBackdrop?: boolean
 }
 
 function createPendingSessionId() {
@@ -88,6 +95,7 @@ export default function PageContextComposer({
     hint,
     suggestions,
     onClearContext,
+    blurBackdrop = true,
 }: PageContextComposerProps) {
     const t = useTranslations("PageContextComposer")
     const locale = useLocale()
@@ -96,6 +104,7 @@ export default function PageContextComposer({
 
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
+    const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>("auto")
@@ -134,6 +143,7 @@ export default function PageContextComposer({
         }
         pendingSessionIdRef.current = null
         setIsLinking(false)
+        setLinkingQuestion(null)
         setError(null)
     }
 
@@ -151,6 +161,8 @@ export default function PageContextComposer({
         pendingSessionIdRef.current = pendingSessionId
         setError(null)
         setIsLinking(true)
+        setLinkingQuestion(trimmed)
+        setQuestion("")
         try {
             const sanitizeResult = await sanitizePromptOnClient(trimmed, {
                 sessionId: pendingSessionId,
@@ -221,9 +233,11 @@ export default function PageContextComposer({
             }
             if (err instanceof Error && err.name === "AbortError") {
                 setIsLinking(false)
+                setLinkingQuestion(null)
                 return
             }
             setIsLinking(false)
+            setLinkingQuestion(null)
             setError(t("error"))
         }
     }
@@ -244,11 +258,33 @@ export default function PageContextComposer({
     ) : null
 
     return (
-        <div
-            ref={fixedBarRef}
-            className='fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4'
-        >
-            <QuestionInput
+        <>
+            {/* Loading screen while the session is created + we redirect —
+                mirrors the home page handoff into a chat session. */}
+            {isLinking ? (
+                <div className='fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-4 pt-8'>
+                    <div className='mx-auto max-w-3xl space-y-6 text-left'>
+                        {linkingQuestion ? (
+                            <div className='flex flex-col items-end gap-2'>
+                                <div className='max-w-[80%] rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] backdrop-blur-xl'>
+                                    {linkingQuestion}
+                                </div>
+                            </div>
+                        ) : null}
+                        <div className='flex flex-col items-start gap-4'>
+                            <ConsultingBadge />
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+
+            <div
+                ref={fixedBarRef}
+                className={`fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-4${
+                    blurBackdrop ? " backdrop-blur-xl" : ""
+                }`}
+            >
+                <QuestionInput
                 id='page-context-composer'
                 value={question}
                 onChange={setQuestion}
@@ -291,7 +327,8 @@ export default function PageContextComposer({
                 }
                 wrapperClassName=''
                 inputWrapperClassName='w-full'
-            />
-        </div>
+                />
+            </div>
+        </>
     )
 }

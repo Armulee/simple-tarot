@@ -3,7 +3,7 @@ import {
     buildCardMetadata,
     cardStaticParams,
     CardArticlePageView,
-} from "./card-article-page"
+} from "../card-article-page"
 
 export const dynamicParams = false
 
@@ -17,14 +17,14 @@ export async function generateMetadata({
     params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
     const { locale, slug } = await params
-    return buildCardMetadata({ locale, slug, orientation: "upright" })
+    return buildCardMetadata({ locale, slug, orientation: "reversed" })
 }
 
-export default async function TarotCardArticlePage({
+export default async function TarotCardReversedArticlePage({
     params,
 }: {
     params: Promise<{ locale: string; slug: string }>
 }) {
     const { locale, slug } = await params
-    return CardArticlePageView({ locale, slug, orientation: "upright" })
+    return CardArticlePageView({ locale, slug, orientation: "reversed" })
 }

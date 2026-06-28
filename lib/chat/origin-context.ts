@@ -21,7 +21,17 @@ export type CalendarDayOriginContext = {
     summary: string
 }
 
-export type OriginContext = BirthChartOriginContext | CalendarDayOriginContext
+export type TarotCardOriginContext = {
+    kind: "tarot-card"
+    label: string
+    slug: string
+    summary: string
+}
+
+export type OriginContext =
+    | BirthChartOriginContext
+    | CalendarDayOriginContext
+    | TarotCardOriginContext
 
 const MAX_SUMMARY_CHARS = 600
 const MAX_LABEL_CHARS = 120
@@ -45,6 +55,13 @@ export function isOriginContext(value: unknown): value is OriginContext {
             typeof v.isoDate === "string"
         )
     }
+    if (v.kind === "tarot-card") {
+        return (
+            typeof v.label === "string" &&
+            typeof v.summary === "string" &&
+            typeof v.slug === "string"
+        )
+    }
     return false
 }
 
@@ -57,11 +74,49 @@ export function normalizeOriginContext(value: unknown): OriginContext | null {
             summary: clamp(value.summary, MAX_SUMMARY_CHARS),
         }
     }
+    if (value.kind === "tarot-card") {
+        return {
+            kind: "tarot-card",
+            label: clamp(value.label, MAX_LABEL_CHARS),
+            slug: value.slug,
+            summary: clamp(value.summary, MAX_SUMMARY_CHARS),
+        }
+    }
     return {
         kind: "calendar-day",
         label: clamp(value.label, MAX_LABEL_CHARS),
         isoDate: value.isoDate,
         summary: clamp(value.summary, MAX_SUMMARY_CHARS),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tarot card builder
+// ---------------------------------------------------------------------------
+
+/**
+ * Origin context for the tarot article page. The summary both describes the
+ * card and constrains the AI: this chat ONLY explains the card's meaning and
+ * must refuse to predict real-life events from it (those require a full
+ * reading / drawing cards).
+ */
+export function buildTarotCardOriginContext(input: {
+    name: string
+    slug: string
+    arcanaLabel: string
+    uprightLine: string
+    reversedLine: string
+}): TarotCardOriginContext {
+    const lines = [
+        `Tarot card in focus: ${input.name} (${input.arcanaLabel}). This chat ONLY explains this card — meaning, symbolism, upright/reversed nuance. Do NOT predict real-life events or outcomes from this single card. If the user asks you to foretell an event (e.g. "will my ex come back?"), say you can only explain the card here and invite them to start a full reading (draw cards) for situational guidance.`,
+        `Upright — ${input.uprightLine}`,
+        `Reversed — ${input.reversedLine}`,
+    ]
+    return {
+        kind: "tarot-card",
+        label: clamp(input.name, MAX_LABEL_CHARS),
+        slug: input.slug,
+        summary: clamp(lines.join("\n"), MAX_SUMMARY_CHARS),
     }
 }
 

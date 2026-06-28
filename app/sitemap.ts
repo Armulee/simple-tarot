@@ -111,21 +111,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }),
     ]
 
-    // Per-card meaning pages — only the locales with translated content
-    // (en, th) are statically generated, so alternates point only there.
+    // Per-card meaning pages — both the upright (base) and reversed URLs, each
+    // with per-locale hreflang alternates.
     for (const card of TAROT_CARDS) {
-        const href = `/articles/tarot/${card.slug}`
-        const languages: Record<string, string> = {}
-        for (const locale of TAROT_ARTICLE_LOCALES) {
-            languages[locale] = host + (await getPathname({ locale, href }))
+        for (const href of [
+            `/articles/tarot/${card.slug}`,
+            `/articles/tarot/${card.slug}/reversed`,
+        ]) {
+            const languages: Record<string, string> = {}
+            for (const locale of TAROT_ARTICLE_LOCALES) {
+                languages[locale] = host + (await getPathname({ locale, href }))
+            }
+            entries.push({
+                url:
+                    host +
+                    (await getPathname({
+                        locale: routing.defaultLocale,
+                        href,
+                    })),
+                lastModified: currentDate,
+                changeFrequency: "monthly",
+                priority: 0.7,
+                alternates: { languages },
+            })
         }
-        entries.push({
-            url: host + (await getPathname({ locale: routing.defaultLocale, href })),
-            lastModified: currentDate,
-            changeFrequency: "monthly",
-            priority: 0.7,
-            alternates: { languages },
-        })
     }
 
     return entries

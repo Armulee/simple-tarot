@@ -134,7 +134,19 @@ export const TAROT_CARDS: TarotCard[] = [
  * article pages (with real, indexable content); other locales fall back to
  * dynamic rendering / 404 for card detail pages until translations exist.
  */
-export const TAROT_ARTICLE_LOCALES = ["en", "th"] as const
+export const TAROT_ARTICLE_LOCALES = [
+    "en",
+    "th",
+    "lo",
+    "my",
+    "zh-CN",
+    "zh-TW",
+    "ja",
+    "ko",
+    "id",
+    "es",
+    "pt-BR",
+] as const
 
 export function getCardBySlug(slug: string): TarotCard | undefined {
     return TAROT_CARDS.find((c) => c.slug === slug)
