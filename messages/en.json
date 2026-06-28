@@ -623,6 +623,7 @@
     "saving": "Saving…",
     "created": "{name} added",
     "errorGeneric": "Couldn't save. Please try again.",
+    "readingError": "Couldn't read this character. Please try again.",
     "menuTitle": "Characters",
     "menuAddNew": "Add new character",
     "menuEmpty": "No characters yet",

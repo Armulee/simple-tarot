@@ -52,8 +52,9 @@ oracle
 - DO NOT use oracle for: "what does the Tower card mean" (that's chat/knowledge), "is today a good day to start a business" (that's horoscope), "draw me a card" (that's draw).
 
 synastry
-- relationship COMPATIBILITY between the asker and ONE other specific person: "are we compatible?", "will it work out with @Name?", "do my partner and I match?", "เราสองคนเข้ากันไหม", "ฉันกับ @คน จะไปกันรอดไหม", "ดวงเนื้อคู่"
-- the question compares the asker to a SPECIFIC other person — named, @mentioned, a relationship word (partner, boyfriend, girlfriend, husband, wife, crush, แฟน, สามี, ภรรยา), or given by birth date — NOT a generic "will I find love" (that's draw) and NOT a solo timing question (that's horoscope)
+- relationship COMPATIBILITY / how two SPECIFIC people relate — the asker vs one other person, OR two other specific people compared with each other: "are we compatible?", "will it work out with @Name?", "do my partner and I match?", "เราสองคนเข้ากันไหม", "ฉันกับ @คน จะไปกันรอดไหม", "ดวงเนื้อคู่", "@A กับ @B จะเป็นยังไงต่อ"
+- the people are SPECIFIC — named, @mentioned, a relationship word (partner, boyfriend, girlfriend, husband, wife, crush, แฟน, สามี, ภรรยา), or given by birth date — NOT a generic "will I find love" (that's draw) and NOT a solo timing question (that's horoscope)
+- @MENTIONS are saved people with real birth data. A question that COMPARES the asker with an @mentioned person ("@Name เข้ากับกูไหม", "will @Name and I work out"), or compares TWO @mentioned people with each other ("@A กับ @B ..."), IS synastry. But a question that @mentions ONE person and asks only ABOUT that person alone — their personality, traits, birth chart, or how they are doing, with NO comparison ("@Name เป็นคนยังไง", "what is @Name like", "@Name ดวงเป็นไง") — is NOT synastry; classify it by the question itself (usually draw).
 - set synastryPersonName to the other person's name/handle when one is present (e.g. the name inside an @mention); omit it when only a birth date is given
 - set synastryPersonBirthDate (day/month/year) when the question gives the other person's birth date (convert Buddhist Era years to Gregorian); omit when no date is given
 - DO NOT use synastry for: "will I find love?" (draw), "how is my love life this month?" (horoscope), "what does the Lovers card mean?" (chat)

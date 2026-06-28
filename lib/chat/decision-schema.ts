@@ -45,7 +45,7 @@ export const chatDecisionSchema = z.object({
     type: z
         .enum(["chat", "draw", "horoscope", "support", "oracle", "synastry"])
         .describe(
-            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block), oracle (mystical / symbolic / spiritual reflection that doesn't fit tarot, astrology, numerology), synastry (relationship COMPATIBILITY between the asker and ONE other specific person — 'are we compatible', 'will it work with @Name', 'do my partner and I match')",
+            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block), oracle (mystical / symbolic / spiritual reflection that doesn't fit tarot, astrology, numerology), synastry (relationship COMPATIBILITY between two specific people — the asker and one other, or two @mentioned people — 'are we compatible', 'will it work with @Name', '@A กับ @B จะเป็นยังไง'). A question about ONE @mentioned person alone (their personality/chart, no comparison) is NOT synastry.",
         ),
     isFollowUp: z
         .boolean()
