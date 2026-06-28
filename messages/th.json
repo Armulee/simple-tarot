@@ -178,7 +178,20 @@
     "retCohortTitle": "รุ่นรายสัปดาห์",
     "retCohortWeek": "รุ่น",
     "retCohortSize": "ผู้ใช้",
-    "retNoData": "Retention ต้องมีรุ่นที่การอ่านครั้งแรกอยู่ในช่วงเวลาที่เลือก"
+    "retNoData": "Retention ต้องมีรุ่นที่การอ่านครั้งแรกอยู่ในช่วงเวลาที่เลือก",
+    "daysUnit": "วัน",
+    "activeSectionLabel": "การมีส่วนร่วม",
+    "activeTitle": "ผู้ใช้ที่ใช้งาน",
+    "kpiDau": "DAU",
+    "kpiWau": "WAU",
+    "kpiMau": "MAU",
+    "activeTrendLabel": "ผู้ใช้ที่ใช้งานรายวัน",
+    "returningSectionLabel": "ความภักดี",
+    "returningTitle": "ผู้ใช้ที่กลับมา",
+    "retReturningUsers": "ผู้ใช้ที่กลับมา",
+    "retReturnRate": "อัตราการกลับมา",
+    "retAvgInterval": "ระยะห่างเฉลี่ยการกลับมา",
+    "returningTrendLabel": "ผู้ใช้ที่กลับมา / วัน"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",

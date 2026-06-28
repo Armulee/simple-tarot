@@ -178,7 +178,20 @@
     "retCohortTitle": "Weekly cohorts",
     "retCohortWeek": "Cohort",
     "retCohortSize": "Users",
-    "retNoData": "Retention needs cohorts whose first reading falls inside the selected range."
+    "retNoData": "Retention needs cohorts whose first reading falls inside the selected range.",
+    "daysUnit": "days",
+    "activeSectionLabel": "Engagement",
+    "activeTitle": "Active users",
+    "kpiDau": "DAU",
+    "kpiWau": "WAU",
+    "kpiMau": "MAU",
+    "activeTrendLabel": "Daily active users",
+    "returningSectionLabel": "Loyalty",
+    "returningTitle": "Returning users",
+    "retReturningUsers": "Returning users",
+    "retReturnRate": "Returning rate",
+    "retAvgInterval": "Avg return interval",
+    "returningTrendLabel": "Returning users / day"
   },
   "Sidebar": {
     "services": "Services",
