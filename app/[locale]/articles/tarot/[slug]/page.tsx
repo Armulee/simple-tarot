@@ -238,6 +238,7 @@ export default async function TarotCardArticlePage({
                 eyebrow={eyebrow}
                 topHint={t("tapToFlip")}
                 originContext={originContext}
+                suggestions={t.raw("askSuggestions") as string[]}
                 imageSrc={`/assets/rider-waite-tarot/${card.slug}.png`}
                 badges={{
                     yesNo: meaning.upright.overview.yesNo,

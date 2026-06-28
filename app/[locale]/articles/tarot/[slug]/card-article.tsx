@@ -35,6 +35,7 @@ export type CardArticleProps = {
     eyebrow: string
     topHint: string
     originContext: OriginContext
+    suggestions: string[]
     imageSrc: string
     badges: { yesNo?: string; zodiac?: string; element?: string }
     upright: OrientationView
@@ -304,6 +305,7 @@ export function CardArticle(props: CardArticleProps) {
                 placeholder={labels.askPlaceholder}
                 eyebrow={labels.askEyebrow}
                 hint={labels.askHint}
+                suggestions={props.suggestions}
             />
         </>
     )

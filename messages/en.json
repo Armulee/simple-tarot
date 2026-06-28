@@ -1954,6 +1954,12 @@
     "askPlaceholder": "Ask a question about this card...",
     "askEyebrow": "About this card",
     "askHint": "explains its meaning only",
+    "askSuggestions": [
+        "What does this card mean?",
+        "What does it mean for love?",
+        "What does it say about work & career?",
+        "How does the reversed differ from upright?"
+    ],
     "lightGathers": "Light gathers",
     "lightRecedes": "Light recedes",
     "tapToFlip": "Tap to change card orientation",
