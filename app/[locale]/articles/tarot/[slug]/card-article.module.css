@@ -652,34 +652,17 @@
     border-radius: 16px;
     padding: 28px 28px 30px;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
-    overflow: hidden;
     transition:
         border-color 0.45s var(--ease),
         transform 0.45s var(--ease),
         background 0.45s var(--ease),
         box-shadow 0.45s var(--ease);
 }
-/* corner glow that blooms on hover */
-.area::before {
-    content: "";
-    position: absolute;
-    top: -40%;
-    right: -30%;
-    width: 60%;
-    height: 80%;
-    background: radial-gradient(circle, var(--glow), transparent 70%);
-    opacity: 0;
-    transition: opacity 0.5s var(--ease);
-    pointer-events: none;
-}
 .area:hover {
     border-color: var(--line-strong);
     transform: translateY(-5px);
     background: linear-gradient(180deg, rgba(200, 168, 106, 0.06), rgba(255, 255, 255, 0));
     box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.8);
-}
-.area:hover::before {
-    opacity: 0.5;
 }
 .area .ico {
     display: grid;
