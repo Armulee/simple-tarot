@@ -63,7 +63,7 @@ const CARDS: CardDef[] = [
         iconColor: "text-rose-200/80",
     },
     {
-        key: "revenue" as keyof AnalyticsTotals,
+        key: "revenueUsd",
         labelKey: "kpiRevenue",
         icon: DollarSign,
         gradient: "from-green-500/20 to-emerald-600/10",
@@ -117,9 +117,10 @@ export function DataTotals({
                         if (c.currency && totals && !totals.revenueAvailable)
                             return null
                         const Icon = c.icon
-                        const raw = totals
-                            ? (totals[c.key] as number)
-                            : 0
+                        const raw =
+                            totals && typeof totals[c.key] === "number"
+                                ? (totals[c.key] as number)
+                                : 0
                         const value = c.currency
                             ? `$${raw.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
                             : raw.toLocaleString()
