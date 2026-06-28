@@ -493,6 +493,37 @@ END $$;
 
 
 -- ---------------------------------------------------------------------------
+-- 9) All-time totals (no range) for the top "Data" summary cards.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION admin_analytics_totals()
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+    v_rev_available boolean;
+    result jsonb;
+BEGIN
+    SELECT EXISTS (SELECT 1 FROM billing_transactions WHERE status = 'succeeded')
+      INTO v_rev_available;
+
+    WITH day_dist AS (
+        SELECT actor_key, count(DISTINCT day_local) AS days
+        FROM admin_analytics_sessions GROUP BY actor_key
+    )
+    SELECT jsonb_build_object(
+        'totalUsers',     (SELECT count(*) FROM stars),
+        'returningUsers', (SELECT count(*) FROM day_dist WHERE days >= 2),
+        'totalReadings',  COALESCE((SELECT sum(reading_count) FROM admin_analytics_sessions), 0),
+        'totalSessions',  (SELECT count(*) FROM admin_analytics_sessions),
+        'totalMessages',  COALESCE((SELECT sum(message_count) FROM admin_analytics_sessions), 0),
+        'subscribers',    (SELECT count(*) FROM billing_subscriptions WHERE status IN ('active','trialing')),
+        'revenueAvailable', v_rev_available,
+        'revenueUsd',     COALESCE((SELECT sum(amount_cents) FROM billing_transactions WHERE status='succeeded'), 0) / 100.0
+    ) INTO result;
+    RETURN result;
+END $$;
+
+
+-- ---------------------------------------------------------------------------
 -- Permissions: callable by the service role (admin API uses the service key).
 -- ---------------------------------------------------------------------------
 GRANT EXECUTE ON FUNCTION admin_analytics_returning(timestamptz, timestamptz)  TO service_role;
@@ -503,3 +534,4 @@ GRANT EXECUTE ON FUNCTION admin_analytics_retention(timestamptz, timestamptz)   
 GRANT EXECUTE ON FUNCTION admin_analytics_conversion(timestamptz, timestamptz)  TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_context(timestamptz, timestamptz, timestamptz, timestamptz) TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_heatmap(timestamptz, timestamptz)    TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_totals()                             TO service_role;
