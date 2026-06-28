@@ -401,6 +401,59 @@ END $$;
 
 
 -- ---------------------------------------------------------------------------
+-- 7) Context totals for the hero KPI row (cumulative + per-range + sparklines)
+--    Pulls from stars / billing_subscriptions / billing_transactions.
+--    Takes current AND previous ranges so the API can show % change.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION admin_analytics_context(
+    p_start      timestamptz,
+    p_end        timestamptz,
+    p_prev_start timestamptz,
+    p_prev_end   timestamptz
+) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+    v_today  date := (now() AT TIME ZONE 'Asia/Bangkok')::date;
+    v_start  date := (p_start AT TIME ZONE 'Asia/Bangkok')::date;
+    v_end    date := LEAST((p_end AT TIME ZONE 'Asia/Bangkok')::date, v_today - 1);
+    v_pstart date := (p_prev_start AT TIME ZONE 'Asia/Bangkok')::date;
+    v_pend   date := (p_prev_end AT TIME ZONE 'Asia/Bangkok')::date;
+    v_rev_available boolean;
+    result jsonb;
+BEGIN
+    SELECT EXISTS (SELECT 1 FROM billing_transactions WHERE status = 'succeeded')
+      INTO v_rev_available;
+
+    SELECT jsonb_build_object(
+        -- cumulative users (stars) as of each window end
+        'totalUsers',     (SELECT count(*) FROM stars WHERE (created_at AT TIME ZONE 'Asia/Bangkok')::date <= v_end),
+        'totalUsersPrev', (SELECT count(*) FROM stars WHERE (created_at AT TIME ZONE 'Asia/Bangkok')::date <= v_pend),
+        -- active subscribers as of each window end
+        'subscribers',     (SELECT count(*) FROM billing_subscriptions WHERE status IN ('active','trialing') AND (created_at AT TIME ZONE 'Asia/Bangkok')::date <= v_end),
+        'subscribersPrev', (SELECT count(*) FROM billing_subscriptions WHERE status IN ('active','trialing') AND (created_at AT TIME ZONE 'Asia/Bangkok')::date <= v_pend),
+        -- revenue (USD) summed within each range
+        'revenueAvailable', v_rev_available,
+        'revenueUsd',  COALESCE((SELECT sum(amount_cents) FROM billing_transactions WHERE status='succeeded' AND (created_at AT TIME ZONE 'Asia/Bangkok')::date BETWEEN v_start  AND v_end ), 0) / 100.0,
+        'revenuePrev', COALESCE((SELECT sum(amount_cents) FROM billing_transactions WHERE status='succeeded' AND (created_at AT TIME ZONE 'Asia/Bangkok')::date BETWEEN v_pstart AND v_pend), 0) / 100.0,
+        -- daily sparkline series across the current range
+        'newUsersTrend', COALESCE((SELECT jsonb_agg(jsonb_build_object('date', day, 'value', value) ORDER BY day) FROM (
+            SELECT g.d::date AS day,
+                (SELECT count(*) FROM stars s WHERE (s.created_at AT TIME ZONE 'Asia/Bangkok')::date = g.d::date) AS value
+            FROM generate_series(v_start::timestamp, v_end::timestamp, interval '1 day') g(d)) t), '[]'::jsonb),
+        'subscribersTrend', COALESCE((SELECT jsonb_agg(jsonb_build_object('date', day, 'value', value) ORDER BY day) FROM (
+            SELECT g.d::date AS day,
+                (SELECT count(*) FROM billing_subscriptions b WHERE (b.created_at AT TIME ZONE 'Asia/Bangkok')::date = g.d::date) AS value
+            FROM generate_series(v_start::timestamp, v_end::timestamp, interval '1 day') g(d)) t), '[]'::jsonb),
+        'revenueTrend', COALESCE((SELECT jsonb_agg(jsonb_build_object('date', day, 'value', value) ORDER BY day) FROM (
+            SELECT g.d::date AS day,
+                COALESCE((SELECT sum(amount_cents) FROM billing_transactions x WHERE x.status='succeeded' AND (x.created_at AT TIME ZONE 'Asia/Bangkok')::date = g.d::date), 0) / 100.0 AS value
+            FROM generate_series(v_start::timestamp, v_end::timestamp, interval '1 day') g(d)) t), '[]'::jsonb)
+    ) INTO result;
+    RETURN result;
+END $$;
+
+
+-- ---------------------------------------------------------------------------
 -- Permissions: callable by the service role (admin API uses the service key).
 -- ---------------------------------------------------------------------------
 GRANT EXECUTE ON FUNCTION admin_analytics_returning(timestamptz, timestamptz)  TO service_role;
@@ -409,3 +462,4 @@ GRANT EXECUTE ON FUNCTION admin_analytics_reading(timestamptz, timestamptz)     
 GRANT EXECUTE ON FUNCTION admin_analytics_engagement(timestamptz, timestamptz)  TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_retention(timestamptz, timestamptz)   TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_conversion(timestamptz, timestamptz)  TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_context(timestamptz, timestamptz, timestamptz, timestamptz) TO service_role;
