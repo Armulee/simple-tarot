@@ -37,6 +37,11 @@ export type CardArticleProps = {
     originContext: OriginContext
     suggestions: string[]
     imageSrc: string
+    /** Which orientation this page is server-rendered for (drives SSR + URL). */
+    initialOrientation?: Orientation
+    /** Locale-aware hrefs for the two orientation pages (crawlable toggle). */
+    uprightHref: string
+    reversedHref: string
     badges: { yesNo?: string; zodiac?: string; element?: string }
     upright: OrientationView
     reversed: OrientationView
@@ -99,10 +104,14 @@ export function CardArticle(props: CardArticleProps) {
     const { upright, reversed, labels, badges } = props
     // `orientation` drives the attribute (card flip + accent shift, instant).
     // `content` drives the swappable text (fades out, then updates).
-    const [orientation, setOrientation] = useState<Orientation>("upright")
-    const [content, setContent] = useState<Orientation>("upright")
+    const initial = props.initialOrientation ?? "upright"
+    const [orientation, setOrientation] = useState<Orientation>(initial)
+    const [content, setContent] = useState<Orientation>(initial)
     const [fading, setFading] = useState(false)
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    const hrefFor = (o: Orientation) =>
+        o === "reversed" ? props.reversedHref : props.uprightHref
 
     // Reflect the orientation in the chat context strip + AI summary: when the
     // card is flipped, the pill reads "{cardName} (Reversed)" and the AI is
@@ -122,6 +131,15 @@ export function CardArticle(props: CardArticleProps) {
         (next: Orientation) => {
             setOrientation((curr) => {
                 if (curr === next) return curr
+                // Keep the URL in sync with the visible orientation (so it's
+                // shareable + matches the SSR page) without a reload.
+                if (typeof window !== "undefined") {
+                    const href =
+                        next === "reversed"
+                            ? props.reversedHref
+                            : props.uprightHref
+                    window.history.replaceState(window.history.state, "", href)
+                }
                 const reduce =
                     typeof window !== "undefined" &&
                     window.matchMedia("(prefers-reduced-motion:reduce)").matches
@@ -138,7 +156,7 @@ export function CardArticle(props: CardArticleProps) {
                 return next
             })
         },
-        []
+        [props.uprightHref, props.reversedHref]
     )
 
     const onKeyDown = (e: React.KeyboardEvent) => {
@@ -167,25 +185,37 @@ export function CardArticle(props: CardArticleProps) {
                         aria-label={labels.orientationGroup}
                         onKeyDown={onKeyDown}
                     >
-                        <button
+                        <a
                             className={styles.seg}
-                            type='button'
-                            aria-pressed={orientation === "upright"}
-                            onClick={() => choose("upright")}
+                            href={hrefFor("upright")}
+                            data-active={orientation === "upright"}
+                            aria-current={
+                                orientation === "upright" ? "page" : undefined
+                            }
+                            onClick={(e) => {
+                                e.preventDefault()
+                                choose("upright")
+                            }}
                         >
                             {labels.upright}
                             <span className={styles.sub}>{labels.lightGathers}</span>
-                        </button>
+                        </a>
                         <span className={styles.moon} aria-hidden='true' />
-                        <button
+                        <a
                             className={styles.seg}
-                            type='button'
-                            aria-pressed={orientation === "reversed"}
-                            onClick={() => choose("reversed")}
+                            href={hrefFor("reversed")}
+                            data-active={orientation === "reversed"}
+                            aria-current={
+                                orientation === "reversed" ? "page" : undefined
+                            }
+                            onClick={(e) => {
+                                e.preventDefault()
+                                choose("reversed")
+                            }}
                         >
                             {labels.reversed}
                             <span className={styles.sub}>{labels.lightRecedes}</span>
-                        </button>
+                        </a>
                     </div>
 
                     <div className={styles.eyebrow}>{props.eyebrow}</div>

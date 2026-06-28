@@ -526,6 +526,8 @@
     background: none;
     border: 0;
     cursor: pointer;
+    display: inline-block;
+    text-decoration: none;
     font-family: var(--serif);
     font-size: clamp(1.05rem, 3vw, 1.4rem);
     letter-spacing: 0.5px;
@@ -534,10 +536,10 @@
     position: relative;
     transition: color 0.5s var(--ease);
 }
-.seg[aria-pressed="true"] {
+.seg[data-active="true"] {
     color: var(--moonlight);
 }
-.seg[aria-pressed="true"]::after {
+.seg[data-active="true"]::after {
     content: "";
     position: absolute;
     left: 0;
@@ -556,7 +558,7 @@
     text-align: center;
     margin-top: 6px;
 }
-.seg[aria-pressed="true"] .sub {
+.seg[data-active="true"] .sub {
     color: var(--accent);
 }
 
