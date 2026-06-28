@@ -80,6 +80,9 @@ export type ActivityController = {
     points: ActivityPoint[]
     granularity: ActivityGranularity
     locale: string
+    /** Resolved window (YYYY-MM-DD), shared with the analytics endpoint. */
+    fromISO: string
+    toISO: string
 }
 
 /** Shared range + data source for all the per-metric charts. */
@@ -121,19 +124,24 @@ export function useActivityData(): ActivityController {
         }
     }, [])
 
-    useEffect(() => {
+    // The resolved [from, to] window, shared by every chart and the analytics.
+    const { fromISO, toISO } = useMemo(() => {
         if (range === "custom") {
-            if (!customFrom || !customTo) return
-            fetchData(customFrom, customTo)
-            return
+            return { fromISO: customFrom, toISO: customTo }
         }
         const now = new Date()
-        const to = toISODate(now)
-        const from = toISODate(
-            new Date(now.getTime() - (RANGE_DAYS[range] - 1) * 86400000),
-        )
-        fetchData(from, to)
-    }, [range, customFrom, customTo, fetchData])
+        return {
+            toISO: toISODate(now),
+            fromISO: toISODate(
+                new Date(now.getTime() - (RANGE_DAYS[range] - 1) * 86400000),
+            ),
+        }
+    }, [range, customFrom, customTo])
+
+    useEffect(() => {
+        if (!fromISO || !toISO) return
+        fetchData(fromISO, toISO)
+    }, [fromISO, toISO, fetchData])
 
     const points = useMemo(() => data?.points ?? [], [data])
     const granularity = data?.granularity ?? "day"
@@ -151,6 +159,8 @@ export function useActivityData(): ActivityController {
         points,
         granularity,
         locale,
+        fromISO,
+        toISO,
     }
 }
 

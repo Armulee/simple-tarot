@@ -148,7 +148,22 @@
     "range_6m": "6M",
     "range_1y": "1Y",
     "range_5y": "5Y",
-    "range_custom": "Custom"
+    "range_custom": "Custom",
+    "kpiSectionLabel": "Key metrics",
+    "kpiD7Retention": "D7 Retention",
+    "kpiD7RetentionSub": "Active on day 7",
+    "kpiStickiness": "Stickiness",
+    "kpiStickinessSub": "DAU / MAU",
+    "kpiWowGrowth": "WoW Growth",
+    "kpiWowGrowthSub": "Readings, last 7d vs prior 7d",
+    "kpiRepeatRate": "Repeat Rate",
+    "kpiRepeatRateSub": ">1 reading lifetime",
+    "kpiFreeToPaid": "Free → Paid",
+    "kpiFreeToPaidSub": "Registered → subscribed",
+    "kpiTotalUsers": "Total Users",
+    "kpiTotalReadings": "Total Readings",
+    "kpiSubscribers": "Subscribers",
+    "kpiRevenue": "Revenue"
   },
   "Sidebar": {
     "services": "Services",

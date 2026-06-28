@@ -148,7 +148,22 @@
     "range_6m": "6 เดือน",
     "range_1y": "1 ปี",
     "range_5y": "5 ปี",
-    "range_custom": "กำหนดเอง"
+    "range_custom": "กำหนดเอง",
+    "kpiSectionLabel": "ตัวชี้วัดหลัก",
+    "kpiD7Retention": "Retention วันที่ 7",
+    "kpiD7RetentionSub": "กลับมาใช้งานในวันที่ 7",
+    "kpiStickiness": "ความเหนียวแน่น",
+    "kpiStickinessSub": "DAU / MAU",
+    "kpiWowGrowth": "เติบโตรายสัปดาห์",
+    "kpiWowGrowthSub": "การอ่าน 7 วันล่าสุดเทียบ 7 วันก่อน",
+    "kpiRepeatRate": "อัตรากลับมาใช้ซ้ำ",
+    "kpiRepeatRateSub": "อ่านมากกว่า 1 ครั้งตลอดอายุ",
+    "kpiFreeToPaid": "ฟรี → จ่ายเงิน",
+    "kpiFreeToPaidSub": "สมัคร → เป็นสมาชิก",
+    "kpiTotalUsers": "ผู้ใช้ทั้งหมด",
+    "kpiTotalReadings": "การอ่านทั้งหมด",
+    "kpiSubscribers": "ผู้สมัครสมาชิก",
+    "kpiRevenue": "รายได้"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",

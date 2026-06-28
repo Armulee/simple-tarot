@@ -9,12 +9,15 @@ import {
     MetricChart,
     useActivityData,
 } from "@/components/admin/activity-chart"
+import { HeroKpis } from "@/components/admin/analytics/hero-kpis"
+import { useAnalytics } from "@/components/admin/analytics/use-analytics"
 import type { MetricKey } from "@/lib/admin/activity-metrics"
 
 export default function AdminDashboardPage() {
     const t = useTranslations("Admin")
     const metrics = useAdmin()
     const activity = useActivityData()
+    const analytics = useAnalytics(activity.fromISO, activity.toISO)
 
     if (!metrics) return null
 
@@ -99,10 +102,17 @@ export default function AdminDashboardPage() {
                     </Link>
                 </div>
 
-                {/* Shared time-range filter for every stat's chart. */}
+                {/* Shared time-range filter for every stat's chart + analytics. */}
                 <div className="flex justify-end">
                     <ActivityRangeControls c={activity} />
                 </div>
+
+                {/* Dashboard summary — hero KPI row. */}
+                <HeroKpis
+                    hero={analytics.data?.hero}
+                    loading={analytics.loading}
+                    error={analytics.error}
+                />
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {cards.map(
