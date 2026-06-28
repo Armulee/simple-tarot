@@ -78,6 +78,18 @@ export type AnalyticsContext = {
     revenueTrend: TrendPoint[]
 }
 
+/** All-time summary numbers for the top "Data" cards (no date range). */
+export type AnalyticsTotals = {
+    totalUsers: number
+    returningUsers: number
+    totalReadings: number
+    totalSessions: number
+    totalMessages: number
+    subscribers: number
+    revenueAvailable: boolean
+    revenueUsd: number
+}
+
 export type KpiFormat = "percent" | "number" | "currency"
 
 export type HeroKpi = {

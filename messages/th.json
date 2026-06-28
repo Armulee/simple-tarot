@@ -150,6 +150,7 @@
     "range_5y": "5 ปี",
     "range_custom": "กำหนดเอง",
     "kpiSectionLabel": "ตัวชี้วัดหลัก",
+    "dataSectionLabel": "ข้อมูล",
     "kpiD7Retention": "Retention วันที่ 7",
     "kpiD7RetentionSub": "กลับมาใช้งานในวันที่ 7",
     "kpiStickiness": "ความเหนียวแน่น",

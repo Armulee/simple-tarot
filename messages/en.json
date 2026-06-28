@@ -150,6 +150,7 @@
     "range_5y": "5Y",
     "range_custom": "Custom",
     "kpiSectionLabel": "Key metrics",
+    "dataSectionLabel": "Data",
     "kpiD7Retention": "D7 Retention",
     "kpiD7RetentionSub": "Active on day 7",
     "kpiStickiness": "Stickiness",
