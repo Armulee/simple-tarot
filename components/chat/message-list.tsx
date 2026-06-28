@@ -20,6 +20,7 @@ import { ConsultingBadge } from "@/components/consulting-badge"
 import { DynamicThinking } from "@/components/chat/dynamic-thinking"
 import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
+import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
@@ -536,7 +537,9 @@ export default function MessageList({
                                     className='flex flex-col items-end gap-2'
                                 >
                                     {message.originContextSnapshot?.kind ===
-                                    "calendar-day" ? (
+                                        "calendar-day" ||
+                                    message.originContextSnapshot?.kind ===
+                                        "tarot-card" ? (
                                         <div
                                             className='inline-flex max-w-[80%] items-center gap-1.5 text-xs text-amber-200/70'
                                             role='note'
@@ -827,6 +830,9 @@ export default function MessageList({
                                                     question: displayQuestion,
                                                 }}
                                                 privacyAliases={privacyAliases}
+                                                onRegenerateHoroscope={
+                                                    onRegenerateHoroscope
+                                                }
                                                 onAskAspectDetail={
                                                     onAskAspectDetail
                                                 }
@@ -895,11 +901,41 @@ export default function MessageList({
                                                                 <ActionSection
                                                                     variant='embedded'
                                                                     mode='horoscope'
+                                                                    theme={
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.mode ===
+                                                                        "technical"
+                                                                            ? "astrology-technical"
+                                                                            : "astrology"
+                                                                    }
+                                                                    allowVideo={
+                                                                        false
+                                                                    }
+                                                                    planets={extractTransitPlanets(
+                                                                        message.chartData,
+                                                                    )}
                                                                     question={
                                                                         displayQuestion
                                                                     }
                                                                     interpretation={unmask(
                                                                         message.text,
+                                                                    )}
+                                                                    headline={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.headline,
+                                                                    )}
+                                                                    subtitle={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.keyMessage
+                                                                            ?.subtitle,
+                                                                    )}
+                                                                    detailedHtml={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.detailedHtml,
                                                                     )}
                                                                     messageId={
                                                                         message.id

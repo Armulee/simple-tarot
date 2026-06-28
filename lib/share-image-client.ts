@@ -21,6 +21,23 @@ export type ShareImageRequest = {
     cta?: string
     width: number
     height: number
+    /**
+     * Selects the painted background set and layout flavor. "tarot" (default)
+     * keeps the card-spread poster; "astrology" swaps in the daily solar-system
+     * skies (linear planet row); "astrology-technical" uses the orbit-wheel
+     * skies for the technical/ephemeris reply.
+     */
+    theme?: "tarot" | "astrology" | "astrology-technical"
+    /**
+     * Transit planet positions (sign + degree) for the viewed day, stamped
+     * under the painted planets on the astrology poster.
+     */
+    planets?: Array<{
+        name: string
+        sign?: string | null
+        degree?: number | null
+        retrograde?: boolean | null
+    }>
     /** Render on a transparent canvas (for video compositing). */
     transparent?: boolean
 }

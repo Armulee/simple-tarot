@@ -11,6 +11,12 @@ import {
     truncate,
     truncateRichBlocks,
 } from "@/lib/share-rich-text"
+import {
+    ASTRO_BAND_FRACTION,
+    ASTRO_TECHNICAL_BAND_FRACTION,
+    buildAstroPlanetLabels,
+    type TransitPlanetInput,
+} from "@/lib/share-astrology-planets"
 
 export type ShareImageAspect = "story" | "post" | "square" | "landscape"
 
@@ -34,6 +40,13 @@ export interface ShareImageMockProps {
     detailedHtml?: string
     insights?: string[]
     cta?: string
+    /**
+     * Selects the painted background set: "tarot" (default), the daily
+     * "astrology" solar-system row, or the "astrology-technical" orbit wheel.
+     */
+    theme?: "tarot" | "astrology" | "astrology-technical"
+    /** Transit positions stamped under the painted planets (astrology only). */
+    planets?: TransitPlanetInput[]
     /**
      * Loop this film behind the elements instead of the painted sky —
      * previews the video export, whose overlay carries its own gold frame.
@@ -60,6 +73,8 @@ export default function ShareImageMock({
     detailedHtml,
     insights,
     cta,
+    theme = "tarot",
+    planets,
     videoBackgroundSrc,
 }: ShareImageMockProps) {
     const isStory = aspect === "story"
@@ -67,6 +82,26 @@ export default function ShareImageMock({
     const isSquare = aspect === "square"
     const isLandscape = aspect === "landscape"
     const isPortraitColumn = isStory || isPost
+
+    // Astrology posters reserve a bottom band for the painted planets and
+    // (daily only) stamp the day's transit positions under each — mirrors the
+    // server. The technical theme uses the orbit-wheel art, a larger band and
+    // no per-planet labels.
+    const isTechnical = theme === "astrology-technical"
+    const isAstro =
+        (theme === "astrology" || isTechnical) && !videoBackgroundSrc
+    const astroBand = isAstro
+        ? (isTechnical ? ASTRO_TECHNICAL_BAND_FRACTION : ASTRO_BAND_FRACTION)[
+              aspect
+          ]
+        : 0
+    const astroLabels = useMemo(
+        () =>
+            isAstro && !isTechnical
+                ? buildAstroPlanetLabels(planets, aspect)
+                : [],
+        [isAstro, isTechnical, planets, aspect],
+    )
 
     const refW = isLandscape ? 1920 : 1080
     const s = (px: number) => `${((px / refW) * 100).toFixed(3)}cqw`
@@ -98,19 +133,33 @@ export default function ShareImageMock({
     // Same content pipeline as the server: strip card names, parse the
     // rich html, fall back to the plain interpretation, truncate.
     const blocks = useMemo<RichBlock[]>(() => {
-        const budget = isLandscape
-            ? 420
-            : isSquare
-              ? 0
-              : isPost
-                ? count >= 4
-                    ? 250
-                    : 270
-                : count >= 7
-                  ? 400
-                  : count >= 4
-                    ? 500
-                    : 600
+        const budget = isAstro
+            ? isSquare
+                ? 0
+                : isTechnical
+                  ? isLandscape
+                      ? 0
+                      : isPost
+                        ? 280
+                        : 340
+                  : isLandscape
+                    ? 230
+                    : isPost
+                      ? 300
+                      : 380
+            : isLandscape
+              ? 420
+              : isSquare
+                ? 0
+                : isPost
+                  ? count >= 4
+                      ? 250
+                      : 270
+                  : count >= 7
+                    ? 400
+                    : count >= 4
+                      ? 500
+                      : 600
         if (budget === 0) return []
         let parsed = parseDetailedHtml(
             stripCardNamesFromHtml(detailedHtml ?? "", cards),
@@ -130,6 +179,8 @@ export default function ShareImageMock({
         interpretation,
         cards,
         count,
+        isAstro,
+        isTechnical,
         isLandscape,
         isSquare,
         isPost,
@@ -250,6 +301,19 @@ export default function ShareImageMock({
         (insights ?? []).some((i) => i.trim().length > 0)
     const questionFontSize = isStory ? 38 : isPost ? 33 : isSquare ? 32 : 34
     const columnGap = isStory ? 26 : isPost ? 18 : isSquare ? 22 : 20
+    // Mirrors the server: astrology fits the reading panel to its content and
+    // hard-caps the height so the AI text truncates above the planet band.
+    const astroReadingMaxH = isTechnical
+        ? isLandscape
+            ? 150
+            : isPost
+              ? 300
+              : 380
+        : isLandscape
+          ? 212
+          : isPost
+            ? 320
+            : 430
     const ctaText =
         truncate(cta ?? "", 70) || "Ask your own question at askingfate.com"
 
@@ -488,8 +552,9 @@ export default function ShareImageMock({
                     background: PANEL_BG,
                     border: PANEL_BORDER,
                     maxWidth: "100%",
-                    flex: 1,
-                    minHeight: 0,
+                    ...(isAstro
+                        ? { maxHeight: s(astroReadingMaxH) }
+                        : { flex: 1, minHeight: 0 }),
                 }}
             >
                 {sectionLabel("The reading", isPortraitColumn ? 60 : 52)}
@@ -498,8 +563,7 @@ export default function ShareImageMock({
                     style={{
                         fontSize: s(detailFontSize),
                         lineHeight: 1.6,
-                        flex: 1,
-                        minHeight: 0,
+                        ...(isAstro ? {} : { flex: 1, minHeight: 0 }),
                     }}
                 >
                     {blocks.map((block, blockIdx) => (
@@ -557,7 +621,7 @@ export default function ShareImageMock({
             className='flex items-center justify-center self-center'
             style={{
                 gap: s(14),
-                marginTop: isStory ? undefined : "auto",
+                marginTop: isAstro || isStory ? undefined : "auto",
                 padding: `${s(isStory ? 15 : 13)} ${s(isStory ? 42 : 38)}`,
                 borderRadius: 9999,
                 border: "1.5px solid rgba(216,181,109,0.65)",
@@ -656,7 +720,7 @@ export default function ShareImageMock({
                 </>
             ) : (
                 <Image
-                    src={`/assets/share/${aspect}-background.jpg`}
+                    src={`/assets/share/${theme === "astrology" ? "astrology/" : isTechnical ? "astrology-technical/" : ""}${aspect}-background.jpg`}
                     alt=''
                     fill
                     unoptimized
@@ -664,9 +728,42 @@ export default function ShareImageMock({
                     className='object-cover'
                 />
             )}
+            {astroLabels.map((label) => (
+                <div
+                    key={`astro-${label.name}`}
+                    className='absolute z-10'
+                    style={{
+                        left: `${(label.leftPct * 100).toFixed(2)}%`,
+                        top: `${(label.topPct * 100).toFixed(2)}%`,
+                        transform: "translateX(-50%)",
+                    }}
+                >
+                    <div
+                        style={{
+                            padding: `${s(2)} ${s(12)}`,
+                            borderRadius: 9999,
+                            background: "rgba(7,11,34,0.62)",
+                            border: "1px solid rgba(216,181,109,0.45)",
+                            color: label.retrograde ? "#fda4af" : "#f3e2b0",
+                            fontSize: s(isLandscape ? 22 : 24),
+                            fontWeight: 700,
+                            whiteSpace: "nowrap",
+                            lineHeight: 1.2,
+                        }}
+                    >
+                        {label.text}
+                    </div>
+                </div>
+            ))}
             <div
-                className='relative z-10 flex h-full w-full flex-col'
-                style={{ padding: s(72), boxSizing: "border-box" }}
+                className='relative z-10 flex w-full flex-col'
+                style={{
+                    height: astroBand
+                        ? `${((1 - astroBand) * 100).toFixed(2)}%`
+                        : "100%",
+                    padding: s(72),
+                    boxSizing: "border-box",
+                }}
             >
                 <div
                     className='mx-auto flex w-full flex-col'

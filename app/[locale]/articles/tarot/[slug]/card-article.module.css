@@ -1,0 +1,857 @@
+/* Celestial-manuscript card article — scoped to the tarot card route only.
+   Tokens live on .root so they never leak into the global theme. */
+
+.root {
+    --ink: #0a0a16;
+    --veil: #13132a;
+    --veil-2: #1b1b3b;
+    --line: rgba(200, 168, 106, 0.18);
+    --line-strong: rgba(200, 168, 106, 0.4);
+    --moonlight: #ece7da;
+    --mist: #9a98b8;
+    --mist-dim: #6f6e91;
+    --accent: #c8a86a;
+    --accent-soft: #e6d2a3;
+    /* card aura — soft neutral moonlight, not gold */
+    --glow: rgba(173, 182, 224, 0.24);
+    --serif: var(--font-cormorant), Georgia, serif;
+    --sans: var(--font-manrope), system-ui, sans-serif;
+    --maxw: 1080px;
+    --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+    position: relative;
+    z-index: 1;
+    color: var(--moonlight);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    /* clear the fixed composer pinned to the bottom of the viewport */
+    padding-bottom: clamp(180px, 26vh, 240px);
+}
+
+/* Reversed: light recedes — cooler, dimmer, silvered */
+.root[data-orientation="reversed"] {
+    --accent: #a9b6c9;
+    --accent-soft: #d3dae5;
+    --glow: rgba(150, 175, 215, 0.26);
+    --line: rgba(169, 182, 201, 0.18);
+    --line-strong: rgba(169, 182, 201, 0.36);
+}
+
+/* faint vertical light, like a veil — centered, balanced, modern */
+.root::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(90% 55% at 50% 120%, rgba(60, 60, 120, 0.1), transparent 60%);
+    transition: background 0.8s var(--ease);
+}
+/* faint scattered stars for depth */
+.root::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background-image:
+        radial-gradient(1px 1px at 12% 18%, rgba(230, 210, 163, 0.7), transparent),
+        radial-gradient(1px 1px at 82% 12%, rgba(230, 210, 163, 0.5), transparent),
+        radial-gradient(1.4px 1.4px at 68% 32%, rgba(230, 210, 163, 0.55), transparent),
+        radial-gradient(1px 1px at 28% 46%, rgba(230, 210, 163, 0.4), transparent),
+        radial-gradient(1px 1px at 92% 56%, rgba(230, 210, 163, 0.45), transparent),
+        radial-gradient(1.2px 1.2px at 8% 72%, rgba(230, 210, 163, 0.4), transparent),
+        radial-gradient(1px 1px at 54% 84%, rgba(230, 210, 163, 0.35), transparent);
+    background-repeat: no-repeat;
+    animation: twinkle 6s ease-in-out infinite;
+}
+@keyframes twinkle {
+    0%,
+    100% {
+        opacity: 0.32;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.root :focus-visible {
+    outline: 2px solid var(--accent-soft);
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+.root ::selection {
+    background: var(--accent);
+    color: var(--ink);
+}
+
+.wrap {
+    position: relative;
+    z-index: 1;
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ---------- centered breadcrumb header ---------- */
+.head {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(12px, 3vw, 22px);
+    padding: clamp(20px, 4vw, 32px) 24px 0;
+    max-width: var(--maxw);
+    margin: 0 auto;
+}
+/* gold hairlines flanking the breadcrumb — shift to silver when reversed */
+.head::before,
+.head::after {
+    content: "";
+    height: 1px;
+    width: min(140px, 16vw);
+    transition: background 0.6s var(--ease);
+}
+.head::before {
+    background: linear-gradient(90deg, transparent, var(--line-strong));
+}
+.head::after {
+    background: linear-gradient(90deg, var(--line-strong), transparent);
+}
+.headMeta {
+    font-size: clamp(0.64rem, 1.6vw, 0.74rem);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+    text-align: center;
+    transition: color 0.6s var(--ease);
+}
+
+/* ---------- hero (centered column) ---------- */
+.hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 22px;
+    padding: clamp(20px, 4vw, 40px) 0 clamp(28px, 4vw, 44px);
+}
+.hero > * {
+    margin: 0;
+}
+.cardStage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+}
+/* soft elliptical aura that hugs the card — centered via inset+margin so the
+   breathe transform (scale) doesn't fight a centering translate */
+.glow {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 112%;
+    height: 92%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, var(--glow), transparent 70%);
+    filter: blur(26px);
+    animation: breathe 7s var(--ease) infinite;
+    transition: background 0.8s var(--ease);
+}
+/* second, wider+slower halo for layered depth */
+.glow2 {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 150%;
+    height: 118%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, var(--glow), transparent 62%);
+    filter: blur(56px);
+    opacity: 0.55;
+    animation: breathe 11s var(--ease) infinite reverse;
+    transition: background 0.8s var(--ease);
+}
+@keyframes breathe {
+    0%,
+    100% {
+        transform: scale(0.94);
+        opacity: 0.75;
+    }
+    50% {
+        transform: scale(1.06);
+        opacity: 1;
+    }
+}
+/* refined hairline frame — transparent so the dark page (not a brown box)
+   shows through; the glow lights it softly */
+.cardFrame {
+    position: relative;
+    width: 100%;
+    max-width: 188px;
+    padding: 8px;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+    border: 1px solid var(--line);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2) inset;
+    transition:
+        transform 0.6s var(--ease),
+        border-color 0.6s var(--ease);
+}
+.cardStage:hover .cardFrame {
+    border-color: var(--line-strong);
+}
+.cardStage:hover .cardFrame {
+    transform: translateY(-6px);
+}
+.corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--accent);
+    opacity: 0.7;
+    transition: border-color 0.6s var(--ease);
+    pointer-events: none;
+}
+.corner[data-c="tl"] {
+    top: 4px;
+    left: 4px;
+    border-right: 0;
+    border-bottom: 0;
+    border-top-left-radius: 6px;
+}
+.corner[data-c="tr"] {
+    top: 4px;
+    right: 4px;
+    border-left: 0;
+    border-bottom: 0;
+    border-top-right-radius: 6px;
+}
+.corner[data-c="bl"] {
+    bottom: 4px;
+    left: 4px;
+    border-right: 0;
+    border-top: 0;
+    border-bottom-left-radius: 6px;
+}
+.corner[data-c="br"] {
+    bottom: 4px;
+    right: 4px;
+    border-left: 0;
+    border-top: 0;
+    border-bottom-right-radius: 6px;
+}
+.tarotCard {
+    position: relative;
+    width: 100%;
+    /* matches the Rider-Waite scans (~0.586) so the art fills edge-to-edge with
+       no letterbox — the rounded corners then clip the card cleanly */
+    aspect-ratio: 500 / 859;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+        0 30px 70px -28px rgba(0, 0, 0, 0.85),
+        0 0 0 1px var(--line-strong) inset;
+    transition:
+        transform 0.9s var(--ease),
+        filter 0.9s var(--ease);
+}
+.tarotCard :global(img) {
+    object-fit: cover;
+    border-radius: 14px;
+}
+/* diagonal light sheen sweeping the card */
+.sheen {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        115deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.14) 46%,
+        rgba(255, 255, 255, 0.04) 52%,
+        transparent 68%
+    );
+    transform: translateX(-120%);
+    animation: sheen 7s var(--ease) infinite;
+    animation-delay: 1.5s;
+}
+@keyframes sheen {
+    0%,
+    18% {
+        transform: translateX(-120%);
+    }
+    34%,
+    100% {
+        transform: translateX(120%);
+    }
+}
+.root[data-orientation="reversed"] .tarotCard {
+    transform: rotate(180deg);
+    filter: saturate(0.7) brightness(0.9) hue-rotate(8deg);
+}
+
+.eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    transition: color 0.6s var(--ease);
+}
+/* symmetric flanking hairlines: — LABEL — */
+.eyebrow::before,
+.eyebrow::after {
+    content: "";
+    width: 64px;
+    height: 1px;
+}
+.eyebrow::before {
+    background: linear-gradient(90deg, transparent, var(--line-strong));
+}
+.eyebrow::after {
+    background: linear-gradient(90deg, var(--line-strong), transparent);
+}
+.title {
+    font-family: var(--serif);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    line-height: 1.02;
+    font-size: clamp(2.4rem, 7vw, 4.2rem);
+    margin: 0;
+    max-width: 16ch;
+    background: linear-gradient(
+        180deg,
+        var(--moonlight) 0%,
+        var(--moonlight) 52%,
+        var(--accent-soft) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+}
+/* slow gold shimmer reading across the title */
+.title::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        100deg,
+        transparent 35%,
+        var(--accent-soft) 50%,
+        transparent 65%
+    );
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: 0.55;
+    animation: titleShimmer 6.5s var(--ease) infinite;
+    pointer-events: none;
+}
+@keyframes titleShimmer {
+    0%,
+    100% {
+        background-position: 140% 0;
+    }
+    50% {
+        background-position: -40% 0;
+    }
+}
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+/* hero core keywords: centered and contained */
+.hero .chips {
+    justify-content: center;
+    max-width: 46ch;
+}
+.chip {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--moonlight);
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.018);
+    padding: 6px 13px;
+    border-radius: 999px;
+    transition:
+        border-color 0.4s var(--ease),
+        background 0.4s var(--ease),
+        transform 0.4s var(--ease),
+        box-shadow 0.4s var(--ease);
+}
+.chip:hover {
+    border-color: var(--line-strong);
+    background: rgba(200, 168, 106, 0.08);
+    transform: translateY(-2px);
+}
+.chipKey {
+    color: var(--accent-soft);
+    border-color: var(--line-strong);
+    background: linear-gradient(180deg, rgba(200, 168, 106, 0.08), rgba(200, 168, 106, 0.02));
+    box-shadow: 0 0 0 1px rgba(200, 168, 106, 0.05);
+}
+
+/* staggered entrance — `backwards` fill so it never pins opacity and
+   therefore never fights the orientation cross-fade */
+.hero > * {
+    animation: rise 0.8s var(--ease) backwards;
+}
+.hero > *:nth-child(1) {
+    animation-delay: 0.06s;
+}
+.hero > *:nth-child(2) {
+    animation-delay: 0.12s;
+}
+.hero > *:nth-child(3) {
+    animation-delay: 0.18s;
+}
+.hero > *:nth-child(4) {
+    animation-delay: 0.24s;
+}
+.hero > *:nth-child(5) {
+    animation-delay: 0.3s;
+}
+.hero > *:nth-child(6) {
+    animation-delay: 0.36s;
+}
+.hero > *:nth-child(7) {
+    animation-delay: 0.42s;
+}
+.cardStage {
+    animation: cardIn 1s var(--ease) 0.18s backwards;
+}
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+@keyframes cardIn {
+    from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+    width: fit-content;
+    max-width: 100%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(2px);
+}
+.badge {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 20px;
+    border-right: 1px solid var(--line);
+    transition: background 0.4s var(--ease);
+}
+.badge:hover {
+    background: rgba(200, 168, 106, 0.06);
+}
+.badge:last-child {
+    border-right: 0;
+}
+.badge .lab {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mist-dim);
+}
+.badge .val {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.badge .val .gl {
+    color: var(--accent);
+    transition: color 0.6s var(--ease);
+}
+
+/* ---------- moon toggle (signature) ---------- */
+.switch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 4vw, 34px);
+    padding: 10px 22px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0));
+    backdrop-filter: blur(3px);
+}
+.seg {
+    appearance: none;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    display: inline-block;
+    text-decoration: none;
+    font-family: var(--serif);
+    font-size: clamp(1.05rem, 3vw, 1.4rem);
+    letter-spacing: 0.5px;
+    color: var(--mist-dim);
+    padding: 4px 2px;
+    position: relative;
+    transition: color 0.5s var(--ease);
+}
+.seg[data-active="true"] {
+    color: var(--moonlight);
+}
+.seg[data-active="true"]::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+.seg .sub {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.6rem;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--mist-dim);
+    text-align: center;
+    margin-top: 6px;
+}
+.seg[data-active="true"] .sub {
+    color: var(--accent);
+}
+
+/* the moon between the two labels: waxes/wanes with state */
+.moon {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    background: radial-gradient(circle at 38% 35%, #fffaf0, var(--accent-soft) 70%, #b89a5e);
+    box-shadow:
+        0 0 18px var(--glow),
+        0 0 36px var(--glow),
+        inset 0 0 10px rgba(120, 90, 40, 0.25);
+    transition: box-shadow 0.8s var(--ease);
+    animation: moonPulse 6s var(--ease) infinite;
+}
+/* faint outer halo ring */
+.moon::before {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    opacity: 0.6;
+    transition: border-color 0.6s var(--ease);
+}
+.moon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--ink);
+    transform: translateX(-58%);
+    transition: transform 1s var(--ease);
+}
+.root[data-orientation="reversed"] .moon::after {
+    transform: translateX(58%);
+}
+@keyframes moonPulse {
+    0%,
+    100% {
+        box-shadow:
+            0 0 16px var(--glow),
+            0 0 30px var(--glow),
+            inset 0 0 10px rgba(120, 90, 40, 0.25);
+    }
+    50% {
+        box-shadow:
+            0 0 22px var(--glow),
+            0 0 46px var(--glow),
+            inset 0 0 10px rgba(120, 90, 40, 0.25);
+    }
+}
+
+/* ---------- reading ---------- */
+.sectionHead {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0 0 28px;
+}
+.sectionHead .num {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--accent);
+    transition: color 0.6s var(--ease);
+}
+.sectionHead h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.7rem, 3vw, 2.2rem);
+    margin: 0;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+.sectionHead .rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line-strong), transparent);
+    transition: background 0.6s var(--ease);
+}
+.overview {
+    font-size: 1.12rem;
+    line-height: 1.78;
+    color: var(--moonlight);
+    max-width: 62ch;
+    margin: 0 0 8px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 48px;
+}
+.area {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 28px 30px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+    transition:
+        border-color 0.45s var(--ease),
+        transform 0.45s var(--ease),
+        background 0.45s var(--ease),
+        box-shadow 0.45s var(--ease);
+}
+.area:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-5px);
+    background: linear-gradient(180deg, rgba(200, 168, 106, 0.06), rgba(255, 255, 255, 0));
+    box-shadow: 0 24px 50px -32px rgba(0, 0, 0, 0.8);
+}
+.area .ico {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    color: var(--accent);
+    margin-bottom: 18px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(200, 168, 106, 0.08), rgba(255, 255, 255, 0));
+    transition:
+        color 0.5s var(--ease),
+        border-color 0.5s var(--ease),
+        box-shadow 0.5s var(--ease);
+}
+.area .ico svg {
+    width: 24px;
+    height: 24px;
+}
+.area:hover .ico {
+    border-color: var(--line-strong);
+    box-shadow: 0 0 22px -6px var(--glow);
+}
+.area h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.4rem;
+    margin: 0 0 14px;
+    letter-spacing: 0.3px;
+    position: relative;
+}
+.area .chips {
+    margin-bottom: 16px;
+}
+.area p {
+    margin: 0;
+    color: #c3c1da;
+    font-size: 1.02rem;
+    line-height: 1.7;
+}
+
+/* ---------- suggested ---------- */
+.more {
+    margin-top: clamp(70px, 9vw, 120px);
+}
+.moreGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+}
+.scard {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 26px 24px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0));
+    transition:
+        border-color 0.4s var(--ease),
+        transform 0.4s var(--ease),
+        box-shadow 0.4s var(--ease),
+        background 0.4s var(--ease);
+}
+/* top accent line that lights up on hover */
+.scard::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.4s var(--ease);
+}
+.scard:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-4px);
+    background: linear-gradient(180deg, rgba(200, 168, 106, 0.05), rgba(255, 255, 255, 0));
+    box-shadow: 0 24px 48px -32px rgba(0, 0, 0, 0.85);
+}
+.scard:hover::after {
+    opacity: 1;
+}
+.scard h4 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0 0 8px;
+    transition: color 0.4s var(--ease);
+}
+.scard:hover h4 {
+    color: var(--accent-soft);
+}
+.scard p {
+    margin: 0 0 16px;
+    color: var(--mist);
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+.scard .go {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: color 0.5s var(--ease);
+}
+.scard .go svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.4s var(--ease);
+}
+.scard:hover .go svg {
+    transform: translateX(4px);
+}
+
+/* ---------- slim footer ---------- */
+.foot {
+    margin-top: clamp(60px, 8vw, 100px);
+    border-top: 1px solid var(--line);
+    padding: 34px 24px 8px;
+    max-width: var(--maxw);
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--mist-dim);
+    font-size: 0.82rem;
+}
+
+/* fade on orientation swap */
+.swap {
+    transition: opacity 0.35s var(--ease);
+}
+.out {
+    opacity: 0;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+    .sectionHead {
+        justify-content: center;
+    }
+    .overview {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+}
+@media (max-width: 680px) {
+    .root {
+        font-size: 16px;
+    }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    .moreGrid {
+        grid-template-columns: 1fr;
+    }
+    .head::before,
+    .head::after {
+        width: min(60px, 12vw);
+    }
+    .badge {
+        padding: 11px 16px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .root,
+    .root::before,
+    .root::after,
+    .root *,
+    .root *::after,
+    .root *::before {
+        animation: none !important;
+        transition: none !important;
+    }
+    /* ensure entrance reveals don't leave content hidden */
+    .hero > *,
+    .cardStage {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
