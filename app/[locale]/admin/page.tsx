@@ -15,6 +15,10 @@ import {
     ActiveUsersSection,
     ReturningUsersSection,
 } from "@/components/admin/analytics/active-returning"
+import {
+    EngagementSection,
+    ReadingSection,
+} from "@/components/admin/analytics/reading-engagement"
 import { useAnalytics } from "@/components/admin/analytics/use-analytics"
 import type { MetricKey } from "@/lib/admin/activity-metrics"
 
@@ -175,6 +179,16 @@ export default function AdminDashboardPage() {
                 />
                 <ReturningUsersSection
                     returning={analytics.data?.returning}
+                    loading={analytics.loading && !analytics.data}
+                    error={analytics.error}
+                />
+                <ReadingSection
+                    reading={analytics.data?.reading}
+                    loading={analytics.loading && !analytics.data}
+                    error={analytics.error}
+                />
+                <EngagementSection
+                    engagement={analytics.data?.engagement}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
                 />
