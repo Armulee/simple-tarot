@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         }
 
         const token = newDeleteToken()
-        const { error: insErr } = await admin
+        const { data: inserted, error: insErr } = await admin
             .from("admin_delete_requests")
             .insert({
                 token,
@@ -136,6 +136,8 @@ export async function POST(request: NextRequest) {
                 requested_by_email: requestedByEmail,
                 status: "pending",
             })
+            .select("id")
+            .single()
         if (insErr) {
             console.error("[admin/delete-requests] insert failed", insErr)
             return NextResponse.json(
@@ -143,6 +145,7 @@ export async function POST(request: NextRequest) {
                 { status: 500 },
             )
         }
+        const requestId = inserted.id as string
 
         const origin = request.nextUrl.origin
         const approveUrl = `${origin}/api/admin/delete-requests/${token}/approve`
@@ -164,7 +167,10 @@ export async function POST(request: NextRequest) {
 
         if (sent.error) {
             // Don't leave an un-actionable request behind.
-            await admin.from("admin_delete_requests").delete().eq("token", token)
+            await admin
+                .from("admin_delete_requests")
+                .delete()
+                .eq("id", requestId)
             console.error("[admin/delete-requests] email failed", sent.error)
             return NextResponse.json(
                 { error: "EMAIL_FAILED", detail: sent.error.message },
@@ -173,7 +179,12 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(
-            { ok: true, count: ids.length, email: ADMIN_APPROVAL_EMAIL },
+            {
+                ok: true,
+                requestId,
+                count: ids.length,
+                email: ADMIN_APPROVAL_EMAIL,
+            },
             { status: 202 },
         )
     } catch (error) {

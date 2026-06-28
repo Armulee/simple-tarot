@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readPaging, requireAdmin } from "@/lib/admin-auth"
+import { pendingDeletionMap } from "@/lib/admin/delete-requests"
 
 export const dynamic = "force-dynamic"
 
@@ -14,6 +15,8 @@ export type AdminInterpretationItem = {
     ownerUserId: string | null
     anonymousId: string | null
     isAuthenticated: boolean
+    /** Open delete-request id if one is awaiting email approval. */
+    pendingDeletion: string | null
 }
 
 const COLS = "id, question, topic, messages, owner_user_id, did, created_at"
@@ -159,6 +162,8 @@ export async function GET(request: NextRequest) {
             }
         }
 
+        const pending = await pendingDeletionMap(admin, "interpretations")
+
         const items: AdminInterpretationItem[] = rows.map((r) => {
             const owner = r.owner_user_id
             const prof = owner ? profiles.get(owner) : undefined
@@ -172,6 +177,7 @@ export async function GET(request: NextRequest) {
                 ownerAvatarUrl: prof?.avatar_url ?? null,
                 ownerUserId: owner ?? null,
                 anonymousId: r.did ?? null,
+                pendingDeletion: pending.get(r.id) ?? null,
                 isAuthenticated: !!owner,
             }
         })

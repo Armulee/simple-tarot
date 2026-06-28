@@ -7,7 +7,17 @@ import {
     useState,
     type ReactNode,
 } from "react"
-import { ArrowLeft, Copy, Loader2, Inbox, Search, Trash2, X } from "lucide-react"
+import {
+    ArrowLeft,
+    Copy,
+    Flag,
+    FlagOff,
+    Loader2,
+    Inbox,
+    Search,
+    Trash2,
+    X,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Link } from "@/i18n/navigation"
@@ -134,11 +144,12 @@ export function useDeleteRequest(resource: string) {
     const t = useTranslations("Admin")
     const [requesting, setRequesting] = useState(false)
 
+    /** Returns the created request id on success, or null. */
     const request = useCallback(
-        async (items: DeleteRequestItem[]): Promise<boolean> => {
-            if (items.length === 0) return false
+        async (items: DeleteRequestItem[]): Promise<string | null> => {
+            if (items.length === 0) return null
             if (!window.confirm(t("deleteRequestConfirm", { count: items.length })))
-                return false
+                return null
 
             setRequesting(true)
             try {
@@ -161,11 +172,12 @@ export function useDeleteRequest(resource: string) {
                         })),
                     }),
                 })
+                const data = (await res.json().catch(() => null)) as {
+                    requestId?: string
+                    error?: string
+                    detail?: string
+                } | null
                 if (!res.ok) {
-                    const data = (await res.json().catch(() => null)) as {
-                        error?: string
-                        detail?: string
-                    } | null
                     if (data?.error === "EMAIL_NOT_CONFIGURED") {
                         toast.error(t("deleteEmailNotConfigured"))
                     } else if (data?.detail) {
@@ -173,13 +185,13 @@ export function useDeleteRequest(resource: string) {
                     } else {
                         toast.error(t("deleteError"))
                     }
-                    return false
+                    return null
                 }
                 toast.success(t("deleteRequestSent"))
-                return true
+                return data?.requestId ?? null
             } catch {
                 toast.error(t("deleteError"))
-                return false
+                return null
             } finally {
                 setRequesting(false)
             }
@@ -187,7 +199,64 @@ export function useDeleteRequest(resource: string) {
         [resource, t],
     )
 
-    return { request, requesting }
+    /** Cancel a pending request so the email links become inert. */
+    const cancel = useCallback(
+        async (requestId: string): Promise<boolean> => {
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+                if (!session) throw new Error("NO_SESSION")
+                const res = await fetch("/api/admin/delete-requests/cancel", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({ requestId }),
+                })
+                if (!res.ok) throw new Error("CANCEL_FAILED")
+                toast.success(t("deleteRequestCanceled"))
+                return true
+            } catch {
+                toast.error(t("deleteError"))
+                return false
+            }
+        },
+        [t],
+    )
+
+    return { request, cancel, requesting }
+}
+
+/**
+ * Client overlay for which rows have an open delete request, layering optimistic
+ * marks (just-requested / just-canceled) over the server's `pendingDeletion`.
+ */
+export function usePendingDeletions() {
+    const [override, setOverride] = useState<Map<string, string | null>>(
+        new Map(),
+    )
+    const effective = useCallback(
+        (id: string, serverPending: string | null): string | null =>
+            override.has(id) ? (override.get(id) ?? null) : serverPending,
+        [override],
+    )
+    const markPending = useCallback((ids: string[], requestId: string) => {
+        setOverride((prev) => {
+            const next = new Map(prev)
+            for (const id of ids) next.set(id, requestId)
+            return next
+        })
+    }, [])
+    const clearPending = useCallback((ids: string[]) => {
+        setOverride((prev) => {
+            const next = new Map(prev)
+            for (const id of ids) next.set(id, null)
+            return next
+        })
+    }, [])
+    return { effective, markPending, clearPending }
 }
 
 /** Round avatar with the user's photo, falling back to a gradient initial. */
@@ -254,6 +323,28 @@ export function AdminRow({
     )
 }
 
+/** Wraps a row to show it faded with a flag while a delete request is open. */
+export function PendingDeleteWrap({
+    pending,
+    children,
+}: {
+    pending: boolean
+    children: ReactNode
+}) {
+    return (
+        <div
+            className={`flex min-w-0 flex-1 items-center gap-2 transition-opacity ${
+                pending ? "opacity-50" : ""
+            }`}
+        >
+            {pending ? (
+                <Flag className="h-4 w-4 shrink-0 text-amber-400" />
+            ) : null}
+            <div className="min-w-0 flex-1">{children}</div>
+        </div>
+    )
+}
+
 export type AdminMenuEntry = { label: string; value: string }
 
 /**
@@ -265,11 +356,14 @@ export function AdminRowMenu({
     entries,
     onDelete,
     deleteLabel,
+    pendingDelete = false,
     children,
 }: {
     entries: AdminMenuEntry[]
     onDelete?: () => void
     deleteLabel?: string
+    /** When true the destructive entry becomes "Cancel delete request". */
+    pendingDelete?: boolean
     children: ReactNode
 }) {
     const t = useTranslations("Admin")
@@ -302,13 +396,23 @@ export function AdminRowMenu({
                 {onDelete ? (
                     <>
                         <ContextMenuSeparator className='bg-slate-800' />
-                        <ContextMenuItem
-                            onSelect={onDelete}
-                            className='gap-2 text-rose-400 focus:bg-rose-500/10 focus:text-rose-300'
-                        >
-                            <Trash2 className='h-4 w-4' />
-                            {deleteLabel ?? t("delete")}
-                        </ContextMenuItem>
+                        {pendingDelete ? (
+                            <ContextMenuItem
+                                onSelect={onDelete}
+                                className='gap-2 text-amber-300 focus:bg-amber-500/10 focus:text-amber-200'
+                            >
+                                <FlagOff className='h-4 w-4' />
+                                {t("cancelDeleteRequest")}
+                            </ContextMenuItem>
+                        ) : (
+                            <ContextMenuItem
+                                onSelect={onDelete}
+                                className='gap-2 text-rose-400 focus:bg-rose-500/10 focus:text-rose-300'
+                            >
+                                <Trash2 className='h-4 w-4' />
+                                {deleteLabel ?? t("delete")}
+                            </ContextMenuItem>
+                        )}
                     </>
                 ) : null}
             </ContextMenuContent>

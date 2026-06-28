@@ -8,10 +8,12 @@ import {
     AdminListShell,
     AdminRow,
     AdminRowMenu,
+    PendingDeleteWrap,
     UserAvatar,
     useAdminList,
     useDebouncedValue,
     useDeleteRequest,
+    usePendingDeletions,
     useShortDate,
     type AdminMenuEntry,
     type DeleteRequestItem,
@@ -29,7 +31,8 @@ export default function AdminInterpretationsPage() {
             `/api/admin/interpretations${q ? `?q=${encodeURIComponent(q)}` : ""}`,
         )
     const fmt = useShortDate()
-    const { request, requesting } = useDeleteRequest("interpretations")
+    const { request, cancel, requesting } = useDeleteRequest("interpretations")
+    const { effective, markPending, clearPending } = usePendingDeletions()
 
     const [selectMode, setSelectMode] = useState(false)
     const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -78,9 +81,34 @@ export default function AdminInterpretationsPage() {
     const handleDelete = useCallback(async () => {
         if (requesting) return
         const chosen = items.filter((it) => selected.has(it.id)).map(summarize)
-        const ok = await request(chosen)
-        if (ok) exitSelect()
-    }, [requesting, items, selected, summarize, request, exitSelect])
+        const reqId = await request(chosen)
+        if (reqId) {
+            markPending(
+                chosen.map((c) => c.id),
+                reqId,
+            )
+            exitSelect()
+        }
+    }, [requesting, items, selected, summarize, request, markPending, exitSelect])
+
+    const cancelRequest = useCallback(
+        async (requestId: string) => {
+            const ids = items
+                .filter((it) => effective(it.id, it.pendingDeletion) === requestId)
+                .map((it) => it.id)
+            const ok = await cancel(requestId)
+            if (ok) clearPending(ids)
+        },
+        [items, effective, cancel, clearPending],
+    )
+
+    const requestSingle = useCallback(
+        async (r: AdminInterpretationItem) => {
+            const reqId = await request([summarize(r)])
+            if (reqId) markPending([r.id], reqId)
+        },
+        [request, summarize, markPending],
+    )
 
     const selectedCount = selected.size
 
@@ -211,7 +239,10 @@ export default function AdminInterpretationsPage() {
                     },
                 ].filter(Boolean) as AdminMenuEntry[]
 
-                const onDelete = () => void request([summarize(r)])
+                const pendingId = effective(r.id, r.pendingDeletion)
+                const onDelete = pendingId
+                    ? () => void cancelRequest(pendingId)
+                    : () => void requestSingle(r)
 
                 if (!selectMode)
                     return (
@@ -219,16 +250,24 @@ export default function AdminInterpretationsPage() {
                             key={r.id}
                             entries={entries}
                             onDelete={onDelete}
+                            pendingDelete={!!pendingId}
                         >
                             <Link href={`/${r.id}`} className="block">
-                                {row}
+                                <PendingDeleteWrap pending={!!pendingId}>
+                                    {row}
+                                </PendingDeleteWrap>
                             </Link>
                         </AdminRowMenu>
                     )
 
                 const checked = selected.has(r.id)
                 return (
-                    <AdminRowMenu key={r.id} entries={entries} onDelete={onDelete}>
+                    <AdminRowMenu
+                        key={r.id}
+                        entries={entries}
+                        onDelete={onDelete}
+                        pendingDelete={!!pendingId}
+                    >
                         <div
                             role="button"
                             tabIndex={0}
@@ -247,7 +286,9 @@ export default function AdminInterpretationsPage() {
                                 checked={checked}
                                 className="ml-1 size-5 shrink-0 border-white/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-black"
                             />
-                            <div className="min-w-0 flex-1">{row}</div>
+                            <PendingDeleteWrap pending={!!pendingId}>
+                                {row}
+                            </PendingDeleteWrap>
                         </div>
                     </AdminRowMenu>
                 )

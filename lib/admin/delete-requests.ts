@@ -1,5 +1,7 @@
 /** Server-side config for the admin delete-approval workflow. */
 
+import type { SupabaseClient } from "@supabase/supabase-js"
+
 export const ADMIN_APPROVAL_EMAIL = "admin@askingfate.com"
 
 /** Resources an admin may request to delete, mapped to their backing table. */
@@ -12,6 +14,31 @@ export type DeleteResource = keyof typeof DELETE_RESOURCES
 
 export function isDeleteResource(v: unknown): v is DeleteResource {
     return typeof v === "string" && v in DELETE_RESOURCES
+}
+
+/**
+ * Map of itemId → pending-request id for a resource, so list endpoints can flag
+ * rows that already have an open delete request. Resilient to the table not yet
+ * existing (returns an empty map).
+ */
+export async function pendingDeletionMap(
+    admin: SupabaseClient,
+    resource: DeleteResource,
+): Promise<Map<string, string>> {
+    const map = new Map<string, string>()
+    const { data } = await admin
+        .from("admin_delete_requests")
+        .select("id, item_ids")
+        .eq("resource", resource)
+        .eq("status", "pending")
+    for (const r of data ?? []) {
+        const row = r as { id: string; item_ids?: unknown }
+        const ids = Array.isArray(row.item_ids)
+            ? (row.item_ids as string[])
+            : []
+        for (const id of ids) map.set(id, row.id)
+    }
+    return map
 }
 
 /** 256-bit unguessable token for the email approval links. */

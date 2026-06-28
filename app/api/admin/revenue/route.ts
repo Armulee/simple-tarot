@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readPaging, requireAdmin } from "@/lib/admin-auth"
+import { pendingDeletionMap } from "@/lib/admin/delete-requests"
 
 export const dynamic = "force-dynamic"
 
@@ -13,6 +14,8 @@ export type AdminRevenueItem = {
     type: string | null
     status: string | null
     createdAt: string | null
+    /** Open delete-request id if one is awaiting email approval. */
+    pendingDeletion: string | null
 }
 
 export async function GET(request: NextRequest) {
@@ -76,6 +79,8 @@ export async function GET(request: NextRequest) {
             }
         }
 
+        const pending = await pendingDeletionMap(admin, "revenue")
+
         const items: AdminRevenueItem[] = (data ?? []).map((r) => {
             const uid = r.user_id as string | null
             const prof = uid ? profiles.get(uid) : undefined
@@ -89,6 +94,7 @@ export async function GET(request: NextRequest) {
                 type: (r.type as string) ?? null,
                 status: (r.status as string) ?? null,
                 createdAt: (r.created_at as string) ?? null,
+                pendingDeletion: pending.get(r.id as string) ?? null,
             }
         })
 
