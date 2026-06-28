@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from "react"
 import { Loader2, Trash2 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { toast } from "sonner"
 import {
     AdminBadge,
     AdminListShell,
@@ -12,27 +11,28 @@ import {
     UserAvatar,
     useAdminList,
     useDebouncedValue,
+    useDeleteRequest,
     useShortDate,
     type AdminMenuEntry,
+    type DeleteRequestItem,
 } from "@/components/admin/admin-list"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Link } from "@/i18n/navigation"
-import { supabase } from "@/lib/supabase"
 import type { AdminInterpretationItem } from "@/app/api/admin/interpretations/route"
 
 export default function AdminInterpretationsPage() {
     const t = useTranslations("Admin")
     const [search, setSearch] = useState("")
     const q = useDebouncedValue(search.trim(), 300)
-    const { items, total, hasMore, loading, error, loadMore, removeItems } =
+    const { items, total, hasMore, loading, error, loadMore } =
         useAdminList<AdminInterpretationItem>(
             `/api/admin/interpretations${q ? `?q=${encodeURIComponent(q)}` : ""}`,
         )
     const fmt = useShortDate()
+    const { request, requesting } = useDeleteRequest("interpretations")
 
     const [selectMode, setSelectMode] = useState(false)
     const [selected, setSelected] = useState<Set<string>>(new Set())
-    const [deleting, setDeleting] = useState(false)
 
     const exitSelect = useCallback(() => {
         setSelectMode(false)
@@ -55,7 +55,6 @@ export default function AdminInterpretationsPage() {
 
     const toggleAll = useCallback(() => {
         setSelected((prev) => {
-            // When everything loaded is already selected, clear those ids.
             if (items.length > 0 && items.every((it) => prev.has(it.id))) {
                 const next = new Set(prev)
                 for (const it of items) next.delete(it.id)
@@ -67,105 +66,76 @@ export default function AdminInterpretationsPage() {
         })
     }, [items])
 
-    const deleteByIds = useCallback(
-        async (ids: string[]): Promise<boolean> => {
-            if (ids.length === 0) return false
-            if (!window.confirm(t("deleteConfirm", { count: ids.length })))
-                return false
-
-            setDeleting(true)
-            try {
-                const {
-                    data: { session },
-                } = await supabase.auth.getSession()
-                if (!session) throw new Error("NO_SESSION")
-                const res = await fetch("/api/admin/interpretations", {
-                    method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${session.access_token}`,
-                    },
-                    body: JSON.stringify({ ids }),
-                })
-                if (!res.ok) throw new Error("DELETE_FAILED")
-                removeItems(ids)
-                setSelected((prev) => {
-                    const next = new Set(prev)
-                    for (const id of ids) next.delete(id)
-                    return next
-                })
-                toast.success(t("deleteSuccess", { count: ids.length }))
-                return true
-            } catch {
-                toast.error(t("deleteError"))
-                return false
-            } finally {
-                setDeleting(false)
-            }
-        },
-        [t, removeItems],
+    const summarize = useCallback(
+        (r: AdminInterpretationItem): DeleteRequestItem => ({
+            id: r.id,
+            title: r.question || t("untitledReading"),
+            subtitle: r.snippet || r.cards.join(" · "),
+        }),
+        [t],
     )
 
     const handleDelete = useCallback(async () => {
-        if (deleting) return
-        const ok = await deleteByIds(Array.from(selected))
+        if (requesting) return
+        const chosen = items.filter((it) => selected.has(it.id)).map(summarize)
+        const ok = await request(chosen)
         if (ok) exitSelect()
-    }, [deleting, selected, deleteByIds, exitSelect])
+    }, [requesting, items, selected, summarize, request, exitSelect])
 
     const selectedCount = selected.size
 
     const toolbar =
         items.length === 0 && !selectMode ? null : (
-            <div className='flex items-center justify-between gap-3'>
+            <div className="flex items-center justify-between gap-3">
                 {selectMode ? (
-                    <div className='flex items-center gap-3'>
+                    <div className="flex items-center gap-3">
                         <button
-                            type='button'
+                            type="button"
                             onClick={toggleAll}
-                            className='inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/75 transition-colors hover:bg-white/10'
+                            className="inline-flex items-center gap-2 rounded-lg border border-white/12 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/75 transition-colors hover:bg-white/10"
                         >
                             <Checkbox
                                 checked={allOnPageSelected}
-                                className='pointer-events-none border-white/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-black'
+                                className="pointer-events-none border-white/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-black"
                             />
                             {t("selectAll")}
                         </button>
-                        <span className='text-sm text-white/55'>
+                        <span className="text-sm text-white/55">
                             {t("selectedCount", { count: selectedCount })}
                         </span>
                     </div>
                 ) : (
                     <button
-                        type='button'
+                        type="button"
                         onClick={() => setSelectMode(true)}
-                        className='rounded-lg border border-white/12 bg-white/5 px-4 py-1.5 text-sm font-medium text-white/75 transition-colors hover:bg-white/10'
+                        className="rounded-lg border border-white/12 bg-white/5 px-4 py-1.5 text-sm font-medium text-white/75 transition-colors hover:bg-white/10"
                     >
                         {t("select")}
                     </button>
                 )}
 
                 {selectMode ? (
-                    <div className='flex items-center gap-2'>
+                    <div className="flex items-center gap-2">
                         <button
-                            type='button'
+                            type="button"
                             onClick={exitSelect}
-                            disabled={deleting}
-                            className='rounded-lg px-3 py-1.5 text-sm font-medium text-white/55 transition-colors hover:text-white/80 disabled:opacity-50'
+                            disabled={requesting}
+                            className="rounded-lg px-3 py-1.5 text-sm font-medium text-white/55 transition-colors hover:text-white/80 disabled:opacity-50"
                         >
                             {t("cancel")}
                         </button>
                         <button
-                            type='button'
+                            type="button"
                             onClick={handleDelete}
-                            disabled={selectedCount === 0 || deleting}
-                            className='inline-flex items-center gap-2 rounded-lg border border-rose-400/30 bg-rose-500/15 px-4 py-1.5 text-sm font-medium text-rose-200 transition-colors hover:bg-rose-500/25 disabled:cursor-not-allowed disabled:opacity-40'
+                            disabled={selectedCount === 0 || requesting}
+                            className="inline-flex items-center gap-2 rounded-lg border border-rose-400/30 bg-rose-500/15 px-4 py-1.5 text-sm font-medium text-rose-200 transition-colors hover:bg-rose-500/25 disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                            {deleting ? (
-                                <Loader2 className='h-4 w-4 animate-spin' />
+                            {requesting ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                                <Trash2 className='h-4 w-4' />
+                                <Trash2 className="h-4 w-4" />
                             )}
-                            {deleting ? t("deleting") : t("delete")}
+                            {requesting ? t("requestSending") : t("delete")}
                         </button>
                     </div>
                 ) : null}
@@ -201,7 +171,7 @@ export default function AdminInterpretationsPage() {
                         subtitle={r.snippet || r.cards.join(" · ")}
                         badge={
                             r.isAuthenticated ? (
-                                <AdminBadge tone='emerald'>
+                                <AdminBadge tone="emerald">
                                     {r.ownerName || t("memberTag")}
                                 </AdminBadge>
                             ) : (
@@ -209,12 +179,12 @@ export default function AdminInterpretationsPage() {
                             )
                         }
                         meta={
-                            <div className='space-y-0.5'>
-                                <div className='text-white/45'>
+                            <div className="space-y-0.5">
+                                <div className="text-white/45">
                                     {t("cardsCount", { count: r.cards.length })}
                                 </div>
                                 {r.createdAt ? (
-                                    <div className='text-white/35'>
+                                    <div className="text-white/35">
                                         {fmt(r.createdAt)}
                                     </div>
                                 ) : null}
@@ -241,7 +211,7 @@ export default function AdminInterpretationsPage() {
                     },
                 ].filter(Boolean) as AdminMenuEntry[]
 
-                const onDelete = () => void deleteByIds([r.id])
+                const onDelete = () => void request([summarize(r)])
 
                 if (!selectMode)
                     return (
@@ -250,7 +220,7 @@ export default function AdminInterpretationsPage() {
                             entries={entries}
                             onDelete={onDelete}
                         >
-                            <Link href={`/${r.id}`} className='block'>
+                            <Link href={`/${r.id}`} className="block">
                                 {row}
                             </Link>
                         </AdminRowMenu>
@@ -258,13 +228,9 @@ export default function AdminInterpretationsPage() {
 
                 const checked = selected.has(r.id)
                 return (
-                    <AdminRowMenu
-                        key={r.id}
-                        entries={entries}
-                        onDelete={onDelete}
-                    >
+                    <AdminRowMenu key={r.id} entries={entries} onDelete={onDelete}>
                         <div
-                            role='button'
+                            role="button"
                             tabIndex={0}
                             onClick={() => toggleOne(r.id)}
                             onKeyDown={(e) => {
@@ -279,9 +245,9 @@ export default function AdminInterpretationsPage() {
                         >
                             <Checkbox
                                 checked={checked}
-                                className='ml-1 size-5 shrink-0 border-white/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-black'
+                                className="ml-1 size-5 shrink-0 border-white/30 data-[state=checked]:border-amber-400 data-[state=checked]:bg-amber-400 data-[state=checked]:text-black"
                             />
-                            <div className='min-w-0 flex-1'>{row}</div>
+                            <div className="min-w-0 flex-1">{row}</div>
                         </div>
                     </AdminRowMenu>
                 )

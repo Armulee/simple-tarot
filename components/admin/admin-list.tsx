@@ -118,6 +118,65 @@ export function useAdminList<T>(
     return { items, total, hasMore, loading, error, loadMore, removeItems }
 }
 
+export type DeleteRequestItem = {
+    id: string
+    title: string
+    subtitle?: string | null
+}
+
+/**
+ * Stages an admin deletion for email approval instead of deleting immediately.
+ * Confirms with the admin, POSTs the request (which emails admin@askingfate.com
+ * an Approve/Reject link), and toasts. Records are only removed once the email
+ * is approved — never optimistically here.
+ */
+export function useDeleteRequest(resource: string) {
+    const t = useTranslations("Admin")
+    const [requesting, setRequesting] = useState(false)
+
+    const request = useCallback(
+        async (items: DeleteRequestItem[]): Promise<boolean> => {
+            if (items.length === 0) return false
+            if (!window.confirm(t("deleteRequestConfirm", { count: items.length })))
+                return false
+
+            setRequesting(true)
+            try {
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession()
+                if (!session) throw new Error("NO_SESSION")
+                const res = await fetch("/api/admin/delete-requests", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({
+                        resource,
+                        ids: items.map((i) => i.id),
+                        details: items.map((i) => ({
+                            title: i.title,
+                            subtitle: i.subtitle ?? null,
+                        })),
+                    }),
+                })
+                if (!res.ok) throw new Error("REQUEST_FAILED")
+                toast.success(t("deleteRequestSent"))
+                return true
+            } catch {
+                toast.error(t("deleteError"))
+                return false
+            } finally {
+                setRequesting(false)
+            }
+        },
+        [resource, t],
+    )
+
+    return { request, requesting }
+}
+
 /** Round avatar with the user's photo, falling back to a gradient initial. */
 export function UserAvatar({
     name,
