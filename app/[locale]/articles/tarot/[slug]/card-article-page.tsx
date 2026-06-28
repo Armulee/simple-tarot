@@ -158,7 +158,6 @@ export async function CardArticlePageView({
     // Keyword model: core keywords live ONCE on the overview (deduped); each
     // life area carries only its 3 specific keywords.
     const buildView = (o: OrientationMeaning): OrientationView => {
-        const { first, rest } = splitFirstSentence(o.overview.text)
         const areas: AreaView[] = (
             ["relationships", "work", "finance", "health"] as const
         ).map((key) => ({
@@ -168,9 +167,7 @@ export async function CardArticlePageView({
             body: o[key].text,
         }))
         return {
-            lede: first,
-            quote: first,
-            overview: rest || o.overview.text,
+            overview: o.overview.text,
             core: dedupe(o.overview.keywords ?? []),
             areas,
         }

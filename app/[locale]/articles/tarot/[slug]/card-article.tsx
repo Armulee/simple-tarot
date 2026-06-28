@@ -17,8 +17,6 @@ export type AreaView = {
 }
 
 export type OrientationView = {
-    lede: string
-    quote: string
     overview: string
     core: string[]
     areas: AreaView[]
@@ -248,7 +246,6 @@ export function CardArticle(props: CardArticleProps) {
                         </div>
                     </div>
 
-                    <p className={swap(styles.lede)}>{view.lede}</p>
                     <div className={swap(styles.chips)}>
                         {view.core.map((k) => (
                             <span key={k} className={`${styles.chip} ${styles.chipKey}`}>
@@ -276,14 +273,6 @@ export function CardArticle(props: CardArticleProps) {
                             </div>
                         )}
                     </div>
-                </section>
-
-                {/* QUOTE */}
-                <section className={styles.quote}>
-                    <span className={styles.mark} aria-hidden='true'>
-                        &ldquo;
-                    </span>
-                    <p className={swap(styles.q)}>{view.quote}</p>
                 </section>
 
                 {/* READING */}

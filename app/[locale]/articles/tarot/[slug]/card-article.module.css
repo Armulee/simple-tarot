@@ -369,16 +369,6 @@
         background-position: -40% 0;
     }
 }
-.lede {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: clamp(1.15rem, 2.4vw, 1.45rem);
-    color: #c6c4dc;
-    max-width: 40ch;
-    margin: 0 auto;
-    line-height: 1.5;
-}
-
 .chips {
     display: flex;
     flex-wrap: wrap;
@@ -613,50 +603,6 @@
             0 0 46px var(--glow),
             inset 0 0 10px rgba(120, 90, 40, 0.25);
     }
-}
-
-/* ---------- quote band ---------- */
-.quote {
-    position: relative;
-    text-align: center;
-    padding: clamp(46px, 7vw, 78px) 0;
-}
-.quote .q {
-    font-family: var(--serif);
-    font-style: italic;
-    font-weight: 500;
-    font-size: clamp(1.6rem, 3.6vw, 2.5rem);
-    line-height: 1.32;
-    max-width: 22ch;
-    margin: 0 auto;
-    letter-spacing: 0.3px;
-}
-.quote .mark {
-    font-family: var(--serif);
-    color: var(--accent);
-    font-size: 3.4rem;
-    line-height: 0;
-    opacity: 0.55;
-    display: block;
-    margin-bottom: 18px;
-    transition: color 0.6s var(--ease);
-}
-/* faint ornamental rules flanking the quote */
-.quote::before,
-.quote::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 64px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
-}
-.quote::before {
-    top: clamp(18px, 3vw, 30px);
-}
-.quote::after {
-    bottom: clamp(18px, 3vw, 30px);
 }
 
 /* ---------- reading ---------- */
