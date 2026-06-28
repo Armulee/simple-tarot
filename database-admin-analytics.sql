@@ -454,6 +454,45 @@ END $$;
 
 
 -- ---------------------------------------------------------------------------
+-- 8) Activity heatmap (counts by day-of-week and hour-of-day, Asia/Bangkok)
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION admin_analytics_heatmap(
+    p_start timestamptz,
+    p_end   timestamptz
+) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+    v_today date := (now() AT TIME ZONE 'Asia/Bangkok')::date;
+    v_start date := (p_start AT TIME ZONE 'Asia/Bangkok')::date;
+    v_end   date := LEAST((p_end AT TIME ZONE 'Asia/Bangkok')::date, v_today - 1);
+    result  jsonb;
+BEGIN
+    WITH in_range AS (
+        SELECT dow_local, hour_local
+        FROM admin_analytics_sessions
+        WHERE day_local BETWEEN v_start AND v_end
+    ),
+    by_day AS ( -- dow 1=Mon .. 7=Sun
+        SELECT d AS dow, count(r.dow_local) AS cnt
+        FROM generate_series(1, 7) d
+        LEFT JOIN in_range r ON r.dow_local = d
+        GROUP BY d
+    ),
+    by_hour AS (
+        SELECT h AS hour, count(r.hour_local) AS cnt
+        FROM generate_series(0, 23) h
+        LEFT JOIN in_range r ON r.hour_local = h
+        GROUP BY h
+    )
+    SELECT jsonb_build_object(
+        'byDay',  (SELECT jsonb_agg(cnt ORDER BY dow)  FROM by_day),
+        'byHour', (SELECT jsonb_agg(cnt ORDER BY hour) FROM by_hour)
+    ) INTO result;
+    RETURN result;
+END $$;
+
+
+-- ---------------------------------------------------------------------------
 -- Permissions: callable by the service role (admin API uses the service key).
 -- ---------------------------------------------------------------------------
 GRANT EXECUTE ON FUNCTION admin_analytics_returning(timestamptz, timestamptz)  TO service_role;
@@ -463,3 +502,4 @@ GRANT EXECUTE ON FUNCTION admin_analytics_engagement(timestamptz, timestamptz)  
 GRANT EXECUTE ON FUNCTION admin_analytics_retention(timestamptz, timestamptz)   TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_conversion(timestamptz, timestamptz)  TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_context(timestamptz, timestamptz, timestamptz, timestamptz) TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_heatmap(timestamptz, timestamptz)    TO service_role;
