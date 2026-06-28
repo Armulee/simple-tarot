@@ -134,6 +134,7 @@
     "deleteError": "Couldn't delete. Please try again.",
     "deleteRequestConfirm": "A delete request to remove {count, plural, =1 {this item} other {these # items}} will be sent to admin@askingfate.com for confirmation. Send the request?",
     "deleteRequestSent": "Delete request sent to admin@askingfate.com — awaiting email approval.",
+    "deleteEmailNotConfigured": "Email service isn't configured (RESEND_API_KEY missing).",
     "requestSending": "Sending…",
     "copied": "Copied to clipboard",
     "copyError": "Couldn't copy",

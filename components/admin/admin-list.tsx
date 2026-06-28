@@ -161,7 +161,20 @@ export function useDeleteRequest(resource: string) {
                         })),
                     }),
                 })
-                if (!res.ok) throw new Error("REQUEST_FAILED")
+                if (!res.ok) {
+                    const data = (await res.json().catch(() => null)) as {
+                        error?: string
+                        detail?: string
+                    } | null
+                    if (data?.error === "EMAIL_NOT_CONFIGURED") {
+                        toast.error(t("deleteEmailNotConfigured"))
+                    } else if (data?.detail) {
+                        toast.error(`${t("deleteError")} — ${data.detail}`)
+                    } else {
+                        toast.error(t("deleteError"))
+                    }
+                    return false
+                }
                 toast.success(t("deleteRequestSent"))
                 return true
             } catch {

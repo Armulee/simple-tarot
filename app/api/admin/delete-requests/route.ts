@@ -136,14 +136,20 @@ export async function POST(request: NextRequest) {
                 requested_by_email: requestedByEmail,
                 status: "pending",
             })
-        if (insErr) throw insErr
+        if (insErr) {
+            console.error("[admin/delete-requests] insert failed", insErr)
+            return NextResponse.json(
+                { error: "INSERT_FAILED", detail: insErr.message },
+                { status: 500 },
+            )
+        }
 
         const origin = request.nextUrl.origin
         const approveUrl = `${origin}/api/admin/delete-requests/${token}/approve`
         const rejectUrl = `${origin}/api/admin/delete-requests/${token}/reject`
 
         const sent = await resend.emails.send({
-            from: "AskingFate Admin <admin@no-reply.askingfate.com>",
+            from: "AskingFate Admin <support@no-reply.askingfate.com>",
             to: [ADMIN_APPROVAL_EMAIL],
             subject: `Delete approval — ${ids.length} ${DELETE_RESOURCES[resource].label}`,
             html: buildEmailHtml({
@@ -161,7 +167,7 @@ export async function POST(request: NextRequest) {
             await admin.from("admin_delete_requests").delete().eq("token", token)
             console.error("[admin/delete-requests] email failed", sent.error)
             return NextResponse.json(
-                { error: "EMAIL_FAILED" },
+                { error: "EMAIL_FAILED", detail: sent.error.message },
                 { status: 500 },
             )
         }
@@ -172,6 +178,8 @@ export async function POST(request: NextRequest) {
         )
     } catch (error) {
         console.error("[admin/delete-requests] failed", error)
-        return NextResponse.json({ error: "FAILED" }, { status: 500 })
+        const detail =
+            error instanceof Error ? error.message : "INTERNAL_ERROR"
+        return NextResponse.json({ error: "FAILED", detail }, { status: 500 })
     }
 }

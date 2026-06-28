@@ -134,6 +134,7 @@
     "deleteError": "ลบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
     "deleteRequestConfirm": "คำขอลบ {count, plural, other {# รายการ}} จะถูกส่งไปยังอีเมล admin@askingfate.com เพื่อยืนยัน ส่งคำขอเลยหรือไม่?",
     "deleteRequestSent": "ส่งคำขอลบไปยัง admin@askingfate.com แล้ว — รอการอนุมัติทางอีเมล",
+    "deleteEmailNotConfigured": "ยังไม่ได้ตั้งค่าระบบอีเมล (ไม่มี RESEND_API_KEY)",
     "requestSending": "กำลังส่ง…",
     "copied": "คัดลอกแล้ว",
     "copyError": "คัดลอกไม่สำเร็จ",
