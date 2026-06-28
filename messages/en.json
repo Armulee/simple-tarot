@@ -208,7 +208,14 @@
     "engMessages": "Total messages",
     "engAvgQuestions": "Avg questions / session",
     "engAvgDuration": "Avg session duration",
-    "engDurationNote": "Approx (updated − created)"
+    "engDurationNote": "Approx (updated − created)",
+    "funnelSectionLabel": "Conversion",
+    "funnelTitle": "Conversion funnel",
+    "funnelStarted": "Started reading",
+    "funnelCompleted": "Completed reading",
+    "funnelRegistered": "Registered",
+    "funnelSubscribed": "Subscribed",
+    "funnelRegNote": "Registration is optional — anonymous use is fully supported, so the Completed → Registered drop is expected, not alarming."
   },
   "Sidebar": {
     "services": "Services",

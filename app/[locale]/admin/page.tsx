@@ -19,6 +19,7 @@ import {
     EngagementSection,
     ReadingSection,
 } from "@/components/admin/analytics/reading-engagement"
+import { ConversionSection } from "@/components/admin/analytics/conversion-section"
 import { useAnalytics } from "@/components/admin/analytics/use-analytics"
 import type { MetricKey } from "@/lib/admin/activity-metrics"
 
@@ -184,6 +185,11 @@ export default function AdminDashboardPage() {
                 />
                 <ReadingSection
                     reading={analytics.data?.reading}
+                    loading={analytics.loading && !analytics.data}
+                    error={analytics.error}
+                />
+                <ConversionSection
+                    conversion={analytics.data?.conversion}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
                 />

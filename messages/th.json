@@ -208,7 +208,14 @@
     "engMessages": "ข้อความทั้งหมด",
     "engAvgQuestions": "คำถามเฉลี่ย / เซสชัน",
     "engAvgDuration": "ระยะเวลาเฉลี่ยต่อเซสชัน",
-    "engDurationNote": "โดยประมาณ (updated − created)"
+    "engDurationNote": "โดยประมาณ (updated − created)",
+    "funnelSectionLabel": "การแปลง",
+    "funnelTitle": "ช่องทางการแปลง (Funnel)",
+    "funnelStarted": "เริ่มอ่าน",
+    "funnelCompleted": "อ่านสำเร็จ",
+    "funnelRegistered": "สมัครสมาชิก",
+    "funnelSubscribed": "เป็นสมาชิกแบบชำระเงิน",
+    "funnelRegNote": "การสมัครเป็นทางเลือก — ใช้งานแบบไม่ระบุตัวตนได้เต็มที่ ดังนั้นการลดลงจากอ่านสำเร็จ → สมัครสมาชิกเป็นเรื่องปกติ ไม่ใช่สัญญาณอันตราย"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",
