@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import { Link } from "@/i18n/navigation"
 import PageContextComposer from "@/components/chat/page-context-composer"
@@ -103,6 +103,18 @@ export function CardArticle(props: CardArticleProps) {
     const [content, setContent] = useState<Orientation>("upright")
     const [fading, setFading] = useState(false)
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    // Reflect the orientation in the chat context strip + AI summary: when the
+    // card is flipped, the pill reads "{cardName} (Reversed)" and the AI is
+    // told to focus on the reversed meaning.
+    const composerOriginContext = useMemo<OriginContext>(() => {
+        if (orientation !== "reversed") return props.originContext
+        return {
+            ...props.originContext,
+            label: `${props.cardName} (${labels.reversed})`,
+            summary: `${props.originContext.summary}\n(The user is currently viewing this card REVERSED — focus on the reversed meaning.)`,
+        }
+    }, [orientation, props.originContext, props.cardName, labels.reversed])
 
     const view = content === "upright" ? upright : reversed
 
@@ -301,7 +313,7 @@ export function CardArticle(props: CardArticleProps) {
             {/* fixed composer pinned to the bottom (same as the calendar page),
                 carrying this card as page context into the chat session */}
             <PageContextComposer
-                originContext={props.originContext}
+                originContext={composerOriginContext}
                 placeholder={labels.askPlaceholder}
                 eyebrow={labels.askEyebrow}
                 hint={labels.askHint}
