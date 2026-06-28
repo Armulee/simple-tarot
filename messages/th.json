@@ -649,9 +649,7 @@
     "saveLocation": "บันทึกตำแหน่ง"
   },
   "Character": {
-    "addPhoto": "เพิ่มรูปภาพ",
-    "takePhoto": "ถ่ายรูป",
-    "addFile": "เพิ่มไฟล์",
+    "addMedia": "เพิ่มรูปภาพหรือไฟล์",
     "addCharacter": "เพิ่มตัวละคร",
     "add": "เพิ่ม",
     "addTitle": "เพิ่มตัวละคร",

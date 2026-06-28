@@ -602,9 +602,7 @@
     "saveLocation": "Save location"
   },
   "Character": {
-    "addPhoto": "Add photo",
-    "takePhoto": "Take photo",
-    "addFile": "Add file",
+    "addMedia": "Add photos or files",
     "addCharacter": "Add character",
     "add": "Add",
     "addTitle": "Add character",

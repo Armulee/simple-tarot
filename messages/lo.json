@@ -515,9 +515,7 @@
     "saveLocation": "ບັນທຶກຕຳແໜ່ງ"
   },
   "Character": {
-    "addPhoto": "ເພີ່ມຮູບ",
-    "takePhoto": "ຖ່າຍຮູບ",
-    "addFile": "ເພີ່ມໄຟລ໌",
+    "addMedia": "ເພີ່ມຮູບ ຫຼື ໄຟລ໌",
     "addCharacter": "ເພີ່ມຕົວລະຄອນ",
     "add": "ເພີ່ມ",
     "addTitle": "ເພີ່ມຕົວລະຄອນ",

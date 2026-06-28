@@ -1,18 +1,15 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 import {
     Plus,
     UserRound,
-    UserPlus,
     Trash2,
     Crown,
-    Camera,
     Paperclip,
     ChevronDown,
-    Image as ImageIcon,
 } from "lucide-react"
 import {
     Popover,
@@ -22,14 +19,42 @@ import {
 import { useCharacterMention } from "./character-mention-context"
 import type { Character } from "@/types/character"
 
+function formatCharacterBirth(character: Character, locale: string): string {
+    try {
+        const d = new Date(
+            Date.UTC(
+                character.birthYear,
+                character.birthMonth - 1,
+                character.birthDay,
+            ),
+        )
+        const date = new Intl.DateTimeFormat(locale, {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+            timeZone: "UTC",
+        }).format(d)
+        if (character.birthHour != null && character.birthMinute != null) {
+            const time = `${String(character.birthHour).padStart(
+                2,
+                "0",
+            )}:${String(character.birthMinute).padStart(2, "0")}`
+            return `${date} · ${time}`
+        }
+        return date
+    } catch {
+        return `${character.birthDay}/${character.birthMonth}/${character.birthYear}`
+    }
+}
+
 type CharacterComposerButtonProps = {
-    /** Receives a file picked from the photo/camera/file options. */
+    /** Receives each file picked from the "Add photos or files" option. */
     onAddMedia?: (file: File) => void
 }
 
 /**
  * The "+" button shown before the interpretation-mode selector. Opens a menu
- * with attachment options (photo / camera / file) and an expandable "Add
+ * with "Add photos or files" (opens the picker) and an expandable "Add
  * character" section listing the user's characters (click to mention) plus an
  * "Add" action. Adding/mentioning are paid features; the "Add" option shows a
  * faded crown and opens the paywall for non-paid users.
@@ -38,6 +63,7 @@ export default function CharacterComposerButton({
     onAddMedia,
 }: CharacterComposerButtonProps) {
     const t = useTranslations("Character")
+    const locale = useLocale()
     const {
         characters,
         isPaid,
@@ -48,18 +74,12 @@ export default function CharacterComposerButton({
     } = useCharacterMention()
     const [menuOpen, setMenuOpen] = useState(false)
     const [charExpanded, setCharExpanded] = useState(false)
-    const photoRef = useRef<HTMLInputElement>(null)
-    const cameraRef = useRef<HTMLInputElement>(null)
     const fileRef = useRef<HTMLInputElement>(null)
 
-    function pickFrom(ref: React.RefObject<HTMLInputElement | null>) {
-        ref.current?.click()
-    }
-
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0]
-        if (file) {
-            onAddMedia?.(file)
+        const files = e.target.files
+        if (files && files.length) {
+            Array.from(files).forEach((file) => onAddMedia?.(file))
             setMenuOpen(false)
         }
         // Reset so picking the same file again still fires onChange.
@@ -111,31 +131,15 @@ export default function CharacterComposerButton({
                 <PopoverContent
                     align='start'
                     side='top'
-                    className='w-60 rounded-xl border-white/10 bg-[#0A0F26] p-2'
+                    className='w-72 rounded-xl border-white/10 bg-[#0A0F26] p-2'
                 >
                     <button
                         type='button'
-                        onClick={() => pickFrom(photoRef)}
-                        className={itemClass}
-                    >
-                        <ImageIcon className='size-4 shrink-0 text-white/70' />
-                        {t("addPhoto")}
-                    </button>
-                    <button
-                        type='button'
-                        onClick={() => pickFrom(cameraRef)}
-                        className={itemClass}
-                    >
-                        <Camera className='size-4 shrink-0 text-white/70' />
-                        {t("takePhoto")}
-                    </button>
-                    <button
-                        type='button'
-                        onClick={() => pickFrom(fileRef)}
+                        onClick={() => fileRef.current?.click()}
                         className={itemClass}
                     >
                         <Paperclip className='size-4 shrink-0 text-white/70' />
-                        {t("addFile")}
+                        {t("addMedia")}
                     </button>
 
                     <div className='my-1 h-px bg-white/10' />
@@ -175,6 +179,12 @@ export default function CharacterComposerButton({
                                             <span className='truncate'>
                                                 {character.name}
                                             </span>
+                                            <span className='ml-auto shrink-0 pl-2 text-[11px] tabular-nums text-white/45'>
+                                                {formatCharacterBirth(
+                                                    character,
+                                                    locale,
+                                                )}
+                                            </span>
                                         </button>
                                         <button
                                             type='button'
@@ -194,7 +204,7 @@ export default function CharacterComposerButton({
                                 onClick={handleAddNew}
                                 className='flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white'
                             >
-                                <UserPlus className='size-4 shrink-0 text-pink-300' />
+                                <Plus className='size-4 shrink-0 text-pink-300' />
                                 <span className='truncate'>{t("add")}</span>
                                 <Crown className='ml-auto size-3.5 shrink-0 text-amber-300/50' />
                             </button>
@@ -204,23 +214,9 @@ export default function CharacterComposerButton({
             </Popover>
 
             <input
-                ref={photoRef}
-                type='file'
-                accept='image/*'
-                hidden
-                onChange={handleFileChange}
-            />
-            <input
-                ref={cameraRef}
-                type='file'
-                accept='image/*'
-                capture='environment'
-                hidden
-                onChange={handleFileChange}
-            />
-            <input
                 ref={fileRef}
                 type='file'
+                multiple
                 hidden
                 onChange={handleFileChange}
             />
