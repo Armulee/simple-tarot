@@ -649,6 +649,11 @@
     "saveLocation": "บันทึกตำแหน่ง"
   },
   "Character": {
+    "addPhoto": "เพิ่มรูปภาพ",
+    "takePhoto": "ถ่ายรูป",
+    "addFile": "เพิ่มไฟล์",
+    "addCharacter": "เพิ่มตัวละคร",
+    "add": "เพิ่ม",
     "addTitle": "เพิ่มตัวละคร",
     "addDescription": "บันทึกข้อมูลวันเกิดของคนรู้จัก เพื่อดูดวงความเข้ากันและติดตามดวงดาวปัจจุบันของเขา",
     "nameLabel": "ชื่อ",
@@ -1014,6 +1019,7 @@
   },
   "QuestionInput": {
     "label": "คำถามของคุณ",
+    "removeAttachment": "ลบไฟล์แนบ",
     "placeholder": "พิมพ์คำถามของคุณ...",
     "followUpSuggestionLabel": "คำถามต่อยอดที่แนะนำ",
     "dismissFollowUpStrip": "ปิดคำแนะและทางลัดด้านล่าง"

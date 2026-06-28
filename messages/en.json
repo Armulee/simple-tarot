@@ -602,6 +602,11 @@
     "saveLocation": "Save location"
   },
   "Character": {
+    "addPhoto": "Add photo",
+    "takePhoto": "Take photo",
+    "addFile": "Add file",
+    "addCharacter": "Add character",
+    "add": "Add",
     "addTitle": "Add character",
     "addDescription": "Save someone's birth details to explore your compatibility and follow their life transits.",
     "nameLabel": "Name",
@@ -967,6 +972,7 @@
   },
   "QuestionInput": {
     "label": "Your question",
+    "removeAttachment": "Remove attachment",
     "placeholder": "Type your question...",
     "followUpSuggestionLabel": "Suggested follow-ups",
     "dismissFollowUpStrip": "Dismiss suggestions and composer shortcuts"

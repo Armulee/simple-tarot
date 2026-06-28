@@ -1,7 +1,14 @@
 "use client"
 
 import { useEffect, useState, type RefObject } from "react"
-import { CornerDownRight, Send, Square, X } from "lucide-react"
+import {
+    CornerDownRight,
+    Image as ImageIcon,
+    Paperclip,
+    Send,
+    Square,
+    X,
+} from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -137,6 +144,14 @@ export default function QuestionInput({
     const question = value !== undefined ? value : internalQuestion
     const setQuestion = onChange || setInternalQuestion
 
+    // Attachments picked from the "+" menu. Shown as chips in the composer;
+    // not yet wired into the reading pipeline.
+    const [attachments, setAttachments] = useState<File[]>([])
+    const handleAddMedia = (file: File) =>
+        setAttachments((prev) => [...prev, file].slice(0, 8))
+    const removeAttachment = (index: number) =>
+        setAttachments((prev) => prev.filter((_, i) => i !== index))
+
     const showBottomChrome =
         actionTrigger != null ||
         composerFollowUps != null ||
@@ -147,6 +162,7 @@ export default function QuestionInput({
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
+            setAttachments([])
             if (onSubmit) {
                 void onSubmit(currentValue)
                 return
@@ -328,6 +344,31 @@ export default function QuestionInput({
                 {label}
             </Label>
             <div className={`w-full ${className ?? "max-w-sm md:max-w-md"}`}>
+                {attachments.length > 0 && (
+                    <div className='mb-2 flex flex-wrap gap-1.5'>
+                        {attachments.map((file, i) => (
+                            <span
+                                key={`${file.name}-${i}`}
+                                className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
+                            >
+                                {file.type.startsWith("image/") ? (
+                                    <ImageIcon className='size-3.5 shrink-0 text-white/60' />
+                                ) : (
+                                    <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                )}
+                                <span className='truncate'>{file.name}</span>
+                                <button
+                                    type='button'
+                                    onClick={() => removeAttachment(i)}
+                                    aria-label={t("removeAttachment")}
+                                    className='shrink-0 text-white/50 hover:text-white'
+                                >
+                                    <X className='size-3' />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                )}
                 <div className='relative group w-full'>
                     <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
                     {enableCharacterMention ? (
@@ -374,7 +415,9 @@ export default function QuestionInput({
                     onInterpretationModeChange && (
                         <div className='mt-2 flex items-center justify-start gap-2'>
                             {enableCharacterMention ? (
-                                <CharacterComposerButton />
+                                <CharacterComposerButton
+                                    onAddMedia={handleAddMedia}
+                                />
                             ) : null}
                             <InterpretationModeSelector
                                 value={interpretationMode}

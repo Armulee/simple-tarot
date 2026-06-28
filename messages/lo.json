@@ -515,6 +515,11 @@
     "saveLocation": "ບັນທຶກຕຳແໜ່ງ"
   },
   "Character": {
+    "addPhoto": "ເພີ່ມຮູບ",
+    "takePhoto": "ຖ່າຍຮູບ",
+    "addFile": "ເພີ່ມໄຟລ໌",
+    "addCharacter": "ເພີ່ມຕົວລະຄອນ",
+    "add": "ເພີ່ມ",
     "addTitle": "ເພີ່ມຕົວລະຄອນ",
     "addDescription": "ບັນທຶກຂໍ້ມູນວັນເກີດຂອງຄົນຮູ້ຈັກ ເພື່ອເບິ່ງດວງຄວາມເຂົ້າກັນ ແລະ ຕິດຕາມການເຄື່ອນໄຫວຂອງດາວປັດຈຸບັນຂອງເຂົາ",
     "nameLabel": "ຊື່",
@@ -880,6 +885,7 @@
   },
   "QuestionInput": {
     "label": "ຄຳຖາມຂອງທ່ານ",
+    "removeAttachment": "ລຶບໄຟລ໌ແນບ",
     "placeholder": "ພິມຄຳຖາມຂອງທ່ານ...",
     "followUpSuggestionLabel": "ຄຳແນະນຳຕໍ່ຄຳຖາມ",
     "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ"
