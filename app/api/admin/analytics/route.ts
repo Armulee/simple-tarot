@@ -7,6 +7,7 @@ import type {
     AnalyticsContext,
     ConversionAnalytics,
     EngagementAnalytics,
+    HeatmapAnalytics,
     HeroKpi,
     KpiFormat,
     ReadingAnalytics,
@@ -91,6 +92,7 @@ export async function GET(request: NextRequest) {
             engagement,
             retention,
             conversion,
+            heatmap,
             context,
             // previous-period values for hero deltas
             returningPrev,
@@ -107,6 +109,7 @@ export async function GET(request: NextRequest) {
             rpc<EngagementAnalytics>(admin, "admin_analytics_engagement", cur),
             rpc<RetentionAnalytics>(admin, "admin_analytics_retention", cur),
             rpc<ConversionAnalytics>(admin, "admin_analytics_conversion", cur),
+            rpc<HeatmapAnalytics>(admin, "admin_analytics_heatmap", cur),
             rpc<AnalyticsContext>(admin, "admin_analytics_context", {
                 ...cur,
                 p_prev_start: bound(prevStart, false),
@@ -183,6 +186,7 @@ export async function GET(request: NextRequest) {
             engagement,
             retention,
             conversion,
+            heatmap,
             context,
             flags: {
                 revenueAvailable: context.revenueAvailable,

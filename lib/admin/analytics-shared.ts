@@ -58,6 +58,13 @@ export type RetentionAnalytics = {
 export type FunnelStage = { key: string; count: number; pct: number }
 export type ConversionAnalytics = { stages: FunnelStage[] }
 
+export type HeatmapAnalytics = {
+    /** 7 counts, Monday → Sunday. */
+    byDay: number[]
+    /** 24 counts, 00:00 → 23:00 (Asia/Bangkok). */
+    byHour: number[]
+}
+
 export type AnalyticsContext = {
     totalUsers: number
     totalUsersPrev: number
@@ -92,6 +99,7 @@ export type AdminAnalyticsResponse = {
     engagement: EngagementAnalytics
     retention: RetentionAnalytics
     conversion: ConversionAnalytics
+    heatmap: HeatmapAnalytics
     context: AnalyticsContext
     flags: {
         revenueAvailable: boolean

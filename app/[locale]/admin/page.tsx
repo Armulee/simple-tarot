@@ -20,6 +20,10 @@ import {
     ReadingSection,
 } from "@/components/admin/analytics/reading-engagement"
 import { ConversionSection } from "@/components/admin/analytics/conversion-section"
+import {
+    CategoriesSection,
+    HeatmapSection,
+} from "@/components/admin/analytics/heatmap-section"
 import { useAnalytics } from "@/components/admin/analytics/use-analytics"
 import type { MetricKey } from "@/lib/admin/activity-metrics"
 
@@ -198,6 +202,12 @@ export default function AdminDashboardPage() {
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
                 />
+                <HeatmapSection
+                    heatmap={analytics.data?.heatmap}
+                    loading={analytics.loading && !analytics.data}
+                    error={analytics.error}
+                />
+                <CategoriesSection />
             </div>
         </div>
     )
