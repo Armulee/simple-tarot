@@ -140,6 +140,7 @@
     "copyUserId": "Copy user ID",
     "copyAnonId": "Copy anonymous ID",
     "copyDate": "Copy date",
+    "copyAmount": "Copy amount",
     "activityLabel": "Trends",
     "activityTitle": "Daily trends by metric",
     "range_7d": "7D",

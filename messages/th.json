@@ -140,6 +140,7 @@
     "copyUserId": "คัดลอก ID ผู้ใช้",
     "copyAnonId": "คัดลอก ID ผู้ไม่ระบุตัวตน",
     "copyDate": "คัดลอกวันที่",
+    "copyAmount": "คัดลอกจำนวนเงิน",
     "activityLabel": "แนวโน้ม",
     "activityTitle": "แนวโน้มรายวันแยกตามสถิติ",
     "range_7d": "7 วัน",

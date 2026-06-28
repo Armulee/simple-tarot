@@ -9,6 +9,7 @@ import {
     Users,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { Link } from "@/i18n/navigation"
 import type { AnalyticsTotals } from "@/lib/admin/analytics-shared"
 
 type CardDef = {
@@ -18,6 +19,7 @@ type CardDef = {
     gradient: string
     border: string
     iconColor: string
+    href: string
     currency?: boolean
 }
 
@@ -29,6 +31,7 @@ const CARDS: CardDef[] = [
         gradient: "from-violet-500/20 to-purple-600/10",
         border: "border-violet-500/20",
         iconColor: "text-violet-200/80",
+        href: "/admin/users",
     },
     {
         key: "returningUsers",
@@ -37,6 +40,7 @@ const CARDS: CardDef[] = [
         gradient: "from-sky-500/20 to-blue-600/10",
         border: "border-sky-500/20",
         iconColor: "text-sky-200/80",
+        href: "/admin/users",
     },
     {
         key: "totalReadings",
@@ -45,6 +49,7 @@ const CARDS: CardDef[] = [
         gradient: "from-amber-500/20 to-orange-600/10",
         border: "border-amber-500/20",
         iconColor: "text-amber-200/80",
+        href: "/admin/interpretations",
     },
     {
         key: "totalSessions",
@@ -53,6 +58,7 @@ const CARDS: CardDef[] = [
         gradient: "from-emerald-500/20 to-teal-600/10",
         border: "border-emerald-500/20",
         iconColor: "text-emerald-200/80",
+        href: "/admin/interpretations",
     },
     {
         key: "subscribers",
@@ -61,6 +67,7 @@ const CARDS: CardDef[] = [
         gradient: "from-rose-500/20 to-pink-600/10",
         border: "border-rose-500/20",
         iconColor: "text-rose-200/80",
+        href: "/admin/subscribers",
     },
     {
         key: "revenueUsd",
@@ -69,6 +76,7 @@ const CARDS: CardDef[] = [
         gradient: "from-green-500/20 to-emerald-600/10",
         border: "border-green-500/20",
         iconColor: "text-green-200/80",
+        href: "/admin/revenue",
         currency: true,
     },
 ]
@@ -125,9 +133,10 @@ export function DataTotals({
                             ? `$${raw.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
                             : raw.toLocaleString()
                         return (
-                            <div
+                            <Link
                                 key={c.key}
-                                className={`relative overflow-hidden rounded-2xl border ${c.border} bg-gradient-to-br ${c.gradient} p-6`}
+                                href={c.href}
+                                className={`group relative block overflow-hidden rounded-2xl border ${c.border} bg-gradient-to-br ${c.gradient} p-6 transition-all hover:scale-[1.02] hover:border-white/25 hover:shadow-lg hover:shadow-black/20`}
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="min-w-0">
@@ -142,7 +151,10 @@ export function DataTotals({
                                         <Icon className={`h-5 w-5 ${c.iconColor}`} />
                                     </div>
                                 </div>
-                            </div>
+                                <span className="absolute bottom-4 right-5 text-white/30 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:text-white/60 group-hover:opacity-100">
+                                    →
+                                </span>
+                            </Link>
                         )
                     })}
                 </div>
