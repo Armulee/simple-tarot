@@ -31,7 +31,12 @@
 -- =============================================================================
 
 -- Canonical, de-duplicated per-session view used by every function below.
-CREATE OR REPLACE VIEW admin_analytics_sessions AS
+-- security_invoker = on: the view runs with the *querying* role's RLS, not the
+-- creator's. The admin RPCs below are SECURITY DEFINER (run as the owner), so
+-- they still read every row; a direct query by anon/authenticated would instead
+-- be subject to chat_sessions' RLS. (Resolves Supabase "Security Definer View".)
+CREATE OR REPLACE VIEW admin_analytics_sessions
+    WITH (security_invoker = on) AS
 SELECT
     s.id,
     COALESCE(NULLIF(s.owner_user_id, ''), s.did)            AS actor_key,
