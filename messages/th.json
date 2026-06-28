@@ -163,7 +163,22 @@
     "kpiTotalUsers": "ผู้ใช้ทั้งหมด",
     "kpiTotalReadings": "การอ่านทั้งหมด",
     "kpiSubscribers": "ผู้สมัครสมาชิก",
-    "kpiRevenue": "รายได้"
+    "kpiRevenue": "รายได้",
+    "analyticsEmpty": "ยังไม่มีข้อมูลในช่วงเวลานี้",
+    "retentionSectionLabel": "การกลับมาใช้งาน",
+    "retentionTitle": "Retention ตามรุ่น (cohort)",
+    "retDay1": "วันที่ 1",
+    "retDay7": "วันที่ 7",
+    "retDay30": "วันที่ 30",
+    "retClassic": "แบบจุด",
+    "retRolling": "แบบสะสม",
+    "retClassicLabel": "แบบจุด (ใช้งานในวันที่ n พอดี)",
+    "retRollingLabel": "แบบสะสม (ใช้งานในวันที่ n หรือหลังจากนั้น)",
+    "retCurveTitle": "เส้นโค้ง Retention",
+    "retCohortTitle": "รุ่นรายสัปดาห์",
+    "retCohortWeek": "รุ่น",
+    "retCohortSize": "ผู้ใช้",
+    "retNoData": "Retention ต้องมีรุ่นที่การอ่านครั้งแรกอยู่ในช่วงเวลาที่เลือก"
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",

@@ -10,6 +10,7 @@ import {
     useActivityData,
 } from "@/components/admin/activity-chart"
 import { HeroKpis } from "@/components/admin/analytics/hero-kpis"
+import { RetentionSection } from "@/components/admin/analytics/retention-section"
 import { useAnalytics } from "@/components/admin/analytics/use-analytics"
 import type { MetricKey } from "@/lib/admin/activity-metrics"
 
@@ -156,6 +157,13 @@ export default function AdminDashboardPage() {
                         ),
                     )}
                 </div>
+
+                {/* Advanced product analytics (below the existing cards). */}
+                <RetentionSection
+                    retention={analytics.data?.retention}
+                    loading={analytics.loading && !analytics.data}
+                    error={analytics.error}
+                />
             </div>
         </div>
     )

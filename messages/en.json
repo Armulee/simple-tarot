@@ -163,7 +163,22 @@
     "kpiTotalUsers": "Total Users",
     "kpiTotalReadings": "Total Readings",
     "kpiSubscribers": "Subscribers",
-    "kpiRevenue": "Revenue"
+    "kpiRevenue": "Revenue",
+    "analyticsEmpty": "No data in this range yet.",
+    "retentionSectionLabel": "Retention",
+    "retentionTitle": "Cohort retention",
+    "retDay1": "Day 1",
+    "retDay7": "Day 7",
+    "retDay30": "Day 30",
+    "retClassic": "Classic",
+    "retRolling": "Rolling",
+    "retClassicLabel": "Classic (active exactly on day n)",
+    "retRollingLabel": "Rolling (active on day n or later)",
+    "retCurveTitle": "Retention curve",
+    "retCohortTitle": "Weekly cohorts",
+    "retCohortWeek": "Cohort",
+    "retCohortSize": "Users",
+    "retNoData": "Retention needs cohorts whose first reading falls inside the selected range."
   },
   "Sidebar": {
     "services": "Services",
