@@ -337,6 +337,7 @@ export function CardArticle(props: CardArticleProps) {
                 eyebrow={labels.askEyebrow}
                 hint={labels.askHint}
                 suggestions={props.suggestions}
+                blurBackdrop={false}
             />
         </>
     )

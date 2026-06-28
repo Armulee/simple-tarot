@@ -71,6 +71,12 @@ type PageContextComposerProps = {
      * disappears (and can come back when a new date is picked).
      */
     onClearContext?: () => void
+    /**
+     * Glassy backdrop-blur on the fixed bar. Defaults on (calendar). The tarot
+     * article page turns it off because the blur's hard top edge reads as a
+     * seam line cutting across the page above the context strip.
+     */
+    blurBackdrop?: boolean
 }
 
 function createPendingSessionId() {
@@ -88,6 +94,7 @@ export default function PageContextComposer({
     hint,
     suggestions,
     onClearContext,
+    blurBackdrop = true,
 }: PageContextComposerProps) {
     const t = useTranslations("PageContextComposer")
     const locale = useLocale()
@@ -246,7 +253,9 @@ export default function PageContextComposer({
     return (
         <div
             ref={fixedBarRef}
-            className='fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4'
+            className={`fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-4${
+                blurBackdrop ? " backdrop-blur-xl" : ""
+            }`}
         >
             <QuestionInput
                 id='page-context-composer'
