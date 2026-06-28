@@ -148,6 +148,7 @@
     "range_6m": "6M",
     "range_1y": "1Y",
     "range_5y": "5Y",
+    "range_all": "All time",
     "range_custom": "Custom",
     "kpiSectionLabel": "Key metrics",
     "dataSectionLabel": "Data",

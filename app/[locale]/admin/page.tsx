@@ -37,10 +37,15 @@ export default function AdminDashboardPage() {
 
     if (!metrics) return null
 
+    // Per-card headline = total within the selected range (sum of that metric's
+    // daily series), not the all-time figure (those live in the Data cards).
+    const rangeTotal = (metric: MetricKey) =>
+        activity.points.reduce((acc, p) => acc + (p[metric] ?? 0), 0)
+    const hasRange = !!activity.data
+
     const cards: {
         metric: MetricKey
         label: string
-        value: number
         icon: typeof Users
         href: string
         gradient: string
@@ -49,7 +54,6 @@ export default function AdminDashboardPage() {
         {
             metric: "totalUsers",
             label: t("totalUsers"),
-            value: metrics.totalUsers,
             icon: Users,
             href: "/admin/users",
             gradient: "from-violet-500/20 to-purple-600/10",
@@ -58,7 +62,6 @@ export default function AdminDashboardPage() {
         {
             metric: "anonymousUsers",
             label: t("anonymousUsers"),
-            value: metrics.anonymousUsers,
             icon: Users,
             href: "/admin/users?filter=anonymous",
             gradient: "from-slate-500/20 to-slate-600/10",
@@ -67,7 +70,6 @@ export default function AdminDashboardPage() {
         {
             metric: "authenticatedUsers",
             label: t("authenticatedUsers"),
-            value: metrics.authenticatedUsers,
             icon: UserCheck,
             href: "/admin/users?filter=authenticated",
             gradient: "from-emerald-500/20 to-teal-600/10",
@@ -76,7 +78,6 @@ export default function AdminDashboardPage() {
         {
             metric: "interpretations",
             label: t("interpretations"),
-            value: metrics.interpretationCount,
             icon: FileText,
             href: "/admin/interpretations",
             gradient: "from-amber-500/20 to-orange-600/10",
@@ -85,7 +86,6 @@ export default function AdminDashboardPage() {
         {
             metric: "paidSubscribers",
             label: t("paidSubscribers"),
-            value: metrics.paidSubscribers,
             icon: CreditCard,
             href: "/admin/subscribers",
             gradient: "from-rose-500/20 to-pink-600/10",
@@ -135,7 +135,6 @@ export default function AdminDashboardPage() {
                         ({
                             metric,
                             label,
-                            value,
                             icon: Icon,
                             gradient,
                             border,
@@ -153,7 +152,11 @@ export default function AdminDashboardPage() {
                                                     {label}
                                                 </p>
                                                 <p className="mt-2 font-serif text-3xl font-semibold text-white">
-                                                    {value.toLocaleString()}
+                                                    {hasRange
+                                                        ? rangeTotal(
+                                                              metric,
+                                                          ).toLocaleString()
+                                                        : "—"}
                                                 </p>
                                             </div>
                                             <div className="rounded-lg bg-white/5 p-2.5">

@@ -11,9 +11,9 @@ import {
     type MetricKey,
 } from "@/lib/admin/activity-metrics"
 
-type RangeKey = "7d" | "1m" | "3m" | "6m" | "1y" | "5y" | "custom"
+type RangeKey = "7d" | "1m" | "3m" | "6m" | "1y" | "5y" | "all" | "custom"
 
-const RANGE_DAYS: Record<Exclude<RangeKey, "custom">, number> = {
+const RANGE_DAYS: Record<Exclude<RangeKey, "custom" | "all">, number> = {
     "7d": 7,
     "1m": 30,
     "3m": 90,
@@ -22,7 +22,10 @@ const RANGE_DAYS: Record<Exclude<RangeKey, "custom">, number> = {
     "5y": 1825,
 }
 
-const RANGES: RangeKey[] = ["7d", "1m", "3m", "6m", "1y", "5y", "custom"]
+// Far enough back to cover all data; the endpoints clamp + adapt granularity.
+const ALL_TIME_START = "2020-01-01"
+
+const RANGES: RangeKey[] = ["7d", "1m", "3m", "6m", "1y", "5y", "all", "custom"]
 
 export const METRIC_COLOR: Record<MetricKey, string> = {
     totalUsers: "#a78bfa", // violet-400
@@ -130,8 +133,12 @@ export function useActivityData(): ActivityController {
             return { fromISO: customFrom, toISO: customTo }
         }
         const now = new Date()
+        const toISO = toISODate(now)
+        if (range === "all") {
+            return { fromISO: ALL_TIME_START, toISO }
+        }
         return {
-            toISO: toISODate(now),
+            toISO,
             fromISO: toISODate(
                 new Date(now.getTime() - (RANGE_DAYS[range] - 1) * 86400000),
             ),
