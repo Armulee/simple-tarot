@@ -10,6 +10,7 @@ import {
     useActivityData,
 } from "@/components/admin/activity-chart"
 import { DataTotals } from "@/components/admin/analytics/data-totals"
+import { ContentSubmissionLink } from "@/components/admin/content-submission-link"
 import { useTotals } from "@/components/admin/analytics/use-totals"
 import { RetentionSection } from "@/components/admin/analytics/retention-section"
 import {
@@ -109,13 +110,16 @@ export default function AdminDashboardPage() {
                         </h1>
                         <p className="mt-1 text-white/60">{t("subtitle")}</p>
                     </div>
-                    <Link
-                        href="/admin/tarot-codex"
-                        className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm font-medium text-amber-200 transition-colors hover:bg-amber-500/20 hover:border-amber-500/50"
-                    >
-                        Tarot Codex
-                        <span className="text-amber-400">→</span>
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <ContentSubmissionLink />
+                        <Link
+                            href="/admin/tarot-codex"
+                            className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm font-medium text-amber-200 transition-colors hover:bg-amber-500/20 hover:border-amber-500/50"
+                        >
+                            Tarot Codex
+                            <span className="text-amber-400">→</span>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* All-time summary numbers (no graphs, independent of range). */}
@@ -132,17 +136,10 @@ export default function AdminDashboardPage() {
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {cards.map(
-                        ({
-                            metric,
-                            label,
-                            icon: Icon,
-                            gradient,
-                            border,
-                            href,
-                        }) => (
+                        ({ metric, label, icon: Icon, border, href }) => (
                             <div
                                 key={metric}
-                                className={`flex flex-col overflow-hidden rounded-xl border ${border} bg-gradient-to-br ${gradient}`}
+                                className={`flex flex-col overflow-hidden rounded-xl border ${border}`}
                             >
                                 <Link href={href} className="group block">
                                     <div className="relative p-6 transition-all group-hover:bg-white/[0.03]">

@@ -136,7 +136,7 @@ export function DataTotals({
                             <Link
                                 key={c.key}
                                 href={c.href}
-                                className={`group relative block overflow-hidden rounded-2xl border ${c.border} bg-gradient-to-br ${c.gradient} p-6 transition-all hover:scale-[1.02] hover:border-white/25 hover:shadow-lg hover:shadow-black/20`}
+                                className={`group relative block overflow-hidden rounded-2xl border ${c.border} p-6 transition-all hover:scale-[1.02] hover:border-white/25 hover:shadow-lg hover:shadow-black/20`}
                             >
                                 <div className="flex items-start justify-between">
                                     <div className="min-w-0">
