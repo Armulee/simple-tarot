@@ -17,6 +17,16 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { useCharacterMention } from "./character-mention-context"
 import type { Character } from "@/types/character"
 
@@ -76,6 +86,7 @@ export default function CharacterComposerButton({
     } = useCharacterMention()
     const [menuOpen, setMenuOpen] = useState(false)
     const [charExpanded, setCharExpanded] = useState(false)
+    const [pendingDelete, setPendingDelete] = useState<Character | null>(null)
     const fileRef = useRef<HTMLInputElement>(null)
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -210,9 +221,10 @@ export default function CharacterComposerButton({
                                         <button
                                             type='button'
                                             aria-label={t("delete")}
-                                            onClick={() =>
-                                                handleDelete(character)
-                                            }
+                                            onClick={() => {
+                                                setMenuOpen(false)
+                                                setPendingDelete(character)
+                                            }}
                                             className='shrink-0 rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-red-300'
                                         >
                                             <Trash2 className='size-3.5' />
@@ -241,6 +253,41 @@ export default function CharacterComposerButton({
                 hidden
                 onChange={handleFileChange}
             />
+
+            <AlertDialog
+                open={pendingDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open) setPendingDelete(null)
+                }}
+            >
+                <AlertDialogContent className='sm:max-w-sm'>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>
+                            {pendingDelete
+                                ? t("deleteConfirm", {
+                                      name: pendingDelete.name,
+                                  })
+                                : ""}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t("deleteConfirmHint")}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (pendingDelete) {
+                                    void handleDelete(pendingDelete)
+                                }
+                            }}
+                            className='bg-red-600 text-white hover:bg-red-700'
+                        >
+                            {t("delete")}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     )
 }

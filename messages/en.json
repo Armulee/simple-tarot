@@ -633,6 +633,7 @@
     "menuEmpty": "No characters yet",
     "delete": "Delete",
     "deleteConfirm": "Delete {name}?",
+    "deleteConfirmHint": "This can't be undone.",
     "deleted": "{name} deleted",
     "paywallTitle": "Add the people in your life",
     "paywallDescription": "Saving characters lets you read your compatibility and monitor their transits. Upgrade to add people.",
