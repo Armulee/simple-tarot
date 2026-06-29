@@ -203,7 +203,7 @@ export default function CharacterComposerButton({
                                             onClick={() =>
                                                 handleEdit(character)
                                             }
-                                            className='shrink-0 rounded-md p-1.5 text-white/35 opacity-0 transition-opacity hover:bg-white/10 hover:text-pink-300 focus:opacity-100 group-hover:opacity-100'
+                                            className='shrink-0 rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-pink-300'
                                         >
                                             <Pencil className='size-3.5' />
                                         </button>
@@ -213,7 +213,7 @@ export default function CharacterComposerButton({
                                             onClick={() =>
                                                 handleDelete(character)
                                             }
-                                            className='shrink-0 rounded-md p-1.5 text-white/35 opacity-0 transition-opacity hover:bg-white/10 hover:text-red-300 focus:opacity-100 group-hover:opacity-100'
+                                            className='shrink-0 rounded-md p-1.5 text-white/50 transition-colors hover:bg-white/10 hover:text-red-300'
                                         >
                                             <Trash2 className='size-3.5' />
                                         </button>
