@@ -25,7 +25,7 @@ import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
 import SynastryReading from "@/components/chat/synastry-reading"
-import { CharacterMentionText } from "@/components/chat/character-mention-text"
+import { UserMessageText } from "@/components/chat/user-message-text"
 import type { Character } from "@/types/character"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
 import {
@@ -36,10 +36,7 @@ import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-bl
 import PaywallBlock from "@/components/chat/paywall-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
 import GeneralReadingTabs from "@/components/chat/general/general-reading-tabs"
-import {
-    PrivacyHighlightedText,
-    PrivacyHighlightedUserText,
-} from "@/components/chat/privacy/privacy-highlighted-user-text"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PrivacyRedactedNoticeHover } from "@/components/chat/privacy/privacy-redacted-notice-hover"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import type { HoroscopeBirthData } from "@/types/horoscope"
@@ -627,21 +624,28 @@ export default function MessageList({
                                                 </div>
                                             </div>
                                             </CharacterMentionProvider>
-                                        ) : message.privacyRedacted &&
-                                          typeof displayText === "string" &&
-                                          displayText.length > 0 &&
-                                          typeof message.text === "string" &&
-                                          message.text !== displayText &&
-                                          privacyAliases.length > 0 ? (
-                                            <PrivacyHighlightedUserText
-                                                displayText={displayText}
-                                                sanitizedText={message.text}
-                                                aliases={privacyAliases}
-                                            />
                                         ) : (
-                                            <CharacterMentionText
-                                                text={displayText}
+                                            <UserMessageText
+                                                displayText={
+                                                    typeof displayText ===
+                                                    "string"
+                                                        ? displayText
+                                                        : ""
+                                                }
                                                 characters={characters ?? []}
+                                                aliases={privacyAliases}
+                                                privacyHighlight={Boolean(
+                                                    message.privacyRedacted &&
+                                                        typeof displayText ===
+                                                            "string" &&
+                                                        displayText.length > 0 &&
+                                                        typeof message.text ===
+                                                            "string" &&
+                                                        message.text !==
+                                                            displayText &&
+                                                        privacyAliases.length >
+                                                            0,
+                                                )}
                                             />
                                         )}
                                     </div>
