@@ -5679,12 +5679,13 @@ export default function ChatSession({
                 nextDecision = normalizeDrawDecision(nextDecision)
                 // Synastry is a paid feature; downgrade to a tarot draw for
                 // free users so a compatibility question still gets a reading.
+                // Normalize so the draw gets a cardCount (and the deck renders).
                 if (nextDecision.type === "synastry" && !isPaidRef.current) {
-                    nextDecision = {
+                    nextDecision = normalizeDrawDecision({
                         ...nextDecision,
                         type: "draw",
                         spreadType: nextDecision.spreadType ?? "general",
-                    }
+                    })
                 }
                 nextDecision = applyCalendarModeOverride(nextDecision, trimmed)
                 flowDecision = nextDecision
@@ -5754,7 +5755,14 @@ export default function ChatSession({
                 )
                 if (charRouting.handled) return
                 if (charRouting.fallbackDecision) {
-                    nextDecision = charRouting.fallbackDecision
+                    // The fallback turns the (synastry) decision into a draw
+                    // after setDecision already ran — normalize it so the draw
+                    // gets a cardCount and refresh the state so the deck shows.
+                    nextDecision = normalizeDrawDecision(
+                        charRouting.fallbackDecision,
+                    )
+                    flowDecision = nextDecision
+                    setDecision(nextDecision)
                 }
 
                 const supportBlock = buildSupportBlockFromDecision(
@@ -6802,12 +6810,13 @@ export default function ChatSession({
                 nextDecision = normalizeDrawDecision(nextDecision)
                 // Synastry is a paid feature; downgrade to a tarot draw for
                 // free users so a compatibility question still gets a reading.
+                // Normalize so the draw gets a cardCount (and the deck renders).
                 if (nextDecision.type === "synastry" && !isPaidRef.current) {
-                    nextDecision = {
+                    nextDecision = normalizeDrawDecision({
                         ...nextDecision,
                         type: "draw",
                         spreadType: nextDecision.spreadType ?? "general",
-                    }
+                    })
                 }
                 // Apply the same calendar-intent rule as
                 // runDecisionFlowFromMessages so first-message (homepage →
@@ -6886,7 +6895,14 @@ export default function ChatSession({
                 )
                 if (charRouting.handled) return
                 if (charRouting.fallbackDecision) {
-                    nextDecision = charRouting.fallbackDecision
+                    // The fallback turns the (synastry) decision into a draw
+                    // after setDecision already ran — normalize it so the draw
+                    // gets a cardCount and refresh the state so the deck shows.
+                    nextDecision = normalizeDrawDecision(
+                        charRouting.fallbackDecision,
+                    )
+                    flowDecision = nextDecision
+                    setDecision(nextDecision)
                 }
 
                 const supportBlock = buildSupportBlockFromDecision(
