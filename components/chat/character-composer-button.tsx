@@ -10,6 +10,7 @@ import {
     Crown,
     Paperclip,
     ChevronDown,
+    Pencil,
 } from "lucide-react"
 import {
     Popover,
@@ -70,6 +71,7 @@ export default function CharacterComposerButton({
         insertMention,
         deleteCharacter,
         openAddForm,
+        openEditForm,
         openPaywall,
     } = useCharacterMention()
     const [menuOpen, setMenuOpen] = useState(false)
@@ -102,6 +104,15 @@ export default function CharacterComposerButton({
             return
         }
         openAddForm()
+    }
+
+    function handleEdit(character: Character) {
+        setMenuOpen(false)
+        if (!isPaid) {
+            openPaywall()
+            return
+        }
+        openEditForm(character)
     }
 
     async function handleDelete(character: Character) {
@@ -185,6 +196,16 @@ export default function CharacterComposerButton({
                                                     locale,
                                                 )}
                                             </span>
+                                        </button>
+                                        <button
+                                            type='button'
+                                            aria-label={t("edit")}
+                                            onClick={() =>
+                                                handleEdit(character)
+                                            }
+                                            className='shrink-0 rounded-md p-1.5 text-white/35 opacity-0 transition-opacity hover:bg-white/10 hover:text-pink-300 focus:opacity-100 group-hover:opacity-100'
+                                        >
+                                            <Pencil className='size-3.5' />
                                         </button>
                                         <button
                                             type='button'

@@ -33,6 +33,8 @@ type CharacterMentionContextValue = {
     replaceActiveMention: (character: Character, queryStart: number) => void
     deleteCharacter: (id: string) => Promise<void>
     openAddForm: () => void
+    /** Open the form pre-filled to edit an existing character. */
+    openEditForm: (character: Character) => void
     openPaywall: () => void
 }
 
@@ -65,13 +67,17 @@ export function CharacterMentionProvider({
     children: ReactNode
 }) {
     const t = useTranslations("Character")
-    const { characters, createCharacter, deleteCharacter } = useCharacters()
+    const { characters, createCharacter, updateCharacter, deleteCharacter } =
+        useCharacters()
     const { subscription } = useActiveSubscription()
     const isPaid = canManageCharacters(subscription?.tier)
     const tier: PaywallTier = subscription?.tier ?? "free"
 
     const textareaRef = useRef<HTMLTextAreaElement | null>(null)
     const [formOpen, setFormOpen] = useState(false)
+    const [editingCharacter, setEditingCharacter] = useState<Character | null>(
+        null,
+    )
     const [paywallOpen, setPaywallOpen] = useState(false)
 
     const applyInsert = useCallback(
@@ -118,7 +124,14 @@ export function CharacterMentionProvider({
         [applyInsert, value],
     )
 
-    const openAddForm = useCallback(() => setFormOpen(true), [])
+    const openAddForm = useCallback(() => {
+        setEditingCharacter(null)
+        setFormOpen(true)
+    }, [])
+    const openEditForm = useCallback((character: Character) => {
+        setEditingCharacter(character)
+        setFormOpen(true)
+    }, [])
     const openPaywall = useCallback(() => setPaywallOpen(true), [])
 
     const ctx = useMemo<CharacterMentionContextValue>(
@@ -130,6 +143,7 @@ export function CharacterMentionProvider({
             replaceActiveMention,
             deleteCharacter,
             openAddForm,
+            openEditForm,
             openPaywall,
         }),
         [
@@ -139,6 +153,7 @@ export function CharacterMentionProvider({
             replaceActiveMention,
             deleteCharacter,
             openAddForm,
+            openEditForm,
             openPaywall,
         ],
     )
@@ -150,6 +165,8 @@ export function CharacterMentionProvider({
                 open={formOpen}
                 onOpenChange={setFormOpen}
                 onCreate={createCharacter}
+                character={editingCharacter}
+                onUpdate={updateCharacter}
             />
             <PaywallDialog
                 open={paywallOpen}

@@ -89,6 +89,35 @@ export function useCharacters() {
         [],
     )
 
+    const updateCharacter = useCallback(
+        async (id: string, input: CreateCharacterInput): Promise<Character> => {
+            const token = await getAccessToken()
+            if (!token) throw new Error("UNAUTHORIZED")
+            const res = await fetch(`/api/characters/${id}`, {
+                method: "PUT",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(input),
+            })
+            if (res.status === 402) {
+                const body = await res.json().catch(() => ({}))
+                throw new CharacterPaywallError(body?.requiredTier ?? "basic")
+            }
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}))
+                throw new Error(body?.error ?? "UPDATE_FAILED")
+            }
+            const { character } = await res.json()
+            setCharacters((prev) =>
+                prev.map((c) => (c.id === id ? (character as Character) : c)),
+            )
+            return character as Character
+        },
+        [],
+    )
+
     const deleteCharacter = useCallback(
         async (id: string): Promise<void> => {
             const token = await getAccessToken()
@@ -108,5 +137,12 @@ export function useCharacters() {
         [refresh],
     )
 
-    return { characters, loading, refresh, createCharacter, deleteCharacter }
+    return {
+        characters,
+        loading,
+        refresh,
+        createCharacter,
+        updateCharacter,
+        deleteCharacter,
+    }
 }

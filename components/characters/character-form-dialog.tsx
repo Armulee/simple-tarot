@@ -25,23 +25,31 @@ import type { Character, CreateCharacterInput } from "@/types/character"
 type CharacterFormDialogProps = {
     open: boolean
     onOpenChange: (open: boolean) => void
-    /** Persists the character. Should throw on failure. */
+    /** Persists a new character. Should throw on failure. */
     onCreate: (input: CreateCharacterInput) => Promise<Character>
+    /** When set, the dialog edits this character instead of creating one. */
+    character?: Character | null
+    /** Persists an edit. Required when `character` is set. */
+    onUpdate?: (id: string, input: CreateCharacterInput) => Promise<Character>
 }
 
 /**
- * Add-character form, presented in a dialog. Mirrors the birth-chart intake
- * form (CustomDatePicker / CustomTimePicker / LocationSelector). Birth time and
- * location are optional; name + date are required. The caller owns the paywall
- * gate (this dialog is only opened for paid users), and `onCreate` performs the
- * actual persistence.
+ * Add/edit-character form, presented in a dialog. Mirrors the birth-chart
+ * intake form (CustomDatePicker / CustomTimePicker / LocationSelector). Birth
+ * time and location are optional; name + date are required. When `character` is
+ * provided the form pre-fills and saves via `onUpdate`; otherwise it creates a
+ * new character via `onCreate`. The caller owns the paywall gate (this dialog
+ * is only opened for paid users).
  */
 export function CharacterFormDialog({
     open,
     onOpenChange,
     onCreate,
+    character,
+    onUpdate,
 }: CharacterFormDialogProps) {
     const t = useTranslations("Character")
+    const isEdit = Boolean(character)
 
     const [name, setName] = useState("")
     const [day, setDay] = useState("")
@@ -54,9 +62,26 @@ export function CharacterFormDialog({
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState("")
 
-    // Reset the form whenever the dialog is (re)opened.
+    // (Re)seed the form whenever the dialog opens: pre-fill from the character
+    // being edited, or clear for a fresh add.
     useEffect(() => {
-        if (open) {
+        if (!open) return
+        if (character) {
+            setName(character.name)
+            setDay(String(character.birthDay))
+            setMonth(String(character.birthMonth))
+            setYear(String(character.birthYear))
+            setHour(
+                character.birthHour != null ? String(character.birthHour) : "",
+            )
+            setMinute(
+                character.birthMinute != null
+                    ? String(character.birthMinute)
+                    : "",
+            )
+            setCountry(character.birthCountry ?? "")
+            setStateProv(character.birthState ?? "")
+        } else {
             setName("")
             setDay("")
             setMonth("")
@@ -65,10 +90,10 @@ export function CharacterFormDialog({
             setMinute("")
             setCountry("")
             setStateProv("")
-            setError("")
-            setSubmitting(false)
         }
-    }, [open])
+        setError("")
+        setSubmitting(false)
+    }, [open, character])
 
     const isValid = useMemo(() => {
         const d = parseInt(day, 10)
@@ -128,8 +153,13 @@ export function CharacterFormDialog({
         }
 
         try {
-            const created = await onCreate(input)
-            toast.success(t("created", { name: created.name }))
+            if (character && onUpdate) {
+                const updated = await onUpdate(character.id, input)
+                toast.success(t("updated", { name: updated.name }))
+            } else {
+                const created = await onCreate(input)
+                toast.success(t("created", { name: created.name }))
+            }
             onOpenChange(false)
         } catch {
             setError(t("errorGeneric"))
@@ -144,9 +174,11 @@ export function CharacterFormDialog({
                 <DialogHeader>
                     <DialogTitle className='flex items-center gap-2'>
                         <UserRound className='size-5 text-pink-300' aria-hidden />
-                        {t("addTitle")}
+                        {isEdit ? t("editTitle") : t("addTitle")}
                     </DialogTitle>
-                    <DialogDescription>{t("addDescription")}</DialogDescription>
+                    <DialogDescription>
+                        {isEdit ? t("editDescription") : t("addDescription")}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className='space-y-5'>
