@@ -460,7 +460,7 @@ export default function Home() {
 
             <div
                 ref={fixedBarRef}
-                className='fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
+                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
                 <QuestionInput
                     id='home-question-input'
