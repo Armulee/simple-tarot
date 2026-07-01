@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { usePathname } from "@/i18n/navigation"
@@ -75,32 +76,67 @@ export function DesktopSidebar({
     return (
         <aside
             className={cn(
-                "fixed left-0 top-16 z-40 hidden h-[calc(100dvh-4rem)] flex-col border-r border-white/10 bg-[#0A0F26]/80 backdrop-blur-md transition-[width] duration-300 ease-in-out lg:flex",
+                "fixed left-0 top-0 z-50 hidden h-dvh flex-col border-r border-white/10 bg-[#0A0F26]/80 backdrop-blur-md transition-[width] duration-300 ease-in-out lg:flex",
                 collapsed ? "w-16" : "w-64",
             )}
             aria-label={t("userMenu")}
         >
-            {/* Collapse / expand toggle */}
-            <div
-                className={cn(
-                    "flex items-center border-b border-white/10 px-2 py-2",
-                    collapsed ? "justify-center" : "justify-end",
-                )}
-            >
-                <button
-                    type='button'
-                    onClick={onToggle}
-                    aria-label={collapsed ? t("expand") : t("collapse")}
-                    title={collapsed ? t("expand") : t("collapse")}
-                    className='inline-flex size-8 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white'
-                >
-                    {collapsed ? (
+            {/* Brand + collapse toggle */}
+            {collapsed ? (
+                <div className='flex flex-col items-center gap-1 border-b border-white/10 py-2'>
+                    <Link
+                        href='/'
+                        aria-label='AskingFate'
+                        className='flex items-center justify-center'
+                    >
+                        <Image
+                            src='/assets/logo.png'
+                            alt='AskingFate'
+                            width={28}
+                            height={28}
+                            className='rounded-md object-contain'
+                            priority
+                        />
+                    </Link>
+                    <button
+                        type='button'
+                        onClick={onToggle}
+                        aria-label={t("expand")}
+                        title={t("expand")}
+                        className='inline-flex size-8 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white'
+                    >
                         <ChevronsRight className='size-4' />
-                    ) : (
+                    </button>
+                </div>
+            ) : (
+                <div className='flex h-16 items-center justify-between gap-2 border-b border-white/10 px-3'>
+                    <Link
+                        href='/'
+                        className='group flex min-w-0 items-center gap-2'
+                    >
+                        <Image
+                            src='/assets/logo.png'
+                            alt='AskingFate'
+                            width={28}
+                            height={28}
+                            className='rounded-md object-contain transition-transform group-hover:scale-110'
+                            priority
+                        />
+                        <span className='truncate font-playfair text-lg font-bold text-white transition-colors group-hover:text-cosmic-purple'>
+                            AskingFate
+                        </span>
+                    </Link>
+                    <button
+                        type='button'
+                        onClick={onToggle}
+                        aria-label={t("collapse")}
+                        title={t("collapse")}
+                        className='inline-flex size-8 shrink-0 items-center justify-center rounded-md text-white/60 transition-colors hover:bg-white/10 hover:text-white'
+                    >
                         <ChevronsLeft className='size-4' />
-                    )}
-                </button>
-            </div>
+                    </button>
+                </div>
+            )}
 
             {/* Scrollable nav */}
             <div className='flex-1 overflow-y-auto scrollbar-hide px-2 py-3'>

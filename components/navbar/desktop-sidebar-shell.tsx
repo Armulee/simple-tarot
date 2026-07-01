@@ -28,6 +28,15 @@ export function DesktopSidebarShell({ children }: { children: ReactNode }) {
         setHydrated(true)
     }, [])
 
+    // Publish the state on <html> so `--app-sidebar-w` is available app-wide —
+    // the navbar lives outside this wrapper and still needs to shift over.
+    useEffect(() => {
+        document.documentElement.setAttribute(
+            "data-app-sidebar",
+            collapsed ? "collapsed" : "expanded",
+        )
+    }, [collapsed])
+
     const toggle = useCallback(() => {
         setCollapsed((c) => {
             const next = !c
@@ -44,7 +53,6 @@ export function DesktopSidebarShell({ children }: { children: ReactNode }) {
         <>
             <DesktopSidebar collapsed={collapsed} onToggle={toggle} />
             <div
-                data-app-sidebar={collapsed ? "collapsed" : "expanded"}
                 className={cn(
                     "flex min-h-0 min-w-0 flex-1 flex-col pl-[var(--app-sidebar-w)]",
                     hydrated && "transition-[padding] duration-300 ease-in-out",

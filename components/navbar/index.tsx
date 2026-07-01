@@ -125,7 +125,7 @@ export function Navbar({ locale }: { locale: string }) {
     // const initial = displayName.charAt(0).toUpperCase()
 
     return (
-        <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
+        <nav className='fixed top-0 left-[var(--app-sidebar-w)] right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20 transition-[left] duration-300 ease-in-out'>
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: Mobile menu button / Desktop brand */}
@@ -141,10 +141,10 @@ export function Navbar({ locale }: { locale: string }) {
                             <Menu className='h-6 w-6' />
                         </Button>
 
-                        {/* Desktop: brand */}
+                        {/* Desktop (md–lg): brand. At lg+ the sidebar carries the logo. */}
                         <Link
                             href='/'
-                            className='hidden md:flex items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5'
+                            className='hidden md:flex lg:hidden items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5'
                         >
                             <Image
                                 src='/assets/logo.png'

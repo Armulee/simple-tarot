@@ -199,10 +199,13 @@
 }
 
 /* Desktop collapsible sidebar (lg+): reserve space for the docked aside so
-   page content — and any fixed page element that uses var(--app-sidebar-w) —
-   line up beside it. Below lg the value stays 0 (hamburger drawer instead). */
+   the navbar, page content, and any fixed element that uses var(--app-sidebar-w)
+   all line up beside it. Set on :root so it's available app-wide (the navbar is
+   not a descendant of the content wrapper). Default is expanded; the collapsed
+   attribute (set on <html> by the shell) narrows it. Below lg it stays 0
+   (the hamburger drawer is used instead). */
 @media (min-width: 1024px) {
-  [data-app-sidebar="expanded"] {
+  :root {
     --app-sidebar-w: 16rem;
   }
   [data-app-sidebar="collapsed"] {
