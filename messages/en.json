@@ -253,7 +253,10 @@
     "contactSupport": "Contact & Support",
     "planOptions": "Plan options",
     "proTopUpOnly": "Pro subscribers can buy add-on stars.",
-    "userMenu": "User"
+    "userMenu": "User",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "yourStars": "Your Stars"
   },
   "Services": {
     "tarot": "Tarot",

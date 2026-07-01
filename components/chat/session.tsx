@@ -8331,7 +8331,7 @@ export default function ChatSession({
                 </div>
             </div>
             {isInputFixed && (
-                <div className='fixed bottom-0 left-0 right-0 z-30'>
+                <div className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-30 transition-[left] duration-300 ease-in-out'>
                     <div ref={fixedBarRef} className='relative'>
                         {composerScrollDown.visible &&
                         composerScrollDown.scrollToBottom ? (

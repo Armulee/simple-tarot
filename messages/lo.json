@@ -166,7 +166,10 @@
     "contactSupport": "ຕິດຕໍ່ & ສະໜັບສະໜູນ",
     "planOptions": "ຕົວເລືອກແພັກເກດ",
     "proTopUpOnly": "ສະເພາະສະມາຊິກ Pro ເທົ່ານັ້ນທີ່ຊື້ດາວເສີມໄດ້",
-    "userMenu": "ຜູ້ໃຊ້"
+    "userMenu": "ຜູ້ໃຊ້",
+    "collapse": "ຫຍໍ້ແຖບເມນູ",
+    "expand": "ຂະຫຍາຍແຖບເມນູ",
+    "yourStars": "ດາວຂອງທ່ານ"
   },
   "Services": {
     "tarot": "ໄພ່ທາໂຣ",

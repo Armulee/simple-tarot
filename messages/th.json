@@ -300,7 +300,10 @@
     "contactSupport": "ติดต่อ & สนับสนุน",
     "planOptions": "ตัวเลือกแพ็กเกจ",
     "proTopUpOnly": "เฉพาะสมาชิก Pro เท่านั้นที่ซื้อดาวเสริมได้",
-    "userMenu": "ผู้ใช้"
+    "userMenu": "ผู้ใช้",
+    "collapse": "ย่อแถบเมนู",
+    "expand": "ขยายแถบเมนู",
+    "yourStars": "ดาวของคุณ"
   },
   "Services": {
     "tarot": "ไพ่ทาโรต์",
