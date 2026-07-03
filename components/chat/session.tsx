@@ -122,8 +122,15 @@ import {
     getMaxCardsForTier,
 } from "@/lib/payments/plan-limits"
 import { buildSupportBlockFromDecision } from "@/lib/chat/support-block"
+import {
+    extractMentionedCharacters,
+    findMentionRanges,
+} from "@/lib/chat/character-mentions"
+import type { SynastryPersonBirth } from "@/lib/chat/synastry-schema"
+import type { Character } from "@/types/character"
 import { useAuth } from "@/hooks/use-auth"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
+import { useCharacters } from "@/hooks/use-characters"
 import { useProfile } from "@/contexts/profile-context"
 import { supabase } from "@/lib/supabase"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
@@ -772,6 +779,23 @@ function arePredictionTimelinesEqual(
     return true
 }
 
+/** Map a saved character to the birth payload the synastry/character APIs take. */
+function mapCharacterToBirth(character: Character): SynastryPersonBirth {
+    return {
+        name: character.name,
+        day: character.birthDay,
+        month: character.birthMonth,
+        year: character.birthYear,
+        hour: character.birthHour,
+        minute: character.birthMinute,
+        country: character.birthCountry,
+        state: character.birthState,
+        lat: character.lat,
+        lng: character.lng,
+        timezone: character.timezone,
+    }
+}
+
 export default function ChatSession({
     initialSession,
 }: {
@@ -783,6 +807,8 @@ export default function ChatSession({
     const tActionTrigger = useTranslations("ActionTrigger")
     const tShareProgress = useTranslations("ShareImageProgress")
     const tReadingActions = useTranslations("ReadingPage.interpretation")
+    const tSynastry = useTranslations("Synastry")
+    const tCharacter = useTranslations("Character")
 
     const POSITION_MEANINGS: Record<string, string[]> = {
         simple: [tReadingTypes("simple.title")],
@@ -826,7 +852,10 @@ export default function ChatSession({
     const pathname = usePathname()
     const { user, loading: authLoading } = useAuth()
     const { subscription } = useActiveSubscription()
+    const isPaid =
+        subscription?.tier === "basic" || subscription?.tier === "pro"
     const { profile, birthChart: storedBirthChart } = useProfile()
+    const { characters: ownedCharacters } = useCharacters()
     const storedBirthChartPayload = useMemo(
         () =>
             storedBirthChart
@@ -3525,6 +3554,9 @@ export default function ChatSession({
                     supportCardSlug: undefined,
                 }
             }
+            if (interpretationMode === "synastry") {
+                return { ...decision, type: "synastry" }
+            }
             return decision
         },
         [interpretationMode, user],
@@ -5645,6 +5677,16 @@ export default function ChatSession({
                 }
                 nextDecision = applyInterpretationModeOverride(nextDecision)
                 nextDecision = normalizeDrawDecision(nextDecision)
+                // Synastry is a paid feature; downgrade to a tarot draw for
+                // free users so a compatibility question still gets a reading.
+                // Normalize so the draw gets a cardCount (and the deck renders).
+                if (nextDecision.type === "synastry" && !isPaidRef.current) {
+                    nextDecision = normalizeDrawDecision({
+                        ...nextDecision,
+                        type: "draw",
+                        spreadType: nextDecision.spreadType ?? "general",
+                    })
+                }
                 nextDecision = applyCalendarModeOverride(nextDecision, trimmed)
                 flowDecision = nextDecision
                 setDecision(nextDecision)
@@ -5700,6 +5742,27 @@ export default function ChatSession({
                     )
                     consultingLoadingIdRef.current = null
                     return
+                }
+
+                // Route tagged-character / compatibility questions: a
+                // comparison renders a synastry card, a single tagged
+                // character gets an astrology answer, and anything that can't
+                // be resolved falls through (optionally downgraded to a draw).
+                const charRouting = await handleCharacterRouting(
+                    assistantLoadingId,
+                    trimmed,
+                    nextDecision,
+                )
+                if (charRouting.handled) return
+                if (charRouting.fallbackDecision) {
+                    // The fallback turns the (synastry) decision into a draw
+                    // after setDecision already ran — normalize it so the draw
+                    // gets a cardCount and refresh the state so the deck shows.
+                    nextDecision = normalizeDrawDecision(
+                        charRouting.fallbackDecision,
+                    )
+                    flowDecision = nextDecision
+                    setDecision(nextDecision)
                 }
 
                 const supportBlock = buildSupportBlockFromDecision(
@@ -6298,6 +6361,336 @@ export default function ChatSession({
         setNotice(id, "Report draft opened.")
     }
 
+    // Latest-value refs so the synastry callbacks read fresh async-loaded data
+    // (character list, birth chart, profile, paid status) regardless of which
+    // render's closure the decision flows captured.
+    const ownedCharactersRef = useRef(ownedCharacters)
+    ownedCharactersRef.current = ownedCharacters
+    const storedBirthChartRef = useRef(storedBirthChart)
+    storedBirthChartRef.current = storedBirthChart
+    const profileRef = useRef(profile)
+    profileRef.current = profile
+    const isPaidRef = useRef(isPaid)
+    isPaidRef.current = isPaid
+
+    // The asker's own birth (person A) for synastry, from their stored chart.
+    const mapUserBirthToSynastry = useCallback((): SynastryPersonBirth | null => {
+        const b = storedBirthChartRef.current
+        const prof = profileRef.current
+        if (!b || !b.day || !b.month || !b.year) return null
+        return {
+            name: prof?.name ?? null,
+            day: b.day,
+            month: b.month,
+            year: b.year,
+            hour: b.hour ?? null,
+            minute: b.minute ?? null,
+            country: b.country ?? null,
+            state: b.state_province ?? null,
+            lat: b.lat ?? null,
+            lng: b.lng ?? null,
+            timezone: b.timezone ?? null,
+        }
+    }, [])
+
+    // Run the synastry reading for two explicit parties and render the
+    // result card on the loading message.
+    const runSynastryReading = useCallback(
+        async (
+            assistantLoadingId: string,
+            question: string,
+            personA: SynastryPersonBirth,
+            personB: SynastryPersonBirth,
+        ) => {
+            setConsulting(true)
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              text: "",
+                              variant: "synastry" as const,
+                              synastryReading: null,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            try {
+                const res = await fetch("/api/synastry", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question, locale, personA, personB }),
+                })
+                if (!res.ok) throw new Error("synastry_failed")
+                const payload = await res.json()
+                setConsulting(false)
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: "",
+                                  variant: "synastry" as const,
+                                  synastryReading: payload,
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            } catch {
+                setConsulting(false)
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: tSynastry("error"),
+                                  variant: "plain" as const,
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            consultingLoadingIdRef.current = null
+        },
+        [locale, tSynastry],
+    )
+
+    // Run an astrology Q&A about ONE tagged character (no comparison) and
+    // render the answer as plain text on the loading message.
+    const runCharacterReading = useCallback(
+        async (
+            assistantLoadingId: string,
+            question: string,
+            person: SynastryPersonBirth,
+        ) => {
+            setConsulting(true)
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === assistantLoadingId
+                        ? {
+                              ...m,
+                              text: "",
+                              variant: "plain" as const,
+                              synastryReading: null,
+                              isLoading: true,
+                              streamStopped: false,
+                          }
+                        : m,
+                ),
+            )
+            try {
+                const res = await fetch("/api/character-reading", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question, locale, person }),
+                })
+                if (!res.ok) throw new Error("character_reading_failed")
+                const payload = await res.json()
+                setConsulting(false)
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: payload.text ?? "",
+                                  variant: "plain" as const,
+                                  isLoading: false,
+                                  streamStopped: false,
+                              }
+                            : m,
+                    ),
+                )
+            } catch {
+                setConsulting(false)
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === assistantLoadingId
+                            ? {
+                                  ...m,
+                                  text: tCharacter("readingError"),
+                                  variant: "plain" as const,
+                                  isLoading: false,
+                              }
+                            : m,
+                    ),
+                )
+            }
+            consultingLoadingIdRef.current = null
+        },
+        [locale, tCharacter],
+    )
+
+    // Resolve the two people for a synastry (comparison) reading:
+    //  - 2+ tagged characters → compare the first two characters;
+    //  - 1 tagged character → compare the asker with that character;
+    //  - no tag → compare the asker with a birth date from the classifier.
+    // Returns "need-your-birth" when the asker is a party but has no stored
+    // chart, and "none" when there is no valid second person (fall back).
+    const resolveSynastryParties = useCallback(
+        (
+            question: string,
+            decision: ChatDecision,
+            chars: Character[],
+        ):
+            | {
+                  kind: "ok"
+                  personA: SynastryPersonBirth
+                  personB: SynastryPersonBirth
+              }
+            | { kind: "need-your-birth" }
+            | { kind: "none" } => {
+            // Two (or more) tagged characters: compare them directly. The
+            // asker's own chart is not needed.
+            if (chars.length >= 2) {
+                return {
+                    kind: "ok",
+                    personA: mapCharacterToBirth(chars[0]),
+                    personB: mapCharacterToBirth(chars[1]),
+                }
+            }
+            // The asker is one of the parties from here on.
+            const personA = mapUserBirthToSynastry()
+            if (!personA) return { kind: "need-your-birth" }
+            // One tagged character → asker vs that character.
+            if (chars.length === 1) {
+                return {
+                    kind: "ok",
+                    personA,
+                    personB: mapCharacterToBirth(chars[0]),
+                }
+            }
+            // No tag → asker vs a birth date pulled from the question.
+            const dob = decision.synastryPersonBirthDate
+            if (dob && dob.day && dob.month && dob.year) {
+                return {
+                    kind: "ok",
+                    personA,
+                    personB: {
+                        name: decision.synastryPersonName ?? null,
+                        day: dob.day,
+                        month: dob.month,
+                        year: dob.year,
+                        hour: null,
+                        minute: null,
+                        country: null,
+                        state: null,
+                        lat: null,
+                        lng: null,
+                        timezone: null,
+                    },
+                }
+            }
+            return { kind: "none" }
+        },
+        [mapUserBirthToSynastry],
+    )
+
+    // Decide what a tagged-character (or compatibility) question should do:
+    //  - a comparison (2 characters, or the asker vs a character / birth date)
+    //    → synastry reading;
+    //  - a question about ONE tagged character alone → astrology reading.
+    // Returns { handled: true } when a reading was rendered; otherwise the
+    // caller continues the normal flow (optionally with `fallbackDecision`).
+    const handleCharacterRouting = useCallback(
+        async (
+            assistantLoadingId: string,
+            question: string,
+            decision: ChatDecision,
+        ): Promise<{
+            handled: boolean
+            fallbackDecision?: ChatDecision
+        }> => {
+            // Characters, @mentions and synastry are all paid features.
+            if (!isPaidRef.current) return { handled: false }
+
+            const chars = extractMentionedCharacters(
+                question,
+                ownedCharactersRef.current,
+            )
+            // Nothing tagged and the classifier saw no compatibility intent —
+            // this is a normal question, leave it to the standard flow.
+            if (chars.length === 0 && decision.type !== "synastry") {
+                return { handled: false }
+            }
+
+            const dob = decision.synastryPersonBirthDate
+            const hasOtherDob = Boolean(dob && dob.day && dob.month && dob.year)
+            // A comparison: two tagged people, a compatibility question, or one
+            // character weighed against another explicit birth date.
+            const isComparison =
+                chars.length >= 2 ||
+                decision.type === "synastry" ||
+                (chars.length === 1 && hasOtherDob)
+
+            const downgradeToDraw: ChatDecision = {
+                ...decision,
+                type: "draw",
+                spreadType: decision.spreadType ?? "general",
+            }
+
+            if (isComparison) {
+                const resolved = resolveSynastryParties(
+                    question,
+                    decision,
+                    chars,
+                )
+                if (resolved.kind === "ok") {
+                    await runSynastryReading(
+                        assistantLoadingId,
+                        question,
+                        resolved.personA,
+                        resolved.personB,
+                    )
+                    return { handled: true }
+                }
+                if (resolved.kind === "need-your-birth") {
+                    setConsulting(false)
+                    setMessages((prev) =>
+                        prev.map((m) =>
+                            m.id === assistantLoadingId
+                                ? {
+                                      ...m,
+                                      text: tSynastry("needYourBirth"),
+                                      variant: "plain" as const,
+                                      isLoading: false,
+                                      synastryReading: null,
+                                  }
+                                : m,
+                        ),
+                    )
+                    consultingLoadingIdRef.current = null
+                    return { handled: true }
+                }
+                // No valid second person — fall back to a normal draw.
+                return { handled: false, fallbackDecision: downgradeToDraw }
+            }
+
+            // A single tagged character with a question about them alone →
+            // astrology reading for that character.
+            if (chars.length === 1) {
+                await runCharacterReading(
+                    assistantLoadingId,
+                    question,
+                    mapCharacterToBirth(chars[0]),
+                )
+                return { handled: true }
+            }
+
+            return { handled: false }
+        },
+        [
+            resolveSynastryParties,
+            runSynastryReading,
+            runCharacterReading,
+            tSynastry,
+        ],
+    )
+
     const startDecisionFlow = useCallback(
         async (
             value: string,
@@ -6415,6 +6808,16 @@ export default function ChatSession({
                     }
                 }
                 nextDecision = normalizeDrawDecision(nextDecision)
+                // Synastry is a paid feature; downgrade to a tarot draw for
+                // free users so a compatibility question still gets a reading.
+                // Normalize so the draw gets a cardCount (and the deck renders).
+                if (nextDecision.type === "synastry" && !isPaidRef.current) {
+                    nextDecision = normalizeDrawDecision({
+                        ...nextDecision,
+                        type: "draw",
+                        spreadType: nextDecision.spreadType ?? "general",
+                    })
+                }
                 // Apply the same calendar-intent rule as
                 // runDecisionFlowFromMessages so first-message (homepage →
                 // session) prompts like "show my cosmic calendar" render the
@@ -6479,6 +6882,27 @@ export default function ChatSession({
                     )
                     consultingLoadingIdRef.current = null
                     return
+                }
+
+                // Route tagged-character / compatibility questions: a
+                // comparison renders a synastry card, a single tagged
+                // character gets an astrology answer, and anything that can't
+                // be resolved falls through (optionally downgraded to a draw).
+                const charRouting = await handleCharacterRouting(
+                    assistantLoadingId,
+                    trimmed,
+                    nextDecision,
+                )
+                if (charRouting.handled) return
+                if (charRouting.fallbackDecision) {
+                    // The fallback turns the (synastry) decision into a draw
+                    // after setDecision already ran — normalize it so the draw
+                    // gets a cardCount and refresh the state so the deck shows.
+                    nextDecision = normalizeDrawDecision(
+                        charRouting.fallbackDecision,
+                    )
+                    flowDecision = nextDecision
+                    setDecision(nextDecision)
                 }
 
                 const supportBlock = buildSupportBlockFromDecision(
@@ -6894,11 +7318,49 @@ export default function ChatSession({
                 originContextSnapshot?: OriginContext | null
             } = {},
         ) => {
-            const result = await sanitizePromptOnClient(rawValue, {
+            // The composer uses an em space as the mention's icon slot; store
+            // and send a normal space instead so persisted/AI text stays clean.
+            rawValue = rawValue.split(String.fromCodePoint(0x2003)).join(" ")
+            // Protect known @character mentions so PII sanitization never
+            // redacts a character the user explicitly tagged (and so the
+            // mention survives verbatim for downstream synastry/mention
+            // resolution). Anything that is NOT a known character is left for
+            // normal sanitization (e.g. an unknown @handle).
+            const mentionRanges = findMentionRanges(
+                rawValue,
+                ownedCharactersRef.current,
+            )
+            let toSanitize = rawValue
+            const restoreMentions: Array<{ token: string; original: string }> =
+                []
+            if (mentionRanges.length) {
+                // Replace right-to-left so earlier offsets stay valid.
+                const ordered = [...mentionRanges].sort(
+                    (a, b) => b.start - a.start,
+                )
+                ordered.forEach((range, i) => {
+                    const token = String.fromCodePoint(0xe000 + i)
+                    restoreMentions.push({
+                        token,
+                        original: rawValue.slice(range.start, range.end),
+                    })
+                    toSanitize =
+                        toSanitize.slice(0, range.start) +
+                        token +
+                        toSanitize.slice(range.end)
+                })
+            }
+
+            const result = await sanitizePromptOnClient(toSanitize, {
                 sessionId: sessionId ?? "",
                 locale,
                 userId: user?.id ?? null,
             })
+            // Restore the tagged character names verbatim.
+            let sanitizedText = result.sanitized
+            for (const { token, original } of restoreMentions) {
+                sanitizedText = sanitizedText.split(token).join(original)
+            }
             if (result.aliases.length) {
                 setPrivacyAliases(result.aliases)
             }
@@ -6911,7 +7373,7 @@ export default function ChatSession({
             const userMessage: ChatMessage = {
                 id: userMessageId,
                 role: "user",
-                text: result.sanitized,
+                text: sanitizedText,
                 isSanitizing: false,
                 originContextSnapshot:
                     options.originContextSnapshot !== undefined
@@ -7631,6 +8093,7 @@ export default function ChatSession({
                 onInterpretationModeChange={
                     isHoroscopeIntakeActive ? undefined : setInterpretationMode
                 }
+                enableCharacterMention={!isHoroscopeIntakeActive}
                 composerSettings={
                     isHoroscopeIntakeActive
                         ? null
@@ -7793,6 +8256,7 @@ export default function ChatSession({
                 assistantReactions={assistantReactions}
                 messageNotices={messageNotices}
                 isHoroscopeIntakeActive={isHoroscopeIntakeActive}
+                characters={ownedCharacters}
                 isCheckingStars={isCheckingStars}
                 checkingStarsText={tHome("checkingStars")}
                 showInsufficientStars={showInsufficientStars}
@@ -7867,7 +8331,7 @@ export default function ChatSession({
                 </div>
             </div>
             {isInputFixed && (
-                <div className='fixed bottom-0 left-0 right-0 z-30'>
+                <div className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-30 transition-[left] duration-300 ease-in-out'>
                     <div ref={fixedBarRef} className='relative'>
                         {composerScrollDown.visible &&
                         composerScrollDown.scrollToBottom ? (

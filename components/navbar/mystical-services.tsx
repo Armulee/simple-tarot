@@ -7,6 +7,7 @@ import {
     Calendar,
     Hand,
     Heart,
+    Activity,
 } from "lucide-react"
 
 const mysticalServices = [
@@ -29,6 +30,13 @@ const mysticalServices = [
         href: "/?service=astrology",
         label: "Astrology",
         Icon: Star,
+        available: true,
+    },
+    {
+        id: "lifeMonitor",
+        href: "/life-monitor",
+        label: "Life Monitor",
+        Icon: Activity,
         available: true,
     },
     {

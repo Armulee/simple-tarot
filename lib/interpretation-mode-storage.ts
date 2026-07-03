@@ -4,6 +4,7 @@ export type InterpretationMode =
     | "horoscope"
     | "chat"
     | "oracle"
+    | "synastry"
 
 const STORAGE_KEY = "askingfate_interpretation_mode"
 
@@ -13,6 +14,7 @@ const VALID_MODES: InterpretationMode[] = [
     "horoscope",
     "chat",
     "oracle",
+    "synastry",
 ]
 
 export function loadInterpretationModeFromStorage(): InterpretationMode {

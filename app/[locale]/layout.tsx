@@ -7,6 +7,7 @@ import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
+import { DesktopSidebarShell } from "@/components/navbar/desktop-sidebar-shell"
 import "../globals.css"
 import Footer from "@/components/footer/footer"
 import { CookiesBanner } from "@/components/cookies-banner"
@@ -155,17 +156,19 @@ export default async function RootLayout({
                             <TarotProvider>
                                 <div className='min-h-screen flex flex-col home-gradient relative'>
                                     <Navbar locale={locale} />
-                                    <main className='flex flex-1 flex-col pt-16 min-h-[calc(100dvh-64px)] relative min-h-0'>
-                                        <div className='flex min-h-0 min-w-0 flex-1 flex-col'>
-                                            <Suspense fallback={null}>
-                                                <div className='flex min-h-0 flex-1 flex-col'>
-                                                    {children}
-                                                </div>
-                                            </Suspense>
-                                        </div>
-                                        <CookiesBanner />
-                                    </main>
-                                    <Footer />
+                                    <DesktopSidebarShell>
+                                        <main className='flex flex-1 flex-col pt-16 min-h-[calc(100dvh-64px)] relative min-h-0'>
+                                            <div className='flex min-h-0 min-w-0 flex-1 flex-col'>
+                                                <Suspense fallback={null}>
+                                                    <div className='flex min-h-0 flex-1 flex-col'>
+                                                        {children}
+                                                    </div>
+                                                </Suspense>
+                                            </div>
+                                            <CookiesBanner />
+                                        </main>
+                                        <Footer />
+                                    </DesktopSidebarShell>
                                 </div>
                             </TarotProvider>
                         </StarsProvider>

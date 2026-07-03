@@ -23,6 +23,7 @@ import {
     CalendarDays,
     Settings,
     Sparkles,
+    Activity,
 } from "lucide-react"
 import { NotificationSheet } from "@/components/notifications/notification-sheet"
 
@@ -145,6 +146,12 @@ export function UserProfileDropdown({
                             <Sparkles className='w-4 h-4 mr-2' />
                             {t("birthChart")}
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => navigate("/life-monitor")}
+                        >
+                            <Activity className='w-4 h-4 mr-2' />
+                            {t("lifeMonitor")}
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => navigate("/profile")}>
                             <User className='w-4 h-4 mr-2' />
                             {t("profile")}
@@ -258,6 +265,16 @@ export function UserProfileSidebarMenu({
                 >
                     <Sparkles className='w-4 h-4 shrink-0' />
                     <span>{t("birthChart")}</span>
+                </Link>
+            </li>
+            <li>
+                <Link
+                    href='/life-monitor'
+                    className={linkClass("/life-monitor")}
+                    onClick={() => onNavigate?.()}
+                >
+                    <Activity className='w-4 h-4 shrink-0' />
+                    <span>{t("lifeMonitor")}</span>
                 </Link>
             </li>
             <li>

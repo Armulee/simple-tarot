@@ -1,7 +1,14 @@
 "use client"
 
 import { useEffect, useState, type RefObject } from "react"
-import { CornerDownRight, Send, Square, X } from "lucide-react"
+import {
+    CornerDownRight,
+    Image as ImageIcon,
+    Paperclip,
+    Send,
+    Square,
+    X,
+} from "lucide-react"
 import { Swiper, SwiperSlide } from "swiper/react"
 import { FreeMode, Mousewheel } from "swiper/modules"
 import "swiper/css"
@@ -13,34 +20,24 @@ import { useTarot } from "@/contexts/tarot-context"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
+import CharacterComposerButton from "@/components/chat/character-composer-button"
+import MentionTextarea from "@/components/chat/mention-textarea"
+import { CharacterMentionProvider } from "@/components/chat/character-mention-context"
 import {
     ComposerSettingsMenu,
     type ComposerSettingsMenuProps,
 } from "@/components/chat/composer-settings-menu"
 import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
+import {
+    INPUT_BORDER_BY_MODE,
+    INPUT_GLOW_BY_MODE,
+} from "@/components/chat/composer-input-styles"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
-
-const INPUT_BORDER_BY_MODE: Record<InterpretationMode, string> = {
-    auto: "border-border/60 focus:border-primary/60 focus:ring-primary/40",
-    chat: "border-emerald-400/30 focus:border-emerald-400/60 focus:ring-emerald-400/30",
-    tarot: "border-purple-400/30 focus:border-purple-400/60 focus:ring-purple-400/30",
-    horoscope:
-        "border-blue-400/30 focus:border-blue-400/60 focus:ring-blue-400/30",
-    oracle: "border-amber-300/40 focus:border-amber-300/70 focus:ring-amber-300/30",
-}
 
 /** Shared with homepage quick cards so composer chips match exactly. */
 export const followUpChipClass =
     "inline-flex max-w-[min(92vw,20rem)] shrink-0 items-center whitespace-nowrap rounded-lg border border-white/12 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl px-3 py-1.5 text-left text-xs leading-tight text-white/80 transition-colors hover:border-white/28 hover:from-indigo-500/25 hover:via-purple-500/25 hover:to-cyan-500/25 hover:text-white cursor-pointer touch-pan-x"
-
-const INPUT_GLOW_BY_MODE: Record<InterpretationMode, string> = {
-    auto: "shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]",
-    chat: "shadow-[0_10px_30px_-10px_rgba(52,211,153,0.3)]",
-    tarot: "shadow-[0_10px_30px_-10px_rgba(168,85,247,0.3)]",
-    horoscope: "shadow-[0_10px_30px_-10px_rgba(96,165,250,0.3)]",
-    oracle: "shadow-[0_10px_30px_-10px_rgba(252,211,77,0.35)]",
-}
 
 function chipKeyDown(
     event: React.KeyboardEvent<HTMLDivElement>,
@@ -89,6 +86,7 @@ export default function QuestionInput({
     sectionId,
     wrapperClassName = "",
     inputWrapperClassName = "max-w-sm md:max-w-md",
+    enableCharacterMention = false,
 }: {
     id?: string
     label?: string
@@ -122,6 +120,8 @@ export default function QuestionInput({
     sectionId?: string
     wrapperClassName?: string
     inputWrapperClassName?: string
+    /** Show the "+" character mention button before the mode selector. */
+    enableCharacterMention?: boolean
 }) {
     const t = useTranslations("QuestionInput")
     const [internalQuestion, setInternalQuestion] = useState("")
@@ -144,6 +144,14 @@ export default function QuestionInput({
     const question = value !== undefined ? value : internalQuestion
     const setQuestion = onChange || setInternalQuestion
 
+    // Attachments picked from the "+" menu. Shown as chips in the composer;
+    // not yet wired into the reading pipeline.
+    const [attachments, setAttachments] = useState<File[]>([])
+    const handleAddMedia = (file: File) =>
+        setAttachments((prev) => [...prev, file].slice(0, 8))
+    const removeAttachment = (index: number) =>
+        setAttachments((prev) => prev.filter((_, i) => i !== index))
+
     const showBottomChrome =
         actionTrigger != null ||
         composerFollowUps != null ||
@@ -154,6 +162,7 @@ export default function QuestionInput({
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
+            setAttachments([])
             if (onSubmit) {
                 void onSubmit(currentValue)
                 return
@@ -335,18 +344,54 @@ export default function QuestionInput({
                 {label}
             </Label>
             <div className={`w-full ${className ?? "max-w-sm md:max-w-md"}`}>
+                {attachments.length > 0 && (
+                    <div className='mb-2 flex flex-wrap gap-1.5'>
+                        {attachments.map((file, i) => (
+                            <span
+                                key={`${file.name}-${i}`}
+                                className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
+                            >
+                                {file.type.startsWith("image/") ? (
+                                    <ImageIcon className='size-3.5 shrink-0 text-white/60' />
+                                ) : (
+                                    <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                )}
+                                <span className='truncate'>{file.name}</span>
+                                <button
+                                    type='button'
+                                    onClick={() => removeAttachment(i)}
+                                    aria-label={t("removeAttachment")}
+                                    className='shrink-0 text-white/50 hover:text-white'
+                                >
+                                    <X className='size-3' />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                )}
                 <div className='relative group w-full'>
                     <div className='pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(120%_120%_at_0%_0%,rgba(99,102,241,0.18),rgba(168,85,247,0.12)_35%,rgba(34,211,238,0.10)_70%,transparent_80%)] blur-xl opacity-90 group-focus-within:opacity-0 transition-opacity' />
-                    <AutoHeightTextarea
-                        id={id}
-                        name={id}
-                        placeholder={placeholder || t("placeholder")}
-                        className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border ${INPUT_BORDER_BY_MODE[interpretationMode ?? "auto"]} focus:ring-2 rounded-2xl resize-y ${INPUT_GLOW_BY_MODE[interpretationMode ?? "auto"]} resize-none transition-[border-color,box-shadow] duration-500`}
-                        onChange={(e) => setQuestion(e.target.value)}
-                        value={question}
-                        defaultValue={defaultValue}
-                        onKeyDown={handleKeyDown}
-                    />
+                    {enableCharacterMention ? (
+                        <MentionTextarea
+                            id={id}
+                            value={question}
+                            onChange={setQuestion}
+                            onKeyDown={handleKeyDown}
+                            placeholder={placeholder || t("placeholder")}
+                            interpretationMode={interpretationMode ?? "auto"}
+                        />
+                    ) : (
+                        <AutoHeightTextarea
+                            id={id}
+                            name={id}
+                            placeholder={placeholder || t("placeholder")}
+                            className={`relative z-10 w-full pl-4 pr-15 py-2 text-white placeholder:text-white/70 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border ${INPUT_BORDER_BY_MODE[interpretationMode ?? "auto"]} focus:ring-2 rounded-2xl resize-y ${INPUT_GLOW_BY_MODE[interpretationMode ?? "auto"]} resize-none transition-[border-color,box-shadow] duration-500`}
+                            onChange={(e) => setQuestion(e.target.value)}
+                            value={question}
+                            defaultValue={defaultValue}
+                            onKeyDown={handleKeyDown}
+                        />
+                    )}
                     <Button
                         onClick={isLoading ? onStop : handleStartReading}
                         disabled={
@@ -369,6 +414,11 @@ export default function QuestionInput({
                 {interpretationMode !== undefined &&
                     onInterpretationModeChange && (
                         <div className='mt-2 flex items-center justify-start gap-2'>
+                            {enableCharacterMention ? (
+                                <CharacterComposerButton
+                                    onAddMedia={handleAddMedia}
+                                />
+                            ) : null}
                             <InterpretationModeSelector
                                 value={interpretationMode}
                                 onChange={onInterpretationModeChange}
@@ -380,6 +430,17 @@ export default function QuestionInput({
                     )}
             </div>
         </div>
+    )
+
+    // When mentions are enabled, wrap the composer in the provider that owns
+    // the character list, the add form, and the paywall (shared by the "+"
+    // menu and the "@" picker).
+    const composed = enableCharacterMention ? (
+        <CharacterMentionProvider value={question} onChange={setQuestion}>
+            {inputContent}
+        </CharacterMentionProvider>
+    ) : (
+        inputContent
     )
 
     if (showBottomChrome) {
@@ -397,7 +458,7 @@ export default function QuestionInput({
                         className={`flex flex-col transition-[max-width] duration-500 ease-in-out ${inputWrapperClassName}`}
                     >
                         {statusStrip ?? followUpRow ?? actionTrigger}
-                        {inputContent}
+                        {composed}
                     </div>
                     {showDisclaimer && disclaimerText && (
                         <p className='text-[11px] leading-relaxed text-white/50 text-center text-left'>
@@ -409,5 +470,5 @@ export default function QuestionInput({
         )
     }
 
-    return inputContent
+    return composed
 }

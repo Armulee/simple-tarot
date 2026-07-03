@@ -18,11 +18,15 @@ import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import { DynamicThinking } from "@/components/chat/dynamic-thinking"
-import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
+import MentionTextarea from "@/components/chat/mention-textarea"
+import { CharacterMentionProvider } from "@/components/chat/character-mention-context"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
 import { extractTransitPlanets } from "@/lib/share-astrology-planets"
 import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
+import SynastryReading from "@/components/chat/synastry-reading"
+import { UserMessageText } from "@/components/chat/user-message-text"
+import type { Character } from "@/types/character"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
 import {
     TarotAssistantInterpretation,
@@ -32,10 +36,7 @@ import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-bl
 import PaywallBlock from "@/components/chat/paywall-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
 import GeneralReadingTabs from "@/components/chat/general/general-reading-tabs"
-import {
-    PrivacyHighlightedText,
-    PrivacyHighlightedUserText,
-} from "@/components/chat/privacy/privacy-highlighted-user-text"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PrivacyRedactedNoticeHover } from "@/components/chat/privacy/privacy-redacted-notice-hover"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import type { HoroscopeBirthData } from "@/types/horoscope"
@@ -244,6 +245,8 @@ type MessageListProps = {
     assistantReactions: Record<string, "like" | "dislike" | null>
     messageNotices: Record<string, string>
     isHoroscopeIntakeActive?: boolean
+    /** The user's saved characters, for highlighting @mentions in sent messages. */
+    characters?: Character[]
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -366,6 +369,7 @@ export default function MessageList({
     onCancelEdit,
     onSendEditAt,
     onCalendarChipClick,
+    characters,
     onCalendarSelectionChange,
     calendarToolResetSignal,
     onAskAspectDetail,
@@ -394,6 +398,7 @@ export default function MessageList({
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
+    const tSynastry = useTranslations("Synastry")
     const consultingBase = t("consulting")
     const thinkingLabels = useMemo(
         () => ({
@@ -563,14 +568,14 @@ export default function MessageList({
                                     ) : null}
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                         {isEditing ? (
+                                            <CharacterMentionProvider
+                                                value={editingDraft}
+                                                onChange={setEditingDraft}
+                                            >
                                             <div className='relative'>
-                                                <AutoHeightTextarea
+                                                <MentionTextarea
                                                     value={editingDraft}
-                                                    onChange={(e) =>
-                                                        setEditingDraft(
-                                                            e.target.value,
-                                                        )
-                                                    }
+                                                    onChange={setEditingDraft}
                                                     onKeyDown={(e) => {
                                                         if (e.key !== "Enter")
                                                             return
@@ -586,9 +591,9 @@ export default function MessageList({
                                                             messageIndex,
                                                         )
                                                     }}
-                                                    className='w-full bg-transparent text-white placeholder:text-white/60 outline-none border border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/30 rounded-xl px-3 py-2 pr-12'
                                                     placeholder='Edit your message...'
-                                                    disabled={isChatLoading}
+                                                    interpretationMode='auto'
+                                                    appearance='bare'
                                                 />
                                                 <div className='mt-2 flex items-center justify-end gap-2'>
                                                     <button
@@ -618,19 +623,30 @@ export default function MessageList({
                                                     </button>
                                                 </div>
                                             </div>
-                                        ) : message.privacyRedacted &&
-                                          typeof displayText === "string" &&
-                                          displayText.length > 0 &&
-                                          typeof message.text === "string" &&
-                                          message.text !== displayText &&
-                                          privacyAliases.length > 0 ? (
-                                            <PrivacyHighlightedUserText
-                                                displayText={displayText}
-                                                sanitizedText={message.text}
-                                                aliases={privacyAliases}
-                                            />
+                                            </CharacterMentionProvider>
                                         ) : (
-                                            displayText
+                                            <UserMessageText
+                                                displayText={
+                                                    typeof displayText ===
+                                                    "string"
+                                                        ? displayText
+                                                        : ""
+                                                }
+                                                characters={characters ?? []}
+                                                aliases={privacyAliases}
+                                                privacyHighlight={Boolean(
+                                                    message.privacyRedacted &&
+                                                        typeof displayText ===
+                                                            "string" &&
+                                                        displayText.length > 0 &&
+                                                        typeof message.text ===
+                                                            "string" &&
+                                                        message.text !==
+                                                            displayText &&
+                                                        privacyAliases.length >
+                                                            0,
+                                                )}
+                                            />
                                         )}
                                     </div>
                                     {message.privacyRedacted ? (
@@ -780,6 +796,20 @@ export default function MessageList({
                                         />
                                     </div>
                                 ) : null}
+                                {message.variant === "synastry" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        {message.synastryReading ? (
+                                            <SynastryReading
+                                                reading={message.synastryReading}
+                                            />
+                                        ) : (
+                                            <div className='flex items-center gap-2 rounded-2xl border border-pink-400/20 bg-white/[0.04] px-4 py-3 text-sm text-white/70'>
+                                                <Loader2 className='size-4 shrink-0 animate-spin text-pink-300' />
+                                                {tSynastry("analyzing")}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
                                 {message.variant === "horoscope-calendar" ? (
                                     <div className='w-full md:max-w-[85%]'>
                                         <HoroscopeCalendarTool
@@ -809,8 +839,9 @@ export default function MessageList({
                                         />
                                     </div>
                                 ) : message.variant === "box" ||
+                                  message.variant === "oracle" ||
                                   message.variant ===
-                                      "oracle" ? null : message.variant ===
+                                      "synastry" ? null : message.variant ===
                                   "horoscope" ? (
                                     <>
                                         {message.sourceAspectEvent && (

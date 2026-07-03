@@ -259,7 +259,7 @@ export function CookiesBanner({ inline = false }: { inline?: boolean }) {
     }
 
     return (
-        <div className='fixed bottom-0 left-0 right-0 z-50 w-full shrink-0 border-t border-white/5 bg-[#0a0a1a]/40 backdrop-blur-sm'>
+        <div className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-50 shrink-0 border-t border-white/5 bg-[#0a0a1a]/40 backdrop-blur-sm transition-[left] duration-300 ease-in-out'>
             <div className='mx-auto w-full max-w-3xl px-4 pb-3 pt-2'>
                 {panel}
             </div>

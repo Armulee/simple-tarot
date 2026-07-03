@@ -43,9 +43,9 @@ export type HoroscopeMode = z.infer<typeof horoscopeModeSchema>
 
 export const chatDecisionSchema = z.object({
     type: z
-        .enum(["chat", "draw", "horoscope", "support", "oracle"])
+        .enum(["chat", "draw", "horoscope", "support", "oracle", "synastry"])
         .describe(
-            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block), oracle (mystical / symbolic / spiritual reflection that doesn't fit tarot, astrology, numerology)",
+            "Classification: chat (knowledge), draw (tarot), horoscope (astrology/timing), support (website/product info -> inline tool block), oracle (mystical / symbolic / spiritual reflection that doesn't fit tarot, astrology, numerology), synastry (relationship COMPATIBILITY between two specific people — the asker and one other, or two @mentioned people — 'are we compatible', 'will it work with @Name', '@A กับ @B จะเป็นยังไง'). A question about ONE @mentioned person alone (their personality/chart, no comparison) is NOT synastry.",
         ),
     isFollowUp: z
         .boolean()
@@ -103,6 +103,23 @@ export const chatDecisionSchema = z.object({
         .optional()
         .describe(
             "Only for chat. True when the user is just TALKING (greeting, venting, 'I want to talk to you', thanks, chit-chat) and is NOT asking for a reading, prediction, interpretation, definition, or product feature. The client answers with a gentle plain-text conversation (no mystical reflection, no support block). False/omit for knowledge questions and anything seeking interpretation.",
+        ),
+    synastryPersonName: z
+        .string()
+        .optional()
+        .describe(
+            "Only for synastry. The other person's name/handle as referenced in the question (e.g. 'Alex', the name inside an @mention). Omit if the other person was given only by birth date with no name.",
+        ),
+    synastryPersonBirthDate: z
+        .object({
+            day: z.number().int().min(1).max(31).nullable(),
+            month: z.number().int().min(1).max(12).nullable(),
+            year: z.number().int().min(1).max(3000).nullable(),
+        })
+        .nullable()
+        .optional()
+        .describe(
+            "Only for synastry. The other person's birth date when it appears in the question (convert Buddhist Era years to Gregorian, e.g. 2545 -> 2002). Omit/null when no date is given.",
         ),
 })
 

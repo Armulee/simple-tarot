@@ -262,7 +262,7 @@ export default function PageContextComposer({
             {/* Loading screen while the session is created + we redirect —
                 mirrors the home page handoff into a chat session. */}
             {isLinking ? (
-                <div className='fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-4 pt-8'>
+                <div className='fixed left-[var(--app-sidebar-w)] right-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-4 pt-8 transition-[left] duration-300 ease-in-out'>
                     <div className='mx-auto max-w-3xl space-y-6 text-left'>
                         {linkingQuestion ? (
                             <div className='flex flex-col items-end gap-2'>
@@ -280,7 +280,7 @@ export default function PageContextComposer({
 
             <div
                 ref={fixedBarRef}
-                className={`fixed bottom-0 left-0 right-0 z-30 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-4${
+                className={`fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-30 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-4 transition-[left] duration-300 ease-in-out${
                     blurBackdrop ? " backdrop-blur-xl" : ""
                 }`}
             >
