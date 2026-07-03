@@ -13,6 +13,10 @@ export async function POST(req: Request) {
 
         const result = streamObject({
             model: MODEL,
+            // 'json' mode streams partial fields token-by-token; the default
+            // 'auto' often resolves to tool-call mode for DeepSeek, which
+            // buffers the whole object and makes the reply "pop in" at once.
+            mode: "json",
             schema: astrologySummarySchema,
             system: `You are an astrology interpretation engine.
 

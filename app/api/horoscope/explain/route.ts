@@ -1,5 +1,6 @@
 import { streamText } from "ai"
 import { z } from "zod"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 
 import {
     buildGeneralAstrologyContext,
@@ -54,15 +55,6 @@ const requestSchema = z.object({
         .optional(),
 })
 
-function detectQuestionLanguage(text: string): string {
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[぀-ヿ一-鿿]/.test(text)) return "Japanese"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return "English"
-}
-
 const EXPLAIN_SYSTEM_PROMPT = `
 You are Astra, the astrologer oracle for AskingFate.
 
@@ -111,7 +103,7 @@ function buildPrompt(
     recommendedContext: GeneralAstrologyContext | null,
     comparisonContext: GeneralAstrologyContext | null,
 ) {
-    const lang = detectQuestionLanguage(body.question)
+    const lang = resolveResponseLanguage(body.locale, body.question)
     const historyText =
         body.history && body.history.length
             ? body.history

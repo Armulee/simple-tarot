@@ -66,7 +66,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { toast } from "sonner"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { MoreHorizontal } from "lucide-react"
 
 export interface ActionSectionProps {
@@ -173,6 +173,7 @@ export default function ActionSection({
     compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
     const t = useTranslations("ReadingPage.interpretation")
+    const locale = useLocale()
     const {
         question: contextQuestion,
         selectedCards,
@@ -541,6 +542,7 @@ export default function ActionSection({
                 isFollowUp,
                 previousQuestion,
                 previousInterpretation,
+                locale,
             })
         } catch (error) {
             console.error("Error regenerating interpretation:", error)
@@ -563,6 +565,7 @@ export default function ActionSection({
         submit,
         isFollowUp,
         readingType,
+        locale,
     ])
 
     const actionOptions = [

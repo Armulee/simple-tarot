@@ -68,6 +68,17 @@ const LOVE_KEYWORDS = [
     "crush",
     "compatibility",
     "heart",
+    // Thai
+    "แฟน",
+    "ความรัก",
+    "คนรัก",
+    "เนื้อคู่",
+    "แต่งงาน",
+    "คบ",
+    "คืนดี",
+    "คิดถึงฉัน",
+    "ชอบฉัน",
+    "โสด",
 ]
 const CAREER_KEYWORDS = [
     "job",
@@ -80,6 +91,16 @@ const CAREER_KEYWORDS = [
     "interview",
     "salary",
     "profession",
+    // Thai
+    "งาน",
+    "การงาน",
+    "เจ้านาย",
+    "หัวหน้า",
+    "เลื่อนตำแหน่ง",
+    "สัมภาษณ์",
+    "เงินเดือน",
+    "ธุรกิจ",
+    "ลาออก",
 ]
 const FINANCIAL_KEYWORDS = [
     "money",
@@ -91,6 +112,14 @@ const FINANCIAL_KEYWORDS = [
     "debt",
     "income",
     "savings",
+    // Thai
+    "เงิน",
+    "การเงิน",
+    "หนี้",
+    "ลงทุน",
+    "เงินเก็บ",
+    "รายได้",
+    "โชคลาภ",
 ]
 const HEALTH_KEYWORDS = [
     "health",
@@ -102,6 +131,13 @@ const HEALTH_KEYWORDS = [
     "energy",
     "sleep",
     "recovery",
+    // Thai
+    "สุขภาพ",
+    "ป่วย",
+    "โรค",
+    "หมอ",
+    "ร่างกาย",
+    "หายป่วย",
 ]
 const YES_NO_KEYWORDS = [
     "will i",
@@ -114,6 +150,13 @@ const YES_NO_KEYWORDS = [
     "will we",
     "does he",
     "does she",
+    // Thai question endings/patterns
+    "ไหม",
+    "มั้ย",
+    "หรือเปล่า",
+    "รึเปล่า",
+    "ใช่ไหม",
+    "ดีไหม",
 ]
 const TIMING_KEYWORDS = [
     "when",
@@ -123,6 +166,13 @@ const TIMING_KEYWORDS = [
     "timing",
     "date",
     "period",
+    // Thai
+    "เมื่อไหร่",
+    "เมื่อไร",
+    "ตอนไหน",
+    "กี่เดือน",
+    "กี่ปี",
+    "นานแค่ไหน",
 ]
 const ADVICE_KEYWORDS = [
     "how",
@@ -131,6 +181,12 @@ const ADVICE_KEYWORDS = [
     "guidance",
     "recommend",
     "suggest",
+    // Thai
+    "ยังไง",
+    "อย่างไร",
+    "ทำไง",
+    "ควรทำ",
+    "แนะนำ",
 ]
 
 export function extractTopicsFromQuestion(question: string): QuestionTopic[] {

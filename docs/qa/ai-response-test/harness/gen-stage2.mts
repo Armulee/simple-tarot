@@ -171,10 +171,11 @@ ${prompt}`
         c.previousInterpretation.trim().length > 0
     const followUpPriorGuard = hasPriorReadingForFollowUp ? GUARD_TEMPLATE : ""
 
-    const tail = TAIL_TEMPLATE.replaceAll("${lang}", lang).replaceAll(
-        "${followUpPriorGuard}",
-        followUpPriorGuard,
-    )
+    const tail = TAIL_TEMPLATE.replaceAll("${lang}", lang)
+        .replaceAll("${followUpPriorGuard}", followUpPriorGuard)
+        // post-fix additions: not exercised by this matrix, blank them
+        .replaceAll("${vagueQuestionNote}", "")
+        .replaceAll("${sensitiveDomainOverride}", "")
 
     return { system: TAROT_SYSTEM_PROMPT, prompt: `${prompt}\n\n${tail}`, lang }
 }
