@@ -48,6 +48,12 @@ export interface ShareImageMockProps {
     /** Transit positions stamped under the painted planets (astrology only). */
     planets?: TransitPlanetInput[]
     /**
+     * Resolved timing-window date for a "when will X happen?" verdict. When
+     * set (timing verdict strategy only) a gold date crest is painted between
+     * the question and the key-message panel; other readings omit it.
+     */
+    verdictDate?: { primary: string; secondary?: string }
+    /**
      * Loop this film behind the elements instead of the painted sky —
      * previews the video export, whose overlay carries its own gold frame.
      */
@@ -75,6 +81,7 @@ export default function ShareImageMock({
     cta,
     theme = "tarot",
     planets,
+    verdictDate,
     videoBackgroundSrc,
 }: ShareImageMockProps) {
     const isStory = aspect === "story"
@@ -477,6 +484,47 @@ export default function ShareImageMock({
         </div>
     ) : null
 
+    // Timing verdicts ("when will X happen?") headline a resolved date; stamp
+    // it as a gold serif crest between the question and the key message, the
+    // same date that leads the in-app hero. Present only for the timing
+    // strategy — every other reading passes no `verdictDate`.
+    const verdictDateNode = verdictDate?.primary ? (
+        <div
+            className='flex flex-col items-center text-center'
+            style={{ gap: s(4), maxWidth: "100%" }}
+        >
+            <div
+                style={{
+                    fontFamily: SERIF,
+                    fontStyle: "italic",
+                    fontSize: s(isStory ? 62 : isPost ? 54 : isSquare ? 50 : 52),
+                    fontWeight: 800,
+                    lineHeight: 1.05,
+                    letterSpacing: s(1),
+                    color: "#f4e4b0",
+                    textShadow: "0 3px 18px rgba(216,181,109,0.4)",
+                    whiteSpace: "nowrap",
+                }}
+            >
+                {verdictDate.primary}
+            </div>
+            {verdictDate.secondary ? (
+                <div
+                    style={{
+                        fontSize: s(22),
+                        fontWeight: 600,
+                        letterSpacing: s(8),
+                        textTransform: "uppercase",
+                        color: "rgba(255,255,255,0.6)",
+                        whiteSpace: "nowrap",
+                    }}
+                >
+                    {verdictDate.secondary}
+                </div>
+            ) : null}
+        </div>
+    ) : null
+
     const keyMessageNode = displayHeadline ? (
         <div
             className='flex flex-col items-center overflow-hidden text-center'
@@ -804,6 +852,7 @@ export default function ShareImageMock({
                                 }}
                             >
                                 {questionNode}
+                                {verdictDateNode}
                                 {keyMessageNode}
                                 {readingNode}
                                 {ctaNode}
@@ -812,6 +861,7 @@ export default function ShareImageMock({
                     ) : (
                         <>
                             {questionNode}
+                            {verdictDateNode}
                             {count > 0 ? (
                                 <div
                                     className='flex flex-col items-center'

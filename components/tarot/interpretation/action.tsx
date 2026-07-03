@@ -110,6 +110,12 @@ export interface ActionSectionProps {
         degree?: number | null
         retrograde?: boolean | null
     }>
+    /**
+     * Resolved timing-window date for a "when will X happen?" verdict. Set
+     * ONLY by the timing verdict strategy; when present it is stamped as a
+     * date crest on the downloadable poster. Other strategies leave it unset.
+     */
+    verdictDate?: { primary: string; secondary?: string }
     /** Whether the download dialog offers the animated video export. */
     allowVideo?: boolean
     /** When set (e.g. from layout: row width − pill width − gap), drives how many icons show in `compact`. */
@@ -169,6 +175,7 @@ export default function ActionSection({
     detailedHtml: propDetailedHtml,
     theme = "tarot",
     planets: propPlanets,
+    verdictDate: propVerdictDate,
     allowVideo = true,
     compactAvailableWidthPx: propCompactAvailableWidthPx,
 }: ActionSectionProps = {}) {
@@ -854,6 +861,7 @@ export default function ActionSection({
             insights={propInsights}
             theme={theme}
             planets={propPlanets}
+            verdictDate={propVerdictDate}
             allowVideo={allowVideo}
             filenameBase={
                 mode === "horoscope"

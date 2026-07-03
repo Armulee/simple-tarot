@@ -646,6 +646,9 @@ export async function POST(req: Request) {
             branding = "AskingFate",
             theme: themeRaw = "tarot",
             planets = [],
+            // Resolved timing-window date ("when will X happen?" verdict);
+            // stamped as a gold date crest for the timing strategy only.
+            verdictDate = null,
             // Transparent canvas (no painted sky) — the video exporter
             // composites this overlay onto the animated background.
             transparent = false,
@@ -665,6 +668,23 @@ export async function POST(req: Request) {
             ? (planets as TransitPlanetInput[])
             : []
 
+        // Normalize the timing-verdict date crest (timing strategy only).
+        const verdictDatePrimary =
+            verdictDate &&
+            typeof verdictDate === "object" &&
+            typeof (verdictDate as { primary?: unknown }).primary === "string"
+                ? String((verdictDate as { primary: string }).primary).trim()
+                : ""
+        const verdictDateSecondary =
+            verdictDate &&
+            typeof verdictDate === "object" &&
+            typeof (verdictDate as { secondary?: unknown }).secondary ===
+                "string"
+                ? String(
+                      (verdictDate as { secondary: string }).secondary,
+                  ).trim()
+                : ""
+
         const cacheKey = JSON.stringify([
             question,
             cards,
@@ -680,6 +700,8 @@ export async function POST(req: Request) {
             branding,
             theme,
             transitPlanets,
+            verdictDatePrimary,
+            verdictDateSecondary,
             Boolean(transparent),
         ])
         const cached = renderedImageCache.get(cacheKey)
@@ -781,6 +803,60 @@ export async function POST(req: Request) {
             safeInterpretation,
             maxInterpretChars,
         )
+
+        // Gold date crest for a timing verdict ("when will X happen?"). Painted
+        // between the question and the key-message panel — for the timing
+        // strategy only (verdictDatePrimary is empty for every other reading,
+        // so this is null and nothing is added to the poster).
+        const verdictDateNode = verdictDatePrimary ? (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                    gap: 4,
+                    maxWidth: "100%",
+                }}
+            >
+                <div
+                    style={{
+                        display: "flex",
+                        fontFamily: SERIF_STACK,
+                        fontStyle: "italic",
+                        fontSize: isStoryAspect
+                            ? 62
+                            : isPost
+                              ? 54
+                              : isSquare
+                                ? 50
+                                : 52,
+                        fontWeight: 800,
+                        lineHeight: 1.05,
+                        color: "#f4e4b0",
+                        textShadow: "0 3px 18px rgba(216,181,109,0.4)",
+                        whiteSpace: "nowrap",
+                    }}
+                >
+                    {verdictDatePrimary}
+                </div>
+                {verdictDateSecondary ? (
+                    <div
+                        style={{
+                            display: "flex",
+                            fontSize: 22,
+                            fontWeight: 600,
+                            letterSpacing: 8,
+                            textTransform: "uppercase",
+                            color: "rgba(255,255,255,0.6)",
+                            whiteSpace: "nowrap",
+                        }}
+                    >
+                        {verdictDateSecondary}
+                    </div>
+                ) : null}
+            </div>
+        ) : null
 
         // Extract keywords and content from interpretation
         const { keywords, content } = extractKeywordsAndContent(
@@ -1422,6 +1498,8 @@ export async function POST(req: Request) {
                                             </div>
                                         </div>
 
+                                        {verdictDateNode}
+
                                         {storyHeadline ? (
                                             <div
                                                 style={{
@@ -1598,6 +1676,8 @@ export async function POST(req: Request) {
                                             {`"${displayQuestion}"`}
                                         </div>
                                     </div>
+
+                                    {verdictDateNode}
 
                                     {storyCards.length > 0 ? (
                                         <div
@@ -1778,6 +1858,8 @@ export async function POST(req: Request) {
                                         {`"${displayQuestion}"`}
                                     </div>
                                 </div>
+
+                                {verdictDateNode}
 
                                 {/* Cards — the full spread in framed panels */}
                                 {storyCards.length > 0 ? (
