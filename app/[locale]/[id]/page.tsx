@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { supabase } from "@/lib/supabase"
 import ChatSession from "@/components/chat/session"
 import type { ChatDecision } from "@/components/chat/session"
-import { getMetadataBase } from "@/lib/seo"
+import { getSocialImageUrls } from "@/lib/seo"
 import { getCleanQuestionText } from "@/lib/prompts/question-utils"
 import { normalizeOriginContext } from "@/lib/chat/origin-context"
 import { readAndVerifyDid } from "@/lib/server/did"
@@ -51,9 +51,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
     const { id, locale } = await params
     const data = await getChatSession(id)
-    const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
-    const ogImage = `${baseUrl}/${locale}/opengraph-image`
-    const twitterImage = `${baseUrl}/${locale}/twitter-image`
+    const { ogImage, twitterImage } = getSocialImageUrls(locale)
 
     if (!data) {
         return {
