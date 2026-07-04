@@ -42,7 +42,6 @@
     "country-state-city": "^3.2.1",
     "countrycitystatejson": "^25.8.101",
     "date-fns": "^4.1.0",
-    "franc": "^6.2.0",
     "html-to-image": "^1.11.13",
     "isomorphic-dompurify": "^3.12.0",
     "libphonenumber-js": "^1.12.23",

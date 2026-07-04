@@ -26,7 +26,7 @@ ${eventSection}
 Conversation:
 ${history}
 
-Respond with valid JSON only.`
+Reply with a normal, human chat message (no JSON in the message text). Trigger at most one allowed action via a tool call when needed.`
 }
 
 export async function POST(req: Request) {

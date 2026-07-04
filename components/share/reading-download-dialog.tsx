@@ -86,6 +86,12 @@ export interface ReadingDownloadDialogProps {
         retrograde?: boolean | null
     }>
     /**
+     * Resolved timing-window date for a "when will X happen?" verdict, stamped
+     * as a date crest on the poster. Set ONLY by the timing verdict strategy;
+     * left unset by every other strategy so their posters are unchanged.
+     */
+    verdictDate?: { primary: string; secondary?: string }
+    /**
      * Whether the animated video export is offered. The astrology theme has
      * no background film yet, so callers pass `false` to show image-only.
      * Defaults to `true`.
@@ -115,6 +121,7 @@ export default function ReadingDownloadDialog({
     insights,
     theme = "tarot",
     planets,
+    verdictDate,
     allowVideo = true,
     filenameBase = "askingfate-reading",
     onExportStatus,
@@ -191,6 +198,7 @@ export default function ReadingDownloadDialog({
                 insights,
                 theme,
                 planets,
+                verdictDate,
             ]),
         [
             question,
@@ -203,6 +211,7 @@ export default function ReadingDownloadDialog({
             insights,
             theme,
             planets,
+            verdictDate,
         ],
     )
 
@@ -237,6 +246,7 @@ export default function ReadingDownloadDialog({
             height: style.height,
             theme,
             planets,
+            verdictDate,
         }),
         [
             question,
@@ -249,6 +259,7 @@ export default function ReadingDownloadDialog({
             insights,
             theme,
             planets,
+            verdictDate,
             t,
         ],
     )
@@ -613,6 +624,7 @@ export default function ReadingDownloadDialog({
                                     cta={t("actions.shareCta")}
                                     theme={theme}
                                     planets={planets}
+                                    verdictDate={verdictDate}
                                     videoBackgroundSrc={
                                         format === "video"
                                             ? getShareVideoBackgroundSrc(

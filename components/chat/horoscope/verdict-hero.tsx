@@ -124,21 +124,16 @@ function MoodIcon({
 }
 
 /**
- * Hero crest for timing-mode verdicts ("when will X happen?"). Renders the
- * AI-picked date range (or single date) in the same vertical footprint the
- * mood icon would have occupied. Uses the user's locale to format month
- * names, falls back to numeric `YYYY-MM-DD` for unsupported locales.
+ * Formats a timing window into the two lines shown in the hero crest and,
+ * for timing-mode verdicts only, stamped onto the downloadable share poster:
+ *   primary   → "8 MAR"  ·  "1–16 AUG"  ·  "28 AUG – 3 SEP"
+ *   secondary → "2027"    ·  "2027 – 2028"
+ * Returns null when the start date can't be parsed.
  */
-function TimingHeroCrest({
-    window,
-    accentClass,
-    moodShadow,
-}: {
-    window: { startDateIso: string; endDateIso: string }
-    accentClass: string
-    moodShadow: string
-}) {
-    const formatter = useFormatter()
+export function formatTimingWindow(
+    window: { startDateIso: string; endDateIso: string },
+    formatter: ReturnType<typeof useFormatter>,
+): { primary: string; secondary: string } | null {
     const sameDay = window.startDateIso === window.endDateIso
 
     const safeDate = (iso: string) => {
@@ -183,15 +178,36 @@ function TimingHeroCrest({
     const sameMonth = startMonth === endMonth
     const sameYear = year === endYear
 
-    let primaryLine: string
+    let primary: string
     if (sameDay) {
-        primaryLine = `${startDay} ${startMonth}`
+        primary = `${startDay} ${startMonth}`
     } else if (sameMonth) {
-        primaryLine = `${startDay}–${endDay} ${startMonth}`
+        primary = `${startDay}–${endDay} ${startMonth}`
     } else {
-        primaryLine = `${startDay} ${startMonth} – ${endDay} ${endMonth}`
+        primary = `${startDay} ${startMonth} – ${endDay} ${endMonth}`
     }
-    const secondaryLine = sameYear ? year : `${year} – ${endYear}`
+    const secondary = sameYear ? year : `${year} – ${endYear}`
+    return { primary, secondary }
+}
+
+/**
+ * Hero crest for timing-mode verdicts ("when will X happen?"). Renders the
+ * AI-picked date range (or single date) in the same vertical footprint the
+ * mood icon would have occupied. Uses the user's locale to format month
+ * names, falls back to numeric `YYYY-MM-DD` for unsupported locales.
+ */
+function TimingHeroCrest({
+    window,
+    accentClass,
+    moodShadow,
+}: {
+    window: { startDateIso: string; endDateIso: string }
+    accentClass: string
+    moodShadow: string
+}) {
+    const formatter = useFormatter()
+    const formatted = formatTimingWindow(window, formatter)
+    if (!formatted) return null
 
     return (
         <div className='flex flex-col items-center justify-center text-center mb-2'>
@@ -202,10 +218,10 @@ function TimingHeroCrest({
             <p
                 className={`relative font-serif italic text-3xl sm:text-4xl leading-none tracking-tight ${accentClass} ${moodShadow}`}
             >
-                {primaryLine}
+                {formatted.primary}
             </p>
             <p className='relative mt-1.5 text-[11px] font-medium uppercase tracking-[0.32em] text-white/55'>
-                {secondaryLine}
+                {formatted.secondary}
             </p>
         </div>
     )
@@ -709,6 +725,19 @@ export default function VerdictHero({
         ? "astrology-technical"
         : "astrology"
     const unmask = (text: string) => unmaskTextWithAliases(text, aliases)
+    // Timing-mode verdicts ("when will X happen?") carry a resolved date that
+    // headlines the in-app hero. Stamp that same date onto the downloadable
+    // poster — for the timing strategy ONLY. Every other verdict flavor
+    // (daily / natal / technical) leaves this undefined, so the poster is
+    // unchanged for them.
+    const posterVerdictDate = useMemo(
+        () =>
+            isTimingMode && verdict.timingWindow
+                ? formatTimingWindow(verdict.timingWindow, formatter) ??
+                  undefined
+                : undefined,
+        [isTimingMode, verdict.timingWindow, formatter],
+    )
     const posterQuestion = unmask(questionText)
     const posterHeadline = unmask(verdict.headline.trim() || keyMessageHeadline)
     const posterSubtitle = unmask(keyMessageSubtitle || moodLabel || "")
@@ -870,6 +899,7 @@ export default function VerdictHero({
                                 theme={shareTheme}
                                 allowVideo={false}
                                 planets={transitPlanets}
+                                verdictDate={posterVerdictDate}
                                 question={posterQuestion}
                                 interpretation={posterInterpretation}
                                 headline={posterHeadline}
@@ -963,6 +993,7 @@ export default function VerdictHero({
                             subtitle={posterSubtitle}
                             detailedHtml={posterDetailedHtml}
                             planets={transitPlanets}
+                            verdictDate={posterVerdictDate}
                         />
 
                         {!showLoadingState &&

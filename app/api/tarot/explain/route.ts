@@ -1,5 +1,6 @@
 import { streamText } from "ai"
 import { z } from "zod"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 
 import { createReasoningStreamResponse } from "@/lib/chat/reasoning-stream"
 import { deepseekThinking } from "@/lib/chat/model-options"
@@ -33,15 +34,6 @@ const requestSchema = z.object({
     /** The previous reading's user-facing conclusion (headline + body + next step). */
     previousInterpretation: z.string().nullable().optional(),
 })
-
-function detectQuestionLanguage(text: string): string {
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[぀-ヿ一-鿿]/.test(text)) return "Japanese"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return "English"
-}
 
 const EXPLAIN_SYSTEM_PROMPT = `
 You are Astra, the tarot oracle for AskingFate.
@@ -79,7 +71,7 @@ function buildPrompt(
     body: z.infer<typeof requestSchema>,
     ragContext: string,
 ) {
-    const lang = detectQuestionLanguage(body.question)
+    const lang = resolveResponseLanguage(body.locale, body.question)
     const historyText =
         body.history && body.history.length
             ? body.history

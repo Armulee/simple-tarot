@@ -7,6 +7,7 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { deepseekThinking } from "@/lib/chat/model-options"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 
 const MODEL = "deepseek/deepseek-v4-pro"
 
@@ -24,15 +25,6 @@ const requestSchema = z.object({
     contextSummary: z.string().nullable().optional(),
     locale: z.string().optional(),
 })
-
-function detectQuestionLanguage(text: string): string {
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[぀-ヿ一-鿿]/.test(text)) return "Japanese"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return "English"
-}
 
 const ORACLE_SYSTEM_PROMPT = `
 You are Astra, the mystical oracle voice for AskingFate. You read questions that don't fit tarot, astrology, or numerology — questions about signs, omens, energy, the universe, the higher self, intuition, soul lessons, and messages from "spirits / guides / the universe."
@@ -323,7 +315,7 @@ deeperMeaning may use the limited HTML set above (<p>, <strong>, <em>, <br>, <sp
 `
 
 function buildPrompt(body: z.infer<typeof requestSchema>) {
-    const lang = detectQuestionLanguage(body.question)
+    const lang = resolveResponseLanguage(body.locale, body.question)
     const historyBlock =
         Array.isArray(body.history) && body.history.length > 0
             ? `\nRecent conversation (oldest first — background only):\n${body.history
@@ -359,6 +351,10 @@ export async function POST(req: Request) {
 
         const result = streamObject({
             model: MODEL,
+            // 'json' mode streams partial fields token-by-token; the default
+            // 'auto' often resolves to tool-call mode for DeepSeek, which
+            // buffers the whole object and makes the reply "pop in" at once.
+            mode: "json",
             schema: oracleReadingSchema,
             system: ORACLE_SYSTEM_PROMPT,
             prompt: buildPrompt(body),

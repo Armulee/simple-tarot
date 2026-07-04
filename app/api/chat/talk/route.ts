@@ -7,6 +7,7 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { deepseekThinking } from "@/lib/chat/model-options"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 
 const MODEL = "deepseek/deepseek-v4-pro"
 
@@ -37,6 +38,7 @@ PERSONALITY & TONE:
 
 CRITICAL LANGUAGE RULE:
 Reply in the SAME language the user wrote in. Write like a native speaker — natural and unforced. Never translated-sounding, never stiff or robotic.
+MODERN REGISTER (binding): the oracle persona lives in the TONE, never in archaic grammar. In Thai, always use modern spoken Thai with ฉัน/คุณ — NEVER ข้า, เจ้า, ดั่ง, เยี่ยง, or any costume-drama register. Same rule in every language: contemporary, natural speech.
 
 ${PRIVACY_REDACTION_PROMPT_RULE}
 
@@ -56,15 +58,6 @@ WHAT NOT TO DO:
 OUTPUT: a single JSON object matching the schema (reply + suggestions). Nothing else.
 `
 
-function detectQuestionLanguage(text: string): string {
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[぀-ヿ一-鿿]/.test(text)) return "Japanese"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return "English"
-}
-
 function buildPrompt(body: z.infer<typeof requestSchema>) {
     const { question, isFollowUp, history, contextSummary } = body
     const historyText =
@@ -78,7 +71,7 @@ function buildPrompt(body: z.infer<typeof requestSchema>) {
         contextSummary && contextSummary.trim()
             ? `Session context (previous readings / interactions — background for continuity):\n${contextSummary.trim()}\n\n`
             : ""
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(body.locale, question)
 
     return `
 ${contextBlock}Recent conversation:
@@ -101,6 +94,10 @@ export async function POST(req: Request) {
 
         const result = streamObject({
             model: MODEL,
+            // 'json' mode streams partial fields token-by-token; the default
+            // 'auto' often resolves to tool-call mode for DeepSeek, which
+            // buffers the whole object and makes the reply "pop in" at once.
+            mode: "json",
             schema: talkReplySchema,
             system: TALK_SYSTEM_PROMPT,
             prompt: buildPrompt(body),

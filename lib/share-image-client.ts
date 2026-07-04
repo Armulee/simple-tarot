@@ -38,6 +38,13 @@ export type ShareImageRequest = {
         degree?: number | null
         retrograde?: boolean | null
     }>
+    /**
+     * Resolved timing-window date for a "when will X happen?" verdict, stamped
+     * as a gold date crest above the key-message panel. Sent ONLY by the
+     * timing verdict strategy; other readings omit it and the poster is
+     * unchanged. Part of the request means it participates in the cache key.
+     */
+    verdictDate?: { primary: string; secondary?: string }
     /** Render on a transparent canvas (for video compositing). */
     transparent?: boolean
 }

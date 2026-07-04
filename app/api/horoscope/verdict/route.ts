@@ -55,7 +55,6 @@ import {
 const MODEL = "deepseek/deepseek-v4-pro"
 const DAY_MS = 24 * 60 * 60 * 1000
 const ASPECT_PADDING_DAYS = 90
-const MIN_FILTERED_EVENTS = 3
 
 function addUtcDays(date: Date, days: number) {
     return new Date(date.getTime() + days * DAY_MS)
@@ -65,42 +64,33 @@ function toIsoDate(date: Date) {
     return date.toISOString().slice(0, 10)
 }
 
+/**
+ * Rank (never drop) aspects by question-topic relevance: focus-planet events
+ * sort first so they survive the prompt builder's MAX_ASPECT_EVENTS cap,
+ * while off-topic events stay available further down the list. Hard-dropping
+ * used to erase the genuinely relevant aspects whenever the keyword-based
+ * topic detector guessed wrong.
+ */
 function filterAspectsByRelevantPlanets(
     aspects: PersonalizedTransitAspectsResult,
     relevantPlanets: readonly string[],
 ): PersonalizedTransitAspectsResult {
     const planetSet = new Set(relevantPlanets)
-
-    const filteredExact = aspects.exact
-        ? {
-              ...aspects.exact,
-              events: aspects.exact.events.filter((e) =>
-                  planetSet.has(e.transitPlanet),
-              ),
-          }
-        : null
-    const filteredRange = aspects.range
-        ? {
-              ...aspects.range,
-              events: aspects.range.events.filter((e) =>
-                  planetSet.has(e.transitPlanet),
-              ),
-          }
-        : null
-
-    const exactTooFew =
-        filteredExact &&
-        filteredExact.events.length < MIN_FILTERED_EVENTS &&
-        (aspects.exact?.events.length ?? 0) >= MIN_FILTERED_EVENTS
-    const rangeTooFew =
-        filteredRange &&
-        filteredRange.events.length < MIN_FILTERED_EVENTS &&
-        (aspects.range?.events.length ?? 0) >= MIN_FILTERED_EVENTS
+    const focusFirst = <T extends { transitPlanet: string }>(events: T[]) =>
+        [...events].sort(
+            (a, b) =>
+                Number(planetSet.has(b.transitPlanet)) -
+                Number(planetSet.has(a.transitPlanet)),
+        )
 
     return {
         ...aspects,
-        exact: exactTooFew ? aspects.exact : filteredExact,
-        range: rangeTooFew ? aspects.range : filteredRange,
+        exact: aspects.exact
+            ? { ...aspects.exact, events: focusFirst(aspects.exact.events) }
+            : null,
+        range: aspects.range
+            ? { ...aspects.range, events: focusFirst(aspects.range.events) }
+            : null,
     }
 }
 

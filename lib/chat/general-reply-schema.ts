@@ -22,9 +22,11 @@ export type InnerEnergyShape = z.infer<typeof innerEnergyShapeSchema>
  *   2. heroTitle      → emotionally intuitive headline above the orb
  *   3. innerDirection → short subtext for the mood pill
  *   4. reflection     → 1-3 paragraph emotional interpretation (HTML)
- *   5. currents       → 2-3 small "inner current" cards
- *   6. whisper        → closing intuitive line
- *   7. suggestions    → 3-4 follow-up tap chips
+ *   5. suggestions    → 3-4 follow-up tap chips
+ *
+ * `currents` and `whisper` were removed from generation: the hero stopped
+ * rendering them (see inner-energy-hero.tsx) so they were pure token waste.
+ * They remain optional in the streaming schema for old persisted replies.
  */
 export const generalReplySchema = z.object({
     innerEnergy: innerEnergyShapeSchema.describe(
@@ -43,32 +45,7 @@ export const generalReplySchema = z.object({
     reflection: z
         .string()
         .describe(
-            "A short decorated HTML reflection (1-3 short paragraphs) that ANSWERS the user's question, grounded in the supplied astrology_activities (the live transit-to-natal aspects). Lead with emotional interpretation — invisible pressure, transition energy, inner shifts — but DO give the user a felt answer to what they actually asked. Weave in EXACTLY ONE short, real astrological reference as the 'why': name the transiting planet and the natal planet it touches plus the gist of the contact in plain words (e.g. 'Mars pressing your Moon is stirring this'), then translate it straight into feeling. ONE reference only — no degrees, no house numbers, no zodiac sign names, no technical aspect names (conjunction/trine/square), no chart-jargon dumps. NOT horoscope-style 'today you will…' phrasing, not advice lists. Speak TO the user directly. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class=\"highlight-gold\">. NO headings. Use <span class=\"highlight-gold\">…</span> to highlight 1-3 key phrases. SAME language as the user's message.",
-        ),
-    currents: z
-        .array(
-            z.object({
-                label: z
-                    .string()
-                    .describe(
-                        "1-3 word label for this inner current (e.g. 'Hidden pressure', 'Quiet pull', 'A door closing'). Title case. SAME language as the message.",
-                    ),
-                text: z
-                    .string()
-                    .describe(
-                        "One short sentence (10-18 words) that names what this current feels like INSIDE the user. SAME language as the message. Plain text, no markdown.",
-                    ),
-            }),
-        )
-        .min(2)
-        .max(3)
-        .describe(
-            "2-3 'inner currents' — small cards that name the invisible forces moving under the user's message. Each card should feel distinct (one direction, one tension, one rising thing).",
-        ),
-    whisper: z
-        .string()
-        .describe(
-            "A single closing intuitive line — short (≤14 words), almost whispered. Not advice. Not a command. Just a felt truth. SAME language as the message.",
+            "A short decorated HTML reflection (1-3 short paragraphs) that ANSWERS the user's question. Lead with emotional interpretation — invisible pressure, transition energy, inner shifts — but DO give the user a felt answer to what they actually asked. ONLY IF an astrology_activities block was supplied in the prompt: weave in EXACTLY ONE short, real astrological reference as the 'why' — the transiting planet and the natal planet it touches in plain words (e.g. 'Mars pressing your Moon is stirring this'), then translate it straight into feeling; no degrees, no house numbers, no zodiac sign names, no technical aspect names. If NO astrology context was supplied, do NOT mention or invent any planet, transit, or aspect. NEVER invent observations or events the user did not report. NOT horoscope-style 'today you will…' phrasing, not advice lists. Speak TO the user directly. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class=\"highlight-gold\">. NO headings. Use <span class=\"highlight-gold\">…</span> to highlight 1-3 key phrases. SAME language as the user's message.",
         ),
     suggestions: z
         .array(z.string())

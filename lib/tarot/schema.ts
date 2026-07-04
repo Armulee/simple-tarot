@@ -8,14 +8,14 @@ import { z } from "zod"
  *   1. cardInsights  → hero card / "card say" italic quotes
  *   2. headline      ⎫
  *   3. subtitle      ⎬  Key-message box
- *   4. keyMessage    ⎭  (back-compat — restate of headline + subtitle)
+ *   4. keyMessage    ⎭  (prose fusion of headline + subtitle)
  *   5. detailedHtml  → "Detailed" AI-decorated paragraph block
  *   6. perCard       → Per-card chip list
  *   7. nextStep      → Soft next-step line under the per-card list
  *   8. keywords      ⎫
- *   9. interpretation⎬  Back-compat for the legacy /tarot page and the
- *  10. conclusion    ⎭  DB-backed `shared_tarot` view (deterministic
- *                       restatements of the new fields — see descriptions)
+ *   9. interpretation⎬  Main body + closing for the legacy /tarot page and
+ *  10. conclusion    ⎭  the DB-backed `shared_tarot` view (real answer
+ *                       prose — see descriptions)
  *  11. suggestions   → Follow-up prompt chips
  */
 export const tarotInterpretationSchema = z.object({
@@ -37,7 +37,7 @@ export const tarotInterpretationSchema = z.object({
     keyMessage: z
         .string()
         .describe(
-            "Back-compat field for the legacy /tarot page and the DB share view. Set this to `headline + ' ' + subtitle` joined into one short paragraph. Do not invent new content here.",
+            "ONE grammatical sentence (or two short ones) fusing the headline's verdict with the subtitle's nuance, written as flowing prose. Same meaning as headline+subtitle, but never a mechanical join — no missing periods, no repeated wording. Same language as the user's question.",
         ),
     detailedHtml: z
         .string()
@@ -65,7 +65,7 @@ export const tarotInterpretationSchema = z.object({
     nextStep: z
         .string()
         .describe(
-            "A soft, non-commanding suggestion. MUST start with a non-commanding verb such as 'ลอง' (Thai) or 'try' / 'consider' / 'maybe' (English). FORBIDDEN openers: 'ต้อง', 'ควร' framed as a command, 'must', 'should'. One short sentence. Same language as the user's question. No card names. No markdown.",
+            "A soft, non-commanding suggestion — an invitation, never an order. FORBIDDEN: 'ต้อง', 'ควร' framed as a command, 'must', 'should'. VARY the opener between readings ('Try...' is fine occasionally; so are 'A small first move could be...', 'It may help to...', 'ถ้าอยากขยับ อาจเริ่มจาก...'). One short sentence. Same language as the user's question. No card names. No markdown.",
         ),
     keywords: z
         .string()
@@ -75,12 +75,12 @@ export const tarotInterpretationSchema = z.object({
     interpretation: z
         .string()
         .describe(
-            "Back-compat field for the legacy /tarot page and the DB share view. Set this to `perCard[].sentence` joined together as one short paragraph (1-2 sentences worth). Pure text, no card names, no markdown. Do not invent new content here.",
+            "THE MAIN ANSWER BODY — renders as the main paragraph on the legacy /tarot page and the DB share view. 3-5 complete, flowing sentences that directly answer the user's question: the leaning first, then why (woven from the cards' meanings), then what to do with it. Every sentence needs a subject — never subjectless fragments like 'Points to...' and never a join of the perCard sentences. Pure text, no card names, no markdown. Same language as the user's question.",
         ),
     conclusion: z
         .string()
         .describe(
-            "Back-compat field for the legacy /tarot page and the DB share view. Set this equal to `nextStep`. Do not invent new content here.",
+            "A short, warm closing line that wraps up the reading in fresh words. Aligned with nextStep's direction but NOT a copy of it — different wording. One sentence. Same language as the user's question. No card names. No markdown.",
         ),
     suggestions: z
         .array(z.string())

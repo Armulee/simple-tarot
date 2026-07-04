@@ -634,17 +634,27 @@ type NormalizedTimelineSlot = NonNullable<
 const horoscopeVerdictStreamSchema = streamingDailyVerdictSchema.passthrough()
 
 /**
+ * `currents` and `whisper` were removed from the generation schema (they were
+ * never rendered), but old persisted replies may still carry them — keep them
+ * as optional passthrough fields on the stored shape.
+ */
+type StoredGeneralReply = GeneralReply & {
+    currents?: Array<{ label: string; text: string }>
+    whisper?: string
+}
+
+/**
  * Merges a streamed partial general reply onto whatever reply data the
  * message already has. Keeps previously-arrived fields when the stream emits a
  * later chunk that drops keys it had already filled, and skips no-op updates
  * so the message list does not thrash during streaming.
  */
 function mergeGeneralReplyForMessage(
-    previous: GeneralReply | null | undefined,
+    previous: StoredGeneralReply | null | undefined,
     incoming: StreamingGeneralReply | null | undefined,
-): GeneralReply | null {
+): StoredGeneralReply | null {
     if (!incoming) return previous ?? null
-    const base: Partial<GeneralReply> = previous ? { ...previous } : {}
+    const base: Partial<StoredGeneralReply> = previous ? { ...previous } : {}
     if (incoming.innerEnergy) base.innerEnergy = incoming.innerEnergy
     if (typeof incoming.heroTitle === "string") base.heroTitle = incoming.heroTitle
     if (typeof incoming.innerDirection === "string")
@@ -664,12 +674,12 @@ function mergeGeneralReplyForMessage(
         base.suggestions = incoming.suggestions.filter(
             (s): s is string => typeof s === "string",
         )
-    return base as GeneralReply
+    return base as StoredGeneralReply
 }
 
 function areGeneralRepliesEqual(
-    a: GeneralReply | null | undefined,
-    b: GeneralReply | null | undefined,
+    a: StoredGeneralReply | null | undefined,
+    b: StoredGeneralReply | null | undefined,
 ) {
     if (a === b) return true
     if (!a || !b) return !a && !b
@@ -3257,6 +3267,7 @@ export default function ChatSession({
                 emotion: string
                 focus: string
                 questionDomain?: string
+                needsClarification?: boolean
                 cardMeanings: string[][]
                 cardReadingDirection?: string
             } | null = null
@@ -3270,6 +3281,7 @@ export default function ChatSession({
                         cards: cardNames,
                         conversationContext:
                             conversationContext?.contextText ?? null,
+                        previousQuestion: previousQuestion ?? null,
                         previousInterpretation: previousInterpretation ?? null,
                     }),
                 })
@@ -3310,6 +3322,8 @@ export default function ChatSession({
                           emotion: situationData.emotion,
                           focus: situationData.focus,
                           questionDomain: parsedQuestionDomain,
+                          needsClarification:
+                              situationData.needsClarification,
                           cardReadingDirection:
                               situationData.cardReadingDirection,
                       }
@@ -4294,6 +4308,7 @@ export default function ChatSession({
                 emotion: string
                 focus: string
                 questionDomain?: string
+                needsClarification?: boolean
                 cardMeanings: string[][]
                 cardReadingDirection?: string
             } | null = null
@@ -4307,6 +4322,7 @@ export default function ChatSession({
                         cards: cardNames,
                         conversationContext:
                             conversationContext?.contextText ?? null,
+                        previousQuestion: previousQuestion ?? null,
                         previousInterpretation: previousInterpretation ?? null,
                     }),
                 })
@@ -4347,6 +4363,8 @@ export default function ChatSession({
                           emotion: situationData.emotion,
                           focus: situationData.focus,
                           questionDomain: parsedQuestionDomain,
+                          needsClarification:
+                              situationData.needsClarification,
                           cardReadingDirection:
                               situationData.cardReadingDirection,
                       }
