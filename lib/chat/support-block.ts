@@ -84,6 +84,13 @@ function buildBlockFromMeta(
             iconId: meta.iconId,
         }
     }
+    if (meta.block === "calendar-year") {
+        return {
+            kind: "calendar-year",
+            ...base,
+            year: new Date().getUTCFullYear(),
+        }
+    }
     return {
         kind: "page",
         ...base,

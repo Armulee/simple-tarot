@@ -1,0 +1,3183 @@
+{
+  "Navbar": {
+    "brand": "AskingFate",
+    "home": "홈",
+    "about": "소개",
+    "pricing": "요금제",
+    "newReading": "새 리딩",
+    "signIn": "로그인"
+  },
+  "Beta": {
+    "notice": "지금은 베타 기간이에요! 일부 버그가 있을 수 있고, 몇몇 기능은 아직 개발 중이랍니다."
+  },
+  "PageContextComposer": {
+    "eyebrow": "맥락",
+    "hint": "이 맥락은 AI에게 전달돼요",
+    "error": "죄송해요, 문제가 발생했어요. 다시 시도해 주세요.",
+    "clear": "Clear context"
+  },
+  "Chat": {
+    "originContext": {
+      "attached": "맥락이 첨부되었어요: {label}"
+    }
+  },
+  "StarConsent": {
+    "modal": {
+      "eyebrow": "당신의 운명으로 들어서기 전에",
+      "noticeHeading": "안내 및 동의",
+      "languageLabel": "언어",
+      "languageLoadingLabel": "번역을 불러오는 중...",
+      "experienceSectionLabel": "이 경험에 대하여",
+      "experienceBody": "AskingFate는 <b>타로</b>와 <b>점성술</b>(서양 및 베다)을 상징적인 성찰의 도구로 사용해요 — 정확한 점술이 아니며, 전문적인 조언을 대신할 수 없어요. 결과가 개인의 신념이나 종교적 믿음과 <b>일치하지 않을 수도</b> 있답니다.",
+      "liabilitySectionLabel": "책임의 제한",
+      "liabilityBody": "본 서비스가 생성하는 모든 해석, 리딩 및 점성술 분석은 <b>오로지 오락 및 개인적 자기 성찰의 목적으로만</b> 제공됩니다. 어떠한 경우에도 AskingFate가 생성한 콘텐츠는 의학적, 심리적, 재정적, 법률적 또는 그 밖의 전문적 조언으로 해석되어서는 안 되며, 객관적 사실의 진술, 절대적 진리, 또는 이용자의 삶에서 중요한 사안에 대한 확정적 판단으로 간주되어서도 안 됩니다. 이용자는 그러한 콘텐츠를 <b>독립적인 검증, 뒷받침하는 증거, 또는 정당한 자격을 갖춘 전문가의 안내 없이</b> 신뢰하거나, 그에 근거하여 행동하거나, 달리 비중을 두기로 하는 모든 결정이 전적으로 이용자 본인의 위험 부담과 단독 재량으로 이루어짐을 명시적으로 인정합니다. 제공자, 그 계열사, 임원, 직원 및 대리인은 그러한 신뢰로부터 발생하는 어떠한 손실, 손해 또는 부정적 결과 — 직접적, 간접적, 부수적, 결과적 또는 그 밖의 것이든 — 에 대해 <b>일체의 책임을 지지 않습니다</b>. 또한 본 서비스가 생성한 콘텐츠는 <b>어떠한 법적, 사법적, 중재적, 행정적 또는 규제적 절차에서도 인용되거나, 제출되거나, 증거로 제시되거나, 달리 의존되어서는 안 되며</b>, 제공자는 그러한 시도에 대한 모든 책임을 부인합니다.",
+      "religiousSectionLabel": "종교적·문화적 민감성",
+      "religiousBody": "본 서비스는 특정 종교 교리, 교회법, 문화적 전통 또는 영적 신념 체계와 <b>양립하지 않거나, 상충하거나, 명시적으로 금지될 수 있는</b> 타로 점술 및 점성술 방법론을 사용합니다. 제공자는 본 서비스가 특정 신앙 전통, 교파, 종파 또는 종교 단체와 양립하는지에 관하여 <b>어떠한 진술이나 보증도 하지 않습니다</b>. 제공자는 이용자의 본 서비스 이용으로부터 발생하는 어떠한 결과 — <b>파문, 교회의 견책, 종교적 처벌, 영적 제재, 공동체 내 지위의 상실, 종교 당국이 부과하는 징계 조치</b>를 포함하되 이에 국한되지 않음 — 또는 이용자의 참여에 기인하는 그 밖의 부정적 결과에 대하여도 책임을 지지 않습니다. 본 서비스를 계속 진행함으로써 이용자는 본 서비스의 이용이 이용자 자신의 종교적 의무, 영적 신념 및 공동체 기준에 부합하는지를 판단할 전적인 책임을 인정하고 수락합니다.",
+      "ageSectionLabel": "이용 연령 자격",
+      "ageBody": "본 서비스는 <b>만 13세 미만의 아동을 대상으로 하지 않으며, 해당 아동은 이를 이용할 수 없습니다</b>. 본 서비스를 계속 진행함으로써 이용자는 자신이 만 13세 이상임을 진술하고 보증합니다. 이용자가 만 18세 미만인 경우, 이용자는 부모 또는 법정 보호자의 관여, 감독 및 동의 하에서만 본 서비스를 이용해야 하며, 제공자는 그에 따라 특정 기능, 프롬프트 또는 응답을 제한, 필터링 또는 보류할 수 있습니다.",
+      "safetySectionLabel": "민감한 콘텐츠 및 검열",
+      "safetyBody": "제공자는 적법한 표현의 자유를 존중합니다. 다만 제공자는 자체 재량에 따라 성적 자료, 노출, 착취, 그루밍, 학대, 자해, 자살, 섭식 장애, 약물 오남용, 범죄 행위, 괴롭힘, 혐오 행위, 극단주의 또는 노골적 폭력을 포함하는 프롬프트, 응답 또는 기타 콘텐츠를 <b>필터링, 제한, 거부 또는 검열</b>할 권리를 보유합니다. 만 18세 미만 이용자의 경우 검열 기준은 <b>실질적으로 더 엄격하게</b> 적용됩니다. 특히 미성년자에 대한 응답은 성적 주제, 노골적 신체 묘사, 페티시, 친밀한 행위, 강압적 역학, 성인-미성년자 관계 또는 안전하지 않거나, 연령에 부적절하거나, 착취적이거나, 불법일 수 있는 그 밖의 주제와 관련된 경우 생략, 요약, 정화 또는 거부될 수 있습니다. 제공자는 또한 불법 행위를 조장하거나, 취약성을 악용하거나, 미성년자의 신체적, 정신적 또는 정서적 안녕을 위협할 수 있는 콘텐츠를 거부할 수 있습니다.",
+      "legalLinksLabel": "관련 정책",
+      "privacyLink": "개인정보 처리방침",
+      "termsLink": "이용약관",
+      "consentScrollRegionLabel": "안내 및 동의 내용",
+      "scrollToEndHint": "계속하려면 맨 아래까지 스크롤해 주세요.",
+      "checkboxMain": "면책 조항과 책임의 제한 사항을 확인했어요.",
+      "checkboxSub": "이 콘텐츠가 오락과 자기 성찰만을 위한 것임을 이해해요.",
+      "enterButton": "리딩 시작하기"
+    },
+    "ageGate": {
+      "blockedTitle": "이용할 수 없어요",
+      "blockedBody": "AskingFate는 만 13세 미만 아동은 이용할 수 없어요. 입력하신 생년월일을 기준으로, 현재 이 기기에서는 플랫폼을 이용할 수 없답니다.",
+      "blockedSupportLabel": "고객 지원 문의",
+      "blockedBirthLabel": "기록된 생년월일",
+      "gateTitle": "출생 차트 산출",
+      "gateIntro": "계속하기 전에, 생년월일과 (알고 계신다면) 태어난 시각을 입력해 주세요. 출생 차트를 계산하고 정책에 명시된 연령 제한을 확인하는 데 사용돼요.",
+      "gateTimeNote": "태어난 시각은 출생 차트의 정확도를 높이는 데 도움이 돼요. 모르신다면 00:00으로 두셔도 되며, 그래도 생년월일을 사용해 연령 제한 정책을 적용해요.",
+      "optionalTimeLabel": "선택: 태어난 시각",
+      "optionalTimeHint": "모르신다면 시각을 00:00으로 두세요.",
+      "optionalLocationLabel": "선택: 위치",
+      "optionalLocationHint": "국가와 주/도를 선택하시거나, 위치 감지를 허용해 미리 채워 두면 운세 정확도에 도움이 돼요.",
+      "detectLocationButton": "위치 감지",
+      "detectLocationLoading": "감지 중...",
+      "detectLocationError": "위치를 감지하지 못했어요. 직접 선택하시거나 없이 계속하셔도 돼요.",
+      "scrollHint": "선택 항목을 보려면 스크롤하세요",
+      "statusSummary": "입력하신 출생 정보는 출생 차트를 계산하고, 13세 미만으로 차단되는지, 미성년자(13-17세)로 분류되는지, 성인(18세 이상)으로 분류되는지를 판단하는 데 사용돼요. 해당 상태는 기기에 저장되어 이후 적절한 정책 보호 조치를 적용하는 데 쓰여요.",
+      "invalidDateMessage": "올바른 생년월일을 입력해 주세요. 태어난 시각은 선택이지만, 날짜는 필수예요.",
+      "continueButton": "계속하기",
+      "dayLabel": "일",
+      "monthLabel": "월",
+      "yearLabel": "연도",
+      "hourLabel": "시",
+      "minuteLabel": "분",
+      "deletingAccount": "연령 제한으로 인해 계정을 삭제하는 중...",
+      "accountDeletedToast": "만 13세 미만이라 계정이 삭제되었어요.",
+      "accountDeletionFailedToast": "계정 삭제를 완료하지 못했어요. 고객 지원에 문의해 주세요."
+    },
+    "cookies": {
+      "bannerTitle": "쿠키 설정",
+      "bannerDescription": "더 나은 경험을 제공하고 트래픽을 분석하기 위해 쿠키를 사용해요.",
+      "managePreferences": "설정 관리",
+      "closePreferencesMenu": "설정 메뉴 닫기",
+      "acceptAll": "모두 허용",
+      "rejectAll": "모두 거부",
+      "savePreferences": "설정 저장",
+      "preferencesTitle": "쿠키 카테고리 관리",
+      "preferencesDescription": "필수가 아닌 카테고리는 직접 켜기 전까지 꺼진 상태로 유지돼요.",
+      "essentialTitle": "필수 쿠키",
+      "essentialDescription": "핵심 사이트 기능, 안전한 세션, 익명 별 잔액 유지를 위해 필요해요.",
+      "analyticsTitle": "분석 쿠키",
+      "analyticsDescription": "개인정보 친화적인 Vercel Analytics를 허용해, 트래픽을 이해하고 제품을 개선하는 데 도움이 돼요.",
+      "marketingTitle": "마케팅 쿠키",
+      "marketingDescription": "향후 캠페인이나 개인화 도구를 위해 마련되었어요. 동의하지 않으면 어떤 마케팅 스크립트도 실행되지 않아요.",
+      "alwaysOnLabel": "항상 켜짐",
+      "learnMoreLabel": "개인정보 처리방침에서 자세히 알아보세요"
+    }
+  },
+  "Admin": {
+    "title": "관리자 대시보드",
+    "subtitle": "AskingFate의 실시간 지표",
+    "loading": "지표를 불러오는 중...",
+    "notFoundTitle": "404",
+    "notFoundDescription": "페이지를 찾을 수 없어요.",
+    "metricsError": "지표를 불러오지 못했어요.",
+    "totalUsers": "전체 사용자",
+    "anonymousUsers": "익명 사용자",
+    "authenticatedUsers": "인증된 사용자",
+    "interpretations": "해석 수",
+    "paidSubscribers": "유료 구독자"
+  },
+  "Sidebar": {
+    "services": "서비스",
+    "comingSoon": "곧 출시",
+    "privacyPolicy": "개인정보 처리방침",
+    "termsOfService": "이용약관",
+    "home": "홈",
+    "about": "소개",
+    "pricing": "요금제",
+    "articles": "아티클 & 가이드",
+    "contactSupport": "문의 & 지원",
+    "planOptions": "요금제 옵션",
+    "proTopUpOnly": "Pro 구독자는 추가 별을 구매할 수 있어요.",
+    "userMenu": "사용자"
+  },
+  "Services": {
+    "tarot": "타로",
+    "birthChart": "출생 차트",
+    "astrology": "점성술",
+    "namelogy": "성명학",
+    "numerology": "수비학",
+    "luckyColors": "행운의 색",
+    "palmistry": "손금",
+    "fatedRelations": "인연 풀이"
+  },
+  "Languages": {
+    "en": "English",
+    "th": "ไทย",
+    "lo": "ລາວ",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ja": "日本語",
+    "ko": "한국어",
+    "id": "Bahasa Indonesia",
+    "es": "Español",
+    "pt-BR": "Português (Brasil)",
+    "my": "မြန်မာ"
+  },
+  "Profile": {
+    "title": "프로필 설정",
+    "subtitle": "프로필 정보와 리딩 취향을 맞춤 설정해, 당신의 신비로운 여정을 더 풍성하게 만들어 보세요",
+    "authRequired": "프로필을 보려면 로그인해 주세요",
+    "loading": "프로필을 불러오는 중...",
+    "profileInformation": "프로필 정보",
+    "fullName": "이름",
+    "fullNameRequired": "이름 *",
+    "fullNamePlaceholder": "이름을 입력하세요",
+    "gender": "성별",
+    "genderPlaceholder": "성별 선택",
+    "genderOptions": {
+      "male": "남성",
+      "female": "여성",
+      "nonBinary": "논바이너리",
+      "preferNotToSay": "밝히고 싶지 않음"
+    },
+    "bio": "자기소개",
+    "bioPlaceholder": "당신에 대해 알려주세요...",
+    "occupation": "직업",
+    "occupationPlaceholder": "직업이나 하시는 일",
+    "birthPlace": "출생지",
+    "birthPlacePlaceholder": "도시, 국가",
+    "birthDate": "생년월일",
+    "birthDateRequired": "생년월일 *",
+    "birthDateRequiredError": "생년월일은 필수예요.",
+    "under13Error": "만 13세 이상이어야 해요.",
+    "birthTime": "태어난 시각",
+    "saveChanges": "변경사항 저장",
+    "saving": "저장 중...",
+    "profileUpdated": "프로필이 성공적으로 업데이트되었어요!",
+    "updateFailed": "프로필 업데이트에 실패했어요",
+    "signInRequired": "프로필을 업데이트하려면 로그인해 주세요"
+  },
+  "Account": {
+    "title": "계정 설정",
+    "subtitle": "계정 정보, 보안 설정, 환경설정을 관리하세요",
+    "authRequired": "계정 설정을 보려면 로그인해 주세요",
+    "loading": "계정 설정을 불러오는 중...",
+    "email": "이메일",
+    "phone": "전화번호",
+    "authentication": "인증",
+    "password": "비밀번호",
+    "accountDeletionLabel": "계정 삭제",
+    "emailSettings": {
+      "title": "이메일",
+      "currentEmail": "현재 이메일",
+      "addEmail": "이메일 추가",
+      "editEmail": "이메일 수정",
+      "verifyEmail": "이메일 인증",
+      "emailVerified": "이메일 인증됨",
+      "emailNotVerified": "이메일 미인증",
+      "changeEmail": "이메일 변경",
+      "addNewEmail": "새 이메일 추가",
+      "emailPlaceholder": "새 이메일 주소를 입력하세요",
+      "cancel": "취소",
+      "save": "저장",
+      "verify": "인증",
+      "resendCode": "코드 재전송",
+      "enterOtp": "인증 코드 입력",
+      "otpPlaceholder": "6자리 코드를 입력하세요",
+      "otpSent": "이메일로 인증 코드를 보냈어요",
+      "otpExpired": "코드가 만료되었어요. 새 코드를 요청해 주세요.",
+      "otpInvalid": "잘못된 코드예요. 다시 시도해 주세요.",
+      "otpSuccess": "이메일 인증이 완료되었어요!",
+      "otpFailed": "인증에 실패했어요. 다시 시도해 주세요.",
+      "emailUpdated": "이메일이 성공적으로 업데이트되었어요!",
+      "emailUpdateFailed": "이메일 업데이트에 실패했어요",
+      "otpRequired": "인증 코드를 입력해 주세요",
+      "emailRequired": "이메일 주소를 입력해 주세요",
+      "invalidEmail": "올바른 이메일 주소를 입력해 주세요"
+    },
+    "phoneSettings": {
+      "title": "전화번호",
+      "currentPhone": "현재 전화번호",
+      "addPhone": "전화번호 추가",
+      "editPhone": "전화번호 수정",
+      "verifyPhone": "전화번호 인증",
+      "phoneVerified": "전화번호 인증됨",
+      "phoneNotVerified": "전화번호 미인증",
+      "changePhone": "전화번호 변경",
+      "addNewPhone": "새 전화번호 추가",
+      "phonePlaceholder": "전화번호를 입력하세요",
+      "cancel": "취소",
+      "save": "저장",
+      "verify": "인증",
+      "resendCode": "코드 재전송",
+      "enterOtp": "인증 코드 입력",
+      "otpPlaceholder": "6자리 코드를 입력하세요",
+      "otpSent": "전화번호로 인증 코드를 보냈어요",
+      "otpExpired": "코드가 만료되었어요. 새 코드를 요청해 주세요.",
+      "otpInvalid": "잘못된 코드예요. 다시 시도해 주세요.",
+      "otpSuccess": "전화번호 인증이 완료되었어요!",
+      "otpFailed": "인증에 실패했어요. 다시 시도해 주세요.",
+      "phoneUpdated": "전화번호가 성공적으로 업데이트되었어요!",
+      "phoneUpdateFailed": "전화번호 업데이트에 실패했어요",
+      "otpRequired": "인증 코드를 입력해 주세요",
+      "phoneRequired": "전화번호를 입력해 주세요",
+      "invalidPhone": "올바른 전화번호를 입력해 주세요"
+    },
+    "loginMethods": {
+      "title": "인증",
+      "activeProvider": "활성 제공업체",
+      "availableMethods": "사용 가능한 로그인 방법",
+      "emailPassword": "이메일 & 비밀번호",
+      "google": "Google",
+      "link": "연결",
+      "unlink": "연결 해제",
+      "linking": "연결 중...",
+      "unlinking": "연결 해제 중...",
+      "linkSuccess": "제공업체가 성공적으로 연결되었어요!",
+      "linkFailed": "제공업체 연결에 실패했어요",
+      "unlinkSuccess": "제공업체 연결이 성공적으로 해제되었어요!",
+      "unlinkFailed": "제공업체 연결 해제에 실패했어요",
+      "emailPasswordSetup": "이메일 & 비밀번호 설정",
+      "emailPasswordDescription": "아래 비밀번호 설정 섹션에서 이메일과 비밀번호를 설정해 주세요.",
+      "googleSignIn": "Google로 로그인",
+      "googleSignInDescription": "Google 계정을 연결하면 손쉽게 로그인할 수 있어요",
+      "googleUnlinkDescription": "Google 계정 연결을 해제하세요",
+      "noteLabel": "참고:",
+      "note": "여러 인증 방법을 계정에 연결할 수 있어요. 최소 한 가지 방법은 활성 상태로 유지해야 해요. 아래 비밀번호 설정 섹션에서 이메일과 비밀번호 정보를 관리하세요."
+    },
+    "passwordSettings": {
+      "title": "비밀번호",
+      "description": "비밀번호를 변경해 계정을 안전하게 지키세요",
+      "currentPassword": "현재 비밀번호",
+      "currentPasswordPlaceholder": "현재 비밀번호를 입력하세요",
+      "newPassword": "새 비밀번호",
+      "newPasswordPlaceholder": "새 비밀번호를 입력하세요",
+      "confirmPassword": "비밀번호 확인",
+      "confirmPasswordPlaceholder": "새 비밀번호를 다시 입력하세요",
+      "changePassword": "비밀번호 변경",
+      "changing": "변경 중...",
+      "passwordChanged": "비밀번호가 성공적으로 변경되었어요!",
+      "passwordChangeFailed": "비밀번호 변경에 실패했어요",
+      "currentPasswordRequired": "현재 비밀번호를 입력해 주세요",
+      "newPasswordRequired": "새 비밀번호를 입력해 주세요",
+      "confirmPasswordRequired": "새 비밀번호를 다시 입력해 주세요",
+      "passwordsDoNotMatch": "비밀번호가 일치하지 않아요",
+      "passwordTooShort": "비밀번호는 최소 6자 이상이어야 해요",
+      "currentPasswordIncorrect": "현재 비밀번호가 올바르지 않아요"
+    },
+    "accountDeletion": {
+      "title": "계정 삭제",
+      "description": "계정과 관련된 모든 데이터를 영구히 삭제해요",
+      "warning": "이 작업은 되돌릴 수 없어요. 모든 데이터가 영구히 삭제돼요.",
+      "deleteAccount": "계정 삭제",
+      "confirmDeletion": "삭제 확인",
+      "typeToConfirm": "확인하려면 'DELETE'를 입력하세요",
+      "confirmPlaceholder": "확인하려면 DELETE를 입력하세요",
+      "deleting": "삭제 중...",
+      "accountDeleted": "계정이 성공적으로 삭제되었어요!",
+      "deletionFailed": "계정 삭제에 실패했어요",
+      "confirmationRequired": "확인하려면 'DELETE'를 입력해 주세요",
+      "confirmationMismatch": "확인 문구가 일치하지 않아요",
+      "cancel": "취소"
+    }
+  },
+  "Home": {
+    "hero": {
+      "line1": "무엇이든 물어보세요",
+      "line2": "당신의 운명에 대해",
+      "rotatingPhrasesWhite": [
+        "발을 들여보세요, ",
+        "타로가 ",
+        "상징의 언어로 전하는 ",
+        "당신만의 ",
+        "물어보세요, ",
+        "무엇을 품고 있을까요, ",
+        "별에 새겨진 ",
+        "당신의 우주적 청사진이 ",
+        "하늘이 전하는 메시지가 ",
+        "매일, 당신만을 위한 ",
+        "점성술 ",
+        "탐험해 보세요, ",
+        "별이 이끄는 "
+      ],
+      "rotatingPhrasesGradient": [
+        "카드의 세계로.",
+        "길을 밝혀줍니다.",
+        "안내.",
+        "타로 리딩.",
+        "카드에게.",
+        "그 카드는.",
+        "당신의 운명.",
+        "기다리고 있어요.",
+        "당신에게 있어요.",
+        "운세.",
+        "통찰.",
+        "출생 차트.",
+        "안내."
+      ]
+    },
+    "description": "당신만을 위한 AI 운세 상담사",
+    "prompts": [
+      "헤어진 그 사람이 돌아올까요?",
+      "그 사람은 아직도 저를 생각할까요?",
+      "지금 직장을 그만둬야 할까요?",
+      "진짜 인연은 언제쯤 만나게 될까요?",
+      "왜 자꾸 잘못된 사람에게 끌리는 걸까요?",
+      "올해는 저에게 더 나아질까요?"
+    ],
+    "astrologyFeature": {
+      "title1": "별빛 트랜짓",
+      "title2": "점성술 리딩",
+      "tagline": "당신의 출생 정보와 오늘의 하늘을 바탕으로 한 맞춤 운세 리딩이에요.",
+      "instruction": "출생 정보를 입력하고, 트랜짓을 현재로 두거나 (원하는 날짜를 고르고), 선택 사항으로 질문을 더한 다음, 시작을 눌러 운세를 받아보세요.",
+      "cta": "점성술 리딩 시작하기"
+    },
+    "getStarted": "시작하기",
+    "tourInstruction": "당신의 운명에게 묻고 싶은 질문을 여기에 입력하세요:",
+    "tourExamples": "예: \"오늘 제가 들어야 할 메시지는 무엇인가요?\" 또는 \"커리어에서 어떻게 하면 명확함을 찾을 수 있을까요?\"",
+    "learnMore": "더 알아보기",
+    "quickFeaturesLabel": "기능을 사용해 보세요",
+    "quickCards": {
+      "tarotCard": "타로 카드",
+      "birthChart": "출생 차트",
+      "horoscope": "운세",
+      "calendarYear": "Cosmic Calendar"
+    },
+    "quickCardQuestions": {
+      "tarotCard": "타로 카드를 한 장 뽑아주세요",
+      "birthChart": "제 출생 차트를 알려주세요",
+      "horoscope": "오늘의 제 운세는 어떤가요",
+      "calendarYear": "Show me my cosmic calendar"
+    },
+    "selectedCards": "{cardsToSelect}장 중 {selectedCount}장을 선택했어요",
+    "consulting": "상담 중",
+    "enterBirthDate": "생년월일을 입력해 주세요",
+    "streamStopped": "응답이 중단되었어요",
+    "scrollToBottom": "맨 아래로",
+    "scrollToBottomAria": "대화의 맨 아래로 이동",
+    "checkingStars": "별 잔액을 확인하는 중...",
+    "disclaimer": "이 해석을 맹목적으로 믿거나 의존하지 마세요. AskingFate는 AI를 사용하므로 실수할 수 있어요. 중요한 결정은 자격을 갖춘 전문가와 상의해 주세요.",
+    "readAloud": {
+      "play": "소리 내어 읽기",
+      "stop": "읽기 중지",
+      "error": "음성을 생성하지 못했어요.",
+      "insufficientStars": "별이 부족해요.",
+      "starCost": "개의 별로 생성",
+      "confirmTitle": "음성 생성",
+      "confirmDescription": "음성을 생성하면 별 한 개가 소모돼요.",
+      "doNotShowAgain": "다시 보지 않기",
+      "confirm": "생성",
+      "cancel": "취소"
+    },
+    "copyPrompt": "프롬프트 복사",
+    "copyPromptSuccess": "프롬프트를 클립보드에 복사했어요",
+    "copyPromptFailed": "프롬프트를 복사하지 못했어요",
+    "copyPromptUnavailable": "이 환경에서는 복사를 사용할 수 없어요",
+    "privacyRedactedNotice": "처리 전에 개인 정보는 가려져요.",
+    "privacyRedactedPopoverTitle": "이 안내에 대하여",
+    "privacyRedactedPopoverIntro": "이 메시지의 민감한 정보는 서버로 전송되거나, 저장되거나, AI에게 표시되기 전에 제거 또는 대체되었어요 — 그래서 개인 데이터는 리딩 기록에 저장되지 않아요.",
+    "privacyRedactedPopoverCriteria": {
+      "name": "이름",
+      "email": "이메일 주소",
+      "phone": "전화번호",
+      "handle": "소셜 계정",
+      "address": "도로명 또는 우편 주소"
+    },
+    "privacyRedactedReadGuide": "전체 가이드 읽기",
+    "privacyHighlightedTooltipTitle": "AI는 이 메시지를 어떻게 보게 될까요",
+    "privacyHighlightedAriaLabel": "보호됨 {type}: {value}",
+    "privacyHighlightedType": {
+      "person": "이름",
+      "email": "이메일",
+      "phone": "전화번호",
+      "handle": "계정",
+      "address": "주소",
+      "card": "카드",
+      "passport": "여권",
+      "national_id": "주민등록번호"
+    },
+    "sanitizingPrompt": "정화하는 중",
+    "horoscopeAuthGate": {
+      "intro": "이 질문은 <pill>운세</pill>를 통해 답하는 편이 더 좋아요. 계속하려면 ",
+      "introSignedIn": "이 질문은 <pill>운세</pill>를 통해 답하는 것이 가장 좋아요.",
+      "signInLabel": "로그인",
+      "introSuffix": "해야 해요.",
+      "fallback": "타로 카드를 사용할 수도 있지만, 정확도는 떨어질 거예요.",
+      "cardAriaLabel": "타로 카드 미리보기: {name}",
+      "deckCaption": "덱을 넘기고, 카드를 탭한 다음, 위로 밀어 한 장을 골라보세요 — 로그인 없이 즐기는 간단한 타로 미리보기예요.",
+      "deckCaptionSignedIn": "덱을 넘기고, 카드를 탭한 다음, 위로 밀어 한 장을 골라보세요 — 간단한 타로 미리보기예요.",
+      "deckSwipeHint": "카드를 탭한 다음, 위로 밀어 선택하세요.",
+      "reversedMark": " (역방향)",
+      "pickedTeaser": "{name}{reversedLabel}을(를) 고르셨어요. 위에서 로그인하면 운세를 볼 수 있어요."
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
+    }
+  },
+  "ActionTrigger": {
+    "autoPickLabel": "카드 자동 선택",
+    "autoPickOn": "켜짐",
+    "autoPickOff": "꺼짐",
+    "composerSuggestionsLabel": "추천 답변",
+    "composerSuggestionsOn": "켜짐",
+    "composerSuggestionsOff": "꺼짐",
+    "newBirthInfo": "새 출생 정보",
+    "editBirthInfo": "출생 정보 수정",
+    "birthInfo": "출생 정보: {date}",
+    "chooseCardInstead": "대신 카드 선택하기",
+    "location": "위치: {value}",
+    "locationUnknown": "현재 위치",
+    "cancelIntake": "취소",
+    "birthTimeHelper": "가장 정확한 리딩을 위해 태어난 시각도 함께 입력해 주세요.",
+    "locationDialogTitle": "위치 설정",
+    "locationDialogDescription": "국가와 주 또는 도를 선택하세요. 운세의 위치를 더 정교하게 다듬는 데 사용해요.",
+    "latitude": "위도",
+    "longitude": "경도",
+    "saveLocation": "위치 저장",
+    "shareAccess": "Share access"
+  },
+  "InterpretationMode": {
+    "auto": "자동",
+    "tarot": "타로",
+    "horoscope": "운세",
+    "chat": "채팅",
+    "horoscopeLoginRequired": "운세를 이용하려면 로그인하세요",
+    "composerSettingsAriaLabel": "리딩 설정",
+    "composerSettingsPanelTitle": "설정",
+    "composerSettingsSectionPreferences": "환경설정",
+    "composerSettingsSectionActions": "동작",
+    "oracle": "Spiritual"
+  },
+  "About": {
+    "whatIs": "무엇일까요",
+    "brand": "AskingFate란?",
+    "tagline": "오랜 세월 검증된 상징과 현대 AI를 결합해, 오늘 바로 활용할 수 있는 차분하고 유용한 길잡이를 전해 드립니다.",
+    "learnMore": "소개 페이지에서 더 알아보기",
+    "requestDemo": "데모 신청하기",
+    "askYourFate": "당신의 운명에게 물어보세요",
+    "Services": {
+      "title": "우리의 서비스",
+      "subtitle": "신비로운 서비스",
+      "description": "점술과 자기 탐구의 오랜 지혜를 만나 보세요",
+      "status": {
+        "available": "이용 가능",
+        "comingSoon": "출시 예정"
+      },
+      "items": {
+        "tarot": {
+          "name": "AI 타로 리딩",
+          "description": "첨단 AI 기술로 만들어진 맞춤형 타로 카드 리딩을 받아 보세요"
+        },
+        "birthChart": {
+          "name": "출생 차트 분석",
+          "description": "상세한 점성술 출생 차트 분석을 통해 당신만의 우주적 청사진을 발견하세요"
+        },
+        "astrology": {
+          "name": "점성술",
+          "description": "당신의 별자리와 행성의 움직임을 바탕으로 맞춤형 일일 통찰을 받아 보세요"
+        },
+        "namelogy": {
+          "name": "성명학",
+          "description": "오랜 문자 분석을 통해 이름에 담긴 숨겨진 의미와 기운을 밝혀 보세요"
+        },
+        "numerology": {
+          "name": "수비학",
+          "description": "수비학의 지혜로 당신의 삶 속 숫자가 지닌 신비로운 의미를 풀어 보세요"
+        },
+        "luckyColors": {
+          "name": "행운의 색",
+          "description": "행운과 성공, 긍정적인 기운을 부르는 당신만의 색 팔레트를 발견하세요"
+        },
+        "palmistry": {
+          "name": "손금 풀이",
+          "description": "오랜 손금 풀이의 지혜로 당신의 손바닥에 새겨진 운명의 선을 읽어 보세요"
+        },
+        "fatedRelations": {
+          "name": "인연의 끈",
+          "description": "당신과 소중한 사람들 사이의 우주적 연결과 궁합을 발견하세요"
+        }
+      }
+    },
+    "Roadmap": {
+      "title": "로드맵",
+      "label": "개발 로드맵",
+      "description": "가장 풍부하고 신비로운 경험을 전하기 위한 우리의 여정",
+      "progress": "진행률",
+      "status": {
+        "completed": "완료됨",
+        "inDevelopment": "개발 중",
+        "planned": "계획됨"
+      },
+      "phases": {
+        "completed": "완료됨",
+        "may_2026": "2026년 5월",
+        "jul_2026": "2026년 7월",
+        "aug_2026": "2026년 8월",
+        "sep_2026": "2026년 9월",
+        "oct_2026": "2026년 10월",
+        "nov_2026": "2026년 11월",
+        "dec_2026": "2026년 12월"
+      },
+      "tarot": {
+        "title": "AI 타로 리딩",
+        "eta": "지금 이용 가능",
+        "features": [
+          "첨단 AI로 만들어진 맞춤형 타로 카드 리딩을 받아 보세요",
+          "더 깊은 통찰을 위해 후속 질문을 해 보세요",
+          "리딩 결과를 저장하고 언제든 다시 살펴보세요"
+        ]
+      },
+      "birthChart": {
+        "title": "출생 차트",
+        "eta": "2026년 5월",
+        "features": [
+          "당신만의 출생 차트에서 핵심 통계를 한눈에 확인하세요",
+          "행성 위치와 어스펙트 각도를 강점과 연결해 드려요",
+          "당신의 우주적 청사진을 깊이 들여다보세요"
+        ]
+      },
+      "astrology": {
+        "title": "점성술",
+        "eta": "2026년 5월",
+        "features": [
+          "출생 정보와 목표 날짜를 바탕으로 한 트랜짓 예측",
+          "맞춤형 트랜짓 리딩",
+          "AI와 대화하며 더 깊은 트랜짓 길잡이를 받아 보세요"
+        ]
+      },
+      "namelogy": {
+        "title": "성명학",
+        "eta": "2026년 7월",
+        "features": [
+          "이름에 담긴 기운을 해독해 드려요",
+          "영적 조화와 강점, 그리고 주의할 점을 밝혀 드려요",
+          "이름이 당신의 길을 어떻게 빚어 갈지 AI에게 물어보세요"
+        ]
+      },
+      "numerology": {
+        "title": "수비학",
+        "eta": "2026년 8월",
+        "features": [
+          "숫자에 담긴 기운을 해독해 드려요",
+          "당신을 돕는 숫자 패턴과 도전이 되는 패턴을 짚어 드려요",
+          "각 숫자에 얽힌 결과에 대해 AI에게 물어보세요"
+        ]
+      },
+      "luckyColors": {
+        "title": "행운의 색",
+        "eta": "2026년 9월",
+        "features": [
+          "행성의 지배에 맞춘 일일 색 팔레트",
+          "옷차림과 작업 공간을 위한 추천",
+          "집에서 직접 해 볼 수 있는 계절별 색채 의식"
+        ]
+      },
+      "mobileApp": {
+        "title": "모바일 애플리케이션",
+        "eta": "2026년 11월",
+        "features": [
+          "iOS와 Android 네이티브 출시 경험",
+          "오프라인 접속으로 어디서나 리딩을 즐기세요",
+          "오늘의 카드와 점성술 한 줄을 담은 위젯"
+        ]
+      },
+      "fatedRelations": {
+        "title": "인연의 끈",
+        "eta": "2026년 10월",
+        "features": [
+          "궁합과 관계의 흐름을 탐색해 보세요",
+          "관계의 역학과 함께 펼쳐갈 가능성을 풀어 드려요",
+          "그 인연에 대해 AI에게 더 깊은 길잡이를 청해 보세요"
+        ]
+      },
+      "palmistry": {
+        "title": "손금 풀이",
+        "eta": "2026년 12월",
+        "features": [
+          "웹캠을 활용한 손금 풀이",
+          "행운과 생명, 운명에 관한 손금 선을 해석해 드려요",
+          "당신의 손금이 드러내는 것에 대해 콕 집어 물어보세요"
+        ]
+      },
+      "eta": "예상 시기"
+    },
+    "Technology": {
+      "title": "기술과 혁신",
+      "label": "최첨단 기술",
+      "description": "정확하고 의미 있는 통찰을 전하기 위해 최신 기술로 구동됩니다",
+      "aiPowered": {
+        "title": "AI 기반",
+        "desc": "첨단 머신러닝 알고리즘이 맞춤형의 정확한 리딩을 제공합니다",
+        "features": [
+          "첨단 AI",
+          "머신러닝",
+          "자연어 처리"
+        ]
+      },
+      "securePrivate": {
+        "title": "안전하고 비공개",
+        "desc": "종단 간 암호화로 당신의 개인 정보와 리딩 내용이 안전하게 보호됩니다",
+        "features": [
+          "종단 간 암호화",
+          "개인정보 우선",
+          "안전한 저장"
+        ]
+      },
+      "globalAccess": {
+        "title": "전 세계 접속",
+        "desc": "다국어 지원과 문화적 적응으로 전 세계 어디서나 이용할 수 있습니다",
+        "features": [
+          "전 세계 접속",
+          "다국어 지원",
+          "클라우드 인프라"
+        ]
+      }
+    },
+    "Testimonials": {
+      "title": "이용자들의 이야기",
+      "label": "이용자 후기",
+      "description": "이용자들이 들려주는 신비로운 여정 이야기를 들어 보세요",
+      "autoPlay": {
+        "autoPlaying": "자동 재생 중",
+        "clickToAutoPlay": "클릭하여 자동 재생"
+      },
+      "items": [
+        {
+          "quote": "아침마다 마음가짐을 다지는 데 자주 써요. 하루를 좀 더 단단한 마음으로 시작하게 해 줘요.",
+          "author": "유이",
+          "role": "초기 이용자",
+          "initial": "Y"
+        },
+        {
+          "quote": "성찰이 균형 잡혀 있어요. 강요하지 않으면서도 도움이 되죠. 더 또렷하게 생각하도록 돕는 조용한 의식이 되었어요.",
+          "author": "다니엘",
+          "role": "초기 이용자",
+          "initial": "D"
+        },
+        {
+          "quote": "핵심을 바로 짚어 주는 점이 좋아요. 키워드 덕분에 무엇에 집중해야 할지 기억하기 쉬워요.",
+          "author": "미나",
+          "role": "매일 이용자",
+          "initial": "M"
+        },
+        {
+          "quote": "의외로 마음이 차분해져요. 모든 내용에 동의하지 않을 때조차도, 행동하기 전에 잠시 멈추고 돌아보게 해 줘요.",
+          "author": "크리스",
+          "role": "회의적이지만 궁금한",
+          "initial": "C"
+        },
+        {
+          "quote": "후속 질문이 제일 마음에 들어요. 실제 대화처럼 느껴져서 엉킨 생각을 풀어내는 데 도움이 돼요.",
+          "author": "녹",
+          "role": "재방문 이용자",
+          "initial": "N"
+        }
+      ]
+    },
+    "Statistics": {
+      "title": "간단한 통계",
+      "label": "우리의 영향력",
+      "description": "신비로운 탁월함을 향한 우리의 다짐을 보여 주는 숫자들",
+      "growing": "실시간 데이터",
+      "items": [
+        {
+          "key": "totalUsers",
+          "label": "전체 플레이어"
+        },
+        {
+          "key": "profiles",
+          "label": "가입한 이용자"
+        },
+        {
+          "key": "interpretations",
+          "label": "AI 해석"
+        }
+      ]
+    },
+    "CTA": {
+      "title": "여정을 시작할 준비가 되셨나요?",
+      "label": "시작할 준비가 되셨나요?",
+      "subheading": "당신의 여정이 기다리고 있어요",
+      "desc": "AI 기반 신비로운 길잡이로 자신의 길을 발견한 수천 명의 이용자와 함께하세요.",
+      "primary": "리딩 시작하기",
+      "secondary": "더 알아보기",
+      "features": {
+        "instantAccess": "즉시 이용",
+        "premiumQuality": "프리미엄 품질",
+        "mysticalExperience": "신비로운 경험"
+      }
+    }
+  },
+  "QuestionInput": {
+    "label": "당신의 질문",
+    "placeholder": "질문을 입력하세요...",
+    "followUpSuggestionLabel": "추천 후속 질문",
+    "dismissFollowUpStrip": "추천 질문과 작성 단축키 닫기"
+  },
+  "Prompts": {
+    "title": "영감을 주는 질문들",
+    "label": "추천 질문",
+    "show": "보기",
+    "hide": "숨기기",
+    "selectCategory": "카테고리를 선택하세요",
+    "categories": {
+      "daily-life": {
+        "name": "일상생활",
+        "questions": [
+          "균형을 어떻게 찾을까요?",
+          "무엇을 내려놓아야 할까요?",
+          "더 나은 결정을 내리려면?",
+          "우주가 내게 전하는 메시지는?",
+          "오늘 집중할 것은?",
+          "내 일상을 어떻게 나아지게 할까요?",
+          "바꿔야 할 습관은?",
+          "더 마음챙김하려면?"
+        ]
+      },
+      "work-career": {
+        "name": "일과 커리어",
+        "questions": [
+          "지금 커리어에서 집중할 것은?",
+          "이 기회를 잡아야 할까요?",
+          "내 역할에서 더 성장하려면?",
+          "키워야 할 역량은?",
+          "지금이 이직할 때일까요?",
+          "직장 인간관계를 좋게 하려면?",
+          "내 성장을 가로막는 건 무엇일까요?",
+          "내 사업을 시작해야 할까요?"
+        ]
+      },
+      "financial": {
+        "name": "재정",
+        "questions": [
+          "재정 상황을 어떻게 나아지게 할까요?",
+          "이 투자를 해야 할까요?",
+          "내 재정의 미래는?",
+          "돈을 더 모으려면?",
+          "지금이 살 때일까요?",
+          "어떤 재정 목표를 세울까요?",
+          "지출을 줄이려면?",
+          "투자 전략을 바꿔야 할까요?"
+        ]
+      },
+      "love-romance": {
+        "name": "사랑과 로맨스",
+        "questions": [
+          "내 연애 운은 어떨까요?",
+          "이 사람이 맞는 사람일까요?",
+          "맞는 짝을 끌어당기려면?",
+          "내 마음을 고백해야 할까요?",
+          "내 연애를 가로막는 건 무엇일까요?",
+          "이 관계를 어떻게 나아지게 할까요?",
+          "이제 마음을 정리할 때일까요?",
+          "사랑에서 내 미래는?"
+        ]
+      },
+      "family": {
+        "name": "가족",
+        "questions": [
+          "가족과의 유대를 더 깊게 하려면?",
+          "가족에게 필요한 것은?",
+          "가족 갈등을 어떻게 풀까요?",
+          "이 어려운 대화를 해야 할까요?",
+          "가족 안에서 내 역할은?",
+          "가족을 더 잘 지지하려면?",
+          "깨야 할 가족의 패턴은?",
+          "가족의 화목을 만들려면?"
+        ]
+      },
+      "friendship-relationships": {
+        "name": "우정과 인간관계",
+        "questions": [
+          "내 인간관계를 어떻게 나아지게 할까요?",
+          "이 우정을 끝내야 할까요?",
+          "새로운 친구를 사귀려면?",
+          "갈등의 원인은?",
+          "더 좋은 친구가 되려면?",
+          "이 사람을 믿어도 될까요?",
+          "이 갈등을 어떻게 풀까요?",
+          "어떤 선을 그어야 할까요?"
+        ]
+      },
+      "personal-growth": {
+        "name": "자기 성장",
+        "questions": [
+          "내 성장을 가로막는 건 무엇일까요?",
+          "내 시련을 어떻게 극복할까요?",
+          "내 영혼의 목적은?",
+          "내 직관을 어떻게 키울까요?",
+          "내려놓아야 할 믿음은?",
+          "더 큰 자신감을 키우려면?",
+          "내 영적인 길은?",
+          "내면의 평화를 찾으려면?"
+        ]
+      }
+    }
+  },
+  "Footer": {
+    "copyright": "AskingFate, LLC. 모든 권리 보유."
+  },
+  "AboutLegacy": {
+    "hero": {
+      "title1": "오랜 지혜가",
+      "title2": "현대 AI를 만나다",
+      "subtitle": "오랜 타로의 전통과 AI를 어떻게 녹여, 오직 당신만을 위한 우주적 길잡이를 전하는지 살펴보세요."
+    },
+    "features": {
+      "ai": {
+        "title": "명료한 AI 기반 통찰",
+        "desc": "당신의 질문에 맞춰 정성껏 다듬은 해석"
+      },
+      "cosmic": {
+        "title": "온전히 집중하는 경험",
+        "desc": "읽고, 성찰하고, 소중한 것을 저장할 수 있는 고요한 공간"
+      },
+      "personal": {
+        "title": "당신을 위해 설계되었습니다",
+        "desc": "일상의 결정과 부드러운 성찰을 위해 만들어졌습니다"
+      }
+    },
+    "story": {
+      "title": "우리가 이것을 만드는 이유",
+      "p1": "AskingFate는 하나의 생각에서 시작되었습니다. 잠시 멈춰 또렷하게 생각할 수 있는, 차분하고 믿을 만한 공간을 만들자는 것이죠. 소란스러움은 없이, 짧은 리딩과 성찰의 실마리만 있을 뿐입니다.",
+      "p2": "우리는 단순하고 실용적으로 유지하며, 초기 이용자들과 함께 매주 조금씩 나아가고 있습니다. 당신이 더 나은 결정 하나를 내리는 데 도움이 된다면, 그것이 곧 성공입니다."
+    },
+    "mission": {
+      "title": "우리의 사명",
+      "p": "차분하고, 명료하며, 진정으로 유용한 도구를 통해 사람들이 잠시 멈추고, 성찰하고, 일상의 결정을 더 큰 의도를 담아 내릴 수 있도록 돕는 것입니다."
+    },
+    "vision": {
+      "title": "우리의 비전",
+      "p": "의도 있는 결정을 위한 믿음직한 동반자가 되는 것입니다. 누구나 쉽게 쓸 수 있고, 언제나 개인정보를 존중하면서요."
+    },
+    "valuesSection": {
+      "title": "우리의 가치",
+      "privacyFirst": {
+        "title": "개인정보 우선",
+        "desc": "당신의 질문과 리딩은 비공개로 유지됩니다. 우리는 결코 데이터를 팔지 않습니다."
+      },
+      "clarity": {
+        "title": "과장보다 명료함",
+        "desc": "바로 실천할 수 있는, 짧고 쉬운 말로 된 해석을 전합니다."
+      },
+      "inclusive": {
+        "title": "본래부터 포용적인",
+        "desc": "초보자에게도 숙련자에게도 도움이 됩니다. 배경과 믿음을 가리지 않고 환영합니다."
+      }
+    },
+    "quickStatsSection": {
+      "title": "간단한 통계",
+      "users": "초기 이용자",
+      "cards": "뽑힌 카드",
+      "updates": "주간 업데이트",
+      "availability": "지금 이용 가능"
+    },
+    "pressSection": {
+      "title": "언론, 파트너, 또는 문의",
+      "desc": "아직 초기 단계이며 의미 있는 협업을 환영합니다. 간단한 안내나 자세한 내용이 필요하시면 연락해 주세요.",
+      "primary": "데모 신청하기",
+      "secondary": "문의하기"
+    },
+    "aiSection": {
+      "title": "이용 방법",
+      "p1": "당신이 질문을 하면, 우리가 카드를 한 장 뽑아 전통적인 의미에 뿌리를 두고 명료함을 위해 다듬은 간결한 해석을 빚어 드립니다.",
+      "p2": "이것은 단정이 아니라 헤아려 볼 길잡이입니다. 모든 결정의 주인은 언제나 당신입니다."
+    },
+    "values": {
+      "respectfulTradition": {
+        "title": "전통을 기리며",
+        "description": "우리는 타로의 신성한 뿌리를 존중하면서, 오늘날의 구도자들이 쉽게 다가설 수 있도록 합니다."
+      },
+      "personalizedGuidance": {
+        "title": "맞춤형 길잡이",
+        "description": "모든 리딩은 당신의 질문과 삶의 맥락에 따라 빚어지기에 저마다 다릅니다."
+      },
+      "inclusiveCommunity": {
+        "title": "포용하는 공동체",
+        "description": "우리는 모든 배경과 믿음의 구도자를 환영하며, 탐색을 위한 안전한 공간을 만들어 갑니다."
+      }
+    },
+    "cta": {
+      "title": "시작할 준비가 되셨나요?",
+      "desc": "이제 막 출시했습니다. 차분하고, 명료하며, 실용적인 길잡이를 탐색하는 초기 이용자들과 함께하세요.",
+      "primary": "첫 리딩 시작하기",
+      "secondary": "더 알아보기"
+    }
+  },
+  "Demo": {
+    "hero": {
+      "title": "데모 신청하기",
+      "subtitle": "짧은 안내를 보고 간단한 인터랙티브 미리보기를 체험해 보세요."
+    },
+    "links": {
+      "about": "제품에 대해 알아보기",
+      "tryReading": "지금 리딩 체험하기"
+    },
+    "preview": {
+      "title": "인터랙티브 미리보기",
+      "subtitle": "간단한 질문을 하고, 예시 카드와 힌트를 살펴보세요",
+      "shuffle": "섞기",
+      "questionLabel": "당신의 질문",
+      "questionPlaceholder": "짧은 질문을 입력하세요...",
+      "cardLabel": "카드"
+    },
+    "form": {
+      "name": "이름",
+      "namePlaceholder": "당신의 이름",
+      "email": "이메일",
+      "emailPlaceholder": "you@example.com",
+      "teamSize": "팀 규모 (선택)",
+      "teamSizePlaceholder": "혼자, 2~10명, 10명 이상",
+      "goals": "무엇을 보고 싶으신가요?",
+      "goalsPlaceholder": "예: 저장된 리딩, 팀 공유, API",
+      "notes": "메모 (선택)",
+      "notesPlaceholder": "특별한 질문이나 배경이 있으신가요?",
+      "submit": "데모 신청하기",
+      "submitting": "예약 중...",
+      "footer": "영업일 기준 1~2일 이내에 이메일로 연락드리겠습니다."
+    }
+  },
+  "PrivacyPolicy": {
+    "title": "개인정보 처리방침",
+    "lastUpdated": "최종 업데이트"
+  },
+  "TermsOfService": {
+    "title": "이용약관",
+    "backToHome": "홈으로 돌아가기",
+    "lastUpdated": "최종 업데이트"
+  },
+  "Reading": {
+    "types": {
+      "simple": {
+        "title": "간단 리딩",
+        "description": "즉각적인 명료함, 오늘의 기운, 단순한 답"
+      },
+      "general": {
+        "title": "일반 리딩",
+        "description": "흐름과 움직임을 이해하기"
+      },
+      "detailed": {
+        "title": "상세 질문",
+        "description": "의사 결정, 문제 해결"
+      },
+      "expanded": {
+        "title": "확장 상세",
+        "description": "관계, 커리어의 길, 겹겹이 작용하는 영향"
+      },
+      "celtic": {
+        "title": "켈틱 크로스",
+        "description": "삶의 깊은 상황, 피할 수 없는 패턴"
+      }
+    }
+  },
+  "BirthChart": {
+    "title": "당신의 것을 해독하세요",
+    "subtitle": "우주적 청사진",
+    "description": "출생 날짜와 시간, 장소를 입력하세요. 정확한 출생 차트를 만들 수 있도록 시간대와 현재 위치를 자동으로 감지해 드립니다.",
+    "pageTitle": "당신의 출생 차트",
+    "planetaryStrengths": "행성의 힘",
+    "yourHouses": "당신의 하우스",
+    "planetaryPositions": "행성의 위치",
+    "birthDetailsTitle": "출생 정보",
+    "birthDateLabel": "출생 날짜",
+    "birthTimeLabel": "출생 시간",
+    "planetarySectionLabel": "행성",
+    "lifeAreasSectionLabel": "삶의 영역",
+    "transitDetailsTitle": "트랜짓 정보",
+    "transitDateLabel": "트랜짓 날짜",
+    "shareTitle": "당신의 출생 차트 공유하기",
+    "shareDescription": "당신의 우주적 청사진을 친구들과 나눠 보세요",
+    "questionLabel": "당신의 차트에 대해 물어보세요",
+    "questionPlaceholder": "사랑, 커리어, 성격에 대해 물어보세요...",
+    "composerPlaceholder": "당신의 차트에 대해 무엇이든 물어보세요…",
+    "composerContextLabel": "당신의 출생 차트",
+    "disclaimer": "출생 차트 리딩은 오락 목적으로만 제공됩니다. 제공되는 해석은 AI에 의해 생성된 것으로, 전문적인 조언으로 여겨서는 안 됩니다. 이를 맹목적으로 믿거나 의존하지 마세요. 하나의 관점으로만 활용하시고, 해석이 부정확할 수 있다는 점을 염두에 두세요. 인생의 중요한 결정에는 언제나 자격을 갖춘 전문가와 상담하시기 바랍니다.",
+    "authRequired": "출생 차트를 보시려면 로그인해 주세요",
+    "loadingChart": "당신의 출생 차트를 불러오는 중…",
+    "computingChart": "별들로부터 당신의 차트를 그려내는 중…",
+    "computeFailed": "출생 차트를 만들지 못했습니다. 다시 시도해 주세요.",
+    "computeFailedTitle": "차트를 만들지 못했습니다",
+    "retry": "다시 시도",
+    "needsBirthInfoTitle": "언제 어디서 태어나셨는지 알려 주세요",
+    "needsBirthInfoDescription": "이 정보를 프로필에 저장하고 당신만의 출생 차트를 계산해 드립니다.",
+    "birthPlaceLabel": "출생 장소",
+    "selectDate": "날짜 선택",
+    "selectTimeOptional": "시간 선택 (선택)",
+    "selectPlace": "국가와 지역 선택",
+    "optional": "선택",
+    "back": "뒤로",
+    "backToCountries": "국가 목록으로 돌아가기",
+    "searchCountry": "국가 검색…",
+    "searchState": "지역 검색…",
+    "noResults": "일치하는 결과 없음",
+    "saveAndGenerate": "저장하고 내 차트 만들기",
+    "savingAndGenerating": "저장 중…",
+    "saveFailed": "출생 정보를 저장하지 못했습니다. 다시 시도해 주세요.",
+    "stats": {
+      "archetypes": {
+        "Sun": "리더십",
+        "Moon": "감정",
+        "Mars": "추진력",
+        "Mercury": "지성",
+        "Jupiter": "지혜",
+        "Venus": "사랑",
+        "Saturn": "절제",
+        "Rahu": "야망",
+        "Ketu": "영성"
+      },
+      "descriptions": {
+        "Sun": "영혼, 자아, 활력, 권위",
+        "Moon": "마음, 안정, 직관, 평화",
+        "Mars": "에너지, 행동, 용기, 형제",
+        "Mercury": "언변, 사업, 논리, 거래",
+        "Jupiter": "부, 성장, 스승, 행운",
+        "Venus": "아름다움, 풍요, 욕망, 예술",
+        "Saturn": "업, 지연, 노동, 구조",
+        "Rahu": "집착, 혁신, 환상, 이방",
+        "Ketu": "초탈, 해탈, 과거, 신비주의"
+      },
+      "status": {
+        "exalted": "고양",
+        "ownSign": "본궁",
+        "debilitated": "쇠약",
+        "normal": "보통",
+        "retrograde": "역행"
+      }
+    },
+    "planets": {
+      "Sun": "태양",
+      "Moon": "달",
+      "Mars": "화성",
+      "Mercury": "수성",
+      "Jupiter": "목성",
+      "Venus": "금성",
+      "Saturn": "토성",
+      "Rahu": "라후",
+      "Ketu": "케투",
+      "Uranus": "천왕성",
+      "Neptune": "해왕성",
+      "Pluto": "명왕성",
+      "Ascendant": "상승궁"
+    },
+    "in": "위치",
+    "house": "하우스",
+    "houseRuler": "하우스 지배성",
+    "zodiacSigns": {
+      "Aries": "양자리",
+      "Taurus": "황소자리",
+      "Gemini": "쌍둥이자리",
+      "Cancer": "게자리",
+      "Leo": "사자자리",
+      "Virgo": "처녀자리",
+      "Libra": "천칭자리",
+      "Scorpio": "전갈자리",
+      "Sagittarius": "궁수자리",
+      "Capricorn": "염소자리",
+      "Aquarius": "물병자리",
+      "Pisces": "물고기자리"
+    },
+    "systemWestern": "서양식 (트로피컬)",
+    "systemVedic": "베다식 (사이더리얼)",
+    "tabBirthChart": "출생 차트",
+    "tabTransitChart": "트랜짓 차트",
+    "loading": "불러오는 중…",
+    "houseMeanings": {
+      "1": "자아와 정체성",
+      "2": "돈과 소유",
+      "3": "소통과 형제자매",
+      "4": "가정과 가족",
+      "5": "창의성과 로맨스",
+      "6": "건강과 일상",
+      "7": "동반자 관계와 결혼",
+      "8": "변화와 신비",
+      "9": "철학과 여행",
+      "10": "커리어와 명성",
+      "11": "친구와 결실",
+      "12": "잠재의식과 고독"
+    },
+    "houseDescriptions": {
+      "1": "이 하우스는 당신의 외적 성격과 신체적 외모, 그리고 삶을 대하는 방식을 나타냅니다.",
+      "2": "이 하우스는 당신의 개인 재정과 물질적 소유, 그리고 자기 가치감을 다스립니다.",
+      "3": "이 하우스는 소통과 지성, 초기 교육, 형제자매, 그리고 짧은 여행을 주관합니다.",
+      "4": "이 하우스는 당신의 가정과 뿌리, 가족, 어머니, 그리고 정서적 기반을 의미합니다.",
+      "5": "이 하우스는 자기표현과 창의성, 로맨스, 자녀, 그리고 즐거움을 아우릅니다.",
+      "6": "이 하우스는 일상의 일과 건강, 봉사, 그리고 자기 계발과 관련됩니다.",
+      "7": "이 하우스는 진지한 동반자 관계와 결혼, 사업 계약, 그리고 드러난 적에 초점을 둡니다.",
+      "8": "이 하우스는 변화와 죽음, 재탄생, 공유 자원, 그리고 신비를 다룹니다.",
+      "9": "이 하우스는 고등 교육과 철학, 종교, 장거리 여행, 그리고 법을 다스립니다.",
+      "10": "이 하우스는 당신의 커리어와 공적 이미지, 명성, 아버지, 그리고 권위 있는 인물을 나타냅니다.",
+      "11": "이 하우스는 우정과 사회적 모임, 희망, 소망, 그리고 인류애적 관심사를 주관합니다.",
+      "12": "이 하우스는 잠재의식과 비밀, 숨겨진 적, 기관, 그리고 업을 아우릅니다."
+    },
+    "planetInHouse": {
+      "Sun": {
+        "1": "당신의 정체성과 자기표현이 성격의 중심에 있습니다. 당신은 자신만의 개성으로 빛나며 강한 리더십 자질을 지니고 있습니다. 당신의 자아와 활력은 외적 페르소나를 통해 곧바로 드러납니다.",
+        "2": "당신의 정체성은 자원과 가치관에 연결되어 있습니다. 당신은 물질적 안정을 통해 자신감을 얻으며, 소유를 통해 자신을 표현할 수 있습니다. 당신의 자기 가치감은 당신이 소유하고 쌓아 가는 것과 이어져 있습니다.",
+        "3": "당신의 정체성은 소통과 배움을 통해 드러납니다. 당신은 말과 생각, 지적 탐구로 빛납니다. 당신의 자아는 자신을 표현하고 지식을 나누는 능력과 이어져 있습니다.",
+        "4": "당신의 정체성은 가정과 가족에 뿌리내리고 있습니다. 당신은 정서적 안정과 자신의 뿌리를 통해 자신감을 얻습니다. 당신의 자아는 사적인 삶과 당신이 쌓아 온 기반과 이어져 있습니다.",
+        "5": "당신의 정체성은 창의성과 자기표현을 통해 드러납니다. 당신은 재능과 로맨스, 즐길 줄 아는 능력으로 빛납니다. 당신의 자아는 창의적 결실과 개인적 표현과 이어져 있습니다.",
+        "6": "당신의 정체성은 봉사와 일상의 일을 통해 드러납니다. 당신은 남을 돕고 건강을 지키는 데서 자신감을 얻습니다. 당신의 자아는 쓸모 있는 존재가 되고 무언가를 나아지게 하는 능력과 이어져 있습니다.",
+        "7": "당신의 정체성은 동반자 관계와 인간관계를 통해 드러납니다. 당신은 타인과 관계 맺는 능력으로 빛납니다. 당신의 자아는 관계 속에서 어떻게 비치는지, 그리고 균형을 잡는 능력과 이어져 있습니다.",
+        "8": "당신의 정체성은 변화와 공유 자원을 포함합니다. 당신은 깊은 변화와 재생을 통해 자신감을 얻습니다. 당신의 자아는 자신을 변화시키고 강렬함을 다루는 능력과 이어져 있습니다.",
+        "9": "당신의 정체성은 철학과 고등 교육을 통해 드러납니다. 당신은 자신의 신념과 지혜, 진리 탐구로 빛납니다. 당신의 자아는 세계관과 영적 이해와 이어져 있습니다.",
+        "10": "당신의 정체성은 커리어와 공적 이미지를 통해 드러납니다. 당신은 성취와 인정을 통해 자신감을 얻습니다. 당신의 자아는 명성과 직업적 성공과 이어져 있습니다.",
+        "11": "당신의 정체성은 우정과 희망을 통해 드러납니다. 당신은 사회적 연결과 인류애적 이상으로 빛납니다. 당신의 자아는 집단과 연결되고 꿈을 실현하는 능력과 이어져 있습니다.",
+        "12": "당신의 정체성은 잠재의식과 숨겨진 문제를 포함합니다. 당신은 영적 연결과 자아의 내려놓음을 통해 자신감을 얻습니다. 당신의 자아는 내면의 세계와 영적 성장과 이어져 있습니다."
+      },
+      "Moon": {
+        "1": "당신의 감정은 겉으로 드러나며 외적 성격의 일부입니다. 당신은 감정 표현이 풍부하고, 다른 사람들이 당신의 감정을 알아챕니다. 당신의 정서적 욕구는 자신을 어떻게 드러내는지와 이어져 있습니다.",
+        "2": "당신의 감정은 안정과 자원에 연결되어 있습니다. 당신은 물질적 안정을 통해 안심하며, 소유에 정서적으로 애착할 수 있습니다. 당신의 감정은 당신의 가치관과 이어져 있습니다.",
+        "3": "당신의 감정은 소통과 배움을 통해 드러납니다. 당신은 대화와 지적 활동을 통해 감정을 풀어냅니다. 당신의 정서적 욕구는 정신적 자극과 다양함을 포함합니다.",
+        "4": "당신의 감정은 가정과 가족에 깊이 연결되어 있습니다. 이곳은 달의 본래 하우스입니다. 당신은 집에서 가장 안심하며, 가족과 뿌리에 강한 정서적 유대를 지닙니다.",
+        "5": "당신의 감정은 창의성과 로맨스를 통해 드러납니다. 당신은 자기표현과 즐거움을 통해 안심합니다. 당신의 정서적 욕구는 창의적이고 삶을 즐기는 것을 포함합니다.",
+        "6": "당신의 감정은 일상의 일과 봉사에 연결되어 있습니다. 당신은 일과와 남을 돕는 일을 통해 안심합니다. 당신의 정서적 욕구는 쓸모 있는 존재가 되고 건강을 지키는 것을 포함합니다.",
+        "7": "당신의 감정은 동반자 관계를 통해 드러납니다. 당신은 관계를 통해 안심하며, 상대에게 정서적으로 의존할 수 있습니다. 당신의 감정은 남들이 당신을 어떻게 보는지와 이어져 있습니다.",
+        "8": "당신의 감정은 변화와 강렬함을 포함합니다. 당신은 깊은 정서적 유대를 통해 안심하며, 강렬한 감정적 경험을 할 수 있습니다. 당신의 감정은 공유 자원과 이어져 있습니다.",
+        "9": "당신의 감정은 철학과 확장을 통해 드러납니다. 당신은 배움과 신념을 탐구하며 안심합니다. 당신의 정서적 욕구는 진리와 의미를 찾는 것을 포함합니다.",
+        "10": "당신의 감정은 커리어와 공적 이미지에 연결되어 있습니다. 당신은 성취를 통해 안심하며, 자신의 명성에 정서적으로 몰입할 수 있습니다. 당신의 감정은 직업적 삶과 이어져 있습니다.",
+        "11": "당신의 감정은 우정과 희망을 통해 드러납니다. 당신은 사회적 연결을 통해 안심하며, 집단에 정서적으로 애착할 수 있습니다. 당신의 감정은 당신의 꿈과 이어져 있습니다.",
+        "12": "당신의 감정은 잠재의식과 숨겨진 문제를 포함합니다. 당신은 영적 연결을 통해 안심하며, 깊고 감춰진 감정적 패턴을 지닐 수 있습니다. 당신의 감정은 내면의 세계와 이어져 있습니다."
+      },
+      "Mercury": {
+        "1": "당신의 사고와 소통이 정체성의 중심에 있습니다. 당신은 말과 생각을 통해 자신을 표현합니다. 당신의 머리는 빠르게 돌아가며, 당신만의 소통 방식으로 알려집니다.",
+        "2": "당신의 사고는 자원과 가치관에 집중되어 있습니다. 당신은 돈과 소유에 대해 이야기합니다. 당신의 머리는 실용적이며, 물질적 안정을 생각합니다.",
+        "3": "당신의 사고는 본래 다재다능하고 소통에 능합니다. 이곳은 수성의 본래 하우스입니다. 당신은 배움과 글쓰기, 생각을 나누는 데 뛰어납니다. 당신의 머리는 호기심 많고 유연합니다.",
+        "4": "당신의 사고는 가정과 가족에 연결되어 있습니다. 당신은 정서적 문제에 대해 이야기하며, 자신의 뿌리에 대해 생각할 수 있습니다. 당신의 머리는 사적인 삶과 이어져 있습니다.",
+        "5": "당신의 사고는 창의적이고 표현이 풍부합니다. 당신은 예술과 놀이, 자기표현을 통해 소통합니다. 당신의 머리는 상상력이 풍부하며, 즐거움과 로맨스를 생각합니다.",
+        "6": "당신의 사고는 실용적이고 봉사 지향적입니다. 당신은 일과 건강에 대해 이야기합니다. 당신의 머리는 분석적이며, 개선과 세부 사항을 생각합니다.",
+        "7": "당신의 사고는 동반자 관계에 집중되어 있습니다. 당신은 관계를 통해 소통하며, 균형을 생각할 수 있습니다. 당신의 머리는 외교적이며, 타인의 관점을 헤아립니다.",
+        "8": "당신의 사고는 변화와 깊이를 포함합니다. 당신은 강렬한 주제에 대해 이야기하며, 신비에 대해 생각할 수 있습니다. 당신의 머리는 꿰뚫어 보며, 숨겨진 진실을 찾습니다.",
+        "9": "당신의 사고는 철학적이고 확장적입니다. 당신은 신념과 고등 교육에 대해 소통합니다. 당신의 머리는 진리를 좇으며, 의미와 목적을 생각합니다.",
+        "10": "당신의 사고는 커리어와 명성에 집중되어 있습니다. 당신은 자신의 직업과 공적 이미지에 대해 소통합니다. 당신의 머리는 목표 지향적이며, 성취를 생각합니다.",
+        "11": "당신의 사고는 우정과 희망을 포함합니다. 당신은 집단과 이상에 대해 소통합니다. 당신의 머리는 혁신적이며, 미래와 인류애적 대의를 생각합니다.",
+        "12": "당신의 사고는 잠재의식과 숨겨진 문제를 포함합니다. 당신은 직관적으로 소통하며, 영적인 문제를 생각할 수 있습니다. 당신의 머리는 창의적이며, 무의식적으로 정보를 처리합니다."
+      },
+      "Venus": {
+        "1": "당신의 가치관과 사랑의 본성이 외적 성격의 일부입니다. 당신은 매력적이고 사람을 끄는 힘이 있습니다. 사랑과 아름다움을 대하는 당신의 방식은 다른 사람들에게 드러납니다.",
+        "2": "당신의 가치관은 자원과 소유에 연결되어 있습니다. 이곳은 금성의 본래 하우스입니다. 당신은 물질적인 것에서 아름다움을 발견하며, 미적인 것을 통해 돈을 벌 수 있습니다. 당신의 사랑의 본성은 관능적이고 안정적입니다.",
+        "3": "당신의 가치관은 소통과 배움을 통해 드러납니다. 당신은 생각에서 아름다움을 발견하며, 말을 통해 사랑할 수 있습니다. 당신의 사랑의 본성은 장난기 있고 지적입니다.",
+        "4": "당신의 가치관은 가정과 가족에 연결되어 있습니다. 당신은 자신의 뿌리에서 아름다움을 발견하며, 보살핌을 통해 사랑할 수 있습니다. 당신의 사랑의 본성은 정서적이고 보호적입니다.",
+        "5": "당신의 가치관은 창의성과 로맨스를 통해 드러납니다. 당신은 자기표현에서 아름다움을 발견하며, 즐거움을 통해 사랑합니다. 당신의 사랑의 본성은 열정적이고 극적입니다.",
+        "6": "당신의 가치관은 봉사와 일상의 일에 연결되어 있습니다. 당신은 남을 돕는 데서 아름다움을 발견하며, 헌신을 통해 사랑할 수 있습니다. 당신의 사랑의 본성은 실용적이고 도움이 됩니다.",
+        "7": "당신의 가치관은 동반자 관계를 통해 드러납니다. 이곳 역시 금성의 본래 하우스입니다. 당신은 관계에서 아름다움을 발견하며, 동반자 관계를 통해 사랑합니다. 당신의 사랑의 본성은 균형 잡히고 조화롭습니다.",
+        "8": "당신의 가치관은 변화와 강렬함을 포함합니다. 당신은 깊이에서 아름다움을 발견하며, 강렬하게 사랑할 수 있습니다. 당신의 사랑의 본성은 열정적이고 변화를 가져옵니다.",
+        "9": "당신의 가치관은 철학과 확장을 통해 드러납니다. 당신은 신념에서 아름다움을 발견하며, 배움을 통해 사랑할 수 있습니다. 당신의 사랑의 본성은 낙관적이고 모험적입니다.",
+        "10": "당신의 가치관은 커리어와 명성에 연결되어 있습니다. 당신은 성취에서 아름다움을 발견하며, 자신의 직업을 통해 사랑할 수 있습니다. 당신의 사랑의 본성은 야망 있고 전통적입니다.",
+        "11": "당신의 가치관은 우정과 희망을 포함합니다. 당신은 집단에서 아름다움을 발견하며, 우정을 통해 사랑할 수 있습니다. 당신의 사랑의 본성은 독립적이고 인류애적입니다.",
+        "12": "당신의 가치관은 잠재의식과 영적인 문제를 포함합니다. 당신은 꿈에서 아름다움을 발견하며, 연민을 통해 사랑할 수 있습니다. 당신의 사랑의 본성은 이상적이고 헌신적입니다."
+      },
+      "Mars": {
+        "1": "당신의 에너지와 추진력이 정체성의 중심에 있습니다. 당신은 적극적이고 행동 지향적입니다. 갈등과 욕망을 대하는 당신의 방식은 직접적이고 겉으로 드러납니다.",
+        "2": "당신의 에너지는 자원과 가치관에 집중되어 있습니다. 당신은 안정을 쌓기 위해 행동하며, 물질적 목표에 이끌릴 수 있습니다. 당신의 적극성은 소유와 이어져 있습니다.",
+        "3": "당신의 에너지는 소통과 배움을 통해 드러납니다. 당신은 말과 생각을 통해 행동합니다. 당신의 추진력은 정신적 탐구와 다양함을 포함합니다.",
+        "4": "당신의 에너지는 가정과 가족에 연결되어 있습니다. 당신은 자신의 뿌리를 지키기 위해 행동하며, 정서적 안정에 이끌릴 수 있습니다. 당신의 적극성은 사적인 삶과 이어져 있습니다.",
+        "5": "당신의 에너지는 창의성과 로맨스를 통해 드러납니다. 당신은 자기표현과 즐거움을 통해 행동합니다. 당신의 추진력은 열정과 놀이를 포함합니다.",
+        "6": "당신의 에너지는 봉사와 일상의 일에 집중되어 있습니다. 당신은 남을 돕고 건강을 지키는 것을 통해 행동합니다. 당신의 추진력은 개선과 일과를 포함합니다.",
+        "7": "당신의 에너지는 동반자 관계를 통해 드러납니다. 당신은 관계를 통해 행동하며, 동반자 관계의 목표에 이끌릴 수 있습니다. 당신의 적극성은 관계 맺는 방식과 이어져 있습니다.",
+        "8": "당신의 에너지는 변화와 강렬함을 포함합니다. 이곳 역시 화성의 본래 하우스입니다. 당신은 깊은 변화를 통해 행동하며, 힘에 이끌릴 수 있습니다. 당신의 추진력은 강렬하고 변화를 가져옵니다.",
+        "9": "당신의 에너지는 철학과 확장을 통해 드러납니다. 당신은 신념을 통해 행동하며, 진리 탐구에 이끌릴 수 있습니다. 당신의 추진력은 모험과 배움을 포함합니다.",
+        "10": "당신의 에너지는 커리어와 명성에 집중되어 있습니다. 당신은 자신의 직업을 통해 행동하며, 성취에 이끌릴 수 있습니다. 당신의 적극성은 공적 이미지와 이어져 있습니다.",
+        "11": "당신의 에너지는 우정과 희망을 포함합니다. 당신은 집단을 통해 행동하며, 이상에 이끌릴 수 있습니다. 당신의 추진력은 혁신과 인류애적 대의를 포함합니다.",
+        "12": "당신의 에너지는 잠재의식과 숨겨진 문제를 포함합니다. 당신은 영적 수행을 통해 행동하며, 직접적인 행동을 억누를 수 있습니다. 당신의 추진력은 내면을 향하며 봉사를 포함할 수 있습니다."
+      },
+      "Jupiter": {
+        "1": "당신의 성장과 확장이 정체성의 중심에 있습니다. 당신은 낙관적이고 철학적입니다. 삶을 대하는 당신의 방식은 확장적이며, 당신은 자신의 성격을 통해 의미를 찾습니다.",
+        "2": "당신의 성장은 자원과 가치관에 연결되어 있습니다. 당신은 안정을 쌓으며 확장하고, 소유를 통해 행운을 찾을 수 있습니다. 당신의 낙관은 물질적 풍요와 이어져 있습니다.",
+        "3": "당신의 성장은 소통과 배움을 통해 드러납니다. 당신은 지식을 통해 확장하며, 생각을 통해 행운을 찾을 수 있습니다. 당신의 낙관은 정신적 탐구를 포함합니다.",
+        "4": "당신의 성장은 가정과 가족에 연결되어 있습니다. 당신은 정서적 안정을 통해 확장하며, 자신의 뿌리를 통해 행운을 찾을 수 있습니다. 당신의 낙관은 당신의 기반과 이어져 있습니다.",
+        "5": "당신의 성장은 창의성과 로맨스를 통해 드러납니다. 당신은 자기표현을 통해 확장하며, 즐거움을 통해 행운을 찾을 수 있습니다. 당신의 낙관은 놀이와 창의성을 포함합니다.",
+        "6": "당신의 성장은 봉사와 일상의 일에 집중되어 있습니다. 당신은 남을 도우며 확장하고, 건강을 통해 행운을 찾을 수 있습니다. 당신의 낙관은 개선과 일과를 포함합니다.",
+        "7": "당신의 성장은 동반자 관계를 통해 드러납니다. 당신은 관계를 통해 확장하며, 타인을 통해 행운을 찾을 수 있습니다. 당신의 낙관은 균형과 조화와 이어져 있습니다.",
+        "8": "당신의 성장은 변화와 공유 자원을 포함합니다. 당신은 깊은 변화를 통해 확장하며, 변화를 통해 행운을 찾을 수 있습니다. 당신의 낙관은 재생과 이어져 있습니다.",
+        "9": "당신의 성장은 철학과 고등 교육을 통해 드러납니다. 이곳은 목성의 본래 하우스입니다. 당신은 신념을 통해 확장하며, 진리를 찾는 가운데 행운을 발견합니다. 당신의 낙관은 의미와 목적을 포함합니다.",
+        "10": "당신의 성장은 커리어와 명성에 집중되어 있습니다. 당신은 성취를 통해 확장하며, 자신의 직업을 통해 행운을 찾을 수 있습니다. 당신의 낙관은 공적 이미지와 이어져 있습니다.",
+        "11": "당신의 성장은 우정과 희망을 포함합니다. 당신은 집단을 통해 확장하며, 이상을 통해 행운을 찾을 수 있습니다. 당신의 낙관은 인류애적 대의와 혁신을 포함합니다.",
+        "12": "당신의 성장은 잠재의식과 영적인 문제를 포함합니다. 이곳 역시 목성의 본래 하우스입니다. 당신은 영적 연결을 통해 확장하며, 연민을 통해 행운을 찾을 수 있습니다. 당신의 낙관은 초월을 포함합니다."
+      },
+      "Saturn": {
+        "1": "당신의 시련과 절제가 정체성의 중심에 있습니다. 당신은 진지하고 책임감이 강합니다. 삶을 대하는 당신의 방식은 구조를 포함하며, 자기표현에서 제약을 느낄 수 있습니다.",
+        "2": "당신의 시련은 자원과 가치관에 연결되어 있습니다. 당신은 절제를 통해 안정을 쌓으며, 돈과 관련해 제약을 마주할 수 있습니다. 당신의 책임감은 물질적 안정을 포함합니다.",
+        "3": "당신의 시련은 소통과 배움을 통해 드러납니다. 당신은 절제를 통해 지식을 쌓으며, 표현에서 제약을 마주할 수 있습니다. 당신의 책임감은 교육을 포함합니다.",
+        "4": "당신의 시련은 가정과 가족에 연결되어 있습니다. 당신은 절제를 통해 안정을 쌓으며, 뿌리와 관련해 제약을 마주할 수 있습니다. 당신의 책임감은 정서적 기반을 포함합니다.",
+        "5": "당신의 시련은 창의성과 로맨스를 통해 드러납니다. 당신은 절제를 통해 자기표현을 쌓으며, 놀이에서 제약을 마주할 수 있습니다. 당신의 책임감은 창의적인 작업을 포함합니다.",
+        "6": "당신의 시련은 봉사와 일상의 일에 집중되어 있습니다. 당신은 절제를 통해 건강을 쌓으며, 일과에서 제약을 마주할 수 있습니다. 당신의 책임감은 봉사와 개선을 포함합니다.",
+        "7": "당신의 시련은 동반자 관계를 통해 드러납니다. 당신은 절제를 통해 관계를 쌓으며, 관계 맺는 데서 제약을 마주할 수 있습니다. 당신의 책임감은 헌신과 균형을 포함합니다.",
+        "8": "당신의 시련은 변화와 공유 자원을 포함합니다. 당신은 절제를 통해 변화를 만들어 내며, 강렬함과 관련해 제약을 마주할 수 있습니다. 당신의 책임감은 재생을 포함합니다.",
+        "9": "당신의 시련은 철학과 고등 교육을 통해 드러납니다. 당신은 절제를 통해 신념을 쌓으며, 확장에서 제약을 마주할 수 있습니다. 당신의 책임감은 진리를 찾는 것을 포함합니다.",
+        "10": "당신의 시련은 커리어와 명성에 집중되어 있습니다. 이곳은 토성의 본래 하우스입니다. 당신은 절제를 통해 성취를 쌓으며, 직업적으로 제약을 마주할 수 있습니다. 당신의 책임감은 공적 이미지를 포함합니다.",
+        "11": "당신의 시련은 우정과 희망을 포함합니다. 당신은 절제를 통해 집단을 쌓으며, 이상과 관련해 제약을 마주할 수 있습니다. 당신의 책임감은 혁신과 인류애적 대의를 포함합니다.",
+        "12": "당신의 시련은 잠재의식과 숨겨진 문제를 포함합니다. 당신은 절제를 통해 영성을 쌓으며, 환상과 관련해 제약을 마주할 수 있습니다. 당신의 책임감은 내면의 작업과 내려놓음을 포함합니다."
+      },
+      "Rahu": {
+        "1": "당신의 욕망은 독립적으로 행동하고 주도권을 잡는 것과 관련됩니다. 당신은 리더십에 이끌리며, 첫째가 되는 데 집착할 수 있습니다. 당신의 야망은 정체성과 이어져 있습니다.",
+        "2": "당신의 욕망은 자원을 쌓고 물질적 안정을 얻는 것과 관련됩니다. 당신은 소유에 이끌리며, 돈에 집착할 수 있습니다. 당신의 야망은 가치관과 이어져 있습니다.",
+        "3": "당신의 욕망은 소통과 배움과 관련됩니다. 당신은 지식에 이끌리며, 생각에 집착할 수 있습니다. 당신의 야망은 정신적 탐구와 이어져 있습니다.",
+        "4": "당신의 욕망은 가정과 가족의 안정과 관련됩니다. 당신은 뿌리에 이끌리며, 정서적 안정에 집착할 수 있습니다. 당신의 야망은 당신의 기반과 이어져 있습니다.",
+        "5": "당신의 욕망은 창의성과 인정과 관련됩니다. 당신은 자기표현에 이끌리며, 찬사받는 데 집착할 수 있습니다. 당신의 야망은 놀이와 로맨스와 이어져 있습니다.",
+        "6": "당신의 욕망은 봉사와 완벽함과 관련됩니다. 당신은 남을 돕는 데 이끌리며, 건강에 집착할 수 있습니다. 당신의 야망은 개선과 이어져 있습니다.",
+        "7": "당신의 욕망은 동반자 관계와 균형과 관련됩니다. 당신은 관계에 이끌리며, 완벽한 짝을 찾는 데 집착할 수 있습니다. 당신의 야망은 조화와 이어져 있습니다.",
+        "8": "당신의 욕망은 변화와 힘과 관련됩니다. 당신은 강렬함에 이끌리며, 통제에 집착할 수 있습니다. 당신의 야망은 깊은 변화와 이어져 있습니다.",
+        "9": "당신의 욕망은 철학과 확장과 관련됩니다. 당신은 진리 탐구에 이끌리며, 신념에 집착할 수 있습니다. 당신의 야망은 고등 교육과 이어져 있습니다.",
+        "10": "당신의 욕망은 커리어와 성취와 관련됩니다. 당신은 인정에 이끌리며, 지위에 집착할 수 있습니다. 당신의 야망은 공적 이미지와 이어져 있습니다.",
+        "11": "당신의 욕망은 우정과 혁신과 관련됩니다. 당신은 집단에 이끌리며, 이상에 집착할 수 있습니다. 당신의 야망은 인류애적 대의와 이어져 있습니다.",
+        "12": "당신의 욕망은 영성과 도피와 관련됩니다. 당신은 초월에 이끌리며, 환상에 집착할 수 있습니다. 당신의 야망은 내려놓음과 이어져 있습니다."
+      },
+      "Ketu": {
+        "1": "당신은 자아와 정체성에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 겸손을 배우고 첫째가 되려는 욕구를 놓아주는 것을 포함합니다. 당신은 자아로부터의 초탈을 추구합니다.",
+        "2": "당신은 소유와 물질적 안정에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 물질이 아닌 것의 가치를 배우는 것을 포함합니다. 당신은 자원으로부터의 초탈을 추구합니다.",
+        "3": "당신은 소통과 정신 활동에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 침묵을 배우고 말 너머로 나아가는 것을 포함합니다. 당신은 생각으로부터의 초탈을 추구합니다.",
+        "4": "당신은 가정과 가족의 패턴에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 독립을 배우고 과거를 놓아주는 것을 포함합니다. 당신은 뿌리로부터의 초탈을 추구합니다.",
+        "5": "당신은 창의성과 인정에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 겸손을 배우고 주목받으려는 욕구를 놓아주는 것을 포함합니다. 당신은 자기표현으로부터의 초탈을 추구합니다.",
+        "6": "당신은 봉사와 완벽함에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 불완전함을 받아들이는 법을 배우는 것을 포함합니다. 당신은 개선으로부터의 초탈을 추구합니다.",
+        "7": "당신은 동반자 관계와 균형에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 독립을 배우고 타인을 향한 욕구를 놓아주는 것을 포함합니다. 당신은 관계로부터의 초탈을 추구합니다.",
+        "8": "당신은 힘과 통제에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 내려놓는 법을 배우고 내맡김 속에서 평화를 찾는 것을 포함합니다. 당신은 변화로부터의 초탈을 추구합니다.",
+        "9": "당신은 신념과 확장에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 현재에 머무는 법을 배우고 더 많은 것을 찾으려는 욕구를 놓아주는 것을 포함합니다. 당신은 철학으로부터의 초탈을 추구합니다.",
+        "10": "당신은 커리어와 성취에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 유연함을 배우고 지위를 향한 욕구를 놓아주는 것을 포함합니다. 당신은 명성으로부터의 초탈을 추구합니다.",
+        "11": "당신은 우정과 혁신에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 연결을 배우고 남달라지려는 욕구를 놓아주는 것을 포함합니다. 당신은 집단으로부터의 초탈을 추구합니다.",
+        "12": "당신은 환상과 도피에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 현실을 마주하는 법을 배우고 초월하려는 욕구를 놓아주는 것을 포함합니다. 당신은 잠재의식으로부터의 초탈을 추구합니다."
+      },
+      "Ascendant": {
+        "1": "당신의 외적 성격이 곧 당신의 정체성입니다. 이곳은 어센던트의 본래 하우스입니다. 남들이 당신을 어떻게 보는지가 당신이 누구인지의 중심에 있습니다. 삶을 대하는 당신의 방식이 당신의 본질을 규정합니다.",
+        "2": "당신의 외적 성격은 자원과 가치관에 연결되어 있습니다. 남들은 당신을 안정적이고 가치 지향적인 사람으로 봅니다. 삶을 대하는 당신의 방식은 안정을 쌓는 것을 포함합니다.",
+        "3": "당신의 외적 성격은 소통에 능하고 다재다능합니다. 남들은 당신을 호기심 많고 유연한 사람으로 봅니다. 삶을 대하는 당신의 방식은 배우고 생각을 나누는 것을 포함합니다.",
+        "4": "당신의 외적 성격은 보살피고 보호하려 합니다. 남들은 당신을 정서적이고 가족 지향적인 사람으로 봅니다. 삶을 대하는 당신의 방식은 안정을 만드는 것을 포함합니다.",
+        "5": "당신의 외적 성격은 창의적이고 표현이 풍부합니다. 남들은 당신을 장난기 있고 극적인 사람으로 봅니다. 삶을 대하는 당신의 방식은 자기표현과 즐거움을 포함합니다.",
+        "6": "당신의 외적 성격은 실용적이고 봉사 지향적입니다. 남들은 당신을 도움이 되고 세심한 사람으로 봅니다. 삶을 대하는 당신의 방식은 개선과 봉사를 포함합니다.",
+        "7": "당신의 외적 성격은 외교적이고 관계 지향적입니다. 남들은 당신을 균형 잡히고 협력적인 사람으로 봅니다. 삶을 대하는 당신의 방식은 동반자 관계와 조화를 포함합니다.",
+        "8": "당신의 외적 성격은 강렬하고 신비롭습니다. 남들은 당신을 변화를 가져오고 깊이 있는 사람으로 봅니다. 삶을 대하는 당신의 방식은 강렬함과 재생을 포함합니다.",
+        "9": "당신의 외적 성격은 낙관적이고 철학적입니다. 남들은 당신을 모험적이고 진리를 좇는 사람으로 봅니다. 삶을 대하는 당신의 방식은 확장과 배움을 포함합니다.",
+        "10": "당신의 외적 성격은 진지하고 야망 있습니다. 남들은 당신을 책임감 있고 목표 지향적인 사람으로 봅니다. 삶을 대하는 당신의 방식은 성취와 구조를 포함합니다.",
+        "11": "당신의 외적 성격은 독특하고 독립적입니다. 남들은 당신을 혁신적이고 인류애적인 사람으로 봅니다. 삶을 대하는 당신의 방식은 자유와 이상을 포함합니다.",
+        "12": "당신의 외적 성격은 몽환적이고 직관적입니다. 남들은 당신을 예술적이고 연민이 깊은 사람으로 봅니다. 삶을 대하는 당신의 방식은 영성과 내면의 작업을 포함합니다."
+      }
+    },
+    "planetInSign": {
+      "Sun": {
+        "Aries": "당신의 정체성은 대담하고, 독립적이며, 개척적입니다. 당신은 주도권을 잡고 첫째가 되기를 두려워하지 않는 타고난 리더입니다. 당신의 자신감은 행동과 용기에서 나옵니다.",
+        "Taurus": "당신의 정체성은 안정적이고, 믿음직하며, 단단합니다. 당신은 안정과 아름다움, 편안함을 중시합니다. 당신의 자신감은 오래가고 손에 잡히는 무언가를 쌓아 가는 데서 나옵니다.",
+        "Gemini": "당신의 정체성은 호기심 많고, 소통에 능하며, 다재다능합니다. 당신은 유연하고 배움을 사랑합니다. 당신의 자신감은 지식과 생각을 표현하는 능력에서 나옵니다.",
+        "Cancer": "당신의 정체성은 보살피고, 보호하며, 정서적입니다. 당신은 가족과 안정을 중시합니다. 당신의 자신감은 정서적 연결과 타인을 돌보는 데서 나옵니다.",
+        "Leo": "당신의 정체성은 자신감 있고, 창의적이며, 극적입니다. 당신은 주목받고 자신을 표현하는 것을 사랑합니다. 당신의 자신감은 자기표현과 인정에서 나옵니다.",
+        "Virgo": "당신의 정체성은 실용적이고, 분석적이며, 봉사 지향적입니다. 당신은 개선과 도움이 되는 데서 자신감을 얻습니다. 당신은 정밀함과 효율을 중시합니다.",
+        "Libra": "당신의 정체성은 외교적이고, 미적이며, 관계 지향적입니다. 당신의 자신감은 조화와 아름다움, 동반자 관계에서 나옵니다. 당신은 모든 것에서 균형을 추구합니다.",
+        "Scorpio": "당신의 정체성은 강렬하고, 변화를 가져오며, 강력합니다. 당신의 자신감은 깊이와 재생하는 능력에서 나옵니다. 당신은 신비와 숨겨진 진실에 이끌립니다.",
+        "Sagittarius": "당신의 정체성은 낙관적이고, 모험적이며, 철학적입니다. 당신의 자신감은 진리를 좇고 시야를 넓히는 데서 나옵니다. 당신은 자유와 정직을 중시합니다.",
+        "Capricorn": "당신의 정체성은 야망 있고, 절제되어 있으며, 전통적입니다. 당신의 자신감은 성취와 구조를 쌓는 데서 나옵니다. 당신은 책임과 존중을 중시합니다.",
+        "Aquarius": "당신의 정체성은 독특하고, 독립적이며, 앞서가는 사고를 지녔습니다. 당신의 자신감은 혁신과 인류애적 가치에서 나옵니다. 당신은 자신만의 박자로 나아갑니다.",
+        "Pisces": "당신의 정체성은 몽환적이고, 연민이 깊으며, 직관적입니다. 당신의 자신감은 창의성과 영적 연결에서 나옵니다. 당신은 예술적이고 공감 능력이 뛰어납니다."
+      },
+      "Moon": {
+        "Aries": "당신의 감정은 빠르고, 불같으며, 충동적입니다. 당신은 강렬하게 느끼고 즉각 반응합니다. 안심하려면 독립과 행동이 필요합니다.",
+        "Taurus": "당신의 감정은 안정적이고, 한결같으며, 관능적입니다. 당신은 편안함과 아름다움, 안정을 통해 안심합니다. 당신은 일과와 물질적 안정을 중시합니다.",
+        "Gemini": "당신의 감정은 변화무쌍하고, 호기심 많으며, 사고적입니다. 당신은 소통과 다양함을 통해 감정을 풀어냅니다. 안심하려면 정신적 자극이 필요합니다.",
+        "Cancer": "당신의 감정은 깊고, 보살피며, 보호적입니다. 이곳은 달의 본래 별자리이기에 감정이 중심에 있습니다. 당신은 정서적 안정과 가족과의 연결이 필요합니다.",
+        "Leo": "당신의 감정은 따뜻하고, 극적이며, 자부심이 강합니다. 당신은 인정과 자기표현을 통해 안심합니다. 당신은 특별하고 찬사받는 느낌이 필요합니다.",
+        "Virgo": "당신의 감정은 실용적이고, 분석적이며, 봉사 지향적입니다. 당신은 남을 돕고 무언가를 나아지게 하며 감정을 풀어냅니다. 안심하려면 질서가 필요합니다.",
+        "Libra": "당신의 감정은 균형 잡히고, 조화로우며, 관계 지향적입니다. 당신은 동반자 관계와 아름다움을 통해 안심합니다. 정서적으로 안정되려면 조화가 필요합니다.",
+        "Scorpio": "당신의 감정은 강렬하고, 깊으며, 변화를 가져옵니다. 당신은 강력하게 느끼며 감정을 감춰 둘 수 있습니다. 안심하려면 깊이와 강렬함이 필요합니다.",
+        "Sagittarius": "당신의 감정은 낙관적이고, 모험적이며, 철학적입니다. 당신은 자유와 확장을 통해 안심합니다. 충만함을 느끼려면 모험과 의미가 필요합니다.",
+        "Capricorn": "당신의 감정은 절제되고, 단련되어 있으며, 신중합니다. 당신은 감정을 억누를 수 있고 안심하려면 구조가 필요합니다. 당신은 정서적 책임을 중시합니다.",
+        "Aquarius": "당신의 감정은 거리를 두고, 독립적이며, 인류애적입니다. 당신은 자유와 혁신을 통해 안심합니다. 당신은 감정을 이성적으로 다룰 수 있습니다.",
+        "Pisces": "당신의 감정은 몽환적이고, 연민이 깊으며, 직관적입니다. 당신은 깊이 느끼며 타인의 감정을 흡수할 수 있습니다. 안심하려면 영적 연결이 필요합니다."
+      },
+      "Mercury": {
+        "Aries": "당신의 사고는 빠르고, 직접적이며, 적극적입니다. 당신은 대담하게 소통하고 빠르게 결정을 내립니다. 당신은 솔직하며 느린 사고를 답답해할 수 있습니다.",
+        "Taurus": "당신의 사고는 실용적이고, 한결같으며, 단단합니다. 당신은 천천히 신중하게 소통합니다. 당신은 물질적 안정과 실용적인 문제를 생각합니다.",
+        "Gemini": "당신의 사고는 다재다능하고, 호기심 많으며, 빠릅니다. 이곳은 수성의 본래 별자리이기에 소통이 중심에 있습니다. 당신은 배움과 생각 나누기를 사랑합니다.",
+        "Virgo": "당신의 사고는 분석적이고, 정밀하며, 세심합니다. 이곳 역시 수성의 본래 별자리입니다. 당신은 분석과 실용적인 문제 해결에 뛰어납니다.",
+        "Cancer": "당신의 사고는 정서적이고, 직관적이며, 기억 중심적입니다. 당신은 감정을 담아 소통하고 감정적인 세부 사항을 기억합니다. 당신은 안정과 가족을 생각합니다.",
+        "Leo": "당신의 사고는 창의적이고, 극적이며, 자신감 넘칩니다. 당신은 화려하게 소통하고 자신의 생각을 나누기를 사랑합니다. 당신은 자기표현과 인정을 생각합니다.",
+        "Libra": "당신의 사고는 균형 잡히고, 외교적이며, 미적입니다. 당신은 조화롭게 소통하고 모든 관점을 헤아립니다. 당신은 관계와 아름다움을 생각합니다.",
+        "Scorpio": "당신의 사고는 강렬하고, 꿰뚫어 보며, 은밀합니다. 당신은 깊이 있게 소통하고 일부 생각은 비밀로 둘 수 있습니다. 당신은 변화와 신비를 생각합니다.",
+        "Sagittarius": "당신의 사고는 철학적이고, 낙관적이며, 확장적입니다. 당신은 열정적으로 소통하고 지식 나누기를 사랑합니다. 당신은 진리와 의미를 생각합니다.",
+        "Capricorn": "당신의 사고는 진지하고, 체계적이며, 목표 지향적입니다. 당신은 목적을 가지고 소통하며 장기적인 계획과 책임을 생각합니다.",
+        "Aquarius": "당신의 사고는 혁신적이고, 독립적이며, 독창적입니다. 당신은 독특하게 소통하며 미래와 인류애적 이상을 생각합니다.",
+        "Pisces": "당신의 사고는 직관적이고, 창의적이며, 몽환적입니다. 당신은 상상력을 담아 소통하며 이미지나 상징으로 생각할 수 있습니다. 당신은 매우 직관적입니다."
+      },
+      "Venus": {
+        "Aries": "당신은 대담하고 독립적인 사람과 열정적인 관계에 끌립니다. 사랑은 짜릿하고 직접적입니다. 당신은 관계에서 독립과 행동을 중시합니다.",
+        "Taurus": "당신은 안정적이고 관능적인 사람과 한결같은 관계에 끌립니다. 이곳은 금성의 본래 별자리입니다. 당신은 사랑에서 안정과 아름다움, 육체적 편안함을 중시합니다.",
+        "Gemini": "당신은 소통에 능하고 지적인 사람과 장난기 있는 관계에 끌립니다. 당신은 사랑에서 정신적 교감과 다양함을 중시합니다. 여러 관심사를 동시에 가질 수 있습니다.",
+        "Cancer": "당신은 보살피고 정서적인 사람과 보호적인 관계에 끌립니다. 당신은 안정과 정서적 연결을 중시합니다. 당신은 다정하고 헌신적입니다.",
+        "Leo": "당신은 자신감 있고 창의적인 사람과 극적인 관계에 끌립니다. 당신은 찬사와 자기표현을 중시합니다. 당신은 사랑받는 것을 즐기고 애정을 베풉니다.",
+        "Virgo": "당신은 실용적이고 도움이 되는 사람과 헌신적인 관계에 끌립니다. 당신은 헌신의 행동으로 사랑을 표현하며 관계에서 나아짐을 중시합니다.",
+        "Libra": "당신은 균형 잡히고 미적인 사람과 조화로운 관계에 끌립니다. 이곳은 금성의 본래 별자리입니다. 당신은 사랑에서 동반자 관계와 아름다움, 조화를 중시합니다.",
+        "Scorpio": "당신은 강렬하고 변화를 가져오는 사람과 열정적인 관계에 끌립니다. 당신은 깊이와 강렬함을 중시합니다. 사랑은 변화를 가져오며 모든 것을 집어삼킵니다.",
+        "Sagittarius": "당신은 모험적이고 철학적인 사람과 자유로운 관계에 끌립니다. 당신은 정직과 성장을 중시합니다. 당신은 관계에서 자유가 필요합니다.",
+        "Capricorn": "당신은 진지하고 야망 있는 사람과 전통적인 관계에 끌립니다. 당신은 헌신과 장기적인 안정을 중시합니다. 사랑은 실용적이고 책임감 있습니다.",
+        "Aquarius": "당신은 독특하고 독립적인 사람과 틀에 얽매이지 않은 관계에 끌립니다. 당신은 우정과 자유를 중시합니다. 사랑은 혁신적이고 비전통적입니다.",
+        "Pisces": "당신은 몽환적이고 연민이 깊은 사람과 이상적인 관계에 끌립니다. 당신은 영적 연결과 공감을 중시합니다. 사랑은 낭만적이고 헌신적입니다."
+      },
+      "Mars": {
+        "Aries": "당신의 에너지는 직접적이고, 충동적이며, 경쟁적입니다. 이곳은 화성의 본래 별자리입니다. 당신은 즉각 행동하며 갈등을 두려워하지 않습니다. 당신은 타고난 전사입니다.",
+        "Taurus": "당신의 에너지는 한결같고, 끈질기며, 관능적입니다. 당신은 천천히 그러나 꾸준히 행동합니다. 당신은 에너지를 안정과 물질적 편안함을 쌓는 데 쏟습니다.",
+        "Gemini": "당신의 에너지는 빠르고, 다재다능하며, 소통에 능합니다. 당신은 말과 생각을 통해 행동합니다. 여러 프로젝트를 동시에 가질 수 있고 정신적 자극이 필요합니다.",
+        "Cancer": "당신의 에너지는 정서적이고, 보호적이며, 방어적입니다. 당신은 사랑하는 이를 지키기 위해 행동합니다. 분노를 억누를 수 있으며 행동하려면 정서적 안정이 필요합니다.",
+        "Leo": "당신의 에너지는 극적이고, 자신감 있으며, 창의적입니다. 당신은 화려하게 행동하고 인정받기를 즐깁니다. 당신은 에너지를 자기표현과 리더십에 쏟습니다.",
+        "Virgo": "당신의 에너지는 실용적이고, 정밀하며, 봉사 지향적입니다. 당신은 세밀한 작업과 개선을 통해 행동합니다. 당신은 에너지를 돕고 완성하는 데 쏟습니다.",
+        "Libra": "당신의 에너지는 균형 잡히고, 외교적이며, 관계 지향적입니다. 당신은 직접적인 갈등을 피하고 동반자 관계를 통해 행동할 수 있습니다. 당신은 에너지를 조화에 쏟습니다.",
+        "Scorpio": "당신의 에너지는 강렬하고, 집중적이며, 변화를 가져옵니다. 이곳 역시 화성의 본래 별자리입니다. 당신은 결연하게 행동하며 에너지를 깊은 변화에 쏟습니다.",
+        "Sagittarius": "당신의 에너지는 모험적이고, 낙관적이며, 확장적입니다. 당신은 모험과 탐험을 통해 행동합니다. 당신은 에너지를 진리와 의미를 찾는 데 쏟습니다.",
+        "Capricorn": "당신의 에너지는 단련되고, 야망 있으며, 목표 지향적입니다. 당신은 체계적으로 행동하며 에너지를 구조를 쌓고 목표를 이루는 데 쏟습니다.",
+        "Aquarius": "당신의 에너지는 혁신적이고, 독립적이며, 반항적입니다. 당신은 혁신을 통해 행동하며 에너지를 전통에서 벗어나는 데 쏟습니다.",
+        "Pisces": "당신의 에너지는 직관적이고, 연민이 깊으며, 때로는 수동적입니다. 당신은 직접적인 행동을 피하고 에너지를 창의성, 봉사, 또는 영적 탐구에 쏟을 수 있습니다."
+      },
+      "Jupiter": {
+        "Aries": "당신의 성장은 리더십과 주도성, 개척을 통해 이루어집니다. 당신은 새로운 시작에 낙관적이며, 행동하고 첫째가 되는 데서 행운을 찾습니다.",
+        "Taurus": "당신의 성장은 안정을 쌓고, 자원을 모으며, 아름다움을 음미하는 것을 통해 이루어집니다. 당신은 꾸준한 노력과 물질적 안정에서 행운을 찾습니다.",
+        "Gemini": "당신의 성장은 배움과 소통, 다양함을 통해 이루어집니다. 당신은 지식과 가르침, 지적으로 타인과 연결되는 데서 행운을 찾습니다.",
+        "Cancer": "당신의 성장은 정서적 안정과 가족, 보살핌을 통해 이루어집니다. 이곳은 목성의 본래 별자리입니다. 당신은 타인을 돌보고 정서적 기반을 쌓는 데서 행운을 찾습니다.",
+        "Leo": "당신의 성장은 창의성과 자기표현, 인정을 통해 이루어집니다. 당신은 자신의 재능을 나누고 찬사받는 데서 행운을 찾습니다. 당신은 너그럽고 낙관적입니다.",
+        "Virgo": "당신의 성장은 봉사와 개선, 실용적인 지혜를 통해 이루어집니다. 당신은 남을 돕고 자신의 능력을 다듬는 데서 행운을 찾습니다. 당신은 건강과 효율을 중시합니다.",
+        "Libra": "당신의 성장은 동반자 관계와 조화, 미학을 통해 이루어집니다. 당신은 관계와 아름다움을 만드는 데서 행운을 찾습니다. 당신은 정의와 균형을 중시합니다.",
+        "Scorpio": "당신의 성장은 변화와 깊이, 공유 자원을 통해 이루어집니다. 당신은 재생과 숨겨진 진실을 밝히는 데서 행운을 찾습니다. 당신은 신비에 이끌립니다.",
+        "Sagittarius": "당신의 성장은 확장과 철학, 모험을 통해 이루어집니다. 이곳은 목성의 본래 별자리입니다. 당신은 진리 탐구와 여행, 고등 교육에서 행운을 찾습니다.",
+        "Capricorn": "당신의 성장은 절제와 구조, 성취를 통해 이루어집니다. 당신은 오래가는 기반을 쌓고 책임을 맡는 데서 행운을 찾습니다. 당신은 전통을 중시합니다.",
+        "Aquarius": "당신의 성장은 혁신과 독립, 인류애적 이상을 통해 이루어집니다. 당신은 전통에서 벗어나 독특함을 받아들이는 데서 행운을 찾습니다.",
+        "Pisces": "당신의 성장은 영성과 연민, 창의성을 통해 이루어집니다. 이곳 역시 목성의 본래 별자리입니다. 당신은 직관과 예술, 영적 연결에서 행운을 찾습니다."
+      },
+      "Saturn": {
+        "Aries": "당신의 시련은 인내를 배우고, 충동을 다스리며, 자신의 행동에 책임을 지는 것과 관련됩니다. 당신은 리더십과 주도성을 통해 절제를 쌓아 갑니다.",
+        "Taurus": "당신의 시련은 재정적 안정과 물질적 안정, 그리고 가진 것의 가치를 배우는 것과 관련됩니다. 당신은 꾸준한 노력과 끈기를 통해 절제를 쌓아 갑니다.",
+        "Gemini": "당신의 시련은 집중과 소통, 그리고 생각에 전념하는 법을 배우는 것과 관련됩니다. 당신은 교육과 또렷한 사고를 통해 절제를 쌓아 갑니다.",
+        "Cancer": "당신의 시련은 정서적 안정과 가족에 대한 책임, 그리고 자신을 지키는 법을 배우는 것과 관련됩니다. 당신은 보살핌과 정서적 성숙을 통해 절제를 쌓아 갑니다.",
+        "Leo": "당신의 시련은 자아와 창의성, 그리고 겸손을 배우는 것과 관련됩니다. 당신은 자기표현과 자신의 재능에 책임을 지는 것을 통해 절제를 쌓아 갑니다.",
+        "Virgo": "당신의 시련은 완벽주의와 봉사, 그리고 불완전함을 받아들이는 법을 배우는 것과 관련됩니다. 당신은 실용적인 작업과 남을 돕는 것을 통해 절제를 쌓아 갑니다.",
+        "Libra": "당신의 시련은 관계와 균형, 그리고 결정을 내리는 법을 배우는 것과 관련됩니다. 당신은 동반자 관계와 조화를 만드는 것을 통해 절제를 쌓아 갑니다.",
+        "Scorpio": "당신의 시련은 변화와 힘, 그리고 내려놓는 법을 배우는 것과 관련됩니다. 당신은 깊은 변화와 자신의 그림자를 마주하는 것을 통해 절제를 쌓아 갑니다.",
+        "Sagittarius": "당신의 시련은 신념과 확장, 그리고 현실적이 되는 법을 배우는 것과 관련됩니다. 당신은 진리를 좇고 자신의 철학에 책임을 지는 것을 통해 절제를 쌓아 갑니다.",
+        "Capricorn": "당신의 시련은 구조와 권위, 그리고 일과 삶의 균형을 잡는 법을 배우는 것과 관련됩니다. 이곳은 토성의 본래 별자리입니다. 당신은 성취와 전통을 통해 절제를 쌓아 갑니다.",
+        "Aquarius": "당신의 시련은 독립과 혁신, 그리고 자유와 책임의 균형을 잡는 법을 배우는 것과 관련됩니다. 당신은 단단히 발 딛은 채 벗어나는 것을 통해 절제를 쌓아 갑니다.",
+        "Pisces": "당신의 시련은 경계와 환상, 그리고 현실을 마주하는 법을 배우는 것과 관련됩니다. 당신은 영적 수행과 진실을 환상에서 분별하는 법을 배우며 절제를 쌓아 갑니다."
+      },
+      "Rahu": {
+        "Aries": "당신의 욕망은 독립적으로 행동하고 주도권을 잡는 것과 관련됩니다. 당신은 리더십에 이끌리며, 첫째가 되는 데 집착할 수 있습니다. 당신의 야망은 정체성과 이어져 있습니다.",
+        "Taurus": "당신의 욕망은 자원을 쌓고 물질적 안정을 얻는 것과 관련됩니다. 당신은 소유에 이끌리며, 돈에 집착할 수 있습니다. 당신의 야망은 가치관과 이어져 있습니다.",
+        "Gemini": "당신의 욕망은 소통과 배움과 관련됩니다. 당신은 지식에 이끌리며, 생각에 집착할 수 있습니다. 당신의 야망은 정신적 탐구와 이어져 있습니다.",
+        "Cancer": "당신의 욕망은 가정과 가족의 안정과 관련됩니다. 당신은 뿌리에 이끌리며, 정서적 안정에 집착할 수 있습니다. 당신의 야망은 당신의 기반과 이어져 있습니다.",
+        "Leo": "당신의 욕망은 창의성과 인정과 관련됩니다. 당신은 자기표현에 이끌리며, 찬사받는 데 집착할 수 있습니다. 당신의 야망은 놀이와 로맨스와 이어져 있습니다.",
+        "Virgo": "당신의 욕망은 봉사와 완벽함과 관련됩니다. 당신은 남을 돕는 데 이끌리며, 건강에 집착할 수 있습니다. 당신의 야망은 개선과 이어져 있습니다.",
+        "Libra": "당신의 욕망은 동반자 관계와 균형과 관련됩니다. 당신은 관계에 이끌리며, 완벽한 짝을 찾는 데 집착할 수 있습니다. 당신의 야망은 조화와 이어져 있습니다.",
+        "Scorpio": "당신의 욕망은 변화와 힘과 관련됩니다. 당신은 강렬함에 이끌리며, 통제에 집착할 수 있습니다. 당신의 야망은 깊은 변화와 이어져 있습니다.",
+        "Sagittarius": "당신의 욕망은 철학과 확장과 관련됩니다. 당신은 진리 탐구에 이끌리며, 신념에 집착할 수 있습니다. 당신의 야망은 고등 교육과 이어져 있습니다.",
+        "Capricorn": "당신의 욕망은 커리어와 성취와 관련됩니다. 당신은 인정에 이끌리며, 지위에 집착할 수 있습니다. 당신의 야망은 공적 이미지와 이어져 있습니다.",
+        "Aquarius": "당신의 욕망은 우정과 혁신과 관련됩니다. 당신은 집단에 이끌리며, 이상에 집착할 수 있습니다. 당신의 야망은 인류애적 대의와 이어져 있습니다.",
+        "Pisces": "당신의 욕망은 영성과 도피와 관련됩니다. 당신은 초월에 이끌리며, 환상에 집착할 수 있습니다. 당신의 야망은 내려놓음과 이어져 있습니다."
+      },
+      "Ketu": {
+        "Aries": "당신은 자아와 정체성에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 겸손을 배우고 첫째가 되려는 욕구를 놓아주는 것을 포함합니다. 당신은 자아로부터의 초탈을 추구합니다.",
+        "Taurus": "당신은 소유와 물질적 안정에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 물질이 아닌 것의 가치를 배우는 것을 포함합니다. 당신은 자원으로부터의 초탈을 추구합니다.",
+        "Gemini": "당신은 소통과 정신 활동에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 침묵을 배우고 말 너머로 나아가는 것을 포함합니다. 당신은 생각으로부터의 초탈을 추구합니다.",
+        "Cancer": "당신은 가정과 가족의 패턴에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 독립을 배우고 과거를 놓아주는 것을 포함합니다. 당신은 뿌리로부터의 초탈을 추구합니다.",
+        "Leo": "당신은 창의성과 인정에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 겸손을 배우고 주목받으려는 욕구를 놓아주는 것을 포함합니다. 당신은 자기표현으로부터의 초탈을 추구합니다.",
+        "Virgo": "당신은 봉사와 완벽함에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 불완전함을 받아들이는 법을 배우는 것을 포함합니다. 당신은 개선으로부터의 초탈을 추구합니다.",
+        "Libra": "당신은 동반자 관계와 균형에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 독립을 배우고 타인을 향한 욕구를 놓아주는 것을 포함합니다. 당신은 관계로부터의 초탈을 추구합니다.",
+        "Scorpio": "당신은 힘과 통제에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 내려놓는 법을 배우고 내맡김 속에서 평화를 찾는 것을 포함합니다. 당신은 변화로부터의 초탈을 추구합니다.",
+        "Sagittarius": "당신은 신념과 확장에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 현재에 머무는 법을 배우고 더 많은 것을 찾으려는 욕구를 놓아주는 것을 포함합니다. 당신은 철학으로부터의 초탈을 추구합니다.",
+        "Capricorn": "당신은 커리어와 성취에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 유연함을 배우고 지위를 향한 욕구를 놓아주는 것을 포함합니다. 당신은 명성으로부터의 초탈을 추구합니다.",
+        "Aquarius": "당신은 우정과 혁신에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 연결을 배우고 남달라지려는 욕구를 놓아주는 것을 포함합니다. 당신은 집단으로부터의 초탈을 추구합니다.",
+        "Pisces": "당신은 환상과 도피에 대한 집착을 내려놓는 중입니다. 당신의 영적인 길은 현실을 마주하는 법을 배우고 초월하려는 욕구를 놓아주는 것을 포함합니다. 당신은 잠재의식으로부터의 초탈을 추구합니다."
+      },
+      "Ascendant": {
+        "Aries": "당신은 대담하고, 독립적이며, 행동 지향적으로 보입니다. 남들은 당신을 주도권을 잡는 타고난 리더로 봅니다. 당신은 용기와 직설로 삶을 마주합니다.",
+        "Taurus": "당신은 안정적이고, 믿음직하며, 단단해 보입니다. 남들은 당신을 인내심 있고 관능적인 사람으로 봅니다. 당신은 끈기로 삶을 마주하며 안정과 편안함을 중시합니다.",
+        "Gemini": "당신은 호기심 많고, 소통에 능하며, 다재다능해 보입니다. 남들은 당신을 재치 있고 유연한 사람으로 봅니다. 당신은 호기심으로 삶을 마주하며 배움을 사랑합니다.",
+        "Cancer": "당신은 보살피고, 섬세하며, 보호적으로 보입니다. 남들은 당신을 정서적이고 직관적인 사람으로 봅니다. 당신은 다정함으로 삶을 마주하며 안정과 가족을 중시합니다.",
+        "Leo": "당신은 자신감 있고, 창의적이며, 극적으로 보입니다. 남들은 당신을 카리스마 있고 따뜻한 사람으로 봅니다. 당신은 열정으로 삶을 마주하며 인정받는 것을 즐깁니다.",
+        "Virgo": "당신은 분석적이고, 실용적이며, 세심해 보입니다. 남들은 당신을 정돈되고 도움이 되는 사람으로 봅니다. 당신은 정밀함으로 삶을 마주하며 개선을 중시합니다.",
+        "Libra": "당신은 외교적이고, 매력적이며, 균형 잡혀 보입니다. 남들은 당신을 협력적이고 미적인 사람으로 봅니다. 당신은 조화와 아름다움을 추구하며 삶을 마주합니다.",
+        "Scorpio": "당신은 강렬하고, 신비로우며, 강력해 보입니다. 남들은 당신을 변화를 가져오고 깊이 있는 사람으로 봅니다. 당신은 강렬함으로 삶을 마주하며 신비에 이끌립니다.",
+        "Sagittarius": "당신은 낙관적이고, 모험적이며, 철학적으로 보입니다. 남들은 당신을 자유로운 영혼에 정직한 사람으로 봅니다. 당신은 진리와 확장을 추구하며 삶을 마주합니다.",
+        "Capricorn": "당신은 진지하고, 야망 있으며, 단련되어 보입니다. 남들은 당신을 책임감 있고 전통적인 사람으로 봅니다. 당신은 구조로 삶을 마주하며 성취를 중시합니다.",
+        "Aquarius": "당신은 독특하고, 독립적이며, 앞서가는 사고를 지닌 듯 보입니다. 남들은 당신을 혁신적이고 인류애적인 사람으로 봅니다. 당신은 독창성으로 삶을 마주하며 자유를 중시합니다.",
+        "Pisces": "당신은 몽환적이고, 연민이 깊으며, 직관적으로 보입니다. 남들은 당신을 예술적이고 공감 능력이 뛰어난 사람으로 봅니다. 당신은 상상력과 영적 감수성으로 삶을 마주합니다."
+      }
+    },
+    "form": {
+      "birthInformation": "당신의 출생 정보",
+      "birthInformationTooltip": "출생 날짜는 차트를 만드는 데 쓰이는 핵심 행성 틀을 잡아 줍니다. 출생 시간 입력은 선택 사항이지만, 행성의 위치가 하루 동안 변하기에 입력하면 정확도가 크게 높아집니다. 출생 장소를 제공하면 시스템이 천체 좌표를 당신이 태어난 정확한 지리적 지점에 맞출 수 있어 계산이 한층 더 정밀해집니다.",
+      "selectDate": "날짜 선택",
+      "selectTime": "시간 선택",
+      "selectLocation": "위치 선택",
+      "backToHour": "시간 선택으로 돌아가기",
+      "enterBirthHour": "출생 시(時)를 입력하세요",
+      "enterBirthMinute": "출생 분(分)을 입력하세요",
+      "backToCountry": "국가 선택으로 돌아가기",
+      "searchCountries": "국가 검색...",
+      "useCurrentLocation": "현재 위치 사용",
+      "searchStatesProvinces": "주/도 검색...",
+      "generating": "생성 중...",
+      "generateChart": "차트 생성",
+      "errors": {
+        "calculateFailed": "출생 차트를 계산하지 못했습니다",
+        "createFailed": "출생 차트 항목을 만들지 못했습니다. 데이터베이스에 birth_charts 테이블이 있는지 확인해 주세요.",
+        "unexpectedError": "예기치 않은 오류가 발생했습니다"
+      }
+    }
+  },
+  "ReadingPage": {
+    "disclaimer": "이 해석은 정보 제공과 성찰을 돕기 위해 AI가 생성한 것입니다. AI 해석에는 오류가 있을 수 있습니다. 하나의 관점으로만 참고해 주시고, 예측이 정확하지 않을 수 있다는 점을 기억해 주세요. 이 해석을 맹목적으로 믿거나 의지하지 마세요. 중요한 결정은 반드시 전문가와 상담하시고, 이 해석에만 의존하지 마세요.",
+    "questionHeading": "질문",
+    "viewDetails": "전체 내용 보기",
+    "followUp": {
+      "badge": "추가 질문",
+      "title": "추가 리딩",
+      "desc": "추가 질문은 집중된 안내를 위해 간단한 카드 한 장 리딩을 사용해요",
+      "simple": "간단한 리딩 - 카드 1장"
+    },
+    "chooseType": {
+      "title": "리딩 유형을 선택하세요",
+      "desc": "원하시는 안내의 깊이를 골라보세요"
+    },
+    "chooseCards": {
+      "title": "카드를 선택하세요",
+      "desc": "직관을 믿고 우주의 펼침에서 {amount}장을 골라보세요",
+      "reversed": "역방향",
+      "selectFromSpread": "{count, plural, one {우주의 펼침에서 카드 #장을 선택하세요} other {우주의 펼침에서 카드 #장을 선택하세요}}",
+      "selectedCount": "{total}장 중 {selected}장 선택됨",
+      "swipeUpToSelect": "카드를 위로 쓸어올려 선택하세요",
+      "circular": "원형",
+      "linear": "일렬",
+      "confirm": "선택 확정 ({selected}/{total})",
+      "shuffle": "셔플",
+      "consumeStar": "해석을 시작하면 별 1개가 사용됩니다.",
+      "random": "랜덤으로 뽑기",
+      "options": "옵션",
+      "manualSelect": "카드 직접 선택",
+      "manualSelectTitle": "카드를 선택하세요",
+      "manualSelectDesc": "전체 덱에서 {count}{count, plural, one {장의 카드} other {장의 카드}}를 선택하세요",
+      "majorArcana": "메이저 아르카나",
+      "minorArcana": "마이너 아르카나",
+      "cups": "컵",
+      "swords": "소드",
+      "wands": "완드",
+      "pentacles": "펜타클",
+      "manualSelected": "{total}장 중 {selected}장 선택됨",
+      "upright": "정방향",
+      "reversedTab": "역방향",
+      "freeTierMaxCardsHint": "무료 플랜은 최대 {max}장까지 뽑을 수 있어요. 더 많이 뽑으려면 업그레이드하세요.",
+      "manualPickPaywallTitle": "카드 직접 선택은 구독자 전용 기능이에요",
+      "manualPickPaywallDesc": "전체 덱에서 원하는 카드를 자유롭게 선택하세요. Basic 또는 Pro로 업그레이드하면 잠금이 해제됩니다 — 결제는 다음 페이지에서 Stripe를 통해 진행됩니다.",
+      "manualPickPaywallFeature": "전체 덱에서 카드 직접 선택",
+      "manualPickPaywallInsufficient": "업그레이드 필요",
+      "manualPickPaywallNote": "플랜을 선택하면 안전한 Stripe 결제 페이지로 이동합니다."
+    },
+    "editQuestion": {
+      "title": "질문 수정하기",
+      "label": "당신의 질문",
+      "placeholder": "우주의 영역에 질문을 던져보세요...",
+      "hint": "저장하려면 Ctrl+Enter, 취소하려면 Escape를 누르세요",
+      "reset": "초기화",
+      "cancel": "취소",
+      "save": "변경 사항 저장",
+      "saving": "저장 중..."
+    },
+    "interpretation": {
+      "title": "당신의 리딩",
+      "sectionTitle": "해석",
+      "sectionSubtitle": "AI가 분석한 당신의 카드",
+      "detailed": {
+        "label": "상세"
+      },
+      "professionalAdviceBadge": "전문가의 조언이 필요해요",
+      "professionalAdviceBadgeAria": "민감한 주제: 이 배지의 의미를 확인하세요",
+      "professionalAdviceHoverTitle": "이 배지의 의미",
+      "professionalAdviceHoverIntro": "당신의 질문은 타로가 아닌 자격을 갖춘 전문가가 구속력 있는 안내를 제공해야 하는 영역에 해당하는 것으로 분류되었어요. 여기 카드들은 상징적인 성찰만을 제공합니다.",
+      "professionalAdviceHoverHowTitle": "민감한 분야를 표시하는 방식",
+      "professionalAdviceHoverLegal": "법률: 계약, 분쟁, 권리, 소송 전략, 이민 규정 및 이와 유사한 사안.",
+      "professionalAdviceHoverMedical": "의료: 증상, 진단, 치료, 약물, 임상 또는 위기 상황의 정신 건강.",
+      "professionalAdviceHoverFinancial": "재정: 투자, 거래, 세금 신고, 부채 조정, 또는 규제 대상의 은퇴 설계.",
+      "professionalAdviceHint": "이 리딩은 성찰을 위한 것일 뿐 법률, 의료, 재정 조언이 아닙니다. 이 분야의 결정은 자격을 갖춘 전문가와 상담하세요.",
+      "error": "해석 생성에 실패했어요. 다시 시도해 주세요.",
+      "loading": {
+        "title": "당신의 카드를 분석하고 있어요...",
+        "subtitle": "당신만을 위한 해석을 생성하고 있어요..."
+      },
+      "perCard": {
+        "singleHeader": "카드가 말하길",
+        "multiHeader": "각 카드가 말하길"
+      },
+      "actionsHeader": "작업",
+      "actionsDesc": "리딩을 관리하고 활용하세요",
+      "dialogs": {
+        "report": {
+          "title": "이 리딩 신고하기",
+          "desc": "사유를 선택하고 필요하면 상세 내용을 추가하세요.",
+          "submit": "제출",
+          "cancel": "취소",
+          "placeholder": "내용을 적어주세요...",
+          "reasons": {
+            "select": "사유를 선택하세요",
+            "inappropriate": "부적절한 콘텐츠",
+            "spam": "스팸 또는 오해의 소지",
+            "harassment": "괴롭힘 또는 혐오",
+            "privacy": "개인정보 문제",
+            "other": "기타"
+          }
+        },
+        "feedback": {
+          "title": "의견을 들려주세요",
+          "desc": "이 해석이 얼마나 도움이 되었나요?",
+          "placeholder": "선택 사항: 의견",
+          "submit": "제출",
+          "cancel": "취소"
+        },
+        "unavailable": {
+          "title": "공유를 사용할 수 없어요",
+          "desc": "{label} 공유는 현재 사용할 수 없어요. 대신 미디어를 다운로드한 뒤 직접 업로드해 주세요.",
+          "ok": "확인"
+        }
+      },
+      "share": {
+        "title": "리딩 공유하기",
+        "desc": "공유한 링크로 방문하는 새로운 사람마다 무료 별 5개를 받으세요 ({earned}/{max})",
+        "learnMore": "자세히 보기",
+        "more": "더보기",
+        "facebook": "Facebook",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X",
+        "line": "LINE",
+        "whatsapp": "WhatsApp",
+        "telegram": "Telegram",
+        "snapchat": "Snapchat",
+        "discord": "Discord",
+        "pinterest": "Pinterest",
+        "tumblr": "Tumblr",
+        "wechat": "WeChat",
+        "reddit": "Reddit",
+        "sms": "문자",
+        "email": "이메일",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
+      },
+      "buttons": {
+        "regenerate": "리딩 다시 생성",
+        "newReading": "새 리딩"
+      },
+      "actions": {
+        "copyLink": "링크 복사",
+        "copiedLink": "복사됨!",
+        "linkCopiedDesc": "링크가 클립보드에 복사되었어요",
+        "shareDesc": "이 리딩을 공유하세요",
+        "share": "공유",
+        "downloadReadingText": "리딩을 텍스트 파일로 다운로드",
+        "downloadReadingImage": "리딩을 이미지로 다운로드",
+        "copyResult": "해석 복사",
+        "askFollowUp": "추가 질문하기",
+        "askFollowUpPrompt": "이 리딩을 좀 더 자세히 풀어주실 수 있나요?",
+        "keyMessage": "핵심 메시지",
+        "textCopiedDesc": "텍스트가 클립보드에 복사되었어요",
+        "download": "다운로드",
+        "downloadDesc": "이미지 저장",
+        "downloadSheetTitleImage": "이미지 다운로드",
+        "downloadSheetTitleVideo": "동영상 다운로드",
+        "downloadSheetDesc": "저장하기 전에 스타일을 선택하고 미리 보세요.",
+        "downloadPreviewTitle": "미리보기",
+        "downloadPreviewAlt": "다운로드 미리보기",
+        "downloadPreviewFallback": "여기에 미리보기가 표시됩니다",
+        "downloadPreviewError": "미리보기를 불러올 수 없어요",
+        "downloadStylesTitle": "스타일",
+        "downloadStylesHint": "탭하여 선택",
+        "downloadBrandingTitle": "브랜딩",
+        "downloadBrandingHint": "미리보기에 브랜딩이 포함됩니다",
+        "downloadStyleStory": "스토리",
+        "downloadStyleSquare": "정사각형",
+        "downloadStyleLandscape": "가로형",
+        "downloadTabImage": "이미지",
+        "downloadTabVideo": "동영상",
+        "downloadVideoButton": "동영상 다운로드",
+        "downloadVideoError": "동영상 생성에 실패했어요.",
+        "downloadVideoPreviewFallback": "여기에 동영상 미리보기가 표시됩니다",
+        "downloadCancel": "취소",
+        "cancel": "취소",
+        "downloadButton": "다운로드",
+        "downloadError": "이미지 생성에 실패했어요.",
+        "versions": "버전",
+        "versionsDesc": "다른 버전 보기",
+        "report": "신고",
+        "reportDesc": "이 리딩 신고하기",
+        "feedback": "의견 보내기",
+        "feedbackDesc": "의견을 들려주세요",
+        "voteUp": "도움됨",
+        "voteUpDesc": "도움이 되었어요",
+        "voteDown": "도움 안 됨",
+        "voteDownDesc": "도움이 되지 않았어요",
+        "removeVoteUpDesc": "평가 취소",
+        "removeVoteDownDesc": "평가 취소",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
+      },
+      "followUp": {
+        "badge": "추가 질문",
+        "label": "추가 질문하기",
+        "placeholder": "여기에 추가 질문을 입력하세요..."
+      },
+      "disclaimer": "이 해석을 맹목적으로 믿거나 의지하지 마세요. 이 해석은 정보 제공을 위해 AI가 생성한 것입니다. 하나의 관점으로만 참고해 주시고, 해석이 정확하지 않을 수 있다는 점을 기억해 주세요. 인생의 중요한 결정은 반드시 자격을 갖춘 전문가와 상담하세요.",
+      "adViewing": {
+        "title": "광고를 시청하고 리딩을 잠금 해제하세요",
+        "description": "당신만을 위한 타로 해석을 잠금 해제하려면 이 짧은 광고를 시청해 주세요. 여러분의 응원이 무료 리딩 제공에 큰 힘이 됩니다."
+      }
+    },
+    "adViewing": {
+      "title": "광고를 시청하고 리딩을 잠금 해제하세요",
+      "description": "당신만을 위한 타로 해석을 잠금 해제하려면 이 짧은 광고를 시청해 주세요. 여러분의 응원이 무료 리딩 제공에 큰 힘이 됩니다.",
+      "followUp": {
+        "badge": "추가 질문"
+      },
+      "disclaimer": "이 광고 시청은 서비스를 무료로 유지하는 데 도움이 됩니다. 필요하면 건너뛰셔도 되지만, 여러분의 응원에 감사드려요."
+    },
+    "rewardedAd": {
+      "title": "리딩 잠금 해제",
+      "subtitle": "짧은 광고를 시청하고 우주의 안내를 만나보세요",
+      "reward": "무료 리딩",
+      "loading": "광고를 불러오는 중...",
+      "ready": {
+        "title": "광고 준비 완료",
+        "description": "클릭하여 시청을 시작하고 리딩을 잠금 해제하세요",
+        "button": "광고 시청"
+      },
+      "playing": {
+        "title": "광고 시청 중",
+        "timeRemaining": "{seconds}초 남음",
+        "progress": "진행 상황",
+        "skip": "건너뛰기"
+      },
+      "completed": {
+        "title": "광고 시청 완료!",
+        "description": "시청해 주셔서 감사해요. 이제 리딩이 잠금 해제되었어요.",
+        "button": "내 리딩 보기"
+      },
+      "error": {
+        "title": "광고 오류",
+        "retry": "다시 시도",
+        "skip": "광고 건너뛰기"
+      }
+    },
+    "adViewingDialog": {
+      "title": "광고를 시청하고 리딩을 잠금 해제하세요",
+      "questionLabel": "당신의 질문:",
+      "selectedCards": "선택한 카드:",
+      "benefits": {
+        "title": "받게 될 내용:",
+        "freeReading": "완전한 타로 해석",
+        "detailedInterpretation": "당신만을 위한 우주의 안내",
+        "supportService": "무료 서비스 유지에 도움 주기"
+      },
+      "duration": "광고 길이: 약 30초",
+      "rememberPreference": "이 메시지를 다시 표시하지 않기 (광고 자동 재생)",
+      "disclaimer": "이 광고 시청은 무료 리딩 제공에 도움이 됩니다. 필요하면 건너뛰셔도 돼요.",
+      "skip": "광고 건너뛰기",
+      "backToCardSelection": "카드 선택으로 돌아가기",
+      "watchAd": "광고 시청"
+    },
+    "optimizedRewardedAd": {
+      "title": "리딩 잠금 해제",
+      "subtitle": "짧은 광고를 시청하고 우주의 안내를 만나보세요",
+      "reward": "무료 리딩",
+      "optimized": "최적화됨",
+      "loading": "광고를 불러오는 중...",
+      "preparingReading": "리딩을 준비하고 있어요...",
+      "preparingInterpretation": "해석을 준비하고 있어요...",
+      "interpretationReady": "해석 준비 완료!",
+      "ready": {
+        "title": "광고 준비 완료",
+        "description": "클릭하여 시청을 시작하고 리딩을 잠금 해제하세요",
+        "button": "광고 시청"
+      },
+      "playing": {
+        "title": "광고 시청 중",
+        "timeRemaining": "{seconds}초 남음",
+        "progress": "진행 상황",
+        "skip": "건너뛰기"
+      },
+      "completed": {
+        "title": "광고 시청 완료!",
+        "description": "시청해 주셔서 감사해요. 이제 리딩이 잠금 해제되었어요.",
+        "button": "내 리딩 보기"
+      },
+      "error": {
+        "title": "광고 오류",
+        "retry": "다시 시도",
+        "skip": "광고 건너뛰기"
+      }
+    }
+  },
+  "Meta": {
+    "Site": {
+      "siteName": "AskingFate",
+      "url": "https://askingfate.com"
+    },
+    "Layout": {
+      "title": "AI 운세 점술가 - askingfate.com",
+      "description": "타로, 점성술, 수비학, 성명학 등 다양한 분야에서 AI 기반 운세 리딩을 만나보세요. 당신의 운명을 헤쳐나가도록 돕는 맞춤형 통찰을 제공합니다. 현재 홈페이지에서는 타로를 중심으로 소개하고 있어요.",
+      "keywords": "AI 운세 점술가, 무료 AI 운세, 온라인 점술, AI 타로 리딩, 무료 타로 리딩, 영적 안내, AskingFate, Asking Fate"
+    },
+    "Home": {
+      "title": "AI 운세 점술가 - askingfate.com",
+      "description": "무료 AI 기반 타로 카드 리딩과 영적 안내를 받아보세요. 운명에 대해 무엇이든 물어보고 발전된 AI 타로 시스템에서 당신만을 위한 통찰을 얻으세요.",
+      "keywords": "AI 운세 점술가, 무료 AI 운세, 온라인 점술, AI 타로 리딩, 무료 타로 리딩, 영적 안내, 운명 질문, 타로 카드 해석, AskingFate, Asking Fate",
+      "ogTitle": "AI 운세 점술가 - askingfate.com",
+      "ogDescription": "무료 AI 기반 타로 카드 리딩과 영적 안내를 받아보세요. 운명에 대해 무엇이든 물어보세요.",
+      "twitterTitle": "AI 운세 점술가 - askingfate.com",
+      "twitterDescription": "무료 AI 기반 타로 카드 리딩과 영적 안내를 받아보세요. 운명에 대해 무엇이든 물어보세요."
+    },
+    "About": {
+      "title": "AI 운세 리딩 소개 - AskingFate",
+      "description": "AskingFate가 어떻게 수백 년 전통의 타로와 최첨단 AI 기술을 결합하여 당신만을 위한 우주의 안내와 영적 통찰을 제공하는지 알아보세요.",
+      "keywords": "AI 타로 기술, 타로 리딩 역사, 영적 안내 AI, 신비주의 전통, 타로 카드 해석 기술",
+      "ogTitle": "소개 - AI 타로 리딩 기술",
+      "ogDescription": "고대 타로의 지혜와 현대 AI 기술을 결합해 당신만을 위한 영적 안내를 제공하는 방식을 알아보세요.",
+      "twitterTitle": "소개 - AI 타로 리딩 기술",
+      "twitterDescription": "고대 타로의 지혜와 현대 AI 기술을 결합해 당신만을 위한 영적 안내를 제공하는 방식을 알아보세요."
+    },
+    "Reading": {
+      "title": "AI 타로 카드 리딩 - AskingFate",
+      "description": "맞춤형 AI 타로 카드 리딩을 무료로 받아보세요. 질문을 던지고 발전된 AI 시스템의 영적 안내와 함께 상세한 해석을 만나보세요.",
+      "keywords": "타로 카드 리딩, AI 타로 리딩, 무료 타로 리딩, 타로 카드 해석, 영적 안내, 온라인 타로 리딩",
+      "ogTitle": "AI 타로 카드 리딩 - 무료 리딩 받기",
+      "ogDescription": "맞춤형 AI 타로 카드 리딩을 무료로 받아보세요. 질문을 던지고 상세한 해석을 만나보세요.",
+      "twitterTitle": "AI 타로 카드 리딩 - 무료 리딩 받기",
+      "twitterDescription": "맞춤형 AI 타로 카드 리딩을 무료로 받아보세요. 질문을 던지고 상세한 해석을 만나보세요."
+    },
+    "BirthChart": {
+      "title": "출생 차트 - AskingFate",
+      "description": "생년월일, 시간, 장소를 입력하여 당신만을 위한 점성술 출생 차트를 만들어보세요. 상세한 행성 위치와 하우스로 당신의 우주적 청사진을 발견하세요.",
+      "keywords": "출생 차트, 네이탈 차트, 점성 차트, 우주적 청사진, 행성 위치, 점성술, 별자리 운세",
+      "ogTitle": "출생 차트 - 당신의 우주적 청사진 해독하기",
+      "ogDescription": "생년월일, 시간, 장소를 입력하여 당신만을 위한 점성술 출생 차트를 만들어보세요.",
+      "twitterTitle": "출생 차트 - 당신의 우주적 청사진 해독하기",
+      "twitterDescription": "생년월일, 시간, 장소를 입력하여 당신만을 위한 점성술 출생 차트를 만들어보세요."
+    },
+    "Contact": {
+      "title": "문의하기 - AskingFate",
+      "description": "AI 타로 리딩 경험에 대해 궁금한 점이 있으신가요? 우주 여정과 영적 안내에 관한 도움이 필요하면 지원팀에 문의하세요.",
+      "keywords": "타로 리딩 지원, AI 타로 도움말, 영적 안내 문의, 타로 리딩 질문, 고객 지원",
+      "ogTitle": "문의하기 - AI 타로 리딩 도움 받기",
+      "ogDescription": "AI 타로 리딩 경험에 대해 궁금한 점이 있으신가요? 도움이 필요하면 지원팀에 문의하세요.",
+      "twitterTitle": "문의하기 - AI 타로 리딩 도움 받기",
+      "twitterDescription": "AI 타로 리딩 경험에 대해 궁금한 점이 있으신가요? 도움이 필요하면 지원팀에 문의하세요."
+    },
+    "PrivacyPolicy": {
+      "title": "개인정보 처리방침 - AskingFate",
+      "description": "AskingFate가 AI 타로 리딩 서비스를 이용하는 동안 어떻게 여러분의 개인정보를 보호하는지 알아보세요. 자세한 개인정보 처리방침을 확인하세요.",
+      "keywords": "개인정보 처리방침, 데이터 보호, AI 타로 개인정보, 개인정보 보안, 타로 리딩 개인정보, 사용자 데이터 보호",
+      "ogTitle": "개인정보 처리방침 - 데이터 보호 및 개인정보 권리",
+      "ogDescription": "AskingFate가 AI 타로 리딩 서비스를 이용하는 동안 어떻게 여러분의 개인정보를 보호하는지 알아보세요.",
+      "twitterTitle": "개인정보 처리방침 - 데이터 보호 및 개인정보 권리",
+      "twitterDescription": "AskingFate가 AI 타로 리딩 서비스를 이용하는 동안 어떻게 여러분의 개인정보를 보호하는지 알아보세요."
+    },
+    "TermsOfService": {
+      "title": "서비스 이용약관 - AskingFate",
+      "description": "AskingFate의 AI 기반 타로 리딩 플랫폼 이용약관을 읽어보세요. 영적 안내 서비스를 이용할 때의 권리와 책임을 이해하세요.",
+      "keywords": "서비스 이용약관, 약관 및 조건, AI 타로 약관, 타로 리딩 약관, 서비스 계약, 사용자 약관",
+      "ogTitle": "서비스 이용약관 - AI 타로 리딩 약관 및 조건",
+      "ogDescription": "AskingFate의 AI 기반 타로 리딩 플랫폼 이용약관을 읽고 권리와 책임을 이해하세요.",
+      "twitterTitle": "서비스 이용약관 - AI 타로 리딩 약관 및 조건",
+      "twitterDescription": "AskingFate의 AI 기반 타로 리딩 플랫폼 이용약관을 읽고 권리와 책임을 이해하세요."
+    },
+    "Demo": {
+      "title": "데모 신청 - AskingFate",
+      "description": "AskingFate를 직접 만나보세요. 짧은 실시간 둘러보기를 신청하고 인터랙티브 미리보기를 체험해보세요."
+    },
+    "Articles": {
+      "title": "아티클 & 가이드 - AskingFate",
+      "description": "이용 방법, 리딩 공유, 친구 추천, 콘텐츠 제작, 도움말 & FAQ 등 문서 형식의 가이드입니다."
+    },
+    "PrivacyRedactionArticle": {
+      "title": "메시지 개인정보 보호 & PII 비식별화 - AskingFate",
+      "description": "AskingFate가 프롬프트에서 개인정보를 어떻게 감지하는지, 그리고 채팅 안내 문구가 무엇을 의미하는지 알아보세요."
+    }
+  },
+  "Articles": {
+    "title": "아티클 & 가이드",
+    "subtitle": "AskingFate에 관한 유용한 문서 형식의 가이드입니다.",
+    "knowledgeHub": "지식 허브",
+    "searchPlaceholder": "아티클 검색...",
+    "cantFind": "찾으시는 내용이 없으신가요?",
+    "contactSupport": "지원팀에 문의하기",
+    "badges": {
+      "earn": "별 획득",
+      "basics": "기본",
+      "support": "지원",
+      "faq": "FAQ",
+      "privacy": "개인정보"
+    },
+    "items": {
+      "tarot": {
+        "title": "타로 카드의 의미",
+        "description": "78장 카드(메이저 & 마이너 아르카나) 모두의 정방향과 역방향 의미를 살펴보세요."
+      },
+      "createContent": {
+        "title": "우리에 관한 콘텐츠 만들기",
+        "description": "AskingFate에 관해 글을 쓰거나 게시하거나 영상을 찍고 별을 받으세요."
+      },
+      "shareReading": {
+        "title": "리딩 공유하기",
+        "description": "리딩 링크를 공유하고 하루 최대 3개의 별을 받으세요."
+      },
+      "referFriend": {
+        "title": "친구 추천하기",
+        "description": "친구를 초대하세요. 친구가 가입하면 두 분 모두 별을 받아요."
+      },
+      "howToPlay": {
+        "title": "이용 방법",
+        "description": "질문하고, 카드를 고르고, 성찰하기 — 단계별로 안내해드려요."
+      },
+      "helpSupport": {
+        "title": "도움말 & 지원",
+        "description": "도움 받기, 지원팀 문의, 문제 해결 팁."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "리딩과 별에 관한 자주 묻는 질문에 대한 답변."
+      },
+      "privacyRedaction": {
+        "title": "메시지 개인정보 보호 & PII 비식별화",
+        "description": "채팅 안내 문구의 의미와, 우리가 프롬프트에서 개인정보를 어떻게 감지하는지."
+      }
+    }
+  },
+  "PrivacyRedactionArticle": {
+    "title": "메시지 개인정보 보호 & PII 비식별화",
+    "subtitle": "메시지 아래 작은 안내 문구가 무엇을 의미하는지, 무엇을 개인정보로 다루는지, 그리고 감지가 어떻게 작동하는지 알아보세요.",
+    "updated": "2026년 5월",
+    "onThisPage": "이 페이지에서",
+    "sections": {
+      "notice": {
+        "title": "안내 문구의 의미",
+        "p1": "프롬프트 아래에 “처리 전 개인정보가 제거되었습니다”라는 문구가 보이면, 우리 시스템이 어떤 사람을 식별하거나 연락할 수 있는 정보를 발견하여 텍스트가 추가로 처리되기 전에 해당 부분을 제거하거나 대체했다는 뜻입니다.",
+        "p2": "브라우저 세션에서 복원할 수 있는 경우, 이 기기에서는 원래 작성한 문구가 그대로 보일 수 있어요. 저장되거나 외부로 전송되는 사본에는 실제 이름, 이메일, 번호 대신 중립적인 자리표시자가 사용됩니다."
+      },
+      "criteria": {
+        "title": "무엇을 개인정보로 다루는지",
+        "intro": "감지는 다음을 포함한 일반적인 개인 식별 정보 범주에 초점을 맞춥니다:",
+        "person": "사람의 이름 및 개인을 식별할 수 있는 언급",
+        "email": "이메일 주소",
+        "phone": "전화번호 (보통 실제 회선처럼 보일 만큼 자릿수가 충분한 숫자 배열)",
+        "handle": "소셜 또는 플랫폼 핸들 (예: @username)",
+        "address": "도로명 또는 우편 주소"
+      },
+      "how": {
+        "title": "감지가 작동하는 방식",
+        "p1": "메시지를 보내면, 프롬프트가 저장되거나 AI로 전달되기 전에 이러한 종류의 패턴과 맥락을 찾는 자동 검토를 실행합니다.",
+        "p2": "보조 단계에서는 규칙 기반 검사(예: 명백한 이메일 형태, @핸들, 전화번호처럼 보이는 숫자 나열)를 적용하여 1차 단계가 놓친 명백한 유출도 잡아냅니다."
+      },
+      "placeholders": {
+        "title": "보일 수 있는 자리표시자",
+        "p1": "비식별화된 텍스트에는 [Person], [Email], [Phone], [Handle], [Address]와 같은 토큰이 포함될 수 있어요. 어시스턴트는 이러한 토큰을 그대로 반복하거나 숨겨진 개인 정보를 지어내지 않으면서 도움이 되도록 답하라는 지시를 받습니다.",
+        "privacyPolicyLink": "더 넓은 데이터 처리 방식에 대해서는 다음을 참고하세요",
+        "privacyPolicy": "개인정보 처리방침"
+      },
+      "fallback": {
+        "title": "이 안내를 넘어서는 개인정보 보호",
+        "p1": "이 가이드는 채팅의 프롬프트 비식별화를 설명합니다. 쿠키, 계정, 전반적인 데이터 사용을 어떻게 처리하는지에 대해서는 개인정보 처리방침을 읽어보세요."
+      }
+    }
+  },
+  "TarotArticle": {
+    "overviewUpright": "개요 (정방향)",
+    "overviewReversed": "개요 (역방향)",
+    "relationships": "관계",
+    "work": "일 & 경력",
+    "finance": "재정",
+    "health": "건강",
+    "upright": "정방향",
+    "reversed": "역방향",
+    "yesNo": "예/아니오",
+    "zodiac": "별자리",
+    "element": "원소",
+    "tarot": "Tarot",
+    "majorArcana": "Major Arcana",
+    "minorArcana": "Minor Arcana",
+    "theReading": "The Reading",
+    "continue": "Continue",
+    "readArticle": "Read article",
+    "askPlaceholder": "Ask a question about this card...",
+    "askEyebrow": "About this card",
+    "askHint": "explains its meaning only",
+    "askSuggestions": [
+      "What does this card mean?",
+      "What does it mean for love?",
+      "What does it say about work & career?",
+      "How does the reversed differ from upright?"
+    ],
+    "lightGathers": "Light gathers",
+    "lightRecedes": "Light recedes",
+    "tapToFlip": "Tap to change card orientation",
+    "orientationGroup": "Choose card orientation",
+    "allTarotCards": "All Tarot Cards",
+    "allTarotCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "howToPlay": "How to Play",
+    "howToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "faq": "FAQ",
+    "faqDesc": "Answers to common questions about readings.",
+    "cardSubtitle": "Upright and reversed meanings with practical guidance.",
+    "onThisPage": "On this page",
+    "backToTarot": "Tarot",
+    "relatedAllCardsTitle": "All Tarot Cards",
+    "relatedAllCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "relatedHowToPlayTitle": "How to Play",
+    "relatedHowToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "relatedFaqTitle": "FAQ",
+    "relatedFaqDesc": "Answers to common questions about readings and stars."
+  },
+  "Auth": {
+    "SignIn": {
+      "title": "다시 오신 걸 환영해요",
+      "subtitle": "로그인하고 당신의 우주 여정을 이어가세요",
+      "google": "Google로 로그인",
+      "emailLabel": "이메일 주소",
+      "emailPlaceholder": "이메일을 입력하세요",
+      "passwordLabel": "비밀번호",
+      "passwordPlaceholder": "비밀번호를 입력하세요",
+      "forgot": "비밀번호를 잊으셨나요?",
+      "button": "로그인",
+      "buttonLoading": "로그인 중...",
+      "signupPrompt": "AskingFate가 처음이신가요?",
+      "signupLink": "계정 만들기"
+    },
+    "SignUp": {
+      "title": "우주에 합류하세요",
+      "subtitle": "계정을 만들고 신비로운 여정을 시작하세요",
+      "google": "Google로 가입",
+      "success": "계정이 성공적으로 생성되었어요! 이메일을 확인하여 계정을 인증해 주세요. 로그인 페이지로 이동합니다...",
+      "nameLabel": "이름",
+      "namePlaceholder": "이름을 입력하세요",
+      "emailLabel": "이메일 주소",
+      "emailPlaceholder": "이메일을 입력하세요",
+      "passwordLabel": "비밀번호",
+      "passwordPlaceholder": "비밀번호를 만드세요",
+      "confirmPasswordLabel": "비밀번호 확인",
+      "confirmPasswordPlaceholder": "비밀번호를 다시 입력하세요",
+      "agreePrefix": "다음에 동의합니다:",
+      "terms": "서비스 이용약관",
+      "and": "및",
+      "privacy": "개인정보 처리방침",
+      "button": "계정 만들기",
+      "buttonLoading": "계정 생성 중...",
+      "signinPrompt": "이미 계정이 있으신가요?",
+      "signinLink": "로그인"
+    }
+  },
+  "UserProfile": {
+    "notifications": "알림",
+    "yourReading": "내 리딩",
+    "calendar": "내 캘린더",
+    "birthChart": "내 출생 차트",
+    "profile": "프로필",
+    "account": "계정",
+    "theme": "테마",
+    "billing": "결제",
+    "settings": "설정",
+    "signOut": "로그아웃",
+    "signingOut": "로그아웃 중...",
+    "themes": {
+      "default": "기본",
+      "antiverse": "안티버스",
+      "zodiac": "조디악",
+      "singularity": "싱귤래리티",
+      "luminous": "루미너스",
+      "mystic": "미스틱"
+    }
+  },
+  "Calendar": {
+    "eyebrow": "내 캘린더",
+    "title": "나의 운세 캘린더",
+    "subtitle": "실제 행성 위치와 당신의 출생 차트를 바탕으로 계산했어요. 아무 날이나 탭하면 더 자세한 내용을 볼 수 있어요.",
+    "prevMonth": "이전 달",
+    "nextMonth": "다음 달",
+    "todayGlance": "오늘",
+    "auth": {
+      "title": "캘린더를 사용하려면 로그인하세요",
+      "body": "매일의 운세를 계산하기 위해 당신의 생년월일을 사용해요. 해당 정보는 프로필에 저장됩니다.",
+      "cta": "로그인"
+    },
+    "birth": {
+      "title": "프로필에 생년월일을 추가하세요",
+      "body": "맞춤형 일일 점성술을 계산하려면 생년월일이 필요해요.",
+      "cta": "프로필로 이동"
+    },
+    "overview": {
+      "luckyDaysLabel": "행운의 날",
+      "luckyDaysSub": "별들이 당신을 돕는 날",
+      "cautionDaysLabel": "주의의 날",
+      "cautionDaysSub": "주의 + 피하기 합산",
+      "peakDayLabel": "최고의 날",
+      "peakDaySub": "종합 점수 {score}/10",
+      "daysSuffix": "일"
+    },
+    "weekdays": {
+      "sun": "일",
+      "mon": "월",
+      "tue": "화",
+      "wed": "수",
+      "thu": "목",
+      "fri": "금",
+      "sat": "토"
+    },
+    "grid": {
+      "loadError": "이번 달을 불러올 수 없어요: {error}"
+    },
+    "detail": {
+      "missingTitle": "이 날의 천체 데이터가 없어요",
+      "missingBody": "이 날은 현재 제공되는 코덱스 범위를 벗어나 있어요.",
+      "selectPrompt": "캘린더에서 날짜를 선택하면 자세한 내용을 볼 수 있어요.",
+      "scoreCaption": "해당 날짜의 실제 행성 위치를 바탕으로 한 일일 점수",
+      "highlightsWarnings": "하이라이트 & 주의사항",
+      "selectedTransitTitle": "이 날의 트랜짓",
+      "selectedTransitError": "이 날의 트랜짓 정보를 불러올 수 없어요. 잠시 후 다시 시도해 주세요.",
+      "vitality": "지금 당신의 컨디션",
+      "eventSignals": "이런 일에 좋아요",
+      "lucky": "행운 정보"
+    },
+    "quality": {
+      "excellent": "아주 좋음",
+      "good": "좋음",
+      "neutral": "보통",
+      "caution": "주의",
+      "avoid": "피하기"
+    },
+    "vitalityLabels": {
+      "career": "직업",
+      "love": "사랑",
+      "finance": "재정",
+      "health": "건강",
+      "social": "대인관계",
+      "spiritual": "영성"
+    },
+    "eventLabels": {
+      "job_change": "이직",
+      "resignation": "퇴사",
+      "marriage": "결혼 / 약혼",
+      "contract_sign": "계약 체결",
+      "travel_long": "장거리 여행",
+      "major_purchase": "큰 구매"
+    },
+    "lucky": {
+      "labels": {
+        "colors": "행운의 색",
+        "numbers": "행운의 숫자",
+        "direction": "행운의 방향",
+        "time": "행운의 시간"
+      },
+      "compassNorth": "북",
+      "colors": {
+        "gold": "골드",
+        "silver": "실버",
+        "purple": "퍼플",
+        "sky": "스카이 블루",
+        "emerald": "에메랄드",
+        "maroon": "마룬",
+        "pearlWhite": "펄 화이트",
+        "rosePink": "로즈 핑크",
+        "goldenBrown": "골든 브라운",
+        "mustardYellow": "머스터드 옐로",
+        "azure": "애저",
+        "seaGreen": "시 그린",
+        "amberOrange": "앰버 오렌지"
+      },
+      "directions": {
+        "north": "북",
+        "northEast": "북동",
+        "east": "동",
+        "southEast": "남동",
+        "south": "남",
+        "southWest": "남서",
+        "west": "서",
+        "northWest": "북서"
+      }
+    },
+    "premium": {
+      "label": "프리미엄",
+      "badge": "30% 할인",
+      "title": "연간 캘린더 전체를 잠금 해제하세요",
+      "body": "무제한으로 미래의 날들을 보고, 통찰을 저장하고, 중요한 날짜에 알림을 받으세요.",
+      "cta": "월 ฿199로 업그레이드"
+    },
+    "locked": {
+      "title": "이 날 잠금 해제",
+      "paywallTitle": "날짜 잠금 해제는 구독자 전용 기능이에요",
+      "paywallDesc": "연중 어느 날짜든 행성 통찰을 확인하세요. Basic 또는 Pro로 업그레이드하면 잠금이 해제됩니다 — 결제는 다음 페이지에서 Stripe를 통해 진행됩니다.",
+      "paywallFeature": "무료 ±30일 범위를 넘어선 캘린더 이용",
+      "paywallInsufficient": "업그레이드 필요",
+      "paywallNote": "플랜을 선택하면 안전한 Stripe 결제 페이지로 이동합니다.",
+      "dialogBody": "어느 날짜든 행성 통찰을 확인하세요. Basic 또는 Pro를 구독하면 잠금이 해제됩니다 — 결제는 다음 페이지에서 Stripe를 통해 진행됩니다.",
+      "bodyFree": "이 날짜는 무료 범위(±30일)를 벗어나 있어요. Basic을 구독하면 바로 잠금 해제됩니다 — ±1년 캘린더 이용에 월 약 {price}. 결제는 다음 페이지에서 Stripe를 통해 진행됩니다.",
+      "bodyBasic": "이 날짜는 Basic 범위(±1년)를 벗어나 있어요. Pro로 업그레이드하면 무제한 캘린더 이용이 가능해요 — 월 {price}부터. 결제는 다음 페이지에서 Stripe를 통해 진행됩니다.",
+      "noteFree": "Basic에는 채팅 리딩을 위한 월별 별 제공량이 포함돼요. 캘린더 잠금 해제는 날짜별로 청구되지 않습니다.",
+      "ctaFree": "Basic 결제로 이동 (Stripe)",
+      "ctaBasic": "Pro 결제로 이동 (Stripe)",
+      "cta": "업그레이드",
+      "cellHint": "Basic에서 이용 가능"
+    },
+    "starUnlock": {
+      "description": "또는 별 하나를 사용해 이 날짜만 열어볼 수 있어요. 잠금 해제는 계정에 저장되어 영원히 유지됩니다.",
+      "cta": "별 {cost}개로 잠금 해제",
+      "insufficient": "이 날짜를 잠금 해제하기에 별이 부족해요.",
+      "error": "이 날짜를 잠금 해제할 수 없어요. 다시 시도해 주세요."
+    },
+    "ai": {
+      "title": "캘린더에게 물어보세요",
+      "body": "질문을 하나 고르면 이용 가능한 날들을 살펴 가장 좋은 기회를 찾아드릴게요.",
+      "bestDay": "최고의 날",
+      "confidenceLabel": "신뢰도",
+      "signalScore": "시그널 점수",
+      "overallScore": "종합 점수",
+      "warningCount": "주의사항",
+      "topHighlight": "이 날이 돋보이는 이유",
+      "watchOut": "주의하세요",
+      "noResult": "현재 범위에는 아직 두드러지게 이용 가능한 날이 없어요.",
+      "error": "지금은 캘린더를 살펴볼 수 없었어요. 다시 시도해 주세요.",
+      "summary": "이 날짜는 현재 이용할 수 있는 날들 중 가장 강한 {action} 시그널을 보여줘요.",
+      "confidence": {
+        "high": "높음",
+        "medium": "보통",
+        "low": "낮음"
+      },
+      "prompts": {
+        "resignation": "퇴사하기 좋은 날",
+        "contract_sign": "계약을 체결하기 좋은 날",
+        "travel_long": "여행하기 좋은 날",
+        "major_purchase": "큰 구매를 하기 좋은 날"
+      }
+    },
+    "suggestions": {
+      "focusToday": "이 날 무엇에 집중하면 좋을까요?",
+      "goodDecisionDay": "이 날이 큰 결정을 내리기 좋은 날인가요?",
+      "activitiesForToday": "이 날의 기운에 어울리는 활동은 무엇인가요?",
+      "warnings": "주의해야 할 점이 있나요?"
+    },
+    "cta": {
+      "title": "다음으로 무엇을 물어보고 싶으신가요?",
+      "body": "당신의 구체적인 상황을 AskingFate가 해석하도록 맡겨보세요.",
+      "button": "AskingFate에게 물어보기"
+    },
+    "composerPlaceholder": "이 날에 대해 물어보세요…"
+  },
+  "Notifications": {
+    "title": "알림",
+    "noNotifications": "알림 없음",
+    "noNotificationsDescription": "모두 확인했어요! 중요한 소식이 있으면 알려드릴게요."
+  },
+  "Billing": {
+    "title": "거래 내역",
+    "subtitle": "구매 기록과 결제 정보를 확인하세요",
+    "authRequired": "결제 정보를 보려면 로그인해 주세요",
+    "loading": "결제 내역을 불러오는 중...",
+    "currentPlan": "현재 플랜",
+    "starterPlan": "스타터 플랜",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "monthly": "월간",
+    "yearly": "연간",
+    "planSuffix": "플랜",
+    "renewalSuffix": "갱신",
+    "active": "활성",
+    "ending": "종료 예정",
+    "starsPerPeriod": "기간당 별",
+    "planDetails": "플랜 상세",
+    "billingHistory": "결제 내역",
+    "paymentMethod": "결제 수단",
+    "managePaymentMethod": "결제 수단 관리",
+    "nextBilling": "다음 결제",
+    "manageSubscription": "구독 관리",
+    "upgradePlan": "플랜 업그레이드",
+    "buyAddons": "추가 패키지 구매",
+    "viewInvoices": "청구서 보기",
+    "noTransactions": "거래 내역이 없어요",
+    "transactionId": "거래 ID",
+    "amount": "금액",
+    "status": "상태",
+    "date": "날짜",
+    "viewDetails": "상세 보기",
+    "filterByDate": "날짜로 필터",
+    "pickDate": "날짜 선택",
+    "clearFilters": "필터 지우기",
+    "loadingHistory": "당신의 마법 같은 내역을 불러오는 중...",
+    "noPurchases": "아직 구매 내역이 없어요",
+    "noPurchasesDescription": "당신의 마법 같은 여정은 첫 별 구매에서 시작돼요",
+    "stars": "별",
+    "purchase": "구매",
+    "subscription": "구독",
+    "digitalWallet": "디지털 지갑",
+    "payment": "결제",
+    "cancelSubscription": "구독 취소",
+    "cancelling": "취소 중...",
+    "subscriptionCancelled": "구독이 성공적으로 취소되었어요",
+    "confirmCancel": "구독을 취소하시겠어요?",
+    "cancelWarning": "구독은 현재 결제 기간이 끝날 때까지 유지됩니다. 이후에는 별이 무료 등급 한도로 다시 채워집니다.",
+    "back": "뒤로",
+    "receipt": "영수증",
+    "totalAmount": "총 금액",
+    "subscriptionAccessDesc": "월간 또는 연간 별 충전과 프리미엄 통찰을 제공해요.",
+    "addonPacks": "추가 패키지",
+    "addonStars": "추가 별",
+    "noAddons": "아직 추가 패키지가 없어요.",
+    "estimatedTotal": "예상 총액",
+    "refund": "환불",
+    "refunded": "환불됨",
+    "confirmRefund": "환불을 요청하시겠어요?",
+    "refundWarning": "환불은 조건에 해당하는 거래에 한해 구매 후 7일 이내에 가능해요.",
+    "keepPurchase": "구매 유지",
+    "confirmRefundAction": "네, 환불할게요",
+    "refundSuccess": "환불이 요청되었어요",
+    "refundFailed": "환불에 실패했어요",
+    "revertDowngrade": "다운그레이드 취소",
+    "revertDowngradeSuccess": "다운그레이드가 취소되었어요",
+    "revertDowngradeFailed": "다운그레이드 취소에 실패했어요",
+    "removeAddon": "제거",
+    "addonRemoved": "추가 패키지가 제거되었어요",
+    "addonRemoveFailed": "추가 패키지 제거에 실패했어요",
+    "confirmRemoveAddon": "추가 패키지를 제거하시겠어요?",
+    "removeAddonWarning": "이 추가 패키지는 다음 결제 주기부터 제거됩니다. 그때까지는 해당 별을 계속 사용하실 수 있어요.",
+    "keepAddon": "추가 패키지 유지",
+    "confirmRemoveAddonAction": "네, 추가 패키지를 제거할게요",
+    "transactionDetails": "거래 상세",
+    "reference": "참조 번호",
+    "currency": "통화",
+    "identifiers": "식별자",
+    "providerId": "제공자 ID",
+    "needHelp": "도움이 필요하신가요?",
+    "supportDesc": "이 거래에 대해 궁금한 점이 있으시면, 우리의 마법 같은 지원팀이 도와드릴게요.",
+    "contactSupport": "지원팀에 문의하기",
+    "transactionNotFound": "거래를 찾을 수 없어요",
+    "starPurchase": "별 구매",
+    "starPackDesc": "우주 리딩을 위한 천상의 화폐."
+  },
+  "Contact": {
+    "title": "문의 & 지원",
+    "subtitle": "도움이 필요하신가요? 궁금한 점이 있으신가요? 당신의 신비로운 여정을 함께 도와드릴게요.",
+    "faqTitle": "자주 묻는 질문",
+    "stillNeedHelp": "여전히 도움이 필요하신가요?",
+    "stillNeedHelpDescription": "찾으시는 내용이 없다면 주저 말고 연락 주세요. 우리 지원팀은 여러분이 AskingFate에서 최고의 경험을 누리실 수 있도록 최선을 다하고 있어요.",
+    "sendMessage": "메시지 보내기",
+    "emailSupport": "이메일 지원",
+    "emailSupportDescription": "이메일로 도움 받기",
+    "responseTime24h": "24-48시간 내 응답",
+    "liveChat": "실시간 채팅",
+    "liveChatDescription": "지원팀과 채팅하기",
+    "availableHours": "오전 9시 - 오후 6시 (EST) 이용 가능",
+    "weekdays": "월-금",
+    "responseTime": "응답 시간",
+    "responseTimeDescription": "일반적인 응답 시간",
+    "responseTimeValue": "24-48시간 이내",
+    "businessDays": "영업일 기준",
+    "faq": {
+      "howToGetStars": "별을 더 얻으려면 어떻게 하나요?",
+      "howToGetStarsAnswer": "결제 페이지에서 별을 구매하거나 특별 프로모션을 통해 얻으실 수 있어요. 현재 패키지는 요금 페이지에서 확인하세요.",
+      "refundPolicy": "환불받을 수 있나요?",
+      "refundPolicyAnswer": "사용하지 않은 별에 한해 구매 후 7일 이내에 환불해 드려요. 거래 정보와 함께 문의해 주시면 도와드리겠습니다.",
+      "dataPrivacy": "제 리딩 데이터는 비공개로 유지되나요?",
+      "dataPrivacyAnswer": "네, 여러분의 모든 리딩과 개인정보는 완전히 비공개로 안전하게 보관됩니다. 여러분의 데이터를 제3자와 절대 공유하지 않아요.",
+      "readingAccuracy": "리딩은 얼마나 정확한가요?",
+      "readingAccuracyAnswer": "AI 기반 해석은 전통적인 타로의 지혜를 바탕으로 통찰력 있는 안내를 제공해요. 성찰과 개인적 성장을 위한 도구로 활용해 주세요."
+    },
+    "form": {
+      "name": "이름",
+      "namePlaceholder": "이름",
+      "email": "이메일",
+      "emailPlaceholder": "your@email.com",
+      "subject": "제목",
+      "subjectPlaceholder": "어떤 도움이 필요하신가요?",
+      "message": "메시지",
+      "messagePlaceholder": "문의 내용이나 고민을 자세히 적어주세요...",
+      "submit": "메시지 보내기",
+      "submitting": "전송 중...",
+      "success": "메시지가 성공적으로 전송되었어요! 곧 답변드릴게요.",
+      "error": "메시지 전송에 실패했어요. 다시 시도해 주세요."
+    }
+  },
+  "Pricing": {
+    "title": "요금제",
+    "subtitle": "당신의 신비로운 여정에 꼭 맞는 플랜을 선택하세요",
+    "heroTitle": "별을 모아 더 깊은 통찰을 열어보세요",
+    "heroDescription": "Basic 또는 Pro를 선택해 월간 또는 연간 별을 받아보세요.",
+    "priceNote": "가격은 THB 기준입니다. 연간 플랜은 한 번에 결제됩니다.",
+    "currency": "통화",
+    "changeCurrency": "통화 변경",
+    "currencySearchPlaceholder": "통화명 또는 코드 검색...",
+    "currencyNoResults": "검색과 일치하는 통화가 없습니다.",
+    "subscriptionPlans": "구독 플랜",
+    "oneTimePacks": "추가 별 팩",
+    "monthly": "월간",
+    "yearly": "연간",
+    "mostPopular": "가장 인기",
+    "getStarted": "시작하기",
+    "currentPlan": "현재 플랜",
+    "owned": "보유 중",
+    "upgradeSuccess": "업그레이드 완료",
+    "downgradeSuccess": "다운그레이드 완료",
+    "upgradeError": "업그레이드 실패",
+    "signInToUpgrade": "업그레이드하려면 로그인해 주세요",
+    "upgradePlan": "플랜 업그레이드",
+    "monthlySubscription": "월간 구독",
+    "firstMonthOffer": "첫 달 한정 혜택",
+    "thenRegularPrice": "이후 {price}/월",
+    "annualSubscription": "연간 구독",
+    "perMonth": "월",
+    "perYear": "년",
+    "autoRenew": "자동 갱신",
+    "cancelAnytime": "언제든 해지 가능",
+    "billedYearly": "연 단위 결제",
+    "save17": "17% 절약",
+    "savePercent": "{percent}% 절약",
+    "oneTime": "추가 팩",
+    "instantDelivery": "즉시 지급",
+    "days": "일",
+    "stars": "별",
+    "popular": "인기",
+    "bestValue": "최고의 가성비",
+    "ongoingSupport": "새로운 기능에 대한 지속적인 지원",
+    "bonusStars": "수시로 제공되는 보너스 별과 혜택",
+    "cancelFromAccount": "계정에서 언제든 해지 가능",
+    "bestValueYearly": "가장 알찬 연간 플랜",
+    "samePerks": "월간과 동일한 혜택",
+    "cancelRenewal": "갱신은 언제든 해지 가능",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "basicDescription": "꾸준한 안내를 위한 매달 100개의 별.",
+    "proDescription": "더 깊은 탐구를 위한 매달 599개의 별.",
+    "subscribeNow": "지금 구독하기",
+    "downgradePlan": "플랜 다운그레이드",
+    "planChange": {
+      "upgradeTitle": "업그레이드 확인",
+      "upgradeDescription": "현재 플랜과 이 플랜의 차액({amount})만 결제됩니다. 결제 주기는 그대로 유지됩니다.",
+      "downgradeTitle": "다운그레이드 확인",
+      "downgradeDescription": "플랜은 다음 결제 주기에 변경됩니다. 그때 새 요금이 결제되며, 그 날짜까지는 현재 별 한도를 그대로 사용할 수 있습니다.",
+      "summaryTitle": "결제 요약",
+      "starsSummaryTitle": "별 변동 사항",
+      "currentPlanLabel": "현재 플랜",
+      "targetPlanLabel": "새 플랜",
+      "differenceLabel": "오늘 차액",
+      "refillLabel": "충전 날짜",
+      "currentStarsLabel": "현재 별",
+      "projectedStarsLabel": "변경 후",
+      "confirm": "확인",
+      "cancel": "취소"
+    },
+    "proOnlyPacks": "추가 별 팩은 Pro 구독자만 이용할 수 있습니다.",
+    "starsPerMonth": "월간 별",
+    "starsPerYear": "연간 별",
+    "includesBonus": "보너스 별 포함",
+    "secureCheckout": "안전한 결제",
+    "oneTimePayment": "일회성 결제, 자동 갱신 없음",
+    "bonus": "보너스",
+    "limitedOffer": "한정 혜택",
+    "unlimitedReadings": "무제한 우주 리딩",
+    "howItWorks": "이용 방법",
+    "signIn": "로그인",
+    "signInDesc": "계정을 만들거나 로그인하세요",
+    "pickPack": "팩 선택하기",
+    "pickPackDesc": "현지 통화를 자동으로 선택해 드립니다. 큰 팩일수록 보너스 별이 포함됩니다.",
+    "paySecurely": "안전하게 결제",
+    "paySecurelyDesc": "신뢰할 수 있는 결제사가 처리합니다",
+    "instantDeliveryDesc": "결제 직후 별이 바로 들어옵니다",
+    "trustedTransparent": "믿을 수 있고 투명하게",
+    "trustedTransparentDesc": "명확한 가격, 숨은 비용 없음. 별은 리딩에 사용됩니다.",
+    "secureCheckoutDesc": "결제는 검증된 결제사가 암호화하여 처리합니다.",
+    "ongoingImprovements": "지속적인 개선",
+    "ongoingImprovementsDesc": "여러분의 응원 덕분에 더 나은 AI 리딩과 기능을 선보일 수 있습니다.",
+    "howFastStars": "별은 얼마나 빨리 들어오나요?",
+    "howFastStarsAnswer": "결제 직후 바로 들어옵니다. 보이지 않으면 별 페이지를 새로고침해 주세요.",
+    "whatIsBonus": "보너스란 무엇인가요?",
+    "whatIsBonusAnswer": "฿1은 항상 60개의 별과 같습니다. 큰 팩일수록 기본 수량 위에 추가 보너스 별이 더해집니다.",
+    "pricingFaqTitle": "요금 및 충전 자주 묻는 질문",
+    "pricingFaq": {
+      "refillQuestion": "구독 충전은 어떻게 작동하나요?",
+      "refillAnswer": "모든 계정은 무료 일일 별을 최대 5개까지 보유합니다. 별을 사용하면 5시간 타이머가 시작되고, 끝나면 5개가 한꺼번에 충전됩니다(더 빠른 부분 충전은 없습니다). Basic과 Pro 플랜은 별도의 플랜 풀이 추가되며, 결제일에 플랜 수량으로 초기화됩니다. 추가 팩은 별도의 풀을 만들며 각 결제 주기마다 충전됩니다.",
+      "changeQuestion": "업그레이드하거나 다운그레이드하면 어떻게 되나요?",
+      "changeAnswer": "업그레이드는 즉시 적용되며 차액만 결제됩니다. 다운그레이드는 다음 결제 주기에 적용되며, 그때 플랜 별이 새 수량으로 충전됩니다.",
+      "addonsQuestion": "추가 별 팩은 누가 구매할 수 있나요?",
+      "addonsAnswer": "추가 팩은 Pro 구독자가 이용할 수 있습니다. 해제할 때까지 결제 주기마다 충전되는 별 풀이 추가됩니다.",
+      "refundQuestion": "환불을 요청할 수 있나요?",
+      "refundAnswer": "현재 플랜의 별을 아직 하나도 사용하지 않았다면 환불을 요청할 수 있습니다. 환불 요청은 결제일로부터 7일 이내에 제출해야 합니다."
+    },
+    "features": {
+      "unlimitedReadings": "무제한 리딩",
+      "premiumInsights": "프리미엄 통찰",
+      "prioritySupport": "우선 지원",
+      "exclusiveContent": "독점 콘텐츠",
+      "advancedAnalytics": "고급 분석"
+    }
+  },
+  "Stars": {
+    "title": "별 잔액",
+    "subtitle": "당신의 우주 화폐를 관리하세요",
+    "currentBalance": "현재 잔액",
+    "addStars": "별 추가",
+    "purchaseHistory": "구매 내역",
+    "howItWorks": "이용 방법",
+    "starPackages": {
+      "small": "소형 팩",
+      "medium": "중형 팩",
+      "large": "대형 팩",
+      "mega": "메가 팩"
+    },
+    "transactions": {
+      "purchase": "구매",
+      "spent": "사용",
+      "refund": "환불",
+      "bonus": "보너스"
+    }
+  },
+  "Checkout": {
+    "purchase": "구매",
+    "subscribe": "구독",
+    "addOn": "추가 팩",
+    "checkout": "결제",
+    "loading": "불러오는 중...",
+    "redirecting": "안전한 결제 페이지로 이동 중...",
+    "addonSuccess": "추가 팩이 적용되었습니다",
+    "done": "완료",
+    "back": "뒤로",
+    "unavailable": "이용 불가",
+    "signInToSubscribe": "구독하려면 로그인하세요",
+    "sessionError": "결제를 시작할 수 없었습니다. 다시 시도해 주세요.",
+    "comingSoonTitle": "별 구매 기능이 곧 출시됩니다",
+    "comingSoonDescription": "Askingfate 안에서 별을 더 안전하게 구매할 수 있는 새로운 방식을 마무리하고 있습니다.",
+    "comingSoonHelper": "기다려 주셔서 감사합니다! 그동안 무료 리딩을 계속 즐기고 커뮤니티 활동으로 보너스 별을 받아보세요.",
+    "close": "닫기",
+    "stripeReady": "Stripe 키가 감지되었습니다 — 결제를 활성화하려면 서버에 시크릿 키를 추가하세요.",
+    "stripeMissing": "{countdown}에 이용 가능",
+    "countdownUnknown": "다음 업데이트가 준비될 때"
+  },
+  "StarsPurchase": {
+    "badge": "곧 출시",
+    "title": "별 구매 기능이 곧 출시됩니다",
+    "description": "모든 팩과 구독이 더 안전하고 매끄럽게 느껴지도록 구매 흐름을 새롭게 만들고 있습니다.",
+    "helper": "업데이트를 마무리하는 동안에도 무료 리딩, 친구 초대, 커뮤니티 보상으로 잔액을 늘려보실 수 있습니다.",
+    "backToPricing": "요금제로 돌아가기",
+    "ctaBackToStars": "별 대시보드로 이동",
+    "ctaEarnFree": "무료 별 받기"
+  },
+  "ReadingHistory": {
+    "title": "내 리딩 기록",
+    "authRequired": "리딩 기록을 보려면 로그인해 주세요",
+    "loading": "리딩 기록을 불러오는 중...",
+    "subtitle": "지난 타로 리딩과 통찰을 살펴보세요",
+    "searchPlaceholder": "리딩 또는 카드 검색...",
+    "filters": {
+      "allTime": "전체 기간",
+      "today": "오늘",
+      "thisWeek": "이번 주",
+      "thisMonth": "이번 달",
+      "customRange": "기간 직접 설정",
+      "allTypes": "모든 유형",
+      "simple": "심플",
+      "intermediate": "중급",
+      "advanced": "고급"
+    },
+    "clearFilters": "필터 초기화",
+    "noReadings": "리딩을 찾을 수 없습니다",
+    "noReadingsDesc": "아직 만든 타로 리딩이 없습니다. 첫 리딩으로 신비로운 여정을 시작해 보세요!",
+    "startReading": "리딩 시작하기",
+    "loadingReadings": "리딩을 불러오는 중...",
+    "error": "리딩을 불러오지 못했습니다",
+    "errorDesc": "리딩 기록을 불러오는 중 오류가 발생했습니다. 다시 시도해 주세요.",
+    "retry": "다시 시도",
+    "loadMore": "스크롤하여 더 보기",
+    "loadingMore": "리딩을 더 불러오는 중...",
+    "noQuestion": "(질문 없음)",
+    "readingTypes": {
+      "simple": "심플",
+      "intermediate": "중급",
+      "advanced": "고급"
+    },
+    "delete": "삭제",
+    "deleteSuccess": "리딩이 삭제되었습니다",
+    "deleteError": "리딩을 삭제하지 못했습니다",
+    "swipeToDelete": "왼쪽으로 밀어 삭제",
+    "contextMenu": {
+      "openReading": "리딩 열기",
+      "openInNewTab": "새 탭에서 열기",
+      "copyLink": "링크 복사",
+      "share": "공유",
+      "linkCopied": "링크가 클립보드에 복사되었습니다",
+      "shareError": "공유할 수 없습니다"
+    }
+  },
+  "StarsBalance": {
+    "available": "사용 가능한 별",
+    "nextRefill": "다음 충전",
+    "planLabel": "{plan}",
+    "balance": "잔액: {current}/{total}",
+    "dailyBalance": "일일 별: {current}/{total}",
+    "planBalance": "플랜 별: {current}/{total}",
+    "addonBalance": "추가 별: {current}/{total}",
+    "engagementBalance": "참여 별: {current}/{total}",
+    "nextBilling": "다음 결제 {date}",
+    "buyAddons": "추가 팩 구매",
+    "anonymousPrefix": "익명 사용자:",
+    "anonymousRefill": "자정(UTC+7)에 별 3개로 충전됩니다. 카운트다운은 다음 우주 정렬까지 남은 시간을 보여줍니다.",
+    "autoRefill": "첫 사용 후 5시간이 지나면 별 {cap}개가 한꺼번에 충전됩니다.",
+    "subscriptionRefill": "결제 주기마다 최대 {cap}개의 별로 충전됩니다.",
+    "dailyRefillNote": "일일 별은 첫 사용 후 5시간 뒤에 {cap}개로 한 번에 충전됩니다.",
+    "planRefillNote": "{plan} 플랜은 다음 결제일에 별 {cap}개로 충전됩니다."
+  },
+  "SignInAccordion": {
+    "title": "로그인",
+    "description": "새 계정은 별 5개로 시작합니다. 사용을 시작한 지 5시간 후 {cap}개가 한꺼번에 충전됩니다.",
+    "button": "로그인"
+  },
+  "OneTapTopUp": {
+    "packs": {
+      "starter": "Starter",
+      "explorer": "Explorer",
+      "seeker": "Seeker",
+      "mystic": "Mystic",
+      "master": "Master",
+      "grandMaster": "Grand Master",
+      "ultimate": "Ultimate"
+    }
+  },
+  "SubscribeDropdown": {
+    "aria": "구독 주기를 선택하세요",
+    "monthly": "월간",
+    "monthlyPrice": "$9.99/월",
+    "annual": "연간",
+    "annualPrice": "$99.99/년"
+  },
+  "StarsPage": {
+    "comingSoon": "곧 출시",
+    "hero": {
+      "badge": "별 시스템"
+    },
+    "subscribe": {
+      "title": "구독 플랜",
+      "subtitle": "플랜에 맞게 월간 또는 연간 별을 선택하세요",
+      "features": {
+        "unlimitedReadings": "무제한 리딩",
+        "premiumFeatures": "프리미엄 기능",
+        "prioritySupport": "우선 지원"
+      },
+      "button": "구독",
+      "monthly": "월간",
+      "annual": "연간",
+      "starsPerMonth": "월간 별",
+      "starsPerYear": "연간 별",
+      "priceLabel": "{price} {cycle} 결제",
+      "notConfigured": "아직 가격이 설정되지 않았습니다.",
+      "downgrade": "다운그레이드",
+      "mostPopular": "가장 인기",
+      "saveStarsPercent": "{percent}% 절약(별 {from}개에서 {to}개로)",
+      "savePercent": "{percent}% 절약",
+      "upgrade": "업그레이드",
+      "upgradeSuccess": "업그레이드 완료",
+      "downgradeSuccess": "다운그레이드 완료",
+      "upgradeError": "업그레이드 실패",
+      "signInToUpgrade": "업그레이드하려면 로그인해 주세요",
+      "upgradeDialogTitle": "업그레이드 확인",
+      "upgradeDialogDescription": "현재 플랜과 이 플랜의 차액({amount})만 결제됩니다. 결제 주기는 그대로 유지됩니다.",
+      "downgradeDialogTitle": "다운그레이드 확인",
+      "downgradeDialogDescription": "플랜은 다음 결제 주기에 변경됩니다. 그때 새 요금이 결제되며, 그 날짜까지는 현재 별 한도를 그대로 사용할 수 있습니다.",
+      "summaryTitle": "결제 요약",
+      "starsSummaryTitle": "별 변동 사항",
+      "currentPlanLabel": "현재 플랜",
+      "targetPlanLabel": "새 플랜",
+      "differenceLabel": "오늘 차액",
+      "refillLabel": "충전 날짜",
+      "currentStarsLabel": "현재 별",
+      "projectedStarsLabel": "변경 후",
+      "dialogConfirm": "확인",
+      "dialogCancel": "취소",
+      "basic": {
+        "title": "Basic",
+        "subtitle": "월 100개의 별"
+      },
+      "pro": {
+        "title": "Pro",
+        "subtitle": "월 599개의 별"
+      },
+      "custom": {
+        "title": "Custom",
+        "subtitle": "이 양식을 통해 문의해 주세요"
+      }
+    },
+    "earn": {
+      "comingSoon": "곧 출시",
+      "title": "별을 얻는 방법",
+      "subtitle": "우주의 에너지를 모으고 더 깊은 신비 체험을 여는 여러 방법을 살펴보세요",
+      "purchase": {
+        "title": "별 구매",
+        "subtitle": "즉시 충전",
+        "body": "지금 바로 별이 필요하신가요? 플랜을 선택하면 결제 직후 별이 잔액에 바로 추가됩니다. 가격을 확인하고 옵션을 비교해 보세요.",
+        "viewPricing": "가격 보기",
+        "instant": "즉시"
+      },
+      "social": {
+        "title": "소셜에서 팔로우하기",
+        "subtitle": "플랫폼당 별 +5개 획득(최대 25개).",
+        "description": "플랫폼을 누르고 AskingFate를 팔로우하면 보너스를 바로 추가해 드립니다. 각 플랫폼은 한 번만 받을 수 있습니다.",
+        "rewardLabel": "별 +5개 보상",
+        "followCta": "팔로우하기",
+        "openCta": "링크 열기",
+        "claimed": "받음",
+        "signIn": "이 소셜 보상을 받으려면 로그인하세요.",
+        "success": "{platform}에서 팔로우해 주셔서 감사합니다! 별 +5개가 추가되었습니다.",
+        "alreadyClaimed": "{platform} 보상은 이미 받으셨습니다.",
+        "error": "지금은 별을 지급할 수 없었습니다. 다시 시도해 주세요.",
+        "progress": "{claimed}/{total} 받음"
+      },
+      "platforms": {
+        "facebook": "Facebook",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X (Twitter)"
+      },
+      "content": {
+        "title": "우리에 관한 콘텐츠 만들기",
+        "subtitle": "콘텐츠를 만들고 별을 받으세요.",
+        "body": "AskingFate에 관한 콘텐츠(글, 이미지, 영상)를 만들고 형식에 따라 별을 받으세요. 공개 링크를 제출하면 24~48시간 내에 검토해 드립니다.",
+        "items": {
+          "textTitle": "텍스트 기사 또는 블로그 글",
+          "textSubtitle": "글로 당신의 통찰을 나눠보세요",
+          "imageTitle": "이미지 게시물(소셜 미디어)",
+          "imageSubtitle": "캡션이 담긴 비주얼 콘텐츠",
+          "videoTitle": "영상 콘텐츠",
+          "videoSubtitle": "YouTube, TikTok, 또는 Reels"
+        },
+        "note": "💡 콘텐츠의 공개 링크를 공유해 주세요. 24~48시간 내에 직접 검토하고 승인해 드립니다.",
+        "learnMore": "자세히 보기",
+        "submitContent": "콘텐츠 제출"
+      },
+      "share": {
+        "title": "리딩 공유하기",
+        "subtitle": "링크를 공유하세요. 하루 최대 3회 방문으로 별을 받으세요.",
+        "body": "공유한 리딩을 열어보는 고유 방문자마다 별 +5개를 받습니다 — 하루 보상은 방문 3회로 제한됩니다. 보상은 자동으로 지급됩니다.",
+        "learnMore": "자세히 보기"
+      },
+      "refer": {
+        "title": "친구 초대하기",
+        "subtitle": "친구를 초대하고 함께 별을 받으세요.",
+        "body": "초대 링크를 공유하세요. 당신과 친구가 각각 별 20개를 받습니다(주당 친구 10명까지). 일주일 안에 친구 10명이 가입하면 별 50개 보너스를 받습니다. 별은 초대한 친구가 가입을 완료할 때 지급됩니다.",
+        "learnMore": "자세히 보기",
+        "viewReferral": "초대 링크 보기"
+      }
+    }
+  },
+  "CheckoutSuccess": {
+    "badge": "결제 완료",
+    "title": "구매해 주셔서 감사합니다!",
+    "description": "결제가 정상적으로 처리되었습니다. 별이 계정에 추가되어 바로 사용하실 수 있습니다.",
+    "descriptionWithStars": "결제가 정상적으로 처리되었습니다. 별 {stars}개가 계정에 추가되어 바로 사용하실 수 있습니다.",
+    "emailLabel": "영수증이 다음 이메일 주소로 전송되었습니다:",
+    "viewStars": "내 별 보기",
+    "viewBilling": "결제 내역",
+    "backToPricing": "요금제로 돌아가기",
+    "backToStars": "별로 돌아가기",
+    "supportText": "궁금한 점이 있으면 이메일로 문의해 주세요"
+  },
+  "InsufficientStars": {
+    "title": "별이 부족합니다",
+    "descriptionLoggedIn": "카드를 뽑고 리딩을 받으려면 별이 최소 1개 필요합니다. 별을 충전하고 신비로운 여정을 이어가세요.",
+    "descriptionAnonymous": "카드를 뽑으려면 별이 최소 1개 필요합니다. 로그인하면 5시간마다 충전되는 무료 별 5개가 열립니다!",
+    "descriptionHoroscopeLoggedIn": "운세 해석을 받으려면 별이 최소 1개 필요합니다. 별을 충전하고 우주 여정을 이어가세요.",
+    "descriptionHoroscopeAnonymous": "운세 해석을 받으려면 별이 최소 1개 필요합니다. 로그인하면 5시간마다 충전되는 무료 별 5개가 열립니다!",
+    "quickTopUp": "빠른 충전",
+    "packsNotConfigured": "별 팩이 아직 설정되지 않았습니다.",
+    "proRequired": "추가 팩은 Pro 구독자만 이용할 수 있습니다.",
+    "viewAllOptions": "모든 요금 옵션 보기",
+    "benefit1Title": "무료 별 5개",
+    "benefit1Desc": "별 5개로 바로 시작하세요",
+    "benefit2Title": "자동 충전",
+    "benefit2Desc": "5시간마다 별 5개가 모두 충전됩니다",
+    "signInButton": "로그인하고 계속하기",
+    "signInNote": "무료 계정을 만들고 별 5개를 받아 타로 여정을 시작하세요",
+    "chatMessageLoggedIn": "지금은 카드를 뽑을 별이 부족한 것 같아요. 리딩을 이어가려면 별이 최소 1개 필요합니다. 아래 옵션 중 하나로 별을 바로 충전하거나, 별이 자동으로 충전될 때까지 기다리셔도 됩니다.",
+    "chatMessageAnonymous": "지금은 카드를 뽑을 별이 부족한 것 같아요. 로그인하면 5시간마다 충전되는 무료 별 5개가 열립니다. 계정을 만들고 신비로운 여정을 시작해 보세요!",
+    "promoBasicTitle": "더 많은 별을 위해 Pro로 업그레이드",
+    "promoGuestTitle": "더 많은 별을 바로 열어보세요",
+    "promoBasicDescription": "현재 Basic 플랜을 이용 중입니다. Pro로 옮기면 매달 더 많은 별을 받고 추가 팩도 이용할 수 있습니다.",
+    "promoGuestDescription": "아래 플랜을 선택하고 기다림 없이 리딩을 이어가세요.",
+    "monthly": "월간",
+    "annual": "연간",
+    "unavailable": "이용 불가",
+    "bestValue": "최고의 가성비",
+    "proPlan": "Pro 플랜",
+    "basicPlan": "Basic 플랜",
+    "proShort": "Pro",
+    "basicShort": "Basic",
+    "starsPerMonthLabel": "별 {stars}개 / 월",
+    "starsPerYearLabel": "별 {stars}개 / 년",
+    "perMonth": "/ 월",
+    "owned": "보유 중",
+    "upgradeNow": "지금 업그레이드",
+    "getPlan": "{plan} 받기",
+    "savePercent": "{percent}% 절약"
+  },
+  "BirthForm": {
+    "datePlaceholder": "일/월/년",
+    "yearEraCE": "서기",
+    "yearEraBE": "불기",
+    "dateErrorDay": "날짜는 1에서 31 사이여야 합니다",
+    "dateErrorMonth": "월은 1에서 12 사이여야 합니다",
+    "missingTimeHint": "정확한 리딩을 위해 태어난 시간이 필요합니다.",
+    "missingDateHint": "태어난 날짜가 필요합니다.",
+    "inlineAccuracyHint": "보내기 전에 여기에 태어난 날짜와 시간을 입력해 주세요.",
+    "timeAccuracyHint": "정확한 출생 시간일수록 가장 정확한 리딩을 받을 수 있습니다. 모르신다면 낮 또는 밤을 선택하시면 되지만 정확도가 낮아질 수 있습니다.",
+    "timePlaceholder": "시:분",
+    "timePickerTitle": "시간 선택",
+    "timePickerHour": "시",
+    "timePickerMinute": "분",
+    "timePickerDone": "완료",
+    "birthDate": "태어난 날짜",
+    "birthTime": "태어난 시간",
+    "exactTime": "정확한 시간",
+    "daytime": "낮",
+    "nighttime": "밤",
+    "birthPlace": "태어난 곳 (선택)",
+    "country": "국가",
+    "stateProvince": "주 / 도",
+    "locationSettings": "위치 설정",
+    "useCurrentLocation": "현재 위치 사용",
+    "advanced": "고급 (위도, 경도, 시간대)",
+    "latitude": "위도",
+    "longitude": "경도",
+    "timezone": "시간대 (예: 7)",
+    "rememberBirth": "내 출생 정보 기억하기",
+    "removeBirth": "삭제"
+  },
+  "HoroscopeChat": {
+    "usingSavedBirthDate": "이 해석에 저장된 출생일을 사용하고 있어요...",
+    "loading": "당신의 출생 차트를 살펴보는 중...",
+    "fallbackAnswerError": "아직 이 차트를 읽을 수 없었어요.",
+    "analysisFailed": "죄송해요, 운세 분석에 실패했습니다. 다시 시도해 주세요.",
+    "parseFailed": "그 출생 정보를 해석할 수 없었어요. 다시 시도해 주세요.",
+    "askBirthDate": "먼저 태어난 날짜를 보내주세요 (일/월/년 또는 년-월-일).",
+    "askBirthTime": "이제 태어난 시간을 알려주세요. 모르신다면 낮인지 밤인지만 말씀해 주세요. 상승궁은 약 2시간마다 바뀌므로 대략적인 시간은 정확도를 낮출 수 있습니다.",
+    "askBirthPlace": "태어난 곳(도시/국가)을 알려주세요. 모르신다면 현재 위치를 사용할 수 있지만 리딩이 덜 정확할 수 있습니다.",
+    "usingLocationFallback": "현재 위치를 대체로 사용하고 있어요. 이 경우 하우스와 상승궁의 정확도가 낮아질 수 있습니다.",
+    "processFailed": "죄송해요, 지금은 운세 정보를 처리할 수 없었어요.",
+    "paywallOtherPersonAssistantText": "다른 사람의 차트를 읽는 것은 무료 플랜에 포함되어 있지 않아요 — 대신 <drawPill>카드를 한 장 뽑아보시면</drawPill> 제가 읽어 드릴게요.",
+    "paywallOtherPersonTitle": "다른 사람 리딩은 유료 플랜이 필요합니다",
+    "paywallOtherPersonBody": "무료 계정은 본인의 차트만 볼 수 있습니다. 친구, 가족, 연인을 위한 리딩을 하려면 Basic 또는 Pro로 업그레이드하세요.",
+    "paywallOtherPersonPaywallTitle": "다른 사람 리딩은 구독자 전용 기능입니다",
+    "paywallOtherPersonPaywallDesc": "별을 사용해 친구, 가족, 연인을 위한 리딩을 해보세요. Basic 또는 Pro로 업그레이드하면 열립니다 — 결제는 다음 페이지에서 Stripe로 진행됩니다.",
+    "paywallOtherPersonPaywallFeature": "출생 정보로 다른 사람의 차트 읽기",
+    "paywallOtherPersonPaywallInsufficient": "업그레이드 필요",
+    "paywallOtherPersonPaywallNote": "플랜을 선택하면 안전한 Stripe 결제로 이동합니다.",
+    "paywallUpgradeCta": "플랜 업그레이드",
+    "transitDateLabel": "트랜짓 날짜",
+    "birthFormTitle": "출생 정보를 입력하세요",
+    "birthFormSubmit": "이 출생 정보 사용하기",
+    "composerBirthPlaceholder": "태어난 날짜, 시간, 장소를 여기에 입력하세요. 어떤 날짜 형식이든 괜찮아요.",
+    "underAgeWarningTitle": "허용되지 않는 출생일",
+    "underAgeWarningBody": "AskingFate는 만 13세 미만 사용자는 이용할 수 없습니다. 이전 출생일이 복원되었습니다.",
+    "underAgeWarningClose": "닫기",
+    "tabs": {
+      "overview": "개요",
+      "aspect": "영향을 주는 어스펙트",
+      "transit": "기술 정보",
+      "birthChartInfo": "출생 차트 정보"
+    },
+    "natalSpotlight": {
+      "title": "당신의 출생 차트 하이라이트",
+      "subtitle": "이 질문에 답하는 배치들",
+      "titleTransit": "현재 하늘의 위치",
+      "subtitleTransit": "지금 이 행성들이 있는 곳"
+    },
+    "verdict": {
+      "moodGood": "좋은 날",
+      "moodCaution": "조심하세요",
+      "moodRest": "쉬어가는 날",
+      "answerHeading": "당신의 질문에 대해",
+      "watchHeading": "한 가지 유의점",
+      "focusHeading": "집중할 점",
+      "dateRelativeToday": "오늘",
+      "dateRelativeTomorrow": "내일",
+      "dateRelativeYesterday": "어제"
+    },
+    "transit": {
+      "feedTitle": "활성 트랜짓",
+      "showMore": "더 보기",
+      "showLess": "접기",
+      "transitLabel": "트랜짓",
+      "natalLabel": "출생",
+      "emptyFallback": "이 날의 전체 리딩을 보여드립니다.",
+      "aspectConjunction": "합",
+      "aspectOpposition": "충",
+      "aspectSquare": "사각",
+      "aspectTrine": "삼각",
+      "aspectSextile": "육각"
+    },
+    "timeline": {
+      "title": "펼쳐질 수 있는 흐름",
+      "subtitleHourly": "이 날의 시간별 흐름",
+      "subtitleDaily": "이 기간의 날짜별 흐름",
+      "granularityHourly": "시간별 보기",
+      "granularityDaily": "날짜별 보기",
+      "loading": "당신의 타임라인을 만드는 중...",
+      "moodGood": "순조로움",
+      "moodCaution": "조심하세요",
+      "moodRest": "천천히",
+      "moodMixed": "엇갈린 신호",
+      "focusHeading": "집중할 점",
+      "hourBuckets": {
+        "lateNight": "심야",
+        "dawn": "새벽",
+        "morning": "아침",
+        "midday": "정오",
+        "afternoon": "오후",
+        "evening": "저녁",
+        "night": "밤"
+      }
+    }
+  },
+  "Settings": {
+    "title": "설정",
+    "subtitle": "계정 환경설정과 이메일 마케팅 설정을 관리하세요",
+    "loading": "설정을 불러오는 중...",
+    "saving": "저장 중...",
+    "save": "설정 저장",
+    "saveSuccess": "설정이 저장되었습니다",
+    "saveError": "설정을 저장하지 못했습니다",
+    "fetchError": "설정을 불러오지 못했습니다",
+    "authRequired": "설정을 보려면 로그인해 주세요",
+    "emailMarketing": {
+      "title": "이메일 마케팅",
+      "enable": "이메일 마케팅 사용",
+      "enableDesc": "마케팅 이메일을 받습니다",
+      "promotional": "프로모션 이메일",
+      "promotionalDesc": "특별 혜택과 할인",
+      "newsletter": "뉴스레터",
+      "newsletterDesc": "주간 소식과 통찰",
+      "productUpdates": "제품 업데이트",
+      "productUpdatesDesc": "새로운 기능과 개선 사항",
+      "readingReminders": "리딩 알림",
+      "readingRemindersDesc": "리딩을 확인하라는 알림",
+      "specialOffers": "특별 혜택",
+      "specialOffersDesc": "독점 거래와 프로모션"
+    },
+    "notifications": {
+      "title": "푸시 알림",
+      "enable": "푸시 알림 사용",
+      "enableDesc": "기기에서 푸시 알림을 받습니다",
+      "readingReminders": "리딩 알림",
+      "specialOffers": "특별 혜택",
+      "systemUpdates": "시스템 업데이트"
+    },
+    "privacy": {
+      "title": "개인정보 설정",
+      "profileVisibility": "프로필 공개 범위",
+      "private": "비공개",
+      "public": "공개",
+      "friends": "친구만",
+      "showEmail": "이메일 표시",
+      "showEmailDesc": "프로필에 이메일을 표시합니다",
+      "showBirthDate": "출생일 표시",
+      "showBirthDateDesc": "프로필에 출생일을 표시합니다",
+      "allowMessages": "메시지 허용",
+      "allowMessagesDesc": "다른 사람이 메시지를 보낼 수 있도록 허용합니다"
+    },
+    "reading": {
+      "title": "리딩 환경설정",
+      "autoSave": "리딩 자동 저장",
+      "autoSaveDesc": "리딩을 자동으로 저장합니다",
+      "shareByDefault": "기본적으로 리딩 공유",
+      "shareByDefaultDesc": "새 리딩을 자동으로 공유합니다"
+    },
+    "localization": {
+      "title": "언어 및 지역화",
+      "language": "언어",
+      "timeFormat": "시간 형식"
+    },
+    "accessibility": {
+      "title": "접근성",
+      "reducedMotion": "모션 줄이기",
+      "reducedMotionDesc": "애니메이션과 전환 효과를 줄입니다",
+      "highContrast": "고대비",
+      "highContrastDesc": "더 잘 보이도록 대비를 높입니다",
+      "fontSize": "글자 크기",
+      "small": "작게",
+      "medium": "보통",
+      "large": "크게"
+    }
+  },
+  "PlanetaryPanel": {
+    "transitSuffix": " 트랜짓",
+    "natalSuffix": " 출생",
+    "noChartPosition": "차트 위치 없음",
+    "defaultKeyword": "개인화된 어스펙트",
+    "exactDatePrefix": "{date}에",
+    "rangeDate": "{start}에 시작 (정점 {peak})",
+    "rangeDateStart": "{start}에 시작",
+    "rangeDatePeak": "정점 {peak}",
+    "rangeDateEnd": "{end}에 종료",
+    "mainEvents": "주요 이벤트",
+    "showDailyVibes": "데일리 무드 보기 ({count})",
+    "showLifeSituation": "모든 행성 어스펙트 보기 ({count})",
+    "showRelatedAspects": "관련 항목 보기 ({count})",
+    "showAllAspects": "모두 보기 ({count})",
+    "showMore": "더 보기",
+    "showTechnical": "기술 데이터 보기",
+    "hideTechnical": "기술 데이터 숨기기",
+    "timelineAriaLabel": "{start}부터 정점 {peak}을 거쳐 {end}까지의 어스펙트",
+    "timelineToday": "오늘",
+    "timelineUpcoming": "{days}일 후",
+    "timelinePassed": "{days}일 전",
+    "defaultInsight": "이 어스펙트는 삶의 이 영역이 관심을 요구하는 방식에 눈에 띄는 변화를 가져옵니다.",
+    "impactLabel": "영역: ",
+    "intensityLabel": "강도: ",
+    "intensity": {
+      "low": "낮음",
+      "medium": "보통",
+      "high": "높음"
+    },
+    "dignity": {
+      "exalted": "고양",
+      "ownSign": "본궁",
+      "debilitated": "쇠약",
+      "retrograde": "역행"
+    },
+    "orbLabel": "오브 (오늘)",
+    "peakLabel": "정점",
+    "longTermSectionLabel": "장기적 영향",
+    "showBirthDetails": "출생 정보 보기",
+    "showTransitDetails": "트랜짓 정보 보기",
+    "birthDetails": "출생 정보",
+    "transitDetails": "트랜짓 정보",
+    "birthDateLabel": "출생일",
+    "birthTimeLabel": "출생 시간",
+    "transitDateLabel": "트랜짓 날짜",
+    "transitTimeLabel": "트랜짓 시간",
+    "locationLabel": "위치",
+    "systemLabel": "시스템",
+    "ascendantLabel": "상승궁",
+    "sunLabel": "태양",
+    "moonLabel": "달",
+    "planets": {
+      "Sun": "태양",
+      "Moon": "달",
+      "Mercury": "수성",
+      "Venus": "금성",
+      "Mars": "화성",
+      "Jupiter": "목성",
+      "Saturn": "토성",
+      "Rahu": "라후",
+      "Ketu": "케투",
+      "Uranus": "천왕성",
+      "Neptune": "해왕성",
+      "Pluto": "명왕성",
+      "Ascendant": "상승궁"
+    },
+    "aspects": {
+      "conjunction": "합",
+      "opposition": "충",
+      "square": "사각",
+      "trine": "삼각",
+      "sextile": "육각"
+    },
+    "zodiac": {
+      "Aries": "양자리",
+      "Taurus": "황소자리",
+      "Gemini": "쌍둥이자리",
+      "Cancer": "게자리",
+      "Leo": "사자자리",
+      "Virgo": "처녀자리",
+      "Libra": "천칭자리",
+      "Scorpio": "전갈자리",
+      "Sagittarius": "궁수자리",
+      "Capricorn": "염소자리",
+      "Aquarius": "물병자리",
+      "Pisces": "물고기자리"
+    },
+    "askMore": "더 물어보기",
+    "readDescription": "설명 읽기",
+    "askAspectQuestion": "트랜짓 {transit}이(가) 출생 {natal}과(와) {aspect}을(를) 이룰 때 저에게 어떤 영향을 주나요?"
+  },
+  "SupportBlock": {
+    "openPage": "페이지 열기",
+    "readArticle": "글 읽기",
+    "readFullMeaning": "전체 의미 읽기",
+    "majorArcana": "메이저 아르카나",
+    "minorArcana": "마이너 · {suit}",
+    "minorArcanaShort": "마이너 아르카나",
+    "suits": {
+      "wands": "완드",
+      "cups": "컵",
+      "swords": "소드",
+      "pentacles": "펜타클"
+    },
+    "topics": {
+      "pricing": {
+        "title": "요금제",
+        "description": "Basic 또는 Pro 구독을 선택하고, 월간과 연간 별을 비교한 뒤 결제로 진행하세요."
+      },
+      "star-packs": {
+        "title": "별 및 추가 팩",
+        "description": "별 잔액, 충전 규칙, Pro 구독자용 일회성 추가 팩을 확인하세요."
+      },
+      "contact": {
+        "title": "고객 지원 문의",
+        "description": "메시지를 보내주세요. 보통 admin@askingfate.com에서 영업일 1일 이내에 답변드립니다."
+      },
+      "help": {
+        "title": "도움말 및 지원",
+        "description": "계정, 리딩, 결제, 별에 대한 일반적인 문제 해결 안내입니다."
+      },
+      "faq": {
+        "title": "자주 묻는 질문",
+        "description": "리딩, 별, 정확도, 결제에 대한 빠른 답변입니다."
+      },
+      "how-to-play": {
+        "title": "이용 방법",
+        "description": "질문하고, 카드를 고르고, 의미를 되새겨 보세요 — 한 단계씩 안내합니다."
+      },
+      "privacy-redaction": {
+        "title": "개인정보 및 PII 가림 처리",
+        "description": "AskingFate가 입력한 내용에서 개인 정보를 감지하고 제거하는 방식을 안내합니다."
+      },
+      "privacy-policy": {
+        "title": "개인정보 처리방침",
+        "description": "데이터를 수집, 이용, 보호하는 방식을 안내합니다."
+      },
+      "terms-of-service": {
+        "title": "이용약관",
+        "description": "약관, 허용 가능한 이용, 결제 정책을 안내합니다."
+      },
+      "refer-a-friend": {
+        "title": "친구 초대",
+        "description": "친구를 AskingFate에 초대하세요. 친구가 가입하면 두 분 모두 별을 받습니다."
+      },
+      "share-reading": {
+        "title": "리딩 공유",
+        "description": "리딩 링크를 공유하고 방문으로 하루 최대 별 3개를 받으세요."
+      },
+      "create-content": {
+        "title": "콘텐츠 제작 및 별 받기",
+        "description": "AskingFate에 관한 글, 게시물, 영상을 만들고 콘텐츠가 승인되면 별을 받으세요."
+      },
+      "tarot-card": {
+        "title": "타로 카드",
+        "description": "정방향과 역방향 의미, 그리고 실용적인 안내를 담았습니다.",
+        "indexListing": {
+          "title": "타로 카드 의미",
+          "description": "78장의 카드를 모두 둘러보세요 — 메이저 아르카나와 네 가지 마이너 아르카나 슈트."
+        }
+      },
+      "tarot-cards-index": {
+        "title": "모든 타로 카드",
+        "description": "78장의 카드를 모두 둘러보세요 — 메이저 아르카나와 네 가지 마이너 아르카나 슈트."
+      },
+      "birth-chart": {
+        "title": "출생 차트",
+        "description": "스위스 천체력 기반의 개인화된 출생 차트, 행성, 하우스를 확인하세요."
+      },
+      "horoscope": {
+        "title": "개인화된 운세",
+        "description": "당신의 출생 정보와 오늘의 하늘을 바탕으로 한 일간, 월간, 연간 운세 리딩입니다."
+      },
+      "account": {
+        "title": "계정",
+        "description": "프로필, 구독, 저장된 출생 정보를 관리하세요."
+      },
+      "settings": {
+        "title": "설정",
+        "description": "외관, 지역, 알림, 리딩 환경설정을 조정하세요."
+      },
+      "about": {
+        "title": "AskingFate 소개",
+        "description": "우리의 미션, 제품을 만든 과정, 그리고 우리 리딩이 특별한 이유를 소개합니다."
+      },
+      "articles": {
+        "title": "글 및 가이드",
+        "description": "AskingFate의 모든 것을 다루는 문서 형식의 가이드입니다."
+      },
+      "sign-in": {
+        "title": "로그인",
+        "description": "로그인하여 리딩, 별, 출생 프로필을 저장하세요."
+      },
+      "sign-up": {
+        "title": "계정 만들기",
+        "description": "무료 계정을 만들어 리딩, 별, 출생 프로필을 보관하세요."
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
+      }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
+    }
+  }
+}

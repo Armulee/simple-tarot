@@ -65,8 +65,12 @@ const TOPIC_RULES: TopicRule[] = [
     },
     {
         topic: "love",
+        // NOTE: deliberately no bare "กัน" (ubiquitous reciprocal particle),
+        // no bare "เลิก" (also "quit work/smoking"), and "ชอบ" only in
+        // crush-shaped compounds — bare forms over-matched unrelated Thai
+        // questions into the love bucket and mis-filtered the aspect data.
         pattern:
-            /ความรัก|รัก|แฟน|คนรัก|แต่งงาน|หย่า|เนื้อคู่|คู่ครอง|จีบ|คบ|เลิก|กัน|ชอบ|หึง|นอกใจ|love|relationship|marriage|divorce|partner|dating|crush|breakup|soulmate/i,
+            /ความรัก|รัก|แฟน|คนรัก|แต่งงาน|หย่า|เนื้อคู่|คู่ครอง|จีบ|คบ|เลิกกัน|เลิกรา|คืนดี|แอบชอบ|ชอบฉัน|ชอบเขา|ชอบเธอ|หึง|นอกใจ|love|relationship|marriage|divorce|partner|dating|crush|breakup|soulmate/i,
         planets: ["Venus", "Mars", "Moon", "Jupiter", "Neptune"],
     },
     {

@@ -13,6 +13,7 @@ import { StarPill } from "./star-pill"
 import { UserProfile } from "@/components/user-profile"
 // Avatar imports removed (unused)
 import { useAuth } from "@/hooks/use-auth"
+import { supabase } from "@/lib/supabase"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -37,6 +38,9 @@ export function Navbar({ locale }: { locale: string }) {
         return /^[A-Za-z0-9_-]{12}$/.test(id) ? id : null
     }, [pathname])
     const isChatSessionPage = !!sessionId
+    // The avatar page shows a full-bleed character behind the navbar, so the
+    // bar is transparent there (no card background / border / blur).
+    const isAvatarPage = pathname === "/avatar" || pathname.startsWith("/avatar/")
 
     const [sessionTopic, setSessionTopic] = useState<string>("")
     const [isEditingTopic, setIsEditingTopic] = useState(false)
@@ -57,9 +61,15 @@ export function Navbar({ locale }: { locale: string }) {
         const next = cleanTopic(topicDraft)
         setTopicSaving(true)
         try {
+            const headers: Record<string, string> = {
+                "Content-Type": "application/json",
+            }
+            const { data: sess } = await supabase.auth.getSession()
+            const token = sess.session?.access_token
+            if (token) headers["Authorization"] = `Bearer ${token}`
             const res = await fetch(`/api/chat-sessions/${sessionId}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers,
                 body: JSON.stringify({ topic: next }),
             })
             if (!res.ok) throw new Error("Failed to save topic")
@@ -118,7 +128,13 @@ export function Navbar({ locale }: { locale: string }) {
     // const initial = displayName.charAt(0).toUpperCase()
 
     return (
-        <nav className='fixed top-0 left-0 right-0 z-50 bg-card/5 backdrop-blur-sm border-b border-border/20'>
+        <nav
+            className={`fixed top-0 left-[var(--app-sidebar-w)] right-0 z-50 transition-[left] duration-300 ease-in-out ${
+                isAvatarPage
+                    ? "bg-transparent"
+                    : "bg-card/5 backdrop-blur-sm border-b border-border/20"
+            }`}
+        >
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: Mobile menu button / Desktop brand */}
@@ -134,10 +150,10 @@ export function Navbar({ locale }: { locale: string }) {
                             <Menu className='h-6 w-6' />
                         </Button>
 
-                        {/* Desktop: brand */}
+                        {/* Desktop (md–lg): brand. At lg+ the sidebar carries the logo. */}
                         <Link
                             href='/'
-                            className='hidden md:flex items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5'
+                            className='hidden md:flex lg:hidden items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5'
                         >
                             <Image
                                 src='/assets/logo.png'

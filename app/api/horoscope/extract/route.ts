@@ -6,6 +6,7 @@ import {
     type QuestionTopic,
 } from "@/lib/astrology/question-intent"
 import type { QuestionTimeRangePayload } from "@/lib/astrology/question-time-range"
+import { resolveOriginContextStrategyOverride } from "@/lib/chat/origin-context"
 
 const MODEL = "deepseek/deepseek-v3.2"
 
@@ -143,6 +144,21 @@ const requestSchema = z.object({
     locale: z.string().optional(),
     profile: profileSchema,
     planTier: z.enum(["free", "basic", "pro"]).optional(),
+    /**
+     * Page context attached via the composer's context strip (/calendar day,
+     * /birthchart, or the inline calendar tool). When the message itself has
+     * no time anchor, a calendar-day context anchors the reading to that day
+     * (daily verdict) and a birth-chart context routes to the natal strategy.
+     */
+    originContext: z
+        .object({
+            kind: z.enum(["calendar-day", "birth-chart"]),
+            label: z.string().optional(),
+            isoDate: z.string().optional(),
+            summary: z.string().optional(),
+        })
+        .nullable()
+        .optional(),
 })
 
 const FALLBACK_CLASSIFICATION: z.infer<typeof classificationSchema> = {
@@ -188,6 +204,32 @@ function detectOtherPersonIntent(
 ): boolean {
     if (!mention) return false
     if (mention.isOtherPerson) return true
+
+    const mb = mention.birthDate
+    const hasMentionBirth = Boolean(mb?.day && mb?.month && mb?.year)
+
+    // The LLM populated a third-party block with a concrete birth date —
+    // that alone is enough to treat the question as about someone else,
+    // even when the asker has no profile to compare against (anonymous
+    // "for someone born on <date>" phrasing).
+    if (hasMentionBirth) {
+        if (!profile?.birthDate) return true
+        const pb = profile.birthDate
+        if (pb?.day && pb.month && pb.year) {
+            const normalizedMentionYear = normalizeCalendarYear(mb!.year!)
+            if (
+                mb!.day !== pb.day ||
+                mb!.month !== pb.month ||
+                normalizedMentionYear !== pb.year
+            ) {
+                return true
+            }
+            // Dates match the asker's own DOB — treat as self.
+            return false
+        }
+        return true
+    }
+
     if (!profile) return mention.namePresent && Boolean(mention.name)
 
     const mentionName = normalizeNameForCompare(mention.name)
@@ -201,20 +243,40 @@ function detectOtherPersonIntent(
         return true
     }
 
-    const mb = mention.birthDate
-    const pb = profile.birthDate
-    if (mb?.day && mb.month && mb.year && pb?.day && pb.month && pb.year) {
-        const normalizedMentionYear = normalizeCalendarYear(mb.year)
-        if (
-            mb.day !== pb.day ||
-            mb.month !== pb.month ||
-            normalizedMentionYear !== pb.year
-        ) {
-            return true
-        }
-    }
-
     return false
+}
+
+type ExtractedPayload = z.infer<typeof extractSchema>
+type OriginContextPayload = z.infer<typeof requestSchema>["originContext"]
+
+/**
+ * Applies the context-strip strategy override (see
+ * resolveOriginContextStrategyOverride): an attached calendar day anchors
+ * anchor-less questions — and relative "today" phrasings the LLM resolved to
+ * the wall-clock today — to a daily verdict for the attached date; an
+ * attached birth chart routes anchor-less general questions to the natal
+ * strategy.
+ */
+function applyOriginContextOverride(
+    extracted: ExtractedPayload,
+    originContext: OriginContextPayload,
+    currentDateIso: string,
+): ExtractedPayload {
+    const override = resolveOriginContextStrategyOverride({
+        originContext,
+        replyStrategy: extracted.classification.replyStrategy,
+        questionRange: extracted.classification.questionRange,
+        currentDateIso,
+    })
+    if (!override) return extracted
+    return {
+        ...extracted,
+        classification: {
+            ...extracted.classification,
+            replyStrategy: override.replyStrategy,
+            questionRange: override.questionRange,
+        },
+    }
 }
 
 /**
@@ -250,6 +312,12 @@ export async function POST(req: Request) {
         const locale = payload.locale || "en"
         const planTier = payload.planTier ?? "free"
         const currentDateIso = new Date().toISOString().slice(0, 10)
+        const attachedDayIso =
+            payload.originContext?.kind === "calendar-day" &&
+            typeof payload.originContext.isoDate === "string" &&
+            ISO_DATE_RE.test(payload.originContext.isoDate)
+                ? payload.originContext.isoDate
+                : null
 
         const fallbackExtracted: z.infer<typeof extractSchema> = {
             mentionedPerson: null,
@@ -272,15 +340,20 @@ Set mentionedPerson when the message references a third party in any of these wa
 - A proper name ("Will Sarah and I get along?").
 - A relationship word (boyfriend, girlfriend, husband, wife, mom, dad, son, daughter, friend, แฟน, สามี, ภรรยา, พ่อ, แม่, ลูก, เพื่อน, ແຟນ, etc.).
 - A third-party birth fact ("my friend was born on 1990-04-12").
+- An ANONYMOUS third party described purely by a birth date — even with no name, no relationship, just "a person born on <date>". This is the key case for horoscope-by-DOB questions. Triggers include any of:
+    EN: "for someone born <date>", "a person born <date>", "people born <date>", "born on <date>"
+    TH: "สำหรับคนที่เกิด <date>", "คนที่เกิดวันที่ <date>", "คนเกิด <date>", "คนเกิดวันที่ <date>"
+    LO: "ສຳລັບຄົນທີ່ເກີດ <date>", "ຄົນທີ່ເກີດ <date>"
+  Whenever the message attaches a birth date to a third-party referent (named, related, pronoun, OR anonymous "person / คน / ຄົນ"), populate mentionedPerson WITH that birthDate filled in.
 - Pronouns that clearly point at a third party (he, she, they, เขา, เธอ) — only when the surrounding sentence is about that person, not the asker.
 
 Fields:
-- namePresent: true if a proper name appears; name: the exact name (null if only a relationship word was used).
+- namePresent: true if a proper name appears; name: the exact name (null if only a relationship word, pronoun, or anonymous "person" was used).
 - relationshipHint: the relationship word, else null.
-- birthDate / birthTime / birthPlace: only when the message explicitly attaches those facts to the third party. Leave null when the asker is talking about themself.
-- isOtherPerson: your final read. true when the question is asking about the chart / fortune / future / compatibility of someone other than the asker; false when it's a self question.
+- birthDate / birthTime / birthPlace: ALWAYS fill these when the message attaches the fact to the third party — even for the anonymous "person born on <date>" case. day/month/year are required for the downstream chart; fill them whenever the date string is parseable. If the year is Buddhist Era (e.g. 2545), CONVERT to Gregorian (2002) before returning. Leave null only when the asker is talking about themself.
+- isOtherPerson: your final read. true when the question is asking about the chart / fortune / future / horoscope / compatibility of someone other than the asker — INCLUDING the anonymous-DOB case ("how is today for someone born 17 July 2002"). false only when it's a self question.
 
-Self-references ("am I", "will I", "ดวงของฉัน", "ดวงกู", "my Saturn", "ลัคนาของฉัน") with no other person referenced → mentionedPerson = null.
+Self-references ("am I", "will I", "ดวงของฉัน", "ดวงกู", "my Saturn", "ลัคนาของฉัน") with no other person referenced → mentionedPerson = null. But "วันนี้เป็นยังไงสำหรับคนที่เกิด <date>" is NOT a self-reference — the asker is asking on behalf of an anonymous third party, so mentionedPerson MUST be populated with isOtherPerson = true and birthDate set.
 
 =============================
 DECISION 2 — replyStrategy and questionRange
@@ -329,7 +402,21 @@ Resolve the date(s) the question is bound to. Today is ${currentDateIso} (UTC).
 Set questionRange = null when replyStrategy is "natal", "technical", or "general" — those aren't anchored to the asker's calendar window. For daily/timing/timeline you MUST return a concrete questionRange.
 
 If the user wrote a Buddhist Era year (e.g. 2568), convert to Gregorian (2025) before returning.
-
+${
+    attachedDayIso
+        ? `
+=============================
+ATTACHED CALENDAR DAY — RELATIVE DATE ANCHOR OVERRIDE
+=============================
+The user attached the calendar day ${attachedDayIso} to this message (the "Attached page context" in the prompt). For THIS message only:
+- ${attachedDayIso} — not ${currentDateIso} — is the anchor for ALL RELATIVE date references: "today / tonight / this day / วันนี้ / คืนนี้ / วันนั้น / ມື້ນີ້" mean ${attachedDayIso}; "tomorrow / พรุ่งนี้ / ມື້ອື່ນ" means the day after ${attachedDayIso}; "this week / this month / สัปดาห์นี้ / เดือนนี้" mean the week / month containing ${attachedDayIso}.
+- A message with NO date wording at all ("how will my career be?", "ความรักเป็นยังไง") is also about ${attachedDayIso}: replyStrategy "daily", questionRange = ${attachedDayIso} → ${attachedDayIso}, 1 day, hourly.
+- Absolute dates written out in the message ("19 พค", "2026-03-12", "March 12") still mean themselves and win over the attachment.
+- technical (planet-focused) and timing ("when will I…") questions keep their normal strategy and ranges.
+Worked example: attached day 2026-06-16 + "วันนี้จะเปนไง" → replyStrategy "daily", questionRange { startDateIso: "2026-06-16", endDateIso: "2026-06-16", durationDays: 1, granularity: "hourly" }.
+`
+        : ""
+}
 =============================
 DECISION 2c — Topic and signals
 =============================
@@ -364,17 +451,52 @@ Worked examples
 - "ราหูตอนนี้อยู่ราศีอะไร" / "What sign is Rahu in right now" → technical.
 - "Is Mars currently retrograde?" / "ดาวอังคารถอยหรือยัง" → technical.
 - "ดาวเสาร์มีผลอย่างไรกับกู" / "How does Saturn affect me" / "What does Saturn mean for my life" → technical. The planet IS the focal topic — the answer should describe Saturn's nature and how it shows up in life. Self-referential framing doesn't change this.
-- "ดาวพฤหัสให้พรอะไรกับฉัน" / "What blessings does Jupiter give me" → technical.`,
+- "ดาวพฤหัสให้พรอะไรกับฉัน" / "What blessings does Jupiter give me" → technical.
+
+=============================
+Worked examples — third-party DOB by anonymous reference
+=============================
+The asker is asking about an ANONYMOUS third party identified only by a birth date. mentionedPerson MUST be populated with isOtherPerson=true and birthDate filled in (BE → Gregorian).
+
+- "วันนี้จะเปนไงบ้างสำหรับคนที่เกิด 17 กค 2545" →
+    replyStrategy: "daily" (วันนี้ = today, single day),
+    mentionedPerson: {
+      namePresent: false, name: null,
+      relationshipHint: null,
+      birthDate: { day: 17, month: 7, year: 2002 },  // 2545 BE → 2002 CE
+      birthTime: null, birthPlace: null,
+      isOtherPerson: true
+    }
+- "พรุ่งนี้คนเกิด 1990-04-12 จะเป็นยังไง" →
+    replyStrategy: "daily" (พรุ่งนี้ = tomorrow),
+    mentionedPerson: { birthDate: { day: 12, month: 4, year: 1990 }, isOtherPerson: true, namePresent: false, name: null, ... }
+- "How is today for a person born 17 July 2002" → daily; mentionedPerson with birthDate filled, isOtherPerson: true.
+- "ดวงคนเกิด 1995-08-23 เดือนหน้าเป็นยังไง" → timeline; mentionedPerson with birthDate { 23, 8, 1995 }, isOtherPerson: true.`,
                 prompt: `User locale: ${locale}
 Current date (UTC): ${currentDateIso}
 ${payload.profile?.name ? `Asker's name: ${payload.profile.name}` : "Asker's name: (not provided)"}
-Message:
+${
+    payload.originContext
+        ? `Attached page context: the user attached ${
+              payload.originContext.kind === "calendar-day"
+                  ? `a calendar day (${payload.originContext.isoDate ?? payload.originContext.label ?? "unknown date"})`
+                  : "their birth chart"
+          } to this message. If the message references "this day", "that date", "วันนั้น", "วันที่เลือก", or similar, it means this attachment. A date or window written in the message itself still wins over the attachment.
+`
+        : ""
+}Message:
 ${payload.message}`,
             })
             extracted = extraction.object
         } catch {
             extracted = fallbackExtracted
         }
+
+        extracted = applyOriginContextOverride(
+            extracted,
+            payload.originContext ?? null,
+            currentDateIso,
+        )
 
         const otherPerson = detectOtherPersonIntent(
             extracted.mentionedPerson,

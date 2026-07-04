@@ -75,6 +75,8 @@
 }
 
 :root {
+  /* Width the desktop sidebar reserves; 0 below lg, set at lg+ (see @media). */
+  --app-sidebar-w: 0px;
   --background: oklch(0.02 0.01 275);
   /* Deep midnight background */
   --foreground: oklch(0.985 0 0);
@@ -196,6 +198,21 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Desktop collapsible sidebar (lg+): reserve space for the docked aside so
+   the navbar, page content, and any fixed element that uses var(--app-sidebar-w)
+   all line up beside it. Set on :root so it's available app-wide (the navbar is
+   not a descendant of the content wrapper). Default is expanded; the collapsed
+   attribute (set on <html> by the shell) narrows it. Below lg it stays 0
+   (the hamburger drawer is used instead). */
+@media (min-width: 1024px) {
+  :root {
+    --app-sidebar-w: 16rem;
+  }
+  [data-app-sidebar="collapsed"] {
+    --app-sidebar-w: 4rem;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -209,6 +226,28 @@
 
   body {
     background-color: var(--background);
+    /* Faint nebula clouds anchored to the corners — top-right pink/magenta
+       glow, bottom-right lavender. Mirrors the reference fortune-card
+       backdrop so the cosmic body reads as a single mood rather than a flat
+       black. Layered radial gradients overlay the base color. */
+    background-image:
+      radial-gradient(
+        60% 50% at 100% 0%,
+        rgba(190, 80, 160, 0.16) 0%,
+        rgba(190, 80, 160, 0) 70%
+      ),
+      radial-gradient(
+        60% 55% at 100% 100%,
+        rgba(140, 110, 220, 0.13) 0%,
+        rgba(140, 110, 220, 0) 70%
+      ),
+      radial-gradient(
+        70% 45% at 0% 100%,
+        rgba(70, 90, 200, 0.1) 0%,
+        rgba(70, 90, 200, 0) 70%
+      );
+    background-attachment: fixed;
+    background-repeat: no-repeat;
     color: var(--foreground);
     min-height: 100vh;
   }
@@ -1966,4 +2005,43 @@
     scrollbar-color: rgba(200, 180, 140, 0.4) transparent;
     scrollbar-width: thin;
   }
+}
+
+/* ----- /avatar feature animations ----- */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+@keyframes shuffleCard {
+  0% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-14px) rotate(4deg); }
+  100% { transform: translateY(0) rotate(-4deg); }
+}
+@keyframes cardFlip {
+  0% { transform: translateX(-50%) rotateY(90deg) scale(0.8); opacity: 0; }
+  60% { transform: translateX(-50%) rotateY(-8deg) scale(1.04); opacity: 1; }
+  100% { transform: translateX(-50%) rotateY(0deg) scale(1); opacity: 1; }
+}
+
+/* ----- /avatar coming-soon dialog effects ----- */
+@keyframes csShimmer {
+  0% { transform: translateX(-180%) skewX(-12deg); }
+  100% { transform: translateX(320%) skewX(-12deg); }
+}
+@keyframes csFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.45; }
+  50% { transform: translateY(-7px); opacity: 1; }
+}
+@keyframes csGradientText {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes csPopIn {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes csRingBurst {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
 }

@@ -21,7 +21,17 @@ export type CalendarDayOriginContext = {
     summary: string
 }
 
-export type OriginContext = BirthChartOriginContext | CalendarDayOriginContext
+export type TarotCardOriginContext = {
+    kind: "tarot-card"
+    label: string
+    slug: string
+    summary: string
+}
+
+export type OriginContext =
+    | BirthChartOriginContext
+    | CalendarDayOriginContext
+    | TarotCardOriginContext
 
 const MAX_SUMMARY_CHARS = 600
 const MAX_LABEL_CHARS = 120
@@ -45,6 +55,13 @@ export function isOriginContext(value: unknown): value is OriginContext {
             typeof v.isoDate === "string"
         )
     }
+    if (v.kind === "tarot-card") {
+        return (
+            typeof v.label === "string" &&
+            typeof v.summary === "string" &&
+            typeof v.slug === "string"
+        )
+    }
     return false
 }
 
@@ -57,11 +74,49 @@ export function normalizeOriginContext(value: unknown): OriginContext | null {
             summary: clamp(value.summary, MAX_SUMMARY_CHARS),
         }
     }
+    if (value.kind === "tarot-card") {
+        return {
+            kind: "tarot-card",
+            label: clamp(value.label, MAX_LABEL_CHARS),
+            slug: value.slug,
+            summary: clamp(value.summary, MAX_SUMMARY_CHARS),
+        }
+    }
     return {
         kind: "calendar-day",
         label: clamp(value.label, MAX_LABEL_CHARS),
         isoDate: value.isoDate,
         summary: clamp(value.summary, MAX_SUMMARY_CHARS),
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tarot card builder
+// ---------------------------------------------------------------------------
+
+/**
+ * Origin context for the tarot article page. The summary both describes the
+ * card and constrains the AI: this chat ONLY explains the card's meaning and
+ * must refuse to predict real-life events from it (those require a full
+ * reading / drawing cards).
+ */
+export function buildTarotCardOriginContext(input: {
+    name: string
+    slug: string
+    arcanaLabel: string
+    uprightLine: string
+    reversedLine: string
+}): TarotCardOriginContext {
+    const lines = [
+        `Tarot card in focus: ${input.name} (${input.arcanaLabel}). This chat ONLY explains this card — meaning, symbolism, upright/reversed nuance. Do NOT predict real-life events or outcomes from this single card. If the user asks you to foretell an event (e.g. "will my ex come back?"), say you can only explain the card here and invite them to start a full reading (draw cards) for situational guidance.`,
+        `Upright — ${input.uprightLine}`,
+        `Reversed — ${input.reversedLine}`,
+    ]
+    return {
+        kind: "tarot-card",
+        label: clamp(input.name, MAX_LABEL_CHARS),
+        slug: input.slug,
+        summary: clamp(lines.join("\n"), MAX_SUMMARY_CHARS),
     }
 }
 
@@ -225,6 +280,116 @@ export function buildCalendarDayOriginContext(
         isoDate,
         summary: clamp(lines.join("\n"), MAX_SUMMARY_CHARS),
     }
+}
+
+// ---------------------------------------------------------------------------
+// Context-strip strategy override (horoscope routing)
+// ---------------------------------------------------------------------------
+
+export type OriginContextStrategyOverride = {
+    replyStrategy: "daily" | "natal"
+    questionRange: {
+        startDateIso: string
+        endDateIso: string
+        durationDays: number
+        granularity: "hourly"
+    } | null
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * Deterministic strategy override for the composer's context strip. The
+ * extract LLM classifies from the message text alone, so a question with no
+ * time anchor ("how will my career be?") resolves to natal/general even when
+ * the user attached a calendar day. The attachment IS the missing anchor:
+ *
+ * - calendar-day context + no date in the question → daily verdict anchored
+ *   to the attached ISO date (transit + natal aspects for that day).
+ * - calendar-day context + a RELATIVE "today" reference ("วันนี้ / today /
+ *   tonight") → the resolved range comes back as the wall-clock today; in
+ *   this UI those words mean the ATTACHED day, so the single-day range is
+ *   re-anchored onto it. (An absolute date equal to today written out in
+ *   full would also re-anchor — attaching a different day while spelling
+ *   out today's date is a contradiction we resolve in the attachment's
+ *   favor.)
+ * - birth-chart context + no anchor → natal strategy (answer from the user's
+ *   natal placements immediately).
+ *
+ * Absolute dates/windows written in the question win otherwise, and
+ * planet-focused (technical) / "when will…" (timing) questions keep their
+ * strategy; the attachment never rewrites those.
+ */
+export function resolveOriginContextStrategyOverride({
+    originContext,
+    replyStrategy,
+    questionRange,
+    currentDateIso,
+}: {
+    originContext:
+        | { kind: string; isoDate?: string | null }
+        | null
+        | undefined
+    replyStrategy: string
+    questionRange:
+        | { startDateIso: string; endDateIso: string }
+        | null
+        | undefined
+    /** Wall-clock "today" (UTC, YYYY-MM-DD) the LLM resolved relative dates against. */
+    currentDateIso?: string | null
+}): OriginContextStrategyOverride | null {
+    if (!originContext) return null
+
+    if (originContext.kind === "calendar-day") {
+        const attachedIso =
+            typeof originContext.isoDate === "string" &&
+            ISO_DATE_RE.test(originContext.isoDate)
+                ? originContext.isoDate
+                : null
+        if (!attachedIso) return null
+
+        const dailyOnAttachedDay: OriginContextStrategyOverride = {
+            replyStrategy: "daily",
+            questionRange: {
+                startDateIso: attachedIso,
+                endDateIso: attachedIso,
+                durationDays: 1,
+                granularity: "hourly",
+            },
+        }
+
+        if (
+            !questionRange &&
+            (replyStrategy === "natal" ||
+                replyStrategy === "general" ||
+                replyStrategy === "daily")
+        ) {
+            return dailyOnAttachedDay
+        }
+
+        if (
+            questionRange &&
+            replyStrategy === "daily" &&
+            currentDateIso &&
+            questionRange.startDateIso === currentDateIso &&
+            questionRange.endDateIso === currentDateIso &&
+            attachedIso !== currentDateIso
+        ) {
+            return dailyOnAttachedDay
+        }
+
+        return null
+    }
+
+    if (
+        originContext.kind === "birth-chart" &&
+        !questionRange &&
+        replyStrategy === "general"
+    ) {
+        return { replyStrategy: "natal", questionRange: null }
+    }
+
+    return null
 }
 
 // ---------------------------------------------------------------------------

@@ -6,8 +6,10 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -116,28 +118,21 @@ YOU MUST AVOID:
 WHAT THE REFLECTION SHOULD DO:
 - give the user a felt ANSWER to what they asked, grounded in the active aspects
 - name the invisible pressure or pull beneath the surface and the inner shift underway
-- weave in exactly ONE short, real astrological reference (transit planet + the natal planet it touches) as the gentle "why", then translate it to feeling
+- ONLY IF an astrology_activities block is supplied: weave in exactly ONE short, real astrological reference (transit planet + the natal planet it touches) as the gentle "why", then translate it to feeling. If NO astrology context is supplied, do NOT mention any planet, transit, or aspect at all — never invent one.
 - treat ambiguity as a signal — when the message is vague, lean MORE on the astrology backdrop and intuition, not less
 - speak TO the user (using "you" / "khun"), not ABOUT them
+- NEVER invent observations, events, or behaviors the user did not report (no "the glances you keep noticing", no "the hesitation you've been reading in them"). You may name what moves inside THE USER; you may not fabricate facts about other people or the outside world.
+- DIRECT QUESTIONS: when the message is a direct yes/no, when, or should-I question, do not hide behind mist. Within the reflection, honestly name the direction their own knowing already leans — or say plainly that this question deserves a full reading (tarot or horoscope) for a real answer. Never imply an answer you have no basis for.
 
 OUTPUT FORMAT:
 You MUST return a single valid JSON object that exactly matches the provided schema. Do not add any text outside the JSON.
 `
 
-function detectQuestionLanguage(text: string): string {
-    if (/[຀-໿]/.test(text)) return "Lao"
-    if (/[฀-๿]/.test(text)) return "Thai"
-    if (/[぀-ヿ一-鿿]/.test(text)) return "Japanese"
-    if (/[가-힯]/.test(text)) return "Korean"
-    if (/[Ѐ-ӿ]/.test(text)) return "Russian"
-    return "English"
-}
-
 function buildPrompt(
     body: z.infer<typeof requestSchema>,
     astrologyBlock: string,
 ) {
-    const { question, isFollowUp, history, contextSummary } = body
+    const { question, isFollowUp, history, contextSummary, locale } = body
     const historyText =
         history && history.length
             ? history
@@ -151,20 +146,25 @@ function buildPrompt(
             ? `Session context (previous readings / interactions):\n${contextSummary.trim()}\n\n`
             : ""
 
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(locale, question)
     const astrologySection = astrologyBlock ? `${astrologyBlock}\n\n` : ""
 
     return `
-${contextBlock}${astrologySection}Recent conversation:
+${contextBlock}${astrologySection}Recent conversation (background only):
 ${historyText}
 
-User message:
+Current user message (ANSWER THIS):
 ${question}
 
 Is follow-up: ${isFollowUp ? "yes" : "no"}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of the conversation history.
+ANSWER TARGET: Answer the CURRENT user message above. The recent conversation and session context are background only — use them to understand what an ambiguous message refers to; never re-answer an older question from them.
 
-Read the message together with the astrology context above and write the inner-energy reflection now. ANSWER what they asked, basing the answer on the active astrology_activities aspects, and weave in exactly ONE short, real astrological reference (the transit planet + the natal planet it touches) as the "why", then translate it to feeling. Lean into intuition when the message is vague or no astrology is supplied.
+${
+        astrologyBlock
+            ? `Read the message together with the astrology context above and write the inner-energy reflection now. ANSWER what they asked, basing the answer on the active astrology_activities aspects, and weave in exactly ONE short, real astrological reference (the transit planet + the natal planet it touches) as the "why", then translate it to feeling.`
+            : `No astrology context is available for this user. Write the inner-energy reflection from intuition and the message alone — do NOT mention or invent any planet, transit, or aspect.`
+    }
 `
 }
 
@@ -186,9 +186,14 @@ export async function POST(req: Request) {
 
         const result = streamObject({
             model: MODEL,
+            // 'json' mode streams partial fields token-by-token; the default
+            // 'auto' often resolves to tool-call mode for DeepSeek, which
+            // buffers the whole object and makes the reply "pop in" at once.
+            mode: "json",
             schema: generalReplySchema,
             system: GENERAL_REPLY_SYSTEM_PROMPT,
             prompt: buildPrompt(body, astrologyContext?.promptBlock ?? ""),
+            providerOptions: deepseekThinking(false),
             onFinish: ({ object }) => {
                 const incoming = summarizePrivacyPlaceholdersInText(
                     body.question,

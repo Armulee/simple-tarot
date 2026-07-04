@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next"
 import { getPathname } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
+import { TAROT_ARTICLE_LOCALES, TAROT_CARDS } from "@/lib/tarot/cards"
 
 const host = "https://askingfate.com"
 
@@ -103,7 +104,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "monthly",
             priority: 0.6,
         }),
+        // Tarot guide hub
+        await withAlternates("/articles/tarot", {
+            changeFrequency: "monthly",
+            priority: 0.8,
+        }),
     ]
+
+    // Per-card meaning pages — both the upright (base) and reversed URLs, each
+    // with per-locale hreflang alternates.
+    for (const card of TAROT_CARDS) {
+        for (const href of [
+            `/articles/tarot/${card.slug}`,
+            `/articles/tarot/${card.slug}/reversed`,
+        ]) {
+            const languages: Record<string, string> = {}
+            for (const locale of TAROT_ARTICLE_LOCALES) {
+                languages[locale] = host + (await getPathname({ locale, href }))
+            }
+            entries.push({
+                url:
+                    host +
+                    (await getPathname({
+                        locale: routing.defaultLocale,
+                        href,
+                    })),
+                lastModified: currentDate,
+                changeFrequency: "monthly",
+                priority: 0.7,
+                alternates: { languages },
+            })
+        }
+    }
 
     return entries
 }

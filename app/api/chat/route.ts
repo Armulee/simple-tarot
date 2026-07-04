@@ -6,6 +6,8 @@ import {
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
 import { supabaseAdmin } from "@/lib/supabase"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
 const MODEL = "deepseek/deepseek-v4-flash"
 
@@ -18,6 +20,8 @@ chat
 draw
 horoscope
 support
+oracle
+synastry
 
 Definitions:
 
@@ -25,6 +29,7 @@ chat
 - general greetings (hi, hello)
 - technical definitions of astrology/tarot ("what is a trine?", "what is the 7th house?")
 - "Who are you?" or "What can you do?" (only if not asking for a feature; otherwise use support)
+- the user just wants to TALK / connect / vent / thank you / chit-chat, NOT a reading (set conversational: true — see CONVERSATIONAL CHAT below)
 - (DO NOT use chat for advice, strategy, or problem-solving; use 'draw' for those)
 
 draw
@@ -37,6 +42,22 @@ horoscope
 - timing questions
 - today / tomorrow / this month / this year
 - astrology timing
+- "show me my calendar", "calendar year", "year ahead", "yearly outlook", "ปฏิทินดวง", "ປະຕິທິນດວງ" → ALSO set horoscopeMode: "calendar" so the client renders the interactive calendar tool instead of a streamed reading
+
+oracle
+- mystical / symbolic / spiritual reflective questions that don't fit tarot, astrology, or numerology
+- "what does the spirit in my room want to tell me?", "what message does the universe have for me?", "what does my higher self want me to know?", "why do I keep seeing the same signs?", "what energy surrounds me right now?", "what lesson am I meant to learn?", "what message am I supposed to hear today?"
+- introspective questions about hidden meaning, signs, omens, dreams, intuition, "the universe", "the cosmos", "higher self", "soul lessons", "synchronicity", "destiny calling"
+- Use oracle when the question is clearly mystical/symbolic AND there is no time anchor (otherwise horoscope), no card/spread request (otherwise draw), no product question (otherwise support), and no purely factual/knowledge ask (otherwise chat). Oracle is the fallback for spiritual-but-not-mechanism questions.
+- DO NOT use oracle for: "what does the Tower card mean" (that's chat/knowledge), "is today a good day to start a business" (that's horoscope), "draw me a card" (that's draw).
+
+synastry
+- relationship COMPATIBILITY / how two SPECIFIC people relate — the asker vs one other person, OR two other specific people compared with each other: "are we compatible?", "will it work out with @Name?", "do my partner and I match?", "เราสองคนเข้ากันไหม", "ฉันกับ @คน จะไปกันรอดไหม", "ดวงเนื้อคู่", "@A กับ @B จะเป็นยังไงต่อ"
+- the people are SPECIFIC — named, @mentioned, a relationship word (partner, boyfriend, girlfriend, husband, wife, crush, แฟน, สามี, ภรรยา), or given by birth date — NOT a generic "will I find love" (that's draw) and NOT a solo timing question (that's horoscope)
+- @MENTIONS are saved people with real birth data. A question that COMPARES the asker with an @mentioned person ("@Name เข้ากับกูไหม", "will @Name and I work out"), or compares TWO @mentioned people with each other ("@A กับ @B ..."), IS synastry. But a question that @mentions ONE person and asks only ABOUT that person alone — their personality, traits, birth chart, or how they are doing, with NO comparison ("@Name เป็นคนยังไง", "what is @Name like", "@Name ดวงเป็นไง") — is NOT synastry; classify it by the question itself (usually draw).
+- set synastryPersonName to the other person's name/handle when one is present (e.g. the name inside an @mention); omit it when only a birth date is given
+- set synastryPersonBirthDate (day/month/year) when the question gives the other person's birth date (convert Buddhist Era years to Gregorian); omit when no date is given
+- DO NOT use synastry for: "will I find love?" (draw), "how is my love life this month?" (horoscope), "what does the Lovers card mean?" (chat)
 
 support
 - ANY question about the AskingFate WEBSITE / PRODUCT itself
@@ -104,6 +125,38 @@ Use it to detect follow-up questions:
 - If the user's message is clearly about a NEW, UNRELATED topic, classify normally and set isFollowUp to false.
 - Short vague questions like "really?", "who?", "how?", "why?", "tell me more" after a reading are almost always follow-ups — use the session context to determine which feature they relate to.
 
+HOROSCOPE "WHY" FOLLOW-UPS (explanation requests):
+
+When the previous reading was a HOROSCOPE (timing/daily/natal) and the user is now QUESTIONING or asking for the REASONING behind its recommendation — "why that date?", "why do you think that?", "ทำไมถึงเป็นวันนั้น", "why shouldn't I resign at the end of the month?", "ทำไมไม่ควรลาออกสิ้นเดือน", "what's wrong with next week?", "are you sure?" — do NOT classify as "horoscope" (that re-runs the reading and repeats the same verdict). Instead set:
+- type: "chat"
+- isFollowUp: true
+- horoscopeExplain: true
+- comparisonDateIso: when the user proposes an alternative time, resolve it to YYYY-MM-DD using the current date shown below — "สิ้นเดือน" / "end of the month" → the LAST day of the current month; "next week" / "สัปดาห์หน้า" → next Monday; "early October" → the 1st of that month. Omit when no alternative is proposed.
+Only justification/challenge questions take this path. A follow-up that asks for a NEW reading or window ("then read October for me", "อาทิตย์หน้าดวงเป็นยังไง") is still "horoscope".
+
+TAROT "WHY" FOLLOW-UPS (explanation requests):
+
+When the previous reading was a TAROT draw and the user is now QUESTIONING or asking for the REASONING behind it — "why did the cards say that?", "ทำไมไพ่ถึงบอกแบบนี้", "why do you think so?", "ทำไมถึงคิดแบบนั้น", "how did you conclude that?", "สรุปมาจากไหน", "explain why", "อธิบายหน่อยว่าทำไม", "are you sure about that?" — do NOT classify as "draw" (that does a new draw). Instead set:
+- type: "chat"
+- isFollowUp: true
+- tarotExplain: true
+The client streams a paragraph explaining the PREVIOUS reading from the cards already drawn. This path is ONLY for justification/challenge questions about the existing reading. A follow-up that wants MORE or NEW information ("who is it?", "is it a girl?", "tell me more", "what about my career?", "ดูเรื่องงานต่อ") is still "draw" (re-draw), NOT tarotExplain.
+
+CONVERSATIONAL CHAT (just talking, no reading wanted):
+
+Decide from the CURRENT message together with the conversation history whether the user is asking for an interpretation / prediction / reading / definition, or simply TALKING to you. When they are just talking — greetings, "I want to talk to you", "คุยกับเราหน่อย", venting or sharing a feeling with no question, "thank you / ขอบคุณ", reactions ("ok", "haha", "เข้าใจแล้ว"), or small talk about you ("who are you", "เหงาจัง อยากคุยด้วย") — set:
+- type: "chat"
+- conversational: true
+- isFollowUp: true when it continues the current thread, else false
+This makes the client answer gently in plain conversation (and reference the earlier conversation when they're referring back to it) instead of producing the mystical inner-energy reflection. NEVER attach a support block for these. If the message is actually seeking information, a definition, advice, a reading, a prediction, or a product feature, it is NOT conversational — classify it normally (and omit conversational).
+
+PAGE CONTEXT (attached context strip):
+
+The "Session context" may begin with "Page context (where the user started this chat):" — the user attached this from the /calendar page, the /birthchart page, or the inline calendar tool. Unless the user has locked a different mode:
+- If it contains "Selected day: ..." (an attached calendar day), the user is asking about THAT day. Classify life/fortune/outcome questions ("how will my career be", "ความรักจะเป็นยังไง") as "horoscope" — the attached day IS the timeframe even when the message itself has no date.
+- If it contains a birth chart ("Born ...", "Key placements: ..."), classify self/fortune questions as "horoscope" so the reading answers from their natal chart.
+- Page context never applies to product/support questions, tarot-card knowledge questions, or an explicit request to draw cards — classify those normally.
+
 Return JSON only:
 
 {
@@ -112,11 +165,19 @@ Return JSON only:
 "spreadType":"simple"|"general"|"detailed"|"expanded"|"celtic",
 "spreadReason":"short reason",
 "supportTopic":"pricing"|"contact"|"...",
-"supportCardSlug":"seven-of-cups"
+"supportCardSlug":"seven-of-cups",
+"horoscopeMode":"calendar",
+"horoscopeExplain":true|false,
+"comparisonDateIso":"2026-06-30",
+"tarotExplain":true|false,
+"conversational":true|false
 }
 
 If type is NOT "draw", omit spreadType and spreadReason.
 If type is NOT "support", omit supportTopic and supportCardSlug.
+Omit horoscopeExplain and comparisonDateIso unless this is a horoscope "why" follow-up (see the rule above); comparisonDateIso only when the user proposed an alternative time.
+Omit tarotExplain unless this is a tarot "why" follow-up (see the rule above).
+Omit conversational unless this is a conversational chat (just talking — see CONVERSATIONAL CHAT above).
 
 CRITICAL LANGUAGE RULE:
 Use the user's language to help classification accuracy.
@@ -140,15 +201,6 @@ async function getUserFromBearer(req: Request) {
     return user
 }
 
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
-
 /**
  * Maps the user-facing interpretation mode (set in the composer menu) to the
  * decision `type` (or list of allowed types). The "chat" mode is special: it
@@ -161,6 +213,7 @@ const MODE_TO_TYPE: Record<string, string | string[]> = {
     horoscope: "horoscope",
     chat: ["chat", "support"],
     support: "support",
+    synastry: "synastry",
 }
 
 function getChatDecisionPrompt({
@@ -172,6 +225,7 @@ function getChatDecisionPrompt({
     hasStoredBirthChart,
     isAuthenticated,
     planTier,
+    locale,
 }: {
     question: string
     history?: Array<{ role: "user" | "assistant"; text: string }>
@@ -181,6 +235,7 @@ function getChatDecisionPrompt({
     hasStoredBirthChart?: boolean
     isAuthenticated: boolean
     planTier?: "free" | "basic" | "pro"
+    locale?: string | null
 }) {
     const historyText =
         history && history.length
@@ -208,7 +263,7 @@ function getChatDecisionPrompt({
         modeInstruction = `\nThe user has locked the mode to "${forcedType}". You MUST set type to "${forcedType}". If the forced type is "draw", you must still choose the best spreadType and spreadReason. If the forced type is "support", you MUST set supportTopic (and supportCardSlug when the user is asking about a specific tarot card).\n`
     }
 
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(locale, question)
     const savedBirthBlock = savedBirthInfo
         ? `Saved birth profile: available (${savedBirthInfo}).`
         : "Saved birth profile: not available. If you choose horoscope, do not ask for birth date in the chat response; the app will collect or reuse birth data through the birth profile flow."
@@ -234,6 +289,7 @@ ${historyText}
 User message:
 ${question}
 ${modeInstruction}
+Current date (UTC): ${new Date().toISOString().slice(0, 10)} — use it to resolve relative dates (e.g. comparisonDateIso for "end of the month").
 ${savedBirthBlock}${storedChartBlock}${anonymousHoroscopeRule}${planTierRule}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history — only the current user message language matters.
 
@@ -275,6 +331,7 @@ export async function POST(req: Request) {
             interpretationMode?: string | null
             contextSummary?: string | null
             planTier?: "free" | "basic" | "pro"
+            locale?: string | null
         }
         try {
             body = await req.json()
@@ -291,6 +348,7 @@ export async function POST(req: Request) {
             savedBirthInfo,
             hasStoredBirthChart,
             planTier: rawPlanTier,
+            locale,
         } = body ?? {}
         const planTier =
             rawPlanTier === "basic" || rawPlanTier === "pro"
@@ -311,8 +369,16 @@ export async function POST(req: Request) {
             return new Response("User question is required", { status: 400 })
         }
 
+        // Only "auto" (no locked interpretation mode) needs the model to reason
+        // about which mode to route to. When the user has locked a mode the
+        // type is already forced, so skip thinking to keep classification fast.
+        const isAutoMode = !(
+            interpretationMode && MODE_TO_TYPE[interpretationMode]
+        )
+
         const result = streamObject({
             model: MODEL,
+            providerOptions: deepseekThinking(isAutoMode),
             schema: chatDecisionSchema,
             system: CHAT_DECISION_SYSTEM_PROMPT,
             prompt: getChatDecisionPrompt({
@@ -324,6 +390,7 @@ export async function POST(req: Request) {
                 hasStoredBirthChart: Boolean(hasStoredBirthChart),
                 isAuthenticated,
                 planTier,
+                locale,
             }),
         })
 

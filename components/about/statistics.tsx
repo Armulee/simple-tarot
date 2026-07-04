@@ -102,7 +102,7 @@ export default function StatisticsSection() {
             )
             .on(
                 "postgres_changes",
-                { event: "*", schema: "public", table: "tarot_readings" },
+                { event: "*", schema: "public", table: "chat_sessions" },
                 scheduleRefresh
             )
             .on(

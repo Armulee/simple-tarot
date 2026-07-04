@@ -8,6 +8,18 @@ import { LoopingTypewriterText } from "@/components/home/looping-typewriter-text
 import QuestionInput from "@/components/question-input"
 import Footer from "@/components/footer/footer"
 import HomeQuickCards from "@/components/home/home-quick-cards"
+import {
+    Dialog,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import {
+    CelestialIcon,
+    CornerAccents,
+    StarsDialog,
+} from "@/components/star-consent"
+import { LogIn } from "lucide-react"
 import { ConsultingBadge } from "@/components/consulting-badge"
 import {
     loadInterpretationModeFromStorage,
@@ -17,7 +29,7 @@ import {
 import { useStarConsent } from "@/components/star-consent"
 import {
     detectInputLanguage,
-    isSupportedLocale,
+    resolveSessionLocale,
 } from "@/lib/detect-input-language"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
 import {
@@ -36,12 +48,17 @@ import {
     saveComposerSuggestionsEnabledToStorage,
 } from "@/lib/composer-suggestions-storage"
 import type { HoroscopeBirthData } from "@/types/horoscope"
+import type { ChatAttachment } from "@/lib/chat/attachments"
 
 export default function Home() {
     const tHome = useTranslations("Home")
     const locale = useLocale()
     const router = useRouter()
-    const { user } = useAuth()
+    const { user, loading: authLoading } = useAuth()
+    const [authGate, setAuthGate] = useState<{
+        question: string
+        cardId: string
+    } | null>(null)
     const { ageGateState } = useStarConsent()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
@@ -52,6 +69,11 @@ export default function Home() {
     // first client render hydrates; read localStorage in useLayoutEffect below.
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>("auto")
+    // Avatar/chat toggle. Default "chat" on the home composer; switching to
+    // "avatar" routes the next question to /avatar/{ref} (handled in QuestionInput).
+    const [composerTarget, setComposerTarget] = useState<"avatar" | "chat">(
+        "chat",
+    )
     const inputContainerRef = useRef<HTMLDivElement>(null)
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
@@ -203,9 +225,13 @@ export default function Home() {
         }
     }
 
-    const createSessionAndRedirect = async (value: string) => {
+    const createSessionAndRedirect = async (
+        value: string,
+        attachments?: ChatAttachment[],
+    ) => {
         const trimmed = value.trim()
-        if (!trimmed || isLinking) return
+        const hasAttachments = Boolean(attachments?.length)
+        if ((!trimmed && !hasAttachments) || isLinking) return
         linkingRequestIdRef.current += 1
         const requestId = linkingRequestIdRef.current
         const pendingSessionId = createPendingSessionId()
@@ -217,14 +243,17 @@ export default function Home() {
         pendingSessionIdRef.current = pendingSessionId
         setQuestion("")
         setError(null)
-        setLinkingQuestion(trimmed)
+        setLinkingQuestion(trimmed || attachments?.[0]?.name || "")
         setIsLinking(true)
         try {
-            const sanitizeResult = await sanitizePromptOnClient(trimmed, {
-                sessionId: pendingSessionId,
-                locale,
-                signal: controller.signal,
-            })
+            // Nothing to sanitize for attachment-only sends (empty prompt).
+            const sanitizeResult = trimmed
+                ? await sanitizePromptOnClient(trimmed, {
+                      sessionId: pendingSessionId,
+                      locale,
+                      signal: controller.signal,
+                  })
+                : { sanitized: "", redacted: false, redactionTypes: [] }
             if (
                 requestId !== linkingRequestIdRef.current ||
                 controller.signal.aborted
@@ -232,6 +261,15 @@ export default function Home() {
                 return
             }
             const sanitizedQuestion = sanitizeResult.sanitized || trimmed
+            // The session record needs a non-empty question (topic/metadata);
+            // fall back to the attachment names. The message text itself stays
+            // empty so the chat renders previews only.
+            const questionForSession =
+                sanitizedQuestion ||
+                `📎 ${(attachments ?? [])
+                    .map((a) => a.name)
+                    .join(", ")
+                    .slice(0, 200)}`
             const userMessageId = `user-${Date.now()}`
             const privacyStorageKey = sanitizeResult.redacted
                 ? buildPrivacyStorageKey(userMessageId)
@@ -245,13 +283,14 @@ export default function Home() {
                 signal: controller.signal,
                 body: JSON.stringify({
                     id: pendingSessionId,
-                    question: sanitizedQuestion,
+                    question: questionForSession,
                     user_id: user?.id ?? null,
                     messages: [
                         {
                             id: userMessageId,
                             role: "user",
                             text: sanitizedQuestion,
+                            ...(hasAttachments ? { attachments } : {}),
                             ...(privacyStorageKey && {
                                 privacyStorageKey,
                                 privacyRedacted: true,
@@ -275,10 +314,7 @@ export default function Home() {
             linkingAbortControllerRef.current = null
             pendingSessionIdRef.current = null
             const detectedLocale = detectInputLanguage(trimmed)
-            const targetLocale =
-                detectedLocale && isSupportedLocale(detectedLocale)
-                    ? detectedLocale
-                    : locale
+            const targetLocale = resolveSessionLocale(detectedLocale, locale)
             try {
                 router.prefetch(`/${targetLocale}/${payload.id}`)
             } catch {}
@@ -303,31 +339,59 @@ export default function Home() {
         }
     }
 
-    const shouldShowHero = !isLinking
-    const shouldShowLearnMore = showLearnMore && !isLinking
-    const randomQuestionPool = useMemo(() => {
-        const prompts = tHome.raw("prompts")
-        const arr = Array.isArray(prompts)
-            ? (prompts as string[]).filter(
-                  (p): p is string => typeof p === "string",
-              )
-            : []
-        const tarotQ = tHome("quickCardQuestions.tarotCard")
-        const birthQ = tHome("quickCardQuestions.birthChart")
-        const horoQ = tHome("quickCardQuestions.horoscope")
-        return [...arr, tarotQ, birthQ, horoQ].filter(Boolean)
-    }, [tHome])
-
-    const pickRandomQuestion = () => {
-        if (randomQuestionPool.length === 0)
-            return tHome("quickCardQuestions.tarotCard")
-        return randomQuestionPool[
-            Math.floor(Math.random() * randomQuestionPool.length)
-        ]
+    // Feature chip clicks (excluding tarot) require an authenticated user.
+    // When the viewer is signed out we surface a sign-in gate and stash the
+    // prompt; after sign-in the autosend effect below replays it.
+    // Pressing a feature card is itself an explicit feature choice, so any
+    // locked interpretation mode must drop back to "auto" before the message is
+    // pushed into a new session. We persist to storage too because the new
+    // session hydrates its interpretation mode from there on bootstrap.
+    const resetInterpretationModeToAuto = () => {
+        setInterpretationMode("auto")
+        saveInterpretationModeToStorage("auto")
     }
 
+    const handleQuickCardClick = (question: string, cardId: string) => {
+        if (cardId !== "tarotCard" && !user) {
+            setAuthGate({ question, cardId })
+            return
+        }
+        resetInterpretationModeToAuto()
+        void createSessionAndRedirect(question)
+    }
+
+    // Pickup after sign-in: if we land back on home with ?autosend=<encoded>
+    // and the user is now authenticated, replay the prompt and clear the
+    // marker so a refresh doesn't re-fire.
+    const autosendFiredRef = useRef(false)
+    useEffect(() => {
+        if (typeof window === "undefined") return
+        if (authLoading) return
+        if (!user) return
+        if (autosendFiredRef.current) return
+        const params = new URLSearchParams(window.location.search)
+        const autosend = params.get("autosend")
+        if (!autosend) return
+        autosendFiredRef.current = true
+        params.delete("autosend")
+        const search = params.toString()
+        window.history.replaceState(
+            {},
+            "",
+            `${window.location.pathname}${search ? `?${search}` : ""}`,
+        )
+        // This replay only fires for a feature card stashed behind the sign-in
+        // gate, so drop any locked mode back to "auto" before pushing.
+        resetInterpretationModeToAuto()
+        void createSessionAndRedirect(autosend)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, authLoading])
+
+    const shouldShowHero = !isLinking
+    const shouldShowLearnMore = showLearnMore && !isLinking
+
     const handleGetStarted = () => {
-        createSessionAndRedirect(pickRandomQuestion())
+        createSessionAndRedirect(tHome("getStartedPrompt"))
     }
 
     const { heroPhrases, splitAtPerPhrase } = useMemo(() => {
@@ -419,7 +483,7 @@ export default function Home() {
 
             <div
                 ref={fixedBarRef}
-                className='fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
+                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
                 <QuestionInput
                     id='home-question-input'
@@ -432,6 +496,10 @@ export default function Home() {
                     className='w-full'
                     interpretationMode={interpretationMode}
                     onInterpretationModeChange={setInterpretationMode}
+                    enableCharacterMention
+                    composerTarget={composerTarget}
+                    onComposerTargetChange={setComposerTarget}
+                    avatarComingSoon
                     composerSettings={{
                         showAutoPick: true,
                         autoPickOn,
@@ -459,7 +527,7 @@ export default function Home() {
                                 </p>
                                 <HomeQuickCards
                                     embedded
-                                    onCardClick={createSessionAndRedirect}
+                                    onCardClick={handleQuickCardClick}
                                     disabled={isLinking}
                                 />
                             </div>
@@ -484,6 +552,66 @@ export default function Home() {
                     <Footer />
                 </div>
             </div>
+            <Dialog
+                open={authGate !== null}
+                onOpenChange={(open) => {
+                    if (!open) setAuthGate(null)
+                }}
+            >
+                <StarsDialog className='relative flex max-w-[480px] flex-col !overflow-hidden !rounded-[3px] !border-[0.5px] !border-[rgba(200,180,140,0.3)] !bg-[#13121f] !p-0 !shadow-none'>
+                    <div className='relative z-10 flex w-full flex-col'>
+                        <CornerAccents />
+
+                        <div className='relative shrink-0 border-b border-[rgba(200,180,140,0.1)] px-6 pb-5 pt-6'>
+                            <div className='mb-2 flex justify-center'>
+                                <CelestialIcon />
+                            </div>
+                            <p className='text-center font-serif text-[10px] font-normal uppercase tracking-[0.28em] text-[rgba(200,180,140,0.6)]'>
+                                {tHome("signInGate.eyebrow")}
+                            </p>
+                            <DialogHeader className='mt-1 text-center'>
+                                <DialogTitle className='font-serif text-[22px] font-medium leading-tight text-[#e8e0d0]'>
+                                    {tHome("signInGate.title")}
+                                </DialogTitle>
+                            </DialogHeader>
+                        </div>
+
+                        <div className='px-6 py-6'>
+                            <DialogDescription asChild>
+                                <p className='text-center text-[13px] leading-[1.78] font-light text-[rgba(232,224,208,0.62)]'>
+                                    {tHome("signInGate.description")}
+                                </p>
+                            </DialogDescription>
+                        </div>
+
+                        <footer className='relative shrink-0 border-t border-[rgba(200,180,140,0.1)] bg-[#13121f]/95 px-6 pb-5 pt-4 backdrop-blur-sm'>
+                            <div className='flex flex-col gap-2.5'>
+                                <button
+                                    type='button'
+                                    onClick={() => {
+                                        if (!authGate) return
+                                        const callback = `/?autosend=${encodeURIComponent(authGate.question)}`
+                                        router.push(
+                                            `/signin?callbackUrl=${encodeURIComponent(callback)}`,
+                                        )
+                                    }}
+                                    className='inline-flex w-full items-center justify-center gap-2 rounded-[2px] border-[0.5px] border-[rgba(200,180,140,0.55)] bg-transparent py-3.5 text-[11px] font-normal uppercase tracking-[0.18em] text-[rgba(232,224,208,0.88)] transition-all duration-300 hover:border-[rgba(200,180,140,0.8)] hover:bg-[rgba(200,180,140,0.07)] active:scale-[0.99]'
+                                >
+                                    <LogIn className='h-3.5 w-3.5' />
+                                    {tHome("signInGate.signIn")}
+                                </button>
+                                <button
+                                    type='button'
+                                    onClick={() => setAuthGate(null)}
+                                    className='w-full rounded-[2px] border-[0.5px] border-transparent py-2.5 text-[10.5px] font-normal uppercase tracking-[0.16em] text-[rgba(232,224,208,0.45)] transition-colors duration-200 hover:border-[rgba(200,180,140,0.15)] hover:bg-[rgba(200,180,140,0.04)] hover:text-[rgba(232,224,208,0.72)]'
+                                >
+                                    {tHome("signInGate.cancel")}
+                                </button>
+                            </div>
+                        </footer>
+                    </div>
+                </StarsDialog>
+            </Dialog>
         </div>
     )
 }

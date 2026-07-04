@@ -1,0 +1,3183 @@
+{
+  "Navbar": {
+    "brand": "AskingFate",
+    "home": "首页",
+    "about": "关于",
+    "pricing": "价格",
+    "newReading": "新的占卜",
+    "signIn": "登录"
+  },
+  "Beta": {
+    "notice": "我们正处于测试阶段！你可能会遇到一些问题，部分功能也仍在开发中。"
+  },
+  "PageContextComposer": {
+    "eyebrow": "情境",
+    "hint": "此情境信息将发送给 AI",
+    "error": "抱歉，出了点问题，请重试。",
+    "clear": "Clear context"
+  },
+  "Chat": {
+    "originContext": {
+      "attached": "已附加情境：{label}"
+    }
+  },
+  "StarConsent": {
+    "modal": {
+      "eyebrow": "在踏入你的命运之前",
+      "noticeHeading": "须知与同意",
+      "languageLabel": "语言",
+      "languageLoadingLabel": "正在加载翻译……",
+      "experienceSectionLabel": "关于这段体验",
+      "experienceBody": "Askingfate 将<b>塔罗牌</b>与<b>占星</b>（西方与吠陀）作为象征性的反思工具——而非精准的占卜——并不能取代专业建议。占卜结果可能<b>不符合</b>你的个人或宗教信念。",
+      "liabilitySectionLabel": "责任限制",
+      "liabilityBody": "本服务所生成的一切解读、占卜与占星分析，<b>仅供娱乐与个人自我反思之用</b>。在任何情况下，Askingfate 所产生的内容均不得被视为专业意见——无论是医疗、心理、财务、法律或其他方面——也不得被视为对你生活中任何重要事项的客观事实陈述、绝对真理或确定性判断。你明确知悉，任何在<b>未经独立核实、佐证依据或合资格专业人士指导</b>的情况下，依据、信赖或看重此类内容而作出的决定，完全由你自行承担风险并自负全责。本服务提供方及其关联方、管理人员、雇员与代理人，对因此类信赖而产生的任何损失、损害或不利后果——无论是直接、间接、附带、后果性或其他——<b>概不承担任何责任</b>。此外，本服务生成的内容<b>不得被援引、提交、作为证据出示，或以其他方式用于任何法律、司法、仲裁、行政或监管程序</b>，本服务提供方对任何此类企图概不负责。",
+      "religiousSectionLabel": "宗教与文化敏感性",
+      "religiousBody": "本服务采用塔罗占卜与占星方法，这些方法可能<b>与某些宗教教义、教会法、文化传统或灵性信仰体系不相容、相抵触，或被其明令禁止</b>。本服务提供方对本服务与任何特定信仰传统、教派、宗派或宗教团体的相容性<b>不作任何陈述或保证</b>。本服务提供方对你使用本服务而产生的任何后果概不负责，包括但不限于<b>被逐出教会、受教会谴责、宗教处罚、灵性制裁、丧失团体地位、宗教权威施加的纪律处分</b>，或因你参与而引致的任何其他不利结果。一经继续，即表示你知悉并完全承担责任，自行判断使用本服务是否符合你自身的宗教义务、灵性信念与社群规范。",
+      "ageSectionLabel": "年龄资格",
+      "ageBody": "本服务<b>不面向、亦不得被十三（13）岁以下儿童使用</b>。一经继续，即表示你声明并保证你已年满十三（13）岁。若你未满十八（18）岁，则你只可在父母或法定监护人参与、监督与同意的情况下使用本服务，本服务提供方亦可据此限制、过滤或保留某些功能、提示或回应。",
+      "safetySectionLabel": "敏感内容与审核",
+      "safetyBody": "本服务提供方尊重合法的言论自由；然而，本服务提供方保留全权<b>过滤、限制、拒绝或审核</b>涉及性内容、裸露、剥削、诱拐、虐待、自我伤害、自杀、饮食失调、物质滥用、犯罪行为、骚扰、仇恨行为、极端主义或血腥暴力的提示、回应或其他内容的权利。对于未满十八（18）岁的用户，审核标准将<b>明显更为严格</b>。特别是，当内容涉及性主题、露骨的身体描写、恋物、亲密行为、胁迫关系、成人与未成年人关系，或任何可能不安全、不适龄、具剥削性或非法的话题时，对未成年人的回应可能被省略、概括、净化或拒绝。本服务提供方亦可拒绝任何可能助长非法行为、利用脆弱处境，或危害未成年人身心或情感福祉的内容。",
+      "legalLinksLabel": "相关政策",
+      "privacyLink": "隐私政策",
+      "termsLink": "服务条款",
+      "consentScrollRegionLabel": "须知与同意文本",
+      "scrollToEndHint": "请滚动至底部以继续。",
+      "checkboxMain": "我已知悉免责声明及责任限制。",
+      "checkboxSub": "我理解此内容仅供娱乐与自我反思之用。",
+      "enterButton": "进入占卜"
+    },
+    "ageGate": {
+      "blockedTitle": "无法访问",
+      "blockedBody": "Askingfate 不向十三（13）岁以下的儿童开放。根据所提供的出生日期，此设备目前无法使用本平台。",
+      "blockedSupportLabel": "联系客服",
+      "blockedBirthLabel": "已记录的出生日期",
+      "gateTitle": "推算本命星盘",
+      "gateIntro": "在继续之前，请输入你的出生日期，若知道也请填写出生时间，以便我们推算你的本命星盘，并核实我们政策中规定的年龄限制。",
+      "gateTimeNote": "出生时间有助于提高本命星盘的精确度。若你不知道，可以保留 00:00，我们仍会用你的出生日期来执行年龄限制政策。",
+      "optionalTimeLabel": "出生时间（可选）",
+      "optionalTimeHint": "若你不知道时间，请保留 00:00。",
+      "optionalLocationLabel": "出生地点（可选）",
+      "optionalLocationHint": "选择你的国家与省/州，或允许定位检测自动填充，以提高星座运势的准确度。",
+      "detectLocationButton": "检测位置",
+      "detectLocationLoading": "检测中……",
+      "detectLocationError": "我们无法检测到你的位置。你可以手动选择，或不填写继续。",
+      "scrollHint": "滚动查看可选项",
+      "statusSummary": "我们使用你的出生信息来推算本命星盘，并判定你是被禁止使用（13 岁以下）、归类为未成年人（13-17 岁）还是成年人（18 岁及以上）。该状态将保存在本地，日后用于执行相应的政策保护措施。",
+      "invalidDateMessage": "请输入有效的出生日期。出生时间为可选，但日期为必填。",
+      "continueButton": "继续",
+      "dayLabel": "日",
+      "monthLabel": "月",
+      "yearLabel": "年",
+      "hourLabel": "时",
+      "minuteLabel": "分",
+      "deletingAccount": "因年龄限制，正在移除账户……",
+      "accountDeletedToast": "由于你未满 13 岁，你的账户已被移除。",
+      "accountDeletionFailedToast": "我们无法完成账户移除，请联系客服。"
+    },
+    "cookies": {
+      "bannerTitle": "Cookie 偏好设置",
+      "bannerDescription": "我们使用 Cookie 来改善你的体验并分析流量。",
+      "managePreferences": "管理偏好",
+      "closePreferencesMenu": "关闭偏好菜单",
+      "acceptAll": "全部接受",
+      "rejectAll": "全部拒绝",
+      "savePreferences": "保存偏好",
+      "preferencesTitle": "管理 Cookie 类别",
+      "preferencesDescription": "在你明确启用之前，非必要类别将保持关闭。",
+      "essentialTitle": "必要 Cookie",
+      "essentialDescription": "用于核心站点功能、安全会话以及匿名星星余额的连续性。",
+      "analyticsTitle": "分析 Cookie",
+      "analyticsDescription": "启用注重隐私的 Vercel Analytics，以便我们了解流量并改进产品。",
+      "marketingTitle": "营销 Cookie",
+      "marketingDescription": "为未来的营销活动或个性化工具预留。除非你选择启用，否则不会运行任何营销脚本。",
+      "alwaysOnLabel": "始终开启",
+      "learnMoreLabel": "在我们的隐私政策中了解更多"
+    }
+  },
+  "Admin": {
+    "title": "管理后台",
+    "subtitle": "来自 Askingfate 的实时指标",
+    "loading": "正在加载指标……",
+    "notFoundTitle": "404",
+    "notFoundDescription": "找不到此页面。",
+    "metricsError": "加载指标失败。",
+    "totalUsers": "用户总数",
+    "anonymousUsers": "匿名用户",
+    "authenticatedUsers": "已登录用户",
+    "interpretations": "解读次数",
+    "paidSubscribers": "付费订阅者"
+  },
+  "Sidebar": {
+    "services": "服务",
+    "comingSoon": "即将推出",
+    "privacyPolicy": "隐私政策",
+    "termsOfService": "服务条款",
+    "home": "首页",
+    "about": "关于",
+    "pricing": "价格",
+    "articles": "文章与指南",
+    "contactSupport": "联系与支持",
+    "planOptions": "套餐选项",
+    "proTopUpOnly": "Pro 订阅者可购买附加星星。",
+    "userMenu": "用户"
+  },
+  "Services": {
+    "tarot": "塔罗牌",
+    "birthChart": "本命星盘",
+    "astrology": "占星",
+    "namelogy": "姓名学",
+    "numerology": "数字命理",
+    "luckyColors": "幸运色",
+    "palmistry": "手相",
+    "fatedRelations": "缘分关系"
+  },
+  "Languages": {
+    "en": "English",
+    "th": "ไทย",
+    "lo": "ລາວ",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ja": "日本語",
+    "ko": "한국어",
+    "id": "Bahasa Indonesia",
+    "es": "Español",
+    "pt-BR": "Português (Brasil)",
+    "my": "မြန်မာ"
+  },
+  "Profile": {
+    "title": "个人资料设置",
+    "subtitle": "自定义你的个人信息与占卜偏好，让你的神秘之旅更加圆满",
+    "authRequired": "请登录以访问你的个人资料",
+    "loading": "正在加载个人资料……",
+    "profileInformation": "个人信息",
+    "fullName": "全名",
+    "fullNameRequired": "全名 *",
+    "fullNamePlaceholder": "请输入你的全名",
+    "gender": "性别",
+    "genderPlaceholder": "选择性别",
+    "genderOptions": {
+      "male": "男",
+      "female": "女",
+      "nonBinary": "非二元性别",
+      "preferNotToSay": "不愿透露"
+    },
+    "bio": "个人简介",
+    "bioPlaceholder": "介绍一下你自己……",
+    "occupation": "职业",
+    "occupationPlaceholder": "你的职业或工作",
+    "birthPlace": "出生地",
+    "birthPlacePlaceholder": "城市，国家",
+    "birthDate": "出生日期",
+    "birthDateRequired": "出生日期 *",
+    "birthDateRequiredError": "出生日期为必填。",
+    "under13Error": "你必须年满 13 岁。",
+    "birthTime": "出生时间",
+    "saveChanges": "保存更改",
+    "saving": "保存中……",
+    "profileUpdated": "个人资料更新成功！",
+    "updateFailed": "更新个人资料失败",
+    "signInRequired": "请登录以更新你的个人资料"
+  },
+  "Account": {
+    "title": "账户设置",
+    "subtitle": "管理你的账户信息、安全设置与偏好",
+    "authRequired": "请登录以访问账户设置",
+    "loading": "正在加载账户设置……",
+    "email": "邮箱",
+    "phone": "电话",
+    "authentication": "身份验证",
+    "password": "密码",
+    "accountDeletionLabel": "账户删除",
+    "emailSettings": {
+      "title": "邮箱",
+      "currentEmail": "当前邮箱",
+      "addEmail": "添加邮箱",
+      "editEmail": "编辑邮箱",
+      "verifyEmail": "验证邮箱",
+      "emailVerified": "邮箱已验证",
+      "emailNotVerified": "邮箱未验证",
+      "changeEmail": "更改邮箱",
+      "addNewEmail": "添加新邮箱",
+      "emailPlaceholder": "输入新的邮箱地址",
+      "cancel": "取消",
+      "save": "保存",
+      "verify": "验证",
+      "resendCode": "重新发送验证码",
+      "enterOtp": "输入验证码",
+      "otpPlaceholder": "输入 6 位验证码",
+      "otpSent": "验证码已发送至你的邮箱",
+      "otpExpired": "验证码已过期，请重新获取。",
+      "otpInvalid": "验证码无效，请重试。",
+      "otpSuccess": "邮箱验证成功！",
+      "otpFailed": "验证失败，请重试。",
+      "emailUpdated": "邮箱更新成功！",
+      "emailUpdateFailed": "更新邮箱失败",
+      "otpRequired": "请输入验证码",
+      "emailRequired": "请输入邮箱地址",
+      "invalidEmail": "请输入有效的邮箱地址"
+    },
+    "phoneSettings": {
+      "title": "电话",
+      "currentPhone": "当前电话",
+      "addPhone": "添加电话",
+      "editPhone": "编辑电话",
+      "verifyPhone": "验证电话",
+      "phoneVerified": "电话已验证",
+      "phoneNotVerified": "电话未验证",
+      "changePhone": "更改电话",
+      "addNewPhone": "添加新电话",
+      "phonePlaceholder": "输入电话号码",
+      "cancel": "取消",
+      "save": "保存",
+      "verify": "验证",
+      "resendCode": "重新发送验证码",
+      "enterOtp": "输入验证码",
+      "otpPlaceholder": "输入 6 位验证码",
+      "otpSent": "验证码已发送至你的手机",
+      "otpExpired": "验证码已过期，请重新获取。",
+      "otpInvalid": "验证码无效，请重试。",
+      "otpSuccess": "电话验证成功！",
+      "otpFailed": "验证失败，请重试。",
+      "phoneUpdated": "电话更新成功！",
+      "phoneUpdateFailed": "更新电话失败",
+      "otpRequired": "请输入验证码",
+      "phoneRequired": "请输入电话号码",
+      "invalidPhone": "请输入有效的电话号码"
+    },
+    "loginMethods": {
+      "title": "身份验证",
+      "activeProvider": "当前登录方式",
+      "availableMethods": "可用登录方式",
+      "emailPassword": "邮箱与密码",
+      "google": "Google",
+      "link": "关联",
+      "unlink": "解除关联",
+      "linking": "关联中……",
+      "unlinking": "解除关联中……",
+      "linkSuccess": "登录方式关联成功！",
+      "linkFailed": "关联登录方式失败",
+      "unlinkSuccess": "登录方式解除关联成功！",
+      "unlinkFailed": "解除关联登录方式失败",
+      "emailPasswordSetup": "邮箱与密码设置",
+      "emailPasswordDescription": "请使用下方的密码设置部分来设置你的邮箱与密码。",
+      "googleSignIn": "使用 Google 登录",
+      "googleSignInDescription": "关联你的 Google 账户以便轻松登录",
+      "googleUnlinkDescription": "解除关联你的 Google 账户",
+      "noteLabel": "提示：",
+      "note": "你可以为账户关联多种身份验证方式。你必须至少保留一种有效方式。请使用下方的密码设置部分来管理你的邮箱与密码凭据。"
+    },
+    "passwordSettings": {
+      "title": "密码",
+      "description": "更改你的密码以保障账户安全",
+      "currentPassword": "当前密码",
+      "currentPasswordPlaceholder": "输入当前密码",
+      "newPassword": "新密码",
+      "newPasswordPlaceholder": "输入新密码",
+      "confirmPassword": "确认密码",
+      "confirmPasswordPlaceholder": "确认新密码",
+      "changePassword": "更改密码",
+      "changing": "更改中……",
+      "passwordChanged": "密码更改成功！",
+      "passwordChangeFailed": "更改密码失败",
+      "currentPasswordRequired": "请输入当前密码",
+      "newPasswordRequired": "请输入新密码",
+      "confirmPasswordRequired": "请确认新密码",
+      "passwordsDoNotMatch": "两次输入的密码不一致",
+      "passwordTooShort": "密码至少需 6 个字符",
+      "currentPasswordIncorrect": "当前密码不正确"
+    },
+    "accountDeletion": {
+      "title": "账户删除",
+      "description": "永久删除你的账户及所有相关数据",
+      "warning": "此操作无法撤销。你的所有数据将被永久删除。",
+      "deleteAccount": "删除账户",
+      "confirmDeletion": "确认删除",
+      "typeToConfirm": "输入「DELETE」以确认",
+      "confirmPlaceholder": "输入 DELETE 以确认",
+      "deleting": "删除中……",
+      "accountDeleted": "账户删除成功！",
+      "deletionFailed": "删除账户失败",
+      "confirmationRequired": "请输入「DELETE」以确认",
+      "confirmationMismatch": "确认文本不匹配",
+      "cancel": "取消"
+    }
+  },
+  "Home": {
+    "hero": {
+      "line1": "向我询问关于",
+      "line2": "你命运的一切",
+      "rotatingPhrasesWhite": [
+        "步入",
+        "让塔罗",
+        "透过符号的语言获得",
+        "专属于你的",
+        "向",
+        "探寻",
+        "命运书写于",
+        "你的宇宙蓝图",
+        "天空有一则讯息",
+        "每日且个性化的",
+        "占星",
+        "探索你的",
+        "以星辰为本的"
+      ],
+      "rotatingPhrasesGradient": [
+        "牌阵之中。",
+        "为你揭示前路。",
+        "之中。",
+        "塔罗占卜。",
+        "牌发问。",
+        "牌中所藏的讯息。",
+        "星辰之间。",
+        "正在等待你。",
+        "为你而来。",
+        "星座运势。",
+        "洞见。",
+        "本命星盘。",
+        "指引。"
+      ]
+    },
+    "description": "你专属的 AI 命运占卜师",
+    "prompts": [
+      "我的前任会回来吗？",
+      "他还会想起我吗？",
+      "我该辞职吗？",
+      "我什么时候才能遇到真心的人？",
+      "为什么我总是爱上错的人？",
+      "今年会对我好转起来吗？"
+    ],
+    "astrologyFeature": {
+      "title1": "星辰流转",
+      "title2": "占星解读",
+      "tagline": "根据你的出生信息与今日星空，为你量身打造的星座运势解读。",
+      "instruction": "输入你的出生信息，将「流年」设为当下（或选择某个日期），可选填一个问题，然后点击「开始」生成你的星座运势。",
+      "cta": "开始你的占星解读"
+    },
+    "getStarted": "开始体验",
+    "tourInstruction": "在这里输入你想向命运提出的问题：",
+    "tourExamples": "例如「今天我需要听到的讯息是什么？」或「我该如何在事业上找到清晰的方向？」",
+    "learnMore": "了解更多",
+    "quickFeaturesLabel": "试试我们的功能",
+    "quickCards": {
+      "tarotCard": "塔罗牌",
+      "birthChart": "本命星盘",
+      "horoscope": "星座运势",
+      "calendarYear": "Cosmic Calendar"
+    },
+    "quickCardQuestions": {
+      "tarotCard": "为我抽一张塔罗牌",
+      "birthChart": "告诉我我的本命星盘",
+      "horoscope": "我今天的运势如何",
+      "calendarYear": "Show me my cosmic calendar"
+    },
+    "selectedCards": "你已选择 {selectedCount}/{cardsToSelect} 张牌",
+    "consulting": "占卜中",
+    "enterBirthDate": "请输入你的出生日期",
+    "streamStopped": "已停止回应",
+    "scrollToBottom": "滚动到底部",
+    "scrollToBottomAria": "滚动到对话底部",
+    "checkingStars": "正在查询你的星星余额……",
+    "disclaimer": "请勿盲目相信或依赖此解读。Askingfate 使用 AI，可能会出错。对于重要决定，请咨询合资格的专业人士。",
+    "readAloud": {
+      "play": "朗读",
+      "stop": "停止朗读",
+      "error": "无法生成音频。",
+      "insufficientStars": "星星不足。",
+      "starCost": "颗星星生成",
+      "confirmTitle": "生成语音",
+      "confirmDescription": "生成语音需消耗一颗星星。",
+      "doNotShowAgain": "不再显示",
+      "confirm": "生成",
+      "cancel": "取消"
+    },
+    "copyPrompt": "复制提示",
+    "copyPromptSuccess": "提示已复制到剪贴板",
+    "copyPromptFailed": "无法复制提示",
+    "copyPromptUnavailable": "此环境下无法复制",
+    "privacyRedactedNotice": "个人信息在处理前已被隐藏。",
+    "privacyRedactedPopoverTitle": "关于此提示",
+    "privacyRedactedPopoverIntro": "此消息中的敏感信息在发送到我们的服务器、保存或展示给 AI 之前已被移除或替换——因此私人数据不会被存入你的占卜历史。",
+    "privacyRedactedPopoverCriteria": {
+      "name": "姓名",
+      "email": "电子邮箱地址",
+      "phone": "电话号码",
+      "handle": "社交账号",
+      "address": "街道或邮寄地址"
+    },
+    "privacyRedactedReadGuide": "阅读完整指南",
+    "privacyHighlightedTooltipTitle": "AI 会如何看到这条消息",
+    "privacyHighlightedAriaLabel": "受保护的{type}：{value}",
+    "privacyHighlightedType": {
+      "person": "姓名",
+      "email": "邮箱",
+      "phone": "电话号码",
+      "handle": "账号",
+      "address": "地址",
+      "card": "银行卡",
+      "passport": "护照",
+      "national_id": "身份证"
+    },
+    "sanitizingPrompt": "净化中",
+    "horoscopeAuthGate": {
+      "intro": "这个问题透过你的<pill>星座运势</pill>来回答会更好。你需要先",
+      "introSignedIn": "这个问题最好透过你的<pill>星座运势</pill>来回答。",
+      "signInLabel": "登录",
+      "introSuffix": "才能继续。",
+      "fallback": "你也可以使用一张塔罗牌，但准确度会有所下降。",
+      "cardAriaLabel": "塔罗牌预览：{name}",
+      "deckCaption": "滑动牌堆，点选一张牌，再向上滑动挑出它——无需登录即可快速预览塔罗。",
+      "deckCaptionSignedIn": "滑动牌堆，点选一张牌，再向上滑动挑出它——快速预览塔罗。",
+      "deckSwipeHint": "点选一张牌，然后向上滑动选定它。",
+      "reversedMark": "（逆位）",
+      "pickedTeaser": "你选择了 {name}{reversedLabel}。在上方登录以获取你的星座运势。"
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
+    }
+  },
+  "ActionTrigger": {
+    "autoPickLabel": "自动抽牌",
+    "autoPickOn": "开",
+    "autoPickOff": "关",
+    "composerSuggestionsLabel": "建议回复",
+    "composerSuggestionsOn": "开",
+    "composerSuggestionsOff": "关",
+    "newBirthInfo": "新增出生信息",
+    "editBirthInfo": "编辑出生信息",
+    "birthInfo": "出生信息：{date}",
+    "chooseCardInstead": "改为选牌",
+    "location": "位置：{value}",
+    "locationUnknown": "当前位置",
+    "cancelIntake": "取消",
+    "birthTimeHelper": "也填上你的出生时间，可获得最准确的解读。",
+    "locationDialogTitle": "位置设置",
+    "locationDialogDescription": "选择你的国家与省/州。我们会据此优化你的星座运势所在地。",
+    "latitude": "纬度",
+    "longitude": "经度",
+    "saveLocation": "保存位置",
+    "shareAccess": "Share access"
+  },
+  "InterpretationMode": {
+    "auto": "自动",
+    "tarot": "塔罗牌",
+    "horoscope": "星座运势",
+    "chat": "聊天",
+    "horoscopeLoginRequired": "登录以使用星座运势",
+    "composerSettingsAriaLabel": "占卜设置",
+    "composerSettingsPanelTitle": "设置",
+    "composerSettingsSectionPreferences": "偏好",
+    "composerSettingsSectionActions": "操作",
+    "oracle": "Spiritual"
+  },
+  "About": {
+    "whatIs": "什么是",
+    "brand": "Askingfate？",
+    "tagline": "我们将历经时间考验的象征智慧与现代 AI 相结合，为你提供平和而实用、今天就能用上的指引。",
+    "learnMore": "在「关于」页面了解更多",
+    "requestDemo": "申请演示",
+    "askYourFate": "向你的命运发问",
+    "Services": {
+      "title": "我们的服务",
+      "subtitle": "神秘服务",
+      "description": "探索古老的占卜与自我探索之术",
+      "status": {
+        "available": "已上线",
+        "comingSoon": "即将推出"
+      },
+      "items": {
+        "tarot": {
+          "name": "AI 塔罗解读",
+          "description": "借助先进的 AI 技术，获得个性化的塔罗牌解读"
+        },
+        "birthChart": {
+          "name": "本命星盘分析",
+          "description": "透过详尽的占星本命星盘分析，发现你的宇宙蓝图"
+        },
+        "astrology": {
+          "name": "占星",
+          "description": "根据你的星座与行星运行，获得个性化的每日洞见"
+        },
+        "namelogy": {
+          "name": "姓名学",
+          "description": "透过古老的字母分析，揭示姓名背后隐藏的意义与振动"
+        },
+        "numerology": {
+          "name": "数字命理",
+          "description": "借助数字命理的智慧，解读数字在你生命中的神秘意义"
+        },
+        "luckyColors": {
+          "name": "幸运色",
+          "description": "发现专属于你的色彩调色板，带来幸运、成功与正能量"
+        },
+        "palmistry": {
+          "name": "手相",
+          "description": "借助古老的手相智慧，解读你掌中命运的纹路"
+        },
+        "fatedRelations": {
+          "name": "缘分关系",
+          "description": "发现你与所爱之人之间的宇宙连结与契合度"
+        }
+      }
+    },
+    "Roadmap": {
+      "title": "路线图",
+      "label": "开发路线图",
+      "description": "我们为你带来最全面神秘体验的旅程",
+      "progress": "进度",
+      "status": {
+        "completed": "已完成",
+        "inDevelopment": "开发中",
+        "planned": "已规划"
+      },
+      "phases": {
+        "completed": "已完成",
+        "may_2026": "2026 年 5 月",
+        "jul_2026": "2026 年 7 月",
+        "aug_2026": "2026 年 8 月",
+        "sep_2026": "2026 年 9 月",
+        "oct_2026": "2026 年 10 月",
+        "nov_2026": "2026 年 11 月",
+        "dec_2026": "2026 年 12 月"
+      },
+      "tarot": {
+        "title": "AI 塔罗解读",
+        "eta": "现已上线",
+        "features": [
+          "借助先进 AI 获得个性化塔罗牌解读",
+          "追问后续问题，获得更深层的洞见",
+          "随时保存并重温你的占卜"
+        ]
+      },
+      "birthChart": {
+        "title": "本命星盘",
+        "eta": "2026 年 5 月",
+        "features": [
+          "来自你个人本命星盘的概览数据",
+          "将行星位置与相位角度映射为你的优势",
+          "深入探索你的宇宙蓝图"
+        ]
+      },
+      "astrology": {
+        "title": "占星",
+        "eta": "2026 年 5 月",
+        "features": [
+          "根据你的出生信息与目标日期作出流年预测",
+          "个性化的行运解读",
+          "与 AI 对话，获得更深层的行运指引"
+        ]
+      },
+      "namelogy": {
+        "title": "姓名学",
+        "eta": "2026 年 7 月",
+        "features": [
+          "解读姓名中的振动",
+          "揭示灵性契合、优势与需留意之处",
+          "向 AI 询问姓名将如何影响你的人生道路"
+        ]
+      },
+      "numerology": {
+        "title": "数字命理",
+        "eta": "2026 年 8 月",
+        "features": [
+          "解读数字中的振动",
+          "凸显有助与具挑战性的数字模式",
+          "向 AI 询问与每个数字相关的结果"
+        ]
+      },
+      "luckyColors": {
+        "title": "幸运色",
+        "eta": "2026 年 9 月",
+        "features": [
+          "与行星守护相匹配的每日调色板",
+          "穿搭与工作空间建议",
+          "可在家尝试的季节性色彩仪式"
+        ]
+      },
+      "mobileApp": {
+        "title": "移动应用",
+        "eta": "2026 年 11 月",
+        "features": [
+          "原生 iOS 与 Android 上线体验",
+          "支持离线访问，随时随地获取你的占卜",
+          "带有每日牌卡与占星摘要的小组件"
+        ]
+      },
+      "fatedRelations": {
+        "title": "缘分关系",
+        "eta": "2026 年 10 月",
+        "features": [
+          "探索契合度与关系动态",
+          "剖析关系动态与共同潜能",
+          "向 AI 寻求关于这段连结的更深层指引"
+        ]
+      },
+      "palmistry": {
+        "title": "手相",
+        "eta": "2026 年 12 月",
+        "features": [
+          "基于摄像头的手相解读",
+          "解读关于运势、生命与命运的纹路",
+          "针对你掌纹所揭示的内容提出具体问题"
+        ]
+      },
+      "eta": "预计时间"
+    },
+    "Technology": {
+      "title": "技术与创新",
+      "label": "前沿技术",
+      "description": "由最新技术驱动，提供准确而富有意义的洞见",
+      "aiPowered": {
+        "title": "AI 驱动",
+        "desc": "先进的机器学习算法，提供个性化而准确的解读",
+        "features": [
+          "先进 AI",
+          "机器学习",
+          "自然语言处理"
+        ]
+      },
+      "securePrivate": {
+        "title": "安全与私密",
+        "desc": "端到端加密，确保你的个人数据与占卜内容保持机密",
+        "features": [
+          "端到端加密",
+          "隐私优先",
+          "安全存储"
+        ]
+      },
+      "globalAccess": {
+        "title": "全球访问",
+        "desc": "面向全球，提供多语言支持与文化适配",
+        "features": [
+          "全球访问",
+          "多语言",
+          "云端架构"
+        ]
+      }
+    },
+    "Testimonials": {
+      "title": "用户怎么说",
+      "label": "用户评价",
+      "description": "听听用户讲述他们的神秘之旅",
+      "autoPlay": {
+        "autoPlaying": "自动播放中",
+        "clickToAutoPlay": "点击自动播放"
+      },
+      "items": [
+        {
+          "quote": "我大多数早晨都会用它来确立一天的意图。它让我以更踏实的心情开始这一天。",
+          "author": "Yui",
+          "role": "早期用户",
+          "initial": "Y"
+        },
+        {
+          "quote": "这些反思感觉很均衡——有帮助而不咄咄逼人。它已成为一个让我把思绪理得更清晰的安静仪式。",
+          "author": "Daniel",
+          "role": "早期用户",
+          "initial": "D"
+        },
+        {
+          "quote": "我喜欢它直击重点。那些关键词让人很容易记住该专注于什么。",
+          "author": "Mina",
+          "role": "每日读者",
+          "initial": "M"
+        },
+        {
+          "quote": "出乎意料地令人平静。即使我并不完全认同，它也仍能让我在行动前停下来反思。",
+          "author": "Chris",
+          "role": "半信半疑却好奇",
+          "initial": "C"
+        },
+        {
+          "quote": "追问环节是我的最爱。感觉像一场真正的对话，帮我理清纷乱的思绪。",
+          "author": "Nok",
+          "role": "回访用户",
+          "initial": "N"
+        }
+      ]
+    },
+    "Statistics": {
+      "title": "快速统计",
+      "label": "我们的影响力",
+      "description": "反映我们对神秘卓越之追求的数字",
+      "growing": "实时数据",
+      "items": [
+        {
+          "key": "totalUsers",
+          "label": "玩家总数"
+        },
+        {
+          "key": "profiles",
+          "label": "注册用户"
+        },
+        {
+          "key": "interpretations",
+          "label": "AI 解读"
+        }
+      ]
+    },
+    "CTA": {
+      "title": "准备好开启你的旅程了吗？",
+      "label": "准备好了吗？",
+      "subheading": "你的旅程正在等待",
+      "desc": "加入成千上万透过我们 AI 驱动的神秘指引找到人生方向的用户。",
+      "primary": "开始你的占卜",
+      "secondary": "了解更多",
+      "features": {
+        "instantAccess": "即时访问",
+        "premiumQuality": "优质品质",
+        "mysticalExperience": "神秘体验"
+      }
+    }
+  },
+  "QuestionInput": {
+    "label": "你的问题",
+    "placeholder": "输入你的问题……",
+    "followUpSuggestionLabel": "建议的追问",
+    "dismissFollowUpStrip": "关闭建议与输入框快捷方式"
+  },
+  "Prompts": {
+    "title": "一些启发灵感的提示",
+    "label": "建议提示",
+    "show": "展开",
+    "hide": "收起",
+    "selectCategory": "选择一个类别",
+    "categories": {
+      "daily-life": {
+        "name": "日常生活",
+        "questions": [
+          "如何找到平衡？",
+          "该放下什么？",
+          "如何做出更好的决定？",
+          "宇宙给我的讯息？",
+          "今天该专注什么？",
+          "如何改善我的日常？",
+          "该改变哪些习惯？",
+          "如何更专注当下？"
+        ]
+      },
+      "work-career": {
+        "name": "工作与事业",
+        "questions": [
+          "现在该专注哪方面事业？",
+          "该抓住这个机会吗？",
+          "如何在岗位上更进一步？",
+          "该培养哪些技能？",
+          "是时候转行了吗？",
+          "如何改善职场关系？",
+          "什么在阻碍我的成长？",
+          "该自己创业吗？"
+        ]
+      },
+      "financial": {
+        "name": "财务",
+        "questions": [
+          "如何改善我的财务？",
+          "该进行这笔投资吗？",
+          "我的财务前景如何？",
+          "如何存更多钱？",
+          "现在是入手的好时机吗？",
+          "该设定哪些财务目标？",
+          "如何减少开支？",
+          "该改变投资策略吗？"
+        ]
+      },
+      "love-romance": {
+        "name": "爱情与浪漫",
+        "questions": [
+          "关于我的爱情生活？",
+          "这个人合适吗？",
+          "如何吸引对的伴侣？",
+          "该表白我的心意吗？",
+          "什么在阻碍我的爱情？",
+          "如何改善这段关系？",
+          "是时候放手了吗？",
+          "我在爱情中的未来？"
+        ]
+      },
+      "family": {
+        "name": "家庭",
+        "questions": [
+          "如何改善家庭关系？",
+          "家人需要什么？",
+          "如何化解家庭矛盾？",
+          "该进行这场难谈的对话吗？",
+          "我在家庭中的角色？",
+          "如何更好地支持家人？",
+          "该打破哪些家庭模式？",
+          "如何营造家庭和睦？"
+        ]
+      },
+      "friendship-relationships": {
+        "name": "友谊与人际",
+        "questions": [
+          "如何改善我的人际关系？",
+          "该结束这段友谊吗？",
+          "如何结交新朋友？",
+          "矛盾的根源是什么？",
+          "如何成为更好的朋友？",
+          "该信任这个人吗？",
+          "如何化解这场冲突？",
+          "该设定哪些界限？"
+        ]
+      },
+      "personal-growth": {
+        "name": "个人成长",
+        "questions": [
+          "什么在阻碍我的成长？",
+          "如何克服我的挑战？",
+          "我灵魂的使命是什么？",
+          "如何培养我的直觉？",
+          "该放下哪些信念？",
+          "如何建立更多自信？",
+          "我的灵性之路？",
+          "如何找到内心的平静？"
+        ]
+      }
+    }
+  },
+  "Footer": {
+    "copyright": "Askingfate, LLC. 版权所有。"
+  },
+  "AboutLegacy": {
+    "hero": {
+      "title1": "古老的智慧",
+      "title2": "邂逅现代 AI",
+      "subtitle": "看看我们如何将源远流长的塔罗传统与 AI 相融合，为你量身呈现个人的宇宙指引。"
+    },
+    "features": {
+      "ai": {
+        "title": "清晰的 AI 洞见",
+        "desc": "针对你的问题精心调校的用心解读"
+      },
+      "cosmic": {
+        "title": "专注的体验",
+        "desc": "一处安静的空间，供你阅读、反思并保存重要之事"
+      },
+      "personal": {
+        "title": "为你而设计",
+        "desc": "为日常抉择与温和的反思而打造"
+      }
+    },
+    "story": {
+      "title": "我们为何打造这个产品",
+      "p1": "Askingfate 始于一个想法：提供一个平和、可信赖的空间，让你停下来、把思绪理清。没有喧嚣——只有一段简短的占卜与一则反思的提示。",
+      "p2": "我们让它保持简单实用，并与早期用户一起每周迭代改进。如果它能帮你做出一个更好的决定，那便是成功。"
+    },
+    "mission": {
+      "title": "我们的使命",
+      "p": "透过始终平和、清晰且真正实用的工具，帮助人们停下脚步、反思，并以更多的用心去做日常的决定。"
+    },
+    "vision": {
+      "title": "我们的愿景",
+      "p": "成为用心抉择路上值得信赖的伙伴：人人都能轻松使用，并始终尊重隐私。"
+    },
+    "valuesSection": {
+      "title": "我们的价值观",
+      "privacyFirst": {
+        "title": "隐私优先",
+        "desc": "你的问题与占卜内容保持私密。我们绝不出售数据。"
+      },
+      "clarity": {
+        "title": "清晰胜于浮夸",
+        "desc": "简短、平实易懂、可立即付诸行动的解读。"
+      },
+      "inclusive": {
+        "title": "天生包容",
+        "desc": "无论新手还是行家都受用；欢迎不同背景与信仰的人。"
+      }
+    },
+    "quickStatsSection": {
+      "title": "快速统计",
+      "users": "早期用户",
+      "cards": "已抽出的牌",
+      "updates": "每周更新",
+      "availability": "现已上线"
+    },
+    "pressSection": {
+      "title": "媒体、合作或咨询",
+      "desc": "我们仍处于早期阶段，欢迎深思熟虑的合作。如需简短的演示或更多详情，欢迎联系我们。",
+      "primary": "申请演示",
+      "secondary": "联系我们"
+    },
+    "aiSection": {
+      "title": "运作原理",
+      "p1": "你提出一个问题。我们抽出一张牌，并根据传统牌义、以清晰为本，为你撰写一段简洁的解读。",
+      "p2": "这是供你参考的指引，而非定论。每一个决定，依然由你掌控。"
+    },
+    "values": {
+      "respectfulTradition": {
+        "title": "尊重传统",
+        "description": "我们尊重塔罗的神圣渊源，同时让现代的寻道者也能亲近它。"
+      },
+      "personalizedGuidance": {
+        "title": "个性化指引",
+        "description": "每次占卜都各不相同，因为它由你的问题与生活情境所塑造。"
+      },
+      "inclusiveCommunity": {
+        "title": "包容的社群",
+        "description": "我们欢迎来自各种背景与信仰的寻道者，营造一个安全的探索空间。"
+      }
+    },
+    "cta": {
+      "title": "准备好开始了吗？",
+      "desc": "我们刚刚上线——加入早期用户，一同探索平和、清晰而实用的指引。",
+      "primary": "开始你的第一次占卜",
+      "secondary": "了解更多"
+    }
+  },
+  "Demo": {
+    "hero": {
+      "title": "申请演示",
+      "subtitle": "观看一段简短的演示，并体验一个简单的互动预览。"
+    },
+    "links": {
+      "about": "了解产品",
+      "tryReading": "立即试一次占卜"
+    },
+    "preview": {
+      "title": "互动预览",
+      "subtitle": "提一个简单的问题，看看示例牌卡与提示",
+      "shuffle": "洗牌",
+      "questionLabel": "你的问题",
+      "questionPlaceholder": "输入一个简短的问题……",
+      "cardLabel": "牌卡"
+    },
+    "form": {
+      "name": "姓名",
+      "namePlaceholder": "你的姓名",
+      "email": "邮箱",
+      "emailPlaceholder": "you@example.com",
+      "teamSize": "团队规模（可选）",
+      "teamSizePlaceholder": "仅我一人、2-10 人、10 人以上",
+      "goals": "你想了解什么？",
+      "goalsPlaceholder": "例如：保存占卜、团队共享、API",
+      "notes": "备注（可选）",
+      "notesPlaceholder": "有任何具体问题或背景信息吗？",
+      "submit": "申请演示",
+      "submitting": "正在安排……",
+      "footer": "我们将在 1–2 个工作日内通过邮件与你联系。"
+    }
+  },
+  "PrivacyPolicy": {
+    "title": "隐私政策",
+    "lastUpdated": "最后更新"
+  },
+  "TermsOfService": {
+    "title": "服务条款",
+    "backToHome": "返回首页",
+    "lastUpdated": "最后更新"
+  },
+  "Reading": {
+    "types": {
+      "simple": {
+        "title": "简易占卜",
+        "description": "即时清晰、每日能量、简单答案"
+      },
+      "general": {
+        "title": "综合占卜",
+        "description": "理解局势的流动与走向"
+      },
+      "detailed": {
+        "title": "详细提问",
+        "description": "决策、解决问题"
+      },
+      "expanded": {
+        "title": "深入详解",
+        "description": "关系、事业道路、层层叠加的影响"
+      },
+      "celtic": {
+        "title": "凯尔特十字",
+        "description": "深层人生处境、难以回避的模式"
+      }
+    }
+  },
+  "BirthChart": {
+    "title": "解读你的",
+    "subtitle": "宇宙蓝图",
+    "description": "输入你的出生日期、时间与地点。我们将自动检测你的时区与当前位置，帮助你生成精准的本命星盘。",
+    "pageTitle": "你的本命星盘",
+    "planetaryStrengths": "行星强度",
+    "yourHouses": "你的宫位",
+    "planetaryPositions": "行星位置",
+    "birthDetailsTitle": "出生信息",
+    "birthDateLabel": "出生日期",
+    "birthTimeLabel": "出生时间",
+    "planetarySectionLabel": "行星",
+    "lifeAreasSectionLabel": "生活领域",
+    "transitDetailsTitle": "行运信息",
+    "transitDateLabel": "行运日期",
+    "shareTitle": "分享你的本命星盘",
+    "shareDescription": "与朋友分享你的宇宙蓝图",
+    "questionLabel": "询问关于你星盘的问题",
+    "questionPlaceholder": "询问爱情、事业、性格……",
+    "composerPlaceholder": "询问任何关于你星盘的问题……",
+    "composerContextLabel": "你的本命星盘",
+    "disclaimer": "本命星盘解读仅供娱乐之用。所提供的解读由 AI 生成，不应被视为专业建议。请勿盲目相信或依赖。请将其视为一种视角，并留意解读可能并不准确。对于重要的人生决定，请务必咨询合资格的专业人士。",
+    "authRequired": "请登录以查看你的本命星盘",
+    "loadingChart": "正在加载你的本命星盘……",
+    "computingChart": "正在从星辰中推算你的星盘……",
+    "computeFailed": "我们无法生成你的本命星盘，请重试。",
+    "computeFailedTitle": "无法生成你的星盘",
+    "retry": "重试",
+    "needsBirthInfoTitle": "告诉我们你出生的时间与地点",
+    "needsBirthInfoDescription": "我们会将其保存到你的个人资料，并推算你专属的本命星盘。",
+    "birthPlaceLabel": "出生地",
+    "selectDate": "选择日期",
+    "selectTimeOptional": "选择时间（可选）",
+    "selectPlace": "选择国家与省/州",
+    "optional": "可选",
+    "back": "返回",
+    "backToCountries": "返回国家列表",
+    "searchCountry": "搜索国家……",
+    "searchState": "搜索省/州……",
+    "noResults": "无匹配结果",
+    "saveAndGenerate": "保存并生成我的星盘",
+    "savingAndGenerating": "保存中……",
+    "saveFailed": "无法保存你的出生信息，请重试。",
+    "stats": {
+      "archetypes": {
+        "Sun": "领导力",
+        "Moon": "情感",
+        "Mars": "动力",
+        "Mercury": "智识",
+        "Jupiter": "智慧",
+        "Venus": "爱情",
+        "Saturn": "纪律",
+        "Rahu": "野心",
+        "Ketu": "灵性"
+      },
+      "descriptions": {
+        "Sun": "灵魂、自我、活力、权威",
+        "Moon": "心智、安适、直觉、平静",
+        "Mars": "能量、行动、勇气、兄弟姐妹",
+        "Mercury": "言语、商业、逻辑、贸易",
+        "Jupiter": "财富、成长、导师、好运",
+        "Venus": "美丽、奢华、欲望、艺术",
+        "Saturn": "业力、延迟、辛劳、结构",
+        "Rahu": "执念、创新、幻象、异域",
+        "Ketu": "超脱、解脱、过去、神秘"
+      },
+      "status": {
+        "exalted": "庙旺",
+        "ownSign": "入庙",
+        "debilitated": "落陷",
+        "normal": "正常",
+        "retrograde": "逆行"
+      }
+    },
+    "planets": {
+      "Sun": "太阳",
+      "Moon": "月亮",
+      "Mars": "火星",
+      "Mercury": "水星",
+      "Jupiter": "木星",
+      "Venus": "金星",
+      "Saturn": "土星",
+      "Rahu": "罗睺（北交点）",
+      "Ketu": "计都（南交点）",
+      "Uranus": "天王星",
+      "Neptune": "海王星",
+      "Pluto": "冥王星",
+      "Ascendant": "上升点"
+    },
+    "in": "位于",
+    "house": "宫",
+    "houseRuler": "宫主星",
+    "zodiacSigns": {
+      "Aries": "白羊座",
+      "Taurus": "金牛座",
+      "Gemini": "双子座",
+      "Cancer": "巨蟹座",
+      "Leo": "狮子座",
+      "Virgo": "处女座",
+      "Libra": "天秤座",
+      "Scorpio": "天蝎座",
+      "Sagittarius": "射手座",
+      "Capricorn": "摩羯座",
+      "Aquarius": "水瓶座",
+      "Pisces": "双鱼座"
+    },
+    "systemWestern": "西方占星（回归制）",
+    "systemVedic": "吠陀占星（恒星制）",
+    "tabBirthChart": "本命星盘",
+    "tabTransitChart": "行运星盘",
+    "loading": "加载中……",
+    "houseMeanings": {
+      "1": "自我与身份",
+      "2": "金钱与财产",
+      "3": "沟通与兄弟姐妹",
+      "4": "家庭与亲情",
+      "5": "创造与浪漫",
+      "6": "健康与日常",
+      "7": "伴侣与婚姻",
+      "8": "转化与神秘",
+      "9": "哲学与远行",
+      "10": "事业与声望",
+      "11": "朋友与收获",
+      "12": "潜意识与独处"
+    },
+    "houseDescriptions": {
+      "1": "此宫代表你的外在性格、外貌，以及你面对人生的方式。",
+      "2": "此宫掌管你的个人财务、物质财产与自我价值感。",
+      "3": "此宫主管沟通、智识、早期教育、兄弟姐妹与短途出行。",
+      "4": "此宫象征你的家庭、根源、亲情、母亲与情感根基。",
+      "5": "此宫涵盖自我表达、创造力、浪漫、子女与欢乐。",
+      "6": "此宫关乎日常工作、健康、服务与自我提升。",
+      "7": "此宫聚焦于认真的伴侣关系、婚姻、商业合约与公开的对手。",
+      "8": "此宫涉及转化、死亡、重生、共有资源与神秘学。",
+      "9": "此宫掌管高等教育、哲学、宗教、长途旅行与法律。",
+      "10": "此宫代表你的事业、公众形象、声望、父亲与权威人物。",
+      "11": "此宫主管友谊、社交群体、希望、愿望与人道关怀。",
+      "12": "此宫涵盖潜意识、秘密、隐藏的敌人、机构与业力。"
+    },
+    "planetInHouse": {
+      "Sun": {
+        "1": "你的身份与自我表达与「自我与身份」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "2": "你的身份与自我表达与「资源与价值观」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "3": "你的身份与自我表达与「沟通与学习」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "4": "你的身份与自我表达与「家庭与根基」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "5": "你的身份与自我表达与「创造与浪漫」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "6": "你的身份与自我表达与「服务与日常」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "7": "你的身份与自我表达与「伴侣关系」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "8": "你的身份与自我表达与「转化与深层」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "9": "你的身份与自我表达与「哲学与扩展」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "10": "你的身份与自我表达与「事业与声望」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "11": "你的身份与自我表达与「友谊与愿景」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。",
+        "12": "你的身份与自我表达与「潜意识与隐秘事物」紧密相连。你透过这一领域散发光芒，自信与活力也由此而来。"
+      },
+      "Moon": {
+        "1": "你的情感与「自我与身份」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "2": "你的情感与「资源与价值观」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "3": "你的情感与「沟通与学习」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "4": "你的情感与「家庭与根基」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "5": "你的情感与「创造与浪漫」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "6": "你的情感与「服务与日常」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "7": "你的情感与「伴侣关系」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "8": "你的情感与「转化与深层」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "9": "你的情感与「哲学与扩展」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "10": "你的情感与「事业与声望」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "11": "你的情感与「友谊与愿景」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。",
+        "12": "你的情感与「潜意识与隐秘事物」深深相连。你在这一领域中寻得安全感，内心的需要也由此显现。"
+      },
+      "Mercury": {
+        "1": "你的思维与沟通聚焦于「自我与身份」。你透过这一领域来表达想法、交流与思考。",
+        "2": "你的思维与沟通聚焦于「资源与价值观」。你透过这一领域来表达想法、交流与思考。",
+        "3": "你的思维与沟通聚焦于「沟通与学习」。你透过这一领域来表达想法、交流与思考。",
+        "4": "你的思维与沟通聚焦于「家庭与根基」。你透过这一领域来表达想法、交流与思考。",
+        "5": "你的思维与沟通聚焦于「创造与浪漫」。你透过这一领域来表达想法、交流与思考。",
+        "6": "你的思维与沟通聚焦于「服务与日常」。你透过这一领域来表达想法、交流与思考。",
+        "7": "你的思维与沟通聚焦于「伴侣关系」。你透过这一领域来表达想法、交流与思考。",
+        "8": "你的思维与沟通聚焦于「转化与深层」。你透过这一领域来表达想法、交流与思考。",
+        "9": "你的思维与沟通聚焦于「哲学与扩展」。你透过这一领域来表达想法、交流与思考。",
+        "10": "你的思维与沟通聚焦于「事业与声望」。你透过这一领域来表达想法、交流与思考。",
+        "11": "你的思维与沟通聚焦于「友谊与愿景」。你透过这一领域来表达想法、交流与思考。",
+        "12": "你的思维与沟通聚焦于「潜意识与隐秘事物」。你透过这一领域来表达想法、交流与思考。"
+      },
+      "Venus": {
+        "1": "你的价值观与爱的方式体现在「自我与身份」上。你在这一领域中感受美，也透过它去爱。",
+        "2": "你的价值观与爱的方式体现在「资源与价值观」上。你在这一领域中感受美，也透过它去爱。",
+        "3": "你的价值观与爱的方式体现在「沟通与学习」上。你在这一领域中感受美，也透过它去爱。",
+        "4": "你的价值观与爱的方式体现在「家庭与根基」上。你在这一领域中感受美，也透过它去爱。",
+        "5": "你的价值观与爱的方式体现在「创造与浪漫」上。你在这一领域中感受美，也透过它去爱。",
+        "6": "你的价值观与爱的方式体现在「服务与日常」上。你在这一领域中感受美，也透过它去爱。",
+        "7": "你的价值观与爱的方式体现在「伴侣关系」上。你在这一领域中感受美，也透过它去爱。",
+        "8": "你的价值观与爱的方式体现在「转化与深层」上。你在这一领域中感受美，也透过它去爱。",
+        "9": "你的价值观与爱的方式体现在「哲学与扩展」上。你在这一领域中感受美，也透过它去爱。",
+        "10": "你的价值观与爱的方式体现在「事业与声望」上。你在这一领域中感受美，也透过它去爱。",
+        "11": "你的价值观与爱的方式体现在「友谊与愿景」上。你在这一领域中感受美，也透过它去爱。",
+        "12": "你的价值观与爱的方式体现在「潜意识与隐秘事物」上。你在这一领域中感受美，也透过它去爱。"
+      },
+      "Mars": {
+        "1": "你的能量与行动力指向「自我与身份」。你在这一领域里采取行动，也被它所驱动。",
+        "2": "你的能量与行动力指向「资源与价值观」。你在这一领域里采取行动，也被它所驱动。",
+        "3": "你的能量与行动力指向「沟通与学习」。你在这一领域里采取行动，也被它所驱动。",
+        "4": "你的能量与行动力指向「家庭与根基」。你在这一领域里采取行动，也被它所驱动。",
+        "5": "你的能量与行动力指向「创造与浪漫」。你在这一领域里采取行动，也被它所驱动。",
+        "6": "你的能量与行动力指向「服务与日常」。你在这一领域里采取行动，也被它所驱动。",
+        "7": "你的能量与行动力指向「伴侣关系」。你在这一领域里采取行动，也被它所驱动。",
+        "8": "你的能量与行动力指向「转化与深层」。你在这一领域里采取行动，也被它所驱动。",
+        "9": "你的能量与行动力指向「哲学与扩展」。你在这一领域里采取行动，也被它所驱动。",
+        "10": "你的能量与行动力指向「事业与声望」。你在这一领域里采取行动，也被它所驱动。",
+        "11": "你的能量与行动力指向「友谊与愿景」。你在这一领域里采取行动，也被它所驱动。",
+        "12": "你的能量与行动力指向「潜意识与隐秘事物」。你在这一领域里采取行动，也被它所驱动。"
+      },
+      "Jupiter": {
+        "1": "你的成长与扩展来自「自我与身份」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "2": "你的成长与扩展来自「资源与价值观」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "3": "你的成长与扩展来自「沟通与学习」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "4": "你的成长与扩展来自「家庭与根基」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "5": "你的成长与扩展来自「创造与浪漫」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "6": "你的成长与扩展来自「服务与日常」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "7": "你的成长与扩展来自「伴侣关系」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "8": "你的成长与扩展来自「转化与深层」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "9": "你的成长与扩展来自「哲学与扩展」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "10": "你的成长与扩展来自「事业与声望」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "11": "你的成长与扩展来自「友谊与愿景」。你在这一领域里乐观开阔，也常在此遇见幸运。",
+        "12": "你的成长与扩展来自「潜意识与隐秘事物」。你在这一领域里乐观开阔，也常在此遇见幸运。"
+      },
+      "Saturn": {
+        "1": "你的考验与纪律集中在「自我与身份」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "2": "你的考验与纪律集中在「资源与价值观」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "3": "你的考验与纪律集中在「沟通与学习」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "4": "你的考验与纪律集中在「家庭与根基」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "5": "你的考验与纪律集中在「创造与浪漫」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "6": "你的考验与纪律集中在「服务与日常」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "7": "你的考验与纪律集中在「伴侣关系」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "8": "你的考验与纪律集中在「转化与深层」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "9": "你的考验与纪律集中在「哲学与扩展」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "10": "你的考验与纪律集中在「事业与声望」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "11": "你的考验与纪律集中在「友谊与愿景」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。",
+        "12": "你的考验与纪律集中在「潜意识与隐秘事物」。你透过自律在这一领域稳步建立，也可能在此感到约束与责任。"
+      },
+      "Rahu": {
+        "1": "你的渴望与执着与「自我与身份」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "2": "你的渴望与执着与「资源与价值观」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "3": "你的渴望与执着与「沟通与学习」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "4": "你的渴望与执着与「家庭与根基」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "5": "你的渴望与执着与「创造与浪漫」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "6": "你的渴望与执着与「服务与日常」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "7": "你的渴望与执着与「伴侣关系」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "8": "你的渴望与执着与「转化与深层」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "9": "你的渴望与执着与「哲学与扩展」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "10": "你的渴望与执着与「事业与声望」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "11": "你的渴望与执着与「友谊与愿景」有关。你被这一领域强烈吸引，野心也由此而生。",
+        "12": "你的渴望与执着与「潜意识与隐秘事物」有关。你被这一领域强烈吸引，野心也由此而生。"
+      },
+      "Ketu": {
+        "1": "你正在放下对「自我与身份」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "2": "你正在放下对「资源与价值观」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "3": "你正在放下对「沟通与学习」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "4": "你正在放下对「家庭与根基」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "5": "你正在放下对「创造与浪漫」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "6": "你正在放下对「服务与日常」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "7": "你正在放下对「伴侣关系」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "8": "你正在放下对「转化与深层」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "9": "你正在放下对「哲学与扩展」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "10": "你正在放下对「事业与声望」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "11": "你正在放下对「友谊与愿景」的执着。你的灵性之路在于在这一领域学会超然与放手。",
+        "12": "你正在放下对「潜意识与隐秘事物」的执着。你的灵性之路在于在这一领域学会超然与放手。"
+      },
+      "Ascendant": {
+        "1": "你的外在性格体现在「自我与身份」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "2": "你的外在性格体现在「资源与价值观」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "3": "你的外在性格体现在「沟通与学习」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "4": "你的外在性格体现在「家庭与根基」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "5": "你的外在性格体现在「创造与浪漫」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "6": "你的外在性格体现在「服务与日常」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "7": "你的外在性格体现在「伴侣关系」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "8": "你的外在性格体现在「转化与深层」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "9": "你的外在性格体现在「哲学与扩展」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "10": "你的外在性格体现在「事业与声望」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "11": "你的外在性格体现在「友谊与愿景」上。别人透过这一领域来认识你，你也以此方式面对人生。",
+        "12": "你的外在性格体现在「潜意识与隐秘事物」上。别人透过这一领域来认识你，你也以此方式面对人生。"
+      }
+    },
+    "planetInSign": {
+      "Sun": {
+        "Aries": "你的身份大胆、独立、富有开创精神。你的自信来自于以这种方式展现真实的自己。",
+        "Taurus": "你的身份稳定、可靠、脚踏实地。你的自信来自于以这种方式展现真实的自己。",
+        "Gemini": "你的身份好奇、善于沟通、灵活多变。你的自信来自于以这种方式展现真实的自己。",
+        "Cancer": "你的身份温柔、富有保护欲、情感细腻。你的自信来自于以这种方式展现真实的自己。",
+        "Leo": "你的身份自信、富创造力、充满戏剧性。你的自信来自于以这种方式展现真实的自己。",
+        "Virgo": "你的身份务实、善于分析、乐于服务。你的自信来自于以这种方式展现真实的自己。",
+        "Libra": "你的身份圆融、重视和谐、注重关系。你的自信来自于以这种方式展现真实的自己。",
+        "Scorpio": "你的身份强烈、深邃、富有转化力。你的自信来自于以这种方式展现真实的自己。",
+        "Sagittarius": "你的身份乐观、热爱冒险、富有哲思。你的自信来自于以这种方式展现真实的自己。",
+        "Capricorn": "你的身份有野心、自律、传统稳重。你的自信来自于以这种方式展现真实的自己。",
+        "Aquarius": "你的身份独特、独立、富有前瞻。你的自信来自于以这种方式展现真实的自己。",
+        "Pisces": "你的身份梦幻、富同情心、直觉敏锐。你的自信来自于以这种方式展现真实的自己。"
+      },
+      "Moon": {
+        "Aries": "你的情感大胆、独立、富有开创精神。你需要以这样的方式被对待，才能感到安心。",
+        "Taurus": "你的情感稳定、可靠、脚踏实地。你需要以这样的方式被对待，才能感到安心。",
+        "Gemini": "你的情感好奇、善于沟通、灵活多变。你需要以这样的方式被对待，才能感到安心。",
+        "Cancer": "你的情感温柔、富有保护欲、情感细腻。你需要以这样的方式被对待，才能感到安心。",
+        "Leo": "你的情感自信、富创造力、充满戏剧性。你需要以这样的方式被对待，才能感到安心。",
+        "Virgo": "你的情感务实、善于分析、乐于服务。你需要以这样的方式被对待，才能感到安心。",
+        "Libra": "你的情感圆融、重视和谐、注重关系。你需要以这样的方式被对待，才能感到安心。",
+        "Scorpio": "你的情感强烈、深邃、富有转化力。你需要以这样的方式被对待，才能感到安心。",
+        "Sagittarius": "你的情感乐观、热爱冒险、富有哲思。你需要以这样的方式被对待，才能感到安心。",
+        "Capricorn": "你的情感有野心、自律、传统稳重。你需要以这样的方式被对待，才能感到安心。",
+        "Aquarius": "你的情感独特、独立、富有前瞻。你需要以这样的方式被对待，才能感到安心。",
+        "Pisces": "你的情感梦幻、富同情心、直觉敏锐。你需要以这样的方式被对待，才能感到安心。"
+      },
+      "Mercury": {
+        "Aries": "你的思维与表达大胆、独立、富有开创精神。你以这种方式沟通与思考。",
+        "Taurus": "你的思维与表达稳定、可靠、脚踏实地。你以这种方式沟通与思考。",
+        "Gemini": "你的思维与表达好奇、善于沟通、灵活多变。你以这种方式沟通与思考。",
+        "Virgo": "你的思维与表达务实、善于分析、乐于服务。你以这种方式沟通与思考。",
+        "Cancer": "你的思维与表达温柔、富有保护欲、情感细腻。你以这种方式沟通与思考。",
+        "Leo": "你的思维与表达自信、富创造力、充满戏剧性。你以这种方式沟通与思考。",
+        "Libra": "你的思维与表达圆融、重视和谐、注重关系。你以这种方式沟通与思考。",
+        "Scorpio": "你的思维与表达强烈、深邃、富有转化力。你以这种方式沟通与思考。",
+        "Sagittarius": "你的思维与表达乐观、热爱冒险、富有哲思。你以这种方式沟通与思考。",
+        "Capricorn": "你的思维与表达有野心、自律、传统稳重。你以这种方式沟通与思考。",
+        "Aquarius": "你的思维与表达独特、独立、富有前瞻。你以这种方式沟通与思考。",
+        "Pisces": "你的思维与表达梦幻、富同情心、直觉敏锐。你以这种方式沟通与思考。"
+      },
+      "Venus": {
+        "Aries": "在爱与美之中，你大胆、独立、富有开创精神。你被这样特质的人所吸引，也以此去爱。",
+        "Taurus": "在爱与美之中，你稳定、可靠、脚踏实地。你被这样特质的人所吸引，也以此去爱。",
+        "Gemini": "在爱与美之中，你好奇、善于沟通、灵活多变。你被这样特质的人所吸引，也以此去爱。",
+        "Cancer": "在爱与美之中，你温柔、富有保护欲、情感细腻。你被这样特质的人所吸引，也以此去爱。",
+        "Leo": "在爱与美之中，你自信、富创造力、充满戏剧性。你被这样特质的人所吸引，也以此去爱。",
+        "Virgo": "在爱与美之中，你务实、善于分析、乐于服务。你被这样特质的人所吸引，也以此去爱。",
+        "Libra": "在爱与美之中，你圆融、重视和谐、注重关系。你被这样特质的人所吸引，也以此去爱。",
+        "Scorpio": "在爱与美之中，你强烈、深邃、富有转化力。你被这样特质的人所吸引，也以此去爱。",
+        "Sagittarius": "在爱与美之中，你乐观、热爱冒险、富有哲思。你被这样特质的人所吸引，也以此去爱。",
+        "Capricorn": "在爱与美之中，你有野心、自律、传统稳重。你被这样特质的人所吸引，也以此去爱。",
+        "Aquarius": "在爱与美之中，你独特、独立、富有前瞻。你被这样特质的人所吸引，也以此去爱。",
+        "Pisces": "在爱与美之中，你梦幻、富同情心、直觉敏锐。你被这样特质的人所吸引，也以此去爱。"
+      },
+      "Mars": {
+        "Aries": "你的能量与行动力大胆、独立、富有开创精神。你以这种方式采取行动、追逐渴望。",
+        "Taurus": "你的能量与行动力稳定、可靠、脚踏实地。你以这种方式采取行动、追逐渴望。",
+        "Gemini": "你的能量与行动力好奇、善于沟通、灵活多变。你以这种方式采取行动、追逐渴望。",
+        "Cancer": "你的能量与行动力温柔、富有保护欲、情感细腻。你以这种方式采取行动、追逐渴望。",
+        "Leo": "你的能量与行动力自信、富创造力、充满戏剧性。你以这种方式采取行动、追逐渴望。",
+        "Virgo": "你的能量与行动力务实、善于分析、乐于服务。你以这种方式采取行动、追逐渴望。",
+        "Libra": "你的能量与行动力圆融、重视和谐、注重关系。你以这种方式采取行动、追逐渴望。",
+        "Scorpio": "你的能量与行动力强烈、深邃、富有转化力。你以这种方式采取行动、追逐渴望。",
+        "Sagittarius": "你的能量与行动力乐观、热爱冒险、富有哲思。你以这种方式采取行动、追逐渴望。",
+        "Capricorn": "你的能量与行动力有野心、自律、传统稳重。你以这种方式采取行动、追逐渴望。",
+        "Aquarius": "你的能量与行动力独特、独立、富有前瞻。你以这种方式采取行动、追逐渴望。",
+        "Pisces": "你的能量与行动力梦幻、富同情心、直觉敏锐。你以这种方式采取行动、追逐渴望。"
+      },
+      "Jupiter": {
+        "Aries": "你的成长之道大胆、独立、富有开创精神。你常在这种特质中遇见幸运与扩展。",
+        "Taurus": "你的成长之道稳定、可靠、脚踏实地。你常在这种特质中遇见幸运与扩展。",
+        "Gemini": "你的成长之道好奇、善于沟通、灵活多变。你常在这种特质中遇见幸运与扩展。",
+        "Cancer": "你的成长之道温柔、富有保护欲、情感细腻。你常在这种特质中遇见幸运与扩展。",
+        "Leo": "你的成长之道自信、富创造力、充满戏剧性。你常在这种特质中遇见幸运与扩展。",
+        "Virgo": "你的成长之道务实、善于分析、乐于服务。你常在这种特质中遇见幸运与扩展。",
+        "Libra": "你的成长之道圆融、重视和谐、注重关系。你常在这种特质中遇见幸运与扩展。",
+        "Scorpio": "你的成长之道强烈、深邃、富有转化力。你常在这种特质中遇见幸运与扩展。",
+        "Sagittarius": "你的成长之道乐观、热爱冒险、富有哲思。你常在这种特质中遇见幸运与扩展。",
+        "Capricorn": "你的成长之道有野心、自律、传统稳重。你常在这种特质中遇见幸运与扩展。",
+        "Aquarius": "你的成长之道独特、独立、富有前瞻。你常在这种特质中遇见幸运与扩展。",
+        "Pisces": "你的成长之道梦幻、富同情心、直觉敏锐。你常在这种特质中遇见幸运与扩展。"
+      },
+      "Saturn": {
+        "Aries": "你的考验与纪律大胆、独立、富有开创精神。你需要在这一面学会成熟与承担责任。",
+        "Taurus": "你的考验与纪律稳定、可靠、脚踏实地。你需要在这一面学会成熟与承担责任。",
+        "Gemini": "你的考验与纪律好奇、善于沟通、灵活多变。你需要在这一面学会成熟与承担责任。",
+        "Cancer": "你的考验与纪律温柔、富有保护欲、情感细腻。你需要在这一面学会成熟与承担责任。",
+        "Leo": "你的考验与纪律自信、富创造力、充满戏剧性。你需要在这一面学会成熟与承担责任。",
+        "Virgo": "你的考验与纪律务实、善于分析、乐于服务。你需要在这一面学会成熟与承担责任。",
+        "Libra": "你的考验与纪律圆融、重视和谐、注重关系。你需要在这一面学会成熟与承担责任。",
+        "Scorpio": "你的考验与纪律强烈、深邃、富有转化力。你需要在这一面学会成熟与承担责任。",
+        "Sagittarius": "你的考验与纪律乐观、热爱冒险、富有哲思。你需要在这一面学会成熟与承担责任。",
+        "Capricorn": "你的考验与纪律有野心、自律、传统稳重。你需要在这一面学会成熟与承担责任。",
+        "Aquarius": "你的考验与纪律独特、独立、富有前瞻。你需要在这一面学会成熟与承担责任。",
+        "Pisces": "你的考验与纪律梦幻、富同情心、直觉敏锐。你需要在这一面学会成熟与承担责任。"
+      },
+      "Rahu": {
+        "Aries": "你的渴望大胆、独立、富有开创精神。你被这种特质强烈吸引，野心也由此而生。",
+        "Taurus": "你的渴望稳定、可靠、脚踏实地。你被这种特质强烈吸引，野心也由此而生。",
+        "Gemini": "你的渴望好奇、善于沟通、灵活多变。你被这种特质强烈吸引，野心也由此而生。",
+        "Cancer": "你的渴望温柔、富有保护欲、情感细腻。你被这种特质强烈吸引，野心也由此而生。",
+        "Leo": "你的渴望自信、富创造力、充满戏剧性。你被这种特质强烈吸引，野心也由此而生。",
+        "Virgo": "你的渴望务实、善于分析、乐于服务。你被这种特质强烈吸引，野心也由此而生。",
+        "Libra": "你的渴望圆融、重视和谐、注重关系。你被这种特质强烈吸引，野心也由此而生。",
+        "Scorpio": "你的渴望强烈、深邃、富有转化力。你被这种特质强烈吸引，野心也由此而生。",
+        "Sagittarius": "你的渴望乐观、热爱冒险、富有哲思。你被这种特质强烈吸引，野心也由此而生。",
+        "Capricorn": "你的渴望有野心、自律、传统稳重。你被这种特质强烈吸引，野心也由此而生。",
+        "Aquarius": "你的渴望独特、独立、富有前瞻。你被这种特质强烈吸引，野心也由此而生。",
+        "Pisces": "你的渴望梦幻、富同情心、直觉敏锐。你被这种特质强烈吸引，野心也由此而生。"
+      },
+      "Ketu": {
+        "Aries": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Taurus": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Gemini": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Cancer": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Leo": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Virgo": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Libra": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Scorpio": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Sagittarius": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Capricorn": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Aquarius": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。",
+        "Pisces": "你正在放下与这种特质相关的执着。你的灵性之路在于在此学会超然。"
+      },
+      "Ascendant": {
+        "Aries": "你给人的第一印象大胆、独立、富有开创精神。别人这样认识你，你也以此方式面对人生。",
+        "Taurus": "你给人的第一印象稳定、可靠、脚踏实地。别人这样认识你，你也以此方式面对人生。",
+        "Gemini": "你给人的第一印象好奇、善于沟通、灵活多变。别人这样认识你，你也以此方式面对人生。",
+        "Cancer": "你给人的第一印象温柔、富有保护欲、情感细腻。别人这样认识你，你也以此方式面对人生。",
+        "Leo": "你给人的第一印象自信、富创造力、充满戏剧性。别人这样认识你，你也以此方式面对人生。",
+        "Virgo": "你给人的第一印象务实、善于分析、乐于服务。别人这样认识你，你也以此方式面对人生。",
+        "Libra": "你给人的第一印象圆融、重视和谐、注重关系。别人这样认识你，你也以此方式面对人生。",
+        "Scorpio": "你给人的第一印象强烈、深邃、富有转化力。别人这样认识你，你也以此方式面对人生。",
+        "Sagittarius": "你给人的第一印象乐观、热爱冒险、富有哲思。别人这样认识你，你也以此方式面对人生。",
+        "Capricorn": "你给人的第一印象有野心、自律、传统稳重。别人这样认识你，你也以此方式面对人生。",
+        "Aquarius": "你给人的第一印象独特、独立、富有前瞻。别人这样认识你，你也以此方式面对人生。",
+        "Pisces": "你给人的第一印象梦幻、富同情心、直觉敏锐。别人这样认识你，你也以此方式面对人生。"
+      }
+    },
+    "form": {
+      "birthInformation": "你的出生信息",
+      "birthInformationTooltip": "你的出生日期确立了用于生成星盘的核心行星框架。填写出生时间为可选，但由于行星位置在一天之中不断变化，它能显著提升精确度。提供出生地点则可让系统将天体坐标与你确切的出生地点对齐，进一步优化推算。",
+      "selectDate": "选择日期",
+      "selectTime": "选择时间",
+      "selectLocation": "选择地点",
+      "backToHour": "返回小时",
+      "enterBirthHour": "输入你的出生小时",
+      "enterBirthMinute": "输入你的出生分钟",
+      "backToCountry": "返回国家",
+      "searchCountries": "搜索国家……",
+      "useCurrentLocation": "使用当前位置",
+      "searchStatesProvinces": "搜索省/州……",
+      "generating": "生成中……",
+      "generateChart": "生成星盘",
+      "errors": {
+        "calculateFailed": "本命星盘计算失败",
+        "createFailed": "创建本命星盘记录失败。请确保你的数据库中存在 birth_charts 表。",
+        "unexpectedError": "发生了意外错误"
+      }
+    }
+  },
+  "ReadingPage": {
+    "disclaimer": "本解读由 AI 生成，仅供参考与反思之用。AI 解读可能包含错误。请将其视为一种视角，并留意预测可能并不准确。请勿盲目相信或依赖此解读。重要决定请务必咨询专业人士，切勿仅凭此解读行事。",
+    "questionHeading": "问题",
+    "viewDetails": "查看完整详情",
+    "followUp": {
+      "badge": "追问",
+      "title": "追问占卜",
+      "desc": "追问问题采用简单的单张牌占卜，以提供聚焦的指引",
+      "simple": "简易占卜 - 1 张牌"
+    },
+    "chooseType": {
+      "title": "选择你的占卜类型",
+      "desc": "选择你想要的指引深度"
+    },
+    "chooseCards": {
+      "title": "选择你的牌",
+      "desc": "相信你的直觉，从宇宙牌阵中选出 {amount} 张",
+      "reversed": "逆位",
+      "selectFromSpread": "{count, plural, one {从宇宙牌阵中选出 # 张牌} other {从宇宙牌阵中选出 # 张牌}}",
+      "selectedCount": "已选 {selected}/{total}",
+      "swipeUpToSelect": "在牌上向上滑动以选定",
+      "circular": "环形",
+      "linear": "线性",
+      "confirm": "确认选择（{selected}/{total}）",
+      "shuffle": "洗牌",
+      "consumeStar": "开始解读将消耗 1 颗星星。",
+      "random": "帮我抽",
+      "options": "选项",
+      "manualSelect": "手动选牌",
+      "manualSelectTitle": "选择你的牌",
+      "manualSelectDesc": "从整副牌中选出 {count} {count, plural, one {张牌} other {张牌}}",
+      "majorArcana": "大阿尔克那",
+      "minorArcana": "小阿尔克那",
+      "cups": "圣杯",
+      "swords": "宝剑",
+      "wands": "权杖",
+      "pentacles": "钱币",
+      "manualSelected": "已选 {selected}/{total}",
+      "upright": "正位",
+      "reversedTab": "逆位",
+      "freeTierMaxCardsHint": "免费版最多可抽 {max} 张牌。升级可抽更多。",
+      "manualPickPaywallTitle": "手动选牌是订阅者专属功能",
+      "manualPickPaywallDesc": "从整副牌中任选你心仪的牌。升级到 Basic 或 Pro 即可解锁——结账在下一页由 Stripe 提供支持。",
+      "manualPickPaywallFeature": "从整副牌中手动选牌",
+      "manualPickPaywallInsufficient": "需要升级",
+      "manualPickPaywallNote": "选择套餐后将进入安全的 Stripe 结账页面。"
+    },
+    "editQuestion": {
+      "title": "编辑你的问题",
+      "label": "你的问题",
+      "placeholder": "向宇宙之境提出你的问题……",
+      "hint": "按 Ctrl+Enter 保存，按 Escape 取消",
+      "reset": "重置",
+      "cancel": "取消",
+      "save": "保存更改",
+      "saving": "保存中……"
+    },
+    "interpretation": {
+      "title": "你的占卜",
+      "sectionTitle": "解读",
+      "sectionSubtitle": "AI 驱动的牌卡分析",
+      "detailed": {
+        "label": "详细"
+      },
+      "professionalAdviceBadge": "需要专业建议",
+      "professionalAdviceBadgeAria": "敏感话题：了解此标记的含义",
+      "professionalAdviceHoverTitle": "此标记的含义",
+      "professionalAdviceHoverIntro": "你的问题被归类为涉及某一领域，在该领域中应由持牌专业人士——而非塔罗——提供具约束力的指引。此处的牌卡仅提供象征性的反思。",
+      "professionalAdviceHoverHowTitle": "我们如何标记敏感领域",
+      "professionalAdviceHoverLegal": "法律：合同、纠纷、权利、诉讼策略、移民法规等事务。",
+      "professionalAdviceHoverMedical": "医疗：症状、诊断、治疗、用药，或临床及危机心理健康。",
+      "professionalAdviceHoverFinancial": "财务：投资、交易、报税、债务重组，或受监管的退休规划。",
+      "professionalAdviceHint": "本占卜仅供反思之用，并非法律、医疗或财务建议。在此领域做决定时，请咨询合资格的专业人士。",
+      "error": "生成解读失败，请重试。",
+      "loading": {
+        "title": "正在分析你的牌……",
+        "subtitle": "正在生成你的个性化解读……"
+      },
+      "perCard": {
+        "singleHeader": "这张牌在说",
+        "multiHeader": "每张牌在说"
+      },
+      "actionsHeader": "操作",
+      "actionsDesc": "管理你的占卜并与之互动",
+      "dialogs": {
+        "report": {
+          "title": "举报此占卜",
+          "desc": "选择一个原因，并可补充详情。",
+          "submit": "提交",
+          "cancel": "取消",
+          "placeholder": "请描述……",
+          "reasons": {
+            "select": "选择一个原因",
+            "inappropriate": "不当内容",
+            "spam": "垃圾信息或误导",
+            "harassment": "骚扰或仇恨",
+            "privacy": "隐私问题",
+            "other": "其他"
+          }
+        },
+        "feedback": {
+          "title": "分享你的反馈",
+          "desc": "这段解读对你有多大帮助？",
+          "placeholder": "可选评论",
+          "submit": "提交",
+          "cancel": "取消"
+        },
+        "unavailable": {
+          "title": "暂无法分享",
+          "desc": "{label}分享目前暂不可用。请改为下载媒体并手动上传。",
+          "ok": "好的"
+        }
+      },
+      "share": {
+        "title": "分享你的占卜",
+        "desc": "每有一位新访客打开你分享的链接，即可获得 5 颗免费星星（{earned}/{max}）",
+        "learnMore": "了解更多",
+        "more": "更多",
+        "facebook": "Facebook",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X",
+        "line": "LINE",
+        "whatsapp": "WhatsApp",
+        "telegram": "Telegram",
+        "snapchat": "Snapchat",
+        "discord": "Discord",
+        "pinterest": "Pinterest",
+        "tumblr": "Tumblr",
+        "wechat": "微信",
+        "reddit": "Reddit",
+        "sms": "短信",
+        "email": "邮件",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
+      },
+      "buttons": {
+        "regenerate": "重新生成占卜",
+        "newReading": "新的占卜"
+      },
+      "actions": {
+        "copyLink": "复制链接",
+        "copiedLink": "已复制！",
+        "linkCopiedDesc": "链接已复制到剪贴板",
+        "shareDesc": "分享此占卜",
+        "share": "分享",
+        "downloadReadingText": "将占卜下载为文本文件",
+        "downloadReadingImage": "将占卜下载为图片",
+        "copyResult": "复制解读",
+        "askFollowUp": "追问",
+        "askFollowUpPrompt": "可以为我展开讲讲这段占卜吗？",
+        "keyMessage": "核心讯息",
+        "textCopiedDesc": "文本已复制到剪贴板",
+        "download": "下载",
+        "downloadDesc": "保存图片",
+        "downloadSheetTitleImage": "下载图片",
+        "downloadSheetTitleVideo": "下载视频",
+        "downloadSheetDesc": "保存前可选择样式并预览。",
+        "downloadPreviewTitle": "预览",
+        "downloadPreviewAlt": "下载预览",
+        "downloadPreviewFallback": "预览将显示在此处",
+        "downloadPreviewError": "无法加载预览",
+        "downloadStylesTitle": "样式",
+        "downloadStylesHint": "点击选择",
+        "downloadBrandingTitle": "品牌标识",
+        "downloadBrandingHint": "预览包含品牌标识",
+        "downloadStyleStory": "故事版",
+        "downloadStyleSquare": "方形",
+        "downloadStyleLandscape": "横版",
+        "downloadTabImage": "图片",
+        "downloadTabVideo": "视频",
+        "downloadVideoButton": "下载视频",
+        "downloadVideoError": "生成视频失败。",
+        "downloadVideoPreviewFallback": "视频预览将显示在此处",
+        "downloadCancel": "取消",
+        "cancel": "取消",
+        "downloadButton": "下载",
+        "downloadError": "生成图片失败。",
+        "versions": "版本",
+        "versionsDesc": "查看其他版本",
+        "report": "举报",
+        "reportDesc": "举报此占卜",
+        "feedback": "分享反馈",
+        "feedbackDesc": "分享你的反馈",
+        "voteUp": "有帮助",
+        "voteUpDesc": "这很有帮助",
+        "voteDown": "没帮助",
+        "voteDownDesc": "这没什么帮助",
+        "removeVoteUpDesc": "取消评价",
+        "removeVoteDownDesc": "取消评价",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
+      },
+      "followUp": {
+        "badge": "追问",
+        "label": "提出一个追问",
+        "placeholder": "在此输入你的追问……"
+      },
+      "disclaimer": "请勿盲目相信或依赖此解读。本解读由 AI 生成，仅供参考之用。请将其视为一种视角，并留意解读可能并不准确。重要的人生决定请务必咨询合资格的专业人士。",
+      "adViewing": {
+        "title": "观看广告以解锁你的占卜",
+        "description": "请观看这段简短的广告，以解锁你的个性化塔罗解读。你的支持有助于我们提供免费占卜。"
+      }
+    },
+    "adViewing": {
+      "title": "观看广告以解锁你的占卜",
+      "description": "请观看这段简短的广告，以解锁你的个性化塔罗解读。你的支持有助于我们提供免费占卜。",
+      "followUp": {
+        "badge": "追问"
+      },
+      "disclaimer": "观看此广告有助于我们维持服务免费。如有需要可以跳过，但我们感谢你的支持。"
+    },
+    "rewardedAd": {
+      "title": "解锁你的占卜",
+      "subtitle": "观看一段简短广告，揭晓你的宇宙指引",
+      "reward": "免费占卜",
+      "loading": "正在加载广告……",
+      "ready": {
+        "title": "广告就绪",
+        "description": "点击开始观看并解锁你的占卜",
+        "button": "观看广告"
+      },
+      "playing": {
+        "title": "广告播放中",
+        "timeRemaining": "剩余 {seconds} 秒",
+        "progress": "进度",
+        "skip": "跳过"
+      },
+      "completed": {
+        "title": "广告已看完！",
+        "description": "感谢观看。你的占卜现已解锁。",
+        "button": "查看我的占卜"
+      },
+      "error": {
+        "title": "广告出错",
+        "retry": "重试",
+        "skip": "跳过广告"
+      }
+    },
+    "adViewingDialog": {
+      "title": "观看广告以解锁你的占卜",
+      "questionLabel": "你的问题：",
+      "selectedCards": "已选的牌：",
+      "benefits": {
+        "title": "你将获得：",
+        "freeReading": "完整的塔罗解读",
+        "detailedInterpretation": "个性化的宇宙指引",
+        "supportService": "帮助我们维持服务免费"
+      },
+      "duration": "广告时长：约 30 秒",
+      "rememberPreference": "不再显示此提示（自动播放广告）",
+      "disclaimer": "观看此广告有助于我们提供免费占卜。如有需要可以跳过。",
+      "skip": "跳过广告",
+      "backToCardSelection": "返回选牌",
+      "watchAd": "观看广告"
+    },
+    "optimizedRewardedAd": {
+      "title": "解锁你的占卜",
+      "subtitle": "观看一段简短广告，揭晓你的宇宙指引",
+      "reward": "免费占卜",
+      "optimized": "已优化",
+      "loading": "正在加载广告……",
+      "preparingReading": "正在准备你的占卜……",
+      "preparingInterpretation": "正在准备解读……",
+      "interpretationReady": "解读已就绪！",
+      "ready": {
+        "title": "广告就绪",
+        "description": "点击开始观看并解锁你的占卜",
+        "button": "观看广告"
+      },
+      "playing": {
+        "title": "广告播放中",
+        "timeRemaining": "剩余 {seconds} 秒",
+        "progress": "进度",
+        "skip": "跳过"
+      },
+      "completed": {
+        "title": "广告已看完！",
+        "description": "感谢观看。你的占卜现已解锁。",
+        "button": "查看我的占卜"
+      },
+      "error": {
+        "title": "广告出错",
+        "retry": "重试",
+        "skip": "跳过广告"
+      }
+    }
+  },
+  "Meta": {
+    "Site": {
+      "siteName": "AskingFate",
+      "url": "https://askingfate.com"
+    },
+    "Layout": {
+      "title": "AI 命运占卜师 - askingfate.com",
+      "description": "探索由 AI 驱动的命运解读，涵盖塔罗、占星、数字命理、姓名学等。个性化的洞见，助你把握自己的命运。目前首页主推塔罗。",
+      "keywords": "AI 命运占卜师, 免费 AI 命运占卜师, 在线占卜, AI 塔罗解读, 免费塔罗占卜, 灵性指引, Askingfate, Asking Fate"
+    },
+    "Home": {
+      "title": "AI 命运占卜师 - askingfate.com",
+      "description": "获取免费的 AI 塔罗牌解读与灵性指引。向命运提出任何问题，从我们先进的 AI 塔罗系统获得个性化的洞见。",
+      "keywords": "AI 命运占卜师, 免费 AI 命运占卜师, 在线占卜, AI 塔罗解读, 免费塔罗占卜, 灵性指引, 命运问题, 塔罗牌解读, Askingfate, Asking Fate",
+      "ogTitle": "AI 命运占卜师 - askingfate.com",
+      "ogDescription": "获取免费的 AI 塔罗牌解读与灵性指引。向命运提出任何关于你命运的问题。",
+      "twitterTitle": "AI 命运占卜师 - askingfate.com",
+      "twitterDescription": "获取免费的 AI 塔罗牌解读与灵性指引。向命运提出任何关于你命运的问题。"
+    },
+    "About": {
+      "title": "关于 AI 命运解读 - Askingfate",
+      "description": "了解 Askingfate 如何将数百年的塔罗传统与前沿 AI 技术相融合，提供个性化的宇宙指引与灵性洞见。",
+      "keywords": "AI 塔罗技术, 塔罗解读历史, 灵性指引 AI, 神秘传统, 塔罗牌解读技术",
+      "ogTitle": "关于 - AI 塔罗解读技术",
+      "ogDescription": "了解我们如何将古老的塔罗智慧与现代 AI 技术相融合，提供个性化的灵性指引。",
+      "twitterTitle": "关于 - AI 塔罗解读技术",
+      "twitterDescription": "了解我们如何将古老的塔罗智慧与现代 AI 技术相融合，提供个性化的灵性指引。"
+    },
+    "Reading": {
+      "title": "AI 塔罗牌解读 - Askingfate",
+      "description": "免费获取个性化的 AI 塔罗牌解读。提出你的问题，从我们先进的 AI 系统获得详尽的解读与灵性指引。",
+      "keywords": "塔罗牌解读, AI 塔罗解读, 免费塔罗占卜, 塔罗牌解读, 灵性指引, 在线塔罗占卜",
+      "ogTitle": "AI 塔罗牌解读 - 免费获取你的占卜",
+      "ogDescription": "免费获取个性化的 AI 塔罗牌解读。提出你的问题，获得详尽的解读。",
+      "twitterTitle": "AI 塔罗牌解读 - 免费获取你的占卜",
+      "twitterDescription": "免费获取个性化的 AI 塔罗牌解读。提出你的问题，获得详尽的解读。"
+    },
+    "BirthChart": {
+      "title": "本命星盘 - Askingfate",
+      "description": "输入你的出生日期、时间与地点，生成个性化的占星本命星盘。透过详尽的行星位置与宫位，发现你的宇宙蓝图。",
+      "keywords": "本命星盘, 出生星盘, 占星星盘, 宇宙蓝图, 行星位置, 占星, 星座运势",
+      "ogTitle": "本命星盘 - 解读你的宇宙蓝图",
+      "ogDescription": "输入你的出生日期、时间与地点，生成个性化的占星本命星盘。",
+      "twitterTitle": "本命星盘 - 解读你的宇宙蓝图",
+      "twitterDescription": "输入你的出生日期、时间与地点，生成个性化的占星本命星盘。"
+    },
+    "Contact": {
+      "title": "联系我们 - Askingfate",
+      "description": "对你的 AI 塔罗解读体验有疑问吗？联系我们的客服团队，让你的宇宙之旅与灵性指引获得帮助。",
+      "keywords": "塔罗解读支持, AI 塔罗帮助, 灵性指引联系, 塔罗解读疑问, 客户支持",
+      "ogTitle": "联系我们 - 获取 AI 塔罗解读的帮助",
+      "ogDescription": "对你的 AI 塔罗解读体验有疑问吗？联系我们的客服团队获取帮助。",
+      "twitterTitle": "联系我们 - 获取 AI 塔罗解读的帮助",
+      "twitterDescription": "对你的 AI 塔罗解读体验有疑问吗？联系我们的客服团队获取帮助。"
+    },
+    "PrivacyPolicy": {
+      "title": "隐私政策 - Askingfate",
+      "description": "了解 Askingfate 在你使用 AI 塔罗解读服务时如何保护你的隐私与个人信息。阅读我们详尽的隐私政策。",
+      "keywords": "隐私政策, 数据保护, AI 塔罗隐私, 个人信息安全, 塔罗解读隐私, 用户数据保护",
+      "ogTitle": "隐私政策 - 你的数据保护与隐私权利",
+      "ogDescription": "了解 Askingfate 在你使用 AI 塔罗解读服务时如何保护你的隐私与个人信息。",
+      "twitterTitle": "隐私政策 - 你的数据保护与隐私权利",
+      "twitterDescription": "了解 Askingfate 在你使用 AI 塔罗解读服务时如何保护你的隐私与个人信息。"
+    },
+    "TermsOfService": {
+      "title": "服务条款 - Askingfate",
+      "description": "阅读 Askingfate AI 塔罗解读平台的服务条款。了解你在使用我们灵性指引服务时的权利与责任。",
+      "keywords": "服务条款, 条款与条件, AI 塔罗条款, 塔罗解读条款, 服务协议, 用户协议",
+      "ogTitle": "服务条款 - AI 塔罗解读条款与条件",
+      "ogDescription": "阅读 Askingfate AI 塔罗解读平台的服务条款，了解你的权利与责任。",
+      "twitterTitle": "服务条款 - AI 塔罗解读条款与条件",
+      "twitterDescription": "阅读 Askingfate AI 塔罗解读平台的服务条款，了解你的权利与责任。"
+    },
+    "Demo": {
+      "title": "申请演示 - Askingfate",
+      "description": "现场体验 Askingfate。申请一段简短的实时演示，并试用互动预览。"
+    },
+    "Articles": {
+      "title": "文章与指南 - Askingfate",
+      "description": "文档式指南：如何使用、分享占卜、推荐好友、创作内容、帮助与常见问题。"
+    },
+    "PrivacyRedactionArticle": {
+      "title": "消息隐私与个人信息脱敏 - Askingfate",
+      "description": "Askingfate 如何检测提示中的个人信息，以及聊天提示的含义。"
+    }
+  },
+  "Articles": {
+    "title": "文章与指南",
+    "subtitle": "关于 Askingfate 的实用文档式指南。",
+    "knowledgeHub": "知识中心",
+    "searchPlaceholder": "搜索文章……",
+    "cantFind": "找不到你需要的内容？",
+    "contactSupport": "联系客服",
+    "badges": {
+      "earn": "赚取星星",
+      "basics": "基础",
+      "support": "支持",
+      "faq": "常见问题",
+      "privacy": "隐私"
+    },
+    "items": {
+      "tarot": {
+        "title": "塔罗牌牌义",
+        "description": "探索全部 78 张牌（大、小阿尔克那）的正位与逆位牌义。"
+      },
+      "createContent": {
+        "title": "创作关于我们的内容",
+        "description": "撰写、发布或拍摄关于 Askingfate 的内容，赚取星星。"
+      },
+      "shareReading": {
+        "title": "分享一次占卜",
+        "description": "分享你的占卜链接，每天最多赚取 3 颗星星。"
+      },
+      "referFriend": {
+        "title": "推荐好友",
+        "description": "邀请好友。好友加入时，你们双方都能赚取星星。"
+      },
+      "howToPlay": {
+        "title": "如何使用",
+        "description": "提出问题、选牌、反思——一步步带你上手。"
+      },
+      "helpSupport": {
+        "title": "帮助与支持",
+        "description": "获取帮助、联系客服，以及排查问题的提示。"
+      },
+      "faq": {
+        "title": "常见问题",
+        "description": "关于占卜与星星的常见问题解答。"
+      },
+      "privacyRedaction": {
+        "title": "消息隐私与个人信息脱敏",
+        "description": "聊天提示的含义，以及我们如何检测你提示中的个人信息。"
+      }
+    }
+  },
+  "PrivacyRedactionArticle": {
+    "title": "消息隐私与个人信息脱敏",
+    "subtitle": "你消息下方那则小提示的含义、我们将哪些内容视为个人信息，以及检测是如何运作的。",
+    "updated": "2026 年 5 月",
+    "onThisPage": "本页内容",
+    "sections": {
+      "notice": {
+        "title": "这则提示的含义",
+        "p1": "如果你在提示下方看到「个人信息已在处理前移除」，说明我们的系统识别出了可能用于辨认某人身份或与其联系的信息，并在文本进一步处理之前移除或替换了这些片段。",
+        "p2": "当我们能从你的浏览器会话中还原时，你在此设备上仍可能看到原始措辞。而存储或继续发送的副本，会以中性占位符代替真实的姓名、邮箱或号码。"
+      },
+      "criteria": {
+        "title": "我们将哪些内容视为个人信息",
+        "intro": "检测聚焦于常见的可识别个人信息类别，包括：",
+        "person": "人名及对个人的可辨识指代",
+        "email": "电子邮箱地址",
+        "phone": "电话号码（通常是数字位数足以看起来像真实号码的序列）",
+        "handle": "社交或平台账号（例如 @username）",
+        "address": "街道或邮寄地址"
+      },
+      "how": {
+        "title": "检测如何运作",
+        "p1": "当你发送消息时，在提示被保存或传给 AI 之前，我们会运行一次自动审查，查找这类模式与上下文。",
+        "p2": "第二道流程会应用基于规则的检查（例如明显的邮箱格式、@账号，以及类似电话的数字串），以便在第一步有所遗漏时仍能捕捉到明显的泄露。"
+      },
+      "placeholders": {
+        "title": "你可能会看到的占位符",
+        "p1": "经过脱敏的文本可能包含诸如 [Person]、[Email]、[Phone]、[Handle] 或 [Address] 这样的标记。系统会指示助手在不重复这些标记、也不臆造背后私密事实的前提下，提供有帮助的回答。",
+        "privacyPolicyLink": "如需了解更广泛的数据实践，请参阅我们的",
+        "privacyPolicy": "隐私政策"
+      },
+      "fallback": {
+        "title": "此提示之外的隐私保护",
+        "p1": "本指南解释聊天中的提示脱敏。关于我们如何处理 Cookie、账户与整体数据使用，请阅读我们的隐私政策。"
+      }
+    }
+  },
+  "TarotArticle": {
+    "overviewUpright": "概览（正位）",
+    "overviewReversed": "概览（逆位）",
+    "relationships": "关系",
+    "work": "工作与事业",
+    "finance": "财务",
+    "health": "健康",
+    "upright": "正位",
+    "reversed": "逆位",
+    "yesNo": "是/否",
+    "zodiac": "星座",
+    "element": "元素",
+    "tarot": "Tarot",
+    "majorArcana": "Major Arcana",
+    "minorArcana": "Minor Arcana",
+    "theReading": "The Reading",
+    "continue": "Continue",
+    "readArticle": "Read article",
+    "askPlaceholder": "Ask a question about this card...",
+    "askEyebrow": "About this card",
+    "askHint": "explains its meaning only",
+    "askSuggestions": [
+      "What does this card mean?",
+      "What does it mean for love?",
+      "What does it say about work & career?",
+      "How does the reversed differ from upright?"
+    ],
+    "lightGathers": "Light gathers",
+    "lightRecedes": "Light recedes",
+    "tapToFlip": "Tap to change card orientation",
+    "orientationGroup": "Choose card orientation",
+    "allTarotCards": "All Tarot Cards",
+    "allTarotCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "howToPlay": "How to Play",
+    "howToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "faq": "FAQ",
+    "faqDesc": "Answers to common questions about readings.",
+    "cardSubtitle": "Upright and reversed meanings with practical guidance.",
+    "onThisPage": "On this page",
+    "backToTarot": "Tarot",
+    "relatedAllCardsTitle": "All Tarot Cards",
+    "relatedAllCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "relatedHowToPlayTitle": "How to Play",
+    "relatedHowToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "relatedFaqTitle": "FAQ",
+    "relatedFaqDesc": "Answers to common questions about readings and stars."
+  },
+  "Auth": {
+    "SignIn": {
+      "title": "欢迎回来",
+      "subtitle": "登录以继续你的宇宙之旅",
+      "google": "使用 Google 登录",
+      "emailLabel": "电子邮箱地址",
+      "emailPlaceholder": "输入你的邮箱",
+      "passwordLabel": "密码",
+      "passwordPlaceholder": "输入你的密码",
+      "forgot": "忘记密码？",
+      "button": "登录",
+      "buttonLoading": "登录中……",
+      "signupPrompt": "初次使用 Askingfate？",
+      "signupLink": "创建账户"
+    },
+    "SignUp": {
+      "title": "加入星河",
+      "subtitle": "创建账户，开启你的神秘之旅",
+      "google": "使用 Google 注册",
+      "success": "账户创建成功！请查收邮件以验证你的账户。正在跳转至登录……",
+      "nameLabel": "全名",
+      "namePlaceholder": "请输入你的全名",
+      "emailLabel": "电子邮箱地址",
+      "emailPlaceholder": "输入你的邮箱",
+      "passwordLabel": "密码",
+      "passwordPlaceholder": "创建一个密码",
+      "confirmPasswordLabel": "确认密码",
+      "confirmPasswordPlaceholder": "确认你的密码",
+      "agreePrefix": "我同意",
+      "terms": "服务条款",
+      "and": "和",
+      "privacy": "隐私政策",
+      "button": "创建账户",
+      "buttonLoading": "创建账户中……",
+      "signinPrompt": "已有账户？",
+      "signinLink": "登录"
+    }
+  },
+  "UserProfile": {
+    "notifications": "通知",
+    "yourReading": "你的占卜",
+    "calendar": "我的日历",
+    "birthChart": "我的本命星盘",
+    "profile": "个人资料",
+    "account": "账户",
+    "theme": "主题",
+    "billing": "账单",
+    "settings": "设置",
+    "signOut": "退出登录",
+    "signingOut": "退出中……",
+    "themes": {
+      "default": "默认",
+      "antiverse": "反宇宙",
+      "zodiac": "黄道",
+      "singularity": "奇点",
+      "luminous": "流光",
+      "mystic": "秘境"
+    }
+  },
+  "Calendar": {
+    "eyebrow": "我的日历",
+    "title": "我的运势日历",
+    "subtitle": "根据真实的行星位置与你的本命星盘推算而成。点击任意日期可查看更深入的详情。",
+    "prevMonth": "上个月",
+    "nextMonth": "下个月",
+    "todayGlance": "今天",
+    "auth": {
+      "title": "登录以使用你的日历",
+      "body": "我们使用你的出生日期来推算每天的运势。该信息保存在你的个人资料中。",
+      "cta": "登录"
+    },
+    "birth": {
+      "title": "在你的个人资料中添加出生日期",
+      "body": "我们需要你的出生日期来推算个性化的每日占星。",
+      "cta": "前往个人资料"
+    },
+    "overview": {
+      "luckyDaysLabel": "幸运日",
+      "luckyDaysSub": "星辰助力于你的日子",
+      "cautionDaysLabel": "需谨慎之日",
+      "cautionDaysSub": "需谨慎与宜避免合计",
+      "peakDayLabel": "巅峰之日",
+      "peakDaySub": "综合评分 {score}/10",
+      "daysSuffix": "天"
+    },
+    "weekdays": {
+      "sun": "日",
+      "mon": "一",
+      "tue": "二",
+      "wed": "三",
+      "thu": "四",
+      "fri": "五",
+      "sat": "六"
+    },
+    "grid": {
+      "loadError": "无法加载本月：{error}"
+    },
+    "detail": {
+      "missingTitle": "这一天暂无星空数据",
+      "missingBody": "这一天超出了当前可用的星历范围。",
+      "selectPrompt": "从日历中选择一天以查看详情。",
+      "scoreCaption": "根据当日真实行星位置得出的每日评分",
+      "highlightsWarnings": "亮点与提醒",
+      "selectedTransitTitle": "这一天的行运",
+      "selectedTransitError": "无法加载这一天的行运详情。请稍后再试。",
+      "vitality": "你此刻的状态",
+      "eventSignals": "最适合",
+      "lucky": "幸运细节"
+    },
+    "quality": {
+      "excellent": "极佳",
+      "good": "良好",
+      "neutral": "平稳",
+      "caution": "需谨慎",
+      "avoid": "宜避免"
+    },
+    "vitalityLabels": {
+      "career": "事业",
+      "love": "爱情",
+      "finance": "财务",
+      "health": "健康",
+      "social": "社交",
+      "spiritual": "灵性"
+    },
+    "eventLabels": {
+      "job_change": "换工作",
+      "resignation": "辞职",
+      "marriage": "结婚 / 订婚",
+      "contract_sign": "签订合同",
+      "travel_long": "长途旅行",
+      "major_purchase": "大额购物"
+    },
+    "lucky": {
+      "labels": {
+        "colors": "幸运色",
+        "numbers": "幸运数字",
+        "direction": "幸运方位",
+        "time": "幸运时辰"
+      },
+      "compassNorth": "北",
+      "colors": {
+        "gold": "金色",
+        "silver": "银色",
+        "purple": "紫色",
+        "sky": "天蓝色",
+        "emerald": "翡翠绿",
+        "maroon": "栗红色",
+        "pearlWhite": "珍珠白",
+        "rosePink": "玫瑰粉",
+        "goldenBrown": "金棕色",
+        "mustardYellow": "芥末黄",
+        "azure": "蔚蓝色",
+        "seaGreen": "海绿色",
+        "amberOrange": "琥珀橙"
+      },
+      "directions": {
+        "north": "北",
+        "northEast": "东北",
+        "east": "东",
+        "southEast": "东南",
+        "south": "南",
+        "southWest": "西南",
+        "west": "西",
+        "northWest": "西北"
+      }
+    },
+    "premium": {
+      "label": "高级版",
+      "badge": "7 折",
+      "title": "解锁全年日历",
+      "body": "查看无限制的未来日期、保存洞见，并为重要日子获得提醒。",
+      "cta": "升级 ฿199/月"
+    },
+    "locked": {
+      "title": "解锁这一天",
+      "paywallTitle": "解锁日期是订阅者专属功能",
+      "paywallDesc": "查看一年中任意日期的行星洞见。升级到 Basic 或 Pro 即可解锁——结账在下一页由 Stripe 提供支持。",
+      "paywallFeature": "超出免费 ±30 天范围的日历访问",
+      "paywallInsufficient": "需要升级",
+      "paywallNote": "选择套餐后将进入安全的 Stripe 结账页面。",
+      "dialogBody": "查看任意日期的行星洞见。订阅 Basic 或 Pro 即可解锁——结账在下一页由 Stripe 提供支持。",
+      "bodyFree": "此日期超出了你的免费范围（±30 天）。订阅 Basic 可立即解锁——约 {price}/月，可获得 ±1 年的日历访问权限。结账在下一页由 Stripe 提供支持。",
+      "bodyBasic": "此日期超出了你的 Basic 范围（±1 年）。升级到 Pro 可获得无限制的日历访问——低至 {price}/月。结账在下一页由 Stripe 提供支持。",
+      "noteFree": "Basic 包含用于聊天占卜的每月星星额度；日历解锁不按天计费。",
+      "ctaFree": "前往 Basic 结账（Stripe）",
+      "ctaBasic": "前往 Pro 结账（Stripe）",
+      "cta": "升级",
+      "cellHint": "Basic 可用"
+    },
+    "starUnlock": {
+      "description": "或花费一颗星星，仅解锁这一天。解锁记录会保存到你的账户，并永久有效。",
+      "cta": "用 {cost} 颗星星解锁",
+      "insufficient": "你的星星不足以解锁此日期。",
+      "error": "无法解锁此日期，请重试。"
+    },
+    "ai": {
+      "title": "向你的日历发问",
+      "body": "挑一个问题，我会扫描你可访问的日子，找出最有利的时机。",
+      "bestDay": "最佳日期",
+      "confidenceLabel": "置信度",
+      "signalScore": "信号评分",
+      "overallScore": "综合评分",
+      "warningCount": "提醒",
+      "topHighlight": "这一天为何脱颖而出",
+      "watchOut": "需留意",
+      "noResult": "在你当前的范围内，暂时还没有可访问的突出日期。",
+      "error": "我现在无法扫描你的日历，请重试。",
+      "summary": "在你目前可访问的日子里，这一天显示出最强的{action}信号。",
+      "confidence": {
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      },
+      "prompts": {
+        "resignation": "辞职的最佳日子",
+        "contract_sign": "签合同的最佳日子",
+        "travel_long": "旅行的最佳日子",
+        "major_purchase": "大额购物的最佳日子"
+      }
+    },
+    "suggestions": {
+      "focusToday": "这一天我该专注什么？",
+      "goodDecisionDay": "这一天适合做重大决定吗？",
+      "activitiesForToday": "哪些活动契合这一天的能量？",
+      "warnings": "有什么我该留意的吗？"
+    },
+    "cta": {
+      "title": "接下来你想问什么？",
+      "body": "让 Askingfate 帮你解读你具体的处境。",
+      "button": "询问 Askingfate"
+    },
+    "composerPlaceholder": "询问关于这一天的问题……"
+  },
+  "Notifications": {
+    "title": "通知",
+    "noNotifications": "暂无通知",
+    "noNotificationsDescription": "你已全部看完！有重要更新时我们会通知你。"
+  },
+  "Billing": {
+    "title": "交易记录",
+    "subtitle": "查看你的购买记录与账单信息",
+    "authRequired": "请登录以访问账单",
+    "loading": "正在加载账单记录……",
+    "currentPlan": "当前套餐",
+    "starterPlan": "入门套餐",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "monthly": "按月",
+    "yearly": "按年",
+    "planSuffix": "套餐",
+    "renewalSuffix": "续费",
+    "active": "生效中",
+    "ending": "即将结束",
+    "starsPerPeriod": "每期星星",
+    "planDetails": "套餐详情",
+    "billingHistory": "账单记录",
+    "paymentMethod": "支付方式",
+    "managePaymentMethod": "管理支付方式",
+    "nextBilling": "下次扣费",
+    "manageSubscription": "管理订阅",
+    "upgradePlan": "升级套餐",
+    "buyAddons": "购买附加包",
+    "viewInvoices": "查看发票",
+    "noTransactions": "未找到交易",
+    "transactionId": "交易 ID",
+    "amount": "金额",
+    "status": "状态",
+    "date": "日期",
+    "viewDetails": "查看详情",
+    "filterByDate": "按日期筛选",
+    "pickDate": "选择日期",
+    "clearFilters": "清除筛选",
+    "loadingHistory": "正在加载你的神奇记录……",
+    "noPurchases": "暂无购买记录",
+    "noPurchasesDescription": "你的神奇旅程，从第一次购买星星开始",
+    "stars": "星星",
+    "purchase": "购买",
+    "subscription": "订阅",
+    "digitalWallet": "电子钱包",
+    "payment": "支付",
+    "cancelSubscription": "取消订阅",
+    "cancelling": "取消中……",
+    "subscriptionCancelled": "订阅已成功取消",
+    "confirmCancel": "取消订阅？",
+    "cancelWarning": "你的订阅将在当前计费周期结束前保持有效。之后，你的星星将回落至免费版上限。",
+    "back": "返回",
+    "receipt": "收据",
+    "totalAmount": "总金额",
+    "subscriptionAccessDesc": "按月或按年补充星星，并享有高级洞见。",
+    "addonPacks": "附加包",
+    "addonStars": "附加星星",
+    "noAddons": "暂无附加包。",
+    "estimatedTotal": "预计总额",
+    "refund": "退款",
+    "refunded": "已退款",
+    "confirmRefund": "申请退款？",
+    "refundWarning": "符合条件的交易可在购买后 7 天内申请退款。",
+    "keepPurchase": "保留购买",
+    "confirmRefundAction": "是的，退款",
+    "refundSuccess": "已申请退款",
+    "refundFailed": "退款失败",
+    "revertDowngrade": "撤销降级",
+    "revertDowngradeSuccess": "降级已撤销",
+    "revertDowngradeFailed": "撤销降级失败",
+    "removeAddon": "移除",
+    "addonRemoved": "附加包已移除",
+    "addonRemoveFailed": "移除附加包失败",
+    "confirmRemoveAddon": "移除附加包？",
+    "removeAddonWarning": "此附加包将从你的下一个计费周期起移除。在那之前，你仍可继续使用其中的星星。",
+    "keepAddon": "保留附加包",
+    "confirmRemoveAddonAction": "是的，移除附加包",
+    "transactionDetails": "交易详情",
+    "reference": "参考编号",
+    "currency": "货币",
+    "identifiers": "标识符",
+    "providerId": "服务商 ID",
+    "needHelp": "需要帮助？",
+    "supportDesc": "如果你对这笔交易有任何疑问，我们的神奇客服团队随时为你提供帮助。",
+    "contactSupport": "联系客服",
+    "transactionNotFound": "未找到交易",
+    "starPurchase": "购买星星",
+    "starPackDesc": "用于宇宙占卜的天界货币。"
+  },
+  "Contact": {
+    "title": "联系与支持",
+    "subtitle": "需要帮助？有疑问？在你的神秘之旅上，我们随时为你提供协助。",
+    "faqTitle": "常见问题",
+    "stillNeedHelp": "仍需帮助？",
+    "stillNeedHelpDescription": "如果你找不到所需的内容，请不要犹豫，随时联系我们。我们的客服团队致力于帮助你在 Askingfate 获得最佳体验。",
+    "sendMessage": "给我们留言",
+    "emailSupport": "邮件支持",
+    "emailSupportDescription": "通过邮件获取帮助",
+    "responseTime24h": "24-48 小时回复",
+    "liveChat": "在线客服",
+    "liveChatDescription": "与我们的客服团队聊天",
+    "availableHours": "服务时间 美东时间上午 9 点至下午 6 点",
+    "weekdays": "周一至周五",
+    "responseTime": "响应时间",
+    "responseTimeDescription": "通常的响应时间",
+    "responseTimeValue": "24-48 小时内",
+    "businessDays": "工作日",
+    "faq": {
+      "howToGetStars": "我如何获得更多星星？",
+      "howToGetStarsAnswer": "你可以通过我们的账单页面购买星星，或通过特别活动赚取。查看价格页面以了解当前的套餐。",
+      "refundPolicy": "我可以退款吗？",
+      "refundPolicyAnswer": "对于未使用的星星，我们在购买后 7 天内提供退款。请凭你的交易详情联系我们以获取帮助。",
+      "dataPrivacy": "我的占卜数据私密吗？",
+      "dataPrivacyAnswer": "是的，你所有的占卜与个人信息都将被完全保密、安全保存。我们绝不会与第三方共享你的数据。",
+      "readingAccuracy": "占卜有多准确？",
+      "readingAccuracyAnswer": "我们 AI 驱动的解读基于传统塔罗智慧，提供富有洞察力的指引。请将它们作为反思与个人成长的工具。"
+    },
+    "form": {
+      "name": "姓名",
+      "namePlaceholder": "你的姓名",
+      "email": "邮箱",
+      "emailPlaceholder": "your@email.com",
+      "subject": "主题",
+      "subjectPlaceholder": "我们能帮你什么？",
+      "message": "消息",
+      "messagePlaceholder": "请详细描述你的咨询或问题……",
+      "submit": "发送消息",
+      "submitting": "发送中……",
+      "success": "消息发送成功！我们会尽快回复你。",
+      "error": "发送消息失败，请重试。"
+    }
+  },
+  "Pricing": {
+    "title": "价格方案",
+    "subtitle": "为你的神秘之旅选择最合适的方案",
+    "heroTitle": "选择你的星星，解锁更深层的洞见",
+    "heroDescription": "选择 Basic 或 Pro，按月或按年获取星星。",
+    "priceNote": "价格以泰铢（THB）计。年度方案一次性收费。",
+    "currency": "货币",
+    "changeCurrency": "更改货币",
+    "currencySearchPlaceholder": "搜索货币或代码……",
+    "currencyNoResults": "没有匹配你搜索的货币。",
+    "subscriptionPlans": "订阅方案",
+    "oneTimePacks": "附加星星包",
+    "monthly": "按月",
+    "yearly": "按年",
+    "mostPopular": "最受欢迎",
+    "getStarted": "开始体验",
+    "currentPlan": "当前套餐",
+    "owned": "已拥有",
+    "upgradeSuccess": "升级成功",
+    "downgradeSuccess": "降级成功",
+    "upgradeError": "升级失败",
+    "signInToUpgrade": "请登录以升级",
+    "upgradePlan": "升级套餐",
+    "monthlySubscription": "按月订阅",
+    "firstMonthOffer": "仅限首月优惠",
+    "thenRegularPrice": "之后 {price}/月",
+    "annualSubscription": "按年订阅",
+    "perMonth": "每月",
+    "perYear": "每年",
+    "autoRenew": "自动续费",
+    "cancelAnytime": "随时取消",
+    "billedYearly": "按年收费",
+    "save17": "省 17%",
+    "savePercent": "省 {percent}%",
+    "oneTime": "附加包",
+    "instantDelivery": "即时到账",
+    "days": "天",
+    "stars": "星星",
+    "popular": "热门",
+    "bestValue": "超值之选",
+    "ongoingSupport": "持续支持新功能",
+    "bonusStars": "不定期赠送星星与福利",
+    "cancelFromAccount": "随时从你的账户取消",
+    "bestValueYearly": "最超值的年度方案",
+    "samePerks": "与按月相同的福利",
+    "cancelRenewal": "随时取消续费",
+    "basicPlan": "Basic",
+    "proPlan": "Pro",
+    "basicDescription": "每月 100 颗星星，提供稳定的指引。",
+    "proDescription": "每月 599 颗星星，供你更深入地探索。",
+    "subscribeNow": "立即订阅",
+    "downgradePlan": "降级套餐",
+    "planChange": {
+      "upgradeTitle": "确认升级",
+      "upgradeDescription": "你只需支付当前套餐与此套餐之间的差额（{amount}）。你的计费周期保持不变。",
+      "downgradeTitle": "确认降级",
+      "downgradeDescription": "你的套餐将在下一个计费周期变更。届时将按新价格收费，在此日期之前你仍可保留当前的星星额度。",
+      "summaryTitle": "结账摘要",
+      "starsSummaryTitle": "星星影响",
+      "currentPlanLabel": "当前套餐",
+      "targetPlanLabel": "新套餐",
+      "differenceLabel": "今日差额",
+      "refillLabel": "补充日期",
+      "currentStarsLabel": "当前星星",
+      "projectedStarsLabel": "变更后",
+      "confirm": "确认",
+      "cancel": "取消"
+    },
+    "proOnlyPacks": "附加星星包仅供 Pro 订阅者购买。",
+    "starsPerMonth": "每月星星",
+    "starsPerYear": "每年星星",
+    "includesBonus": "含赠送星星",
+    "secureCheckout": "安全结账",
+    "oneTimePayment": "一次性付款，不自动续费",
+    "bonus": "赠送",
+    "limitedOffer": "限时优惠",
+    "unlimitedReadings": "无限宇宙占卜",
+    "howItWorks": "运作方式",
+    "signIn": "登录",
+    "signInDesc": "创建或登录你的账户",
+    "pickPack": "挑选套餐包",
+    "pickPackDesc": "我们会自动为你选择本地货币。更大的套餐包含赠送星星。",
+    "paySecurely": "安全支付",
+    "paySecurelyDesc": "由可信赖的服务商处理",
+    "instantDeliveryDesc": "付款后星星立即到账",
+    "trustedTransparent": "可信赖且透明",
+    "trustedTransparentDesc": "价格清晰。没有隐藏费用。星星用于占卜。",
+    "secureCheckoutDesc": "付款由信誉良好的处理商加密处理。",
+    "ongoingImprovements": "持续改进",
+    "ongoingImprovementsDesc": "你的支持帮助我们推出更出色的 AI 占卜与功能。",
+    "howFastStars": "星星多快到账？",
+    "howFastStarsAnswer": "付款后即时到账。如果没有看到，请刷新星星页面。",
+    "whatIsBonus": "赠送是什么？",
+    "whatIsBonusAnswer": "฿1 始终等于 60 颗星星。更大的套餐会在基础数量之上额外赠送星星。",
+    "pricingFaqTitle": "价格与补充常见问题",
+    "pricingFaq": {
+      "refillQuestion": "订阅补充是如何运作的？",
+      "refillAnswer": "每个账户拥有至多 5 颗免费每日星星。当你使用一颗星星时，会启动一个 5 小时的计时器——计时结束后 5 颗星星将一次性全部补充（没有更快的逐颗补充）。Basic 与 Pro 套餐会额外增加一个独立的套餐池，在你的扣费日重置为套餐数量。附加包则创建一个独立的池，同样在每个计费周期补充。",
+      "changeQuestion": "升级或降级时会发生什么？",
+      "changeAnswer": "升级立即生效，且仅收取差额。降级在下一个计费周期生效，届时你的套餐星星会补充至新的数量。",
+      "addonsQuestion": "谁可以购买附加星星包？",
+      "addonsAnswer": "附加包供 Pro 订阅者购买。它们会增加一个循环的星星池，在每个计费周期补充，直至移除。",
+      "refundQuestion": "我可以申请退款吗？",
+      "refundAnswer": "若你尚未使用当前套餐中的任何星星，即可申请退款。退款申请须在扣费日起 7 天内提交。"
+    },
+    "features": {
+      "unlimitedReadings": "无限占卜",
+      "premiumInsights": "高级洞见",
+      "prioritySupport": "优先支持",
+      "exclusiveContent": "专属内容",
+      "advancedAnalytics": "高级分析"
+    }
+  },
+  "Stars": {
+    "title": "星星余额",
+    "subtitle": "管理你的宇宙货币",
+    "currentBalance": "当前余额",
+    "addStars": "添加星星",
+    "purchaseHistory": "购买记录",
+    "howItWorks": "运作方式",
+    "starPackages": {
+      "small": "小包",
+      "medium": "中包",
+      "large": "大包",
+      "mega": "超大包"
+    },
+    "transactions": {
+      "purchase": "购买",
+      "spent": "已花费",
+      "refund": "退款",
+      "bonus": "赠送"
+    }
+  },
+  "Checkout": {
+    "purchase": "购买",
+    "subscribe": "订阅",
+    "addOn": "附加包",
+    "checkout": "结账",
+    "loading": "加载中……",
+    "redirecting": "正在跳转至安全结账……",
+    "addonSuccess": "附加包已添加",
+    "done": "完成",
+    "back": "返回",
+    "unavailable": "暂不可用",
+    "signInToSubscribe": "登录以订阅",
+    "sessionError": "我们无法开始结账，请重试。",
+    "comingSoonTitle": "购买星星功能即将推出",
+    "comingSoonDescription": "我们正在为一种在 Askingfate 内安全购买星星的新方式做最后的打磨。",
+    "comingSoonHelper": "感谢你的耐心等待！与此同时，你可以继续探索免费占卜，并通过社群活动赚取赠送星星。",
+    "close": "关闭",
+    "stripeReady": "已检测到 Stripe 密钥——请在服务器上添加私钥以启用结账。",
+    "stripeMissing": "{countdown}时可用",
+    "countdownUnknown": "下一个版本已就绪"
+  },
+  "StarsPurchase": {
+    "badge": "即将推出",
+    "title": "购买星星功能即将推出",
+    "description": "我们正在重建购买流程，让每一个套餐包与订阅都更安全、更顺畅。",
+    "helper": "在我们完成更新期间，你可以继续享受免费占卜、推荐与社群奖励，来增加你的余额。",
+    "backToPricing": "返回价格",
+    "ctaBackToStars": "前往星星面板",
+    "ctaEarnFree": "赚取免费星星"
+  },
+  "ReadingHistory": {
+    "title": "你的占卜历史",
+    "authRequired": "请登录以访问你的占卜历史",
+    "loading": "正在加载占卜历史……",
+    "subtitle": "回顾你过往的塔罗占卜与洞见",
+    "searchPlaceholder": "搜索占卜或牌……",
+    "filters": {
+      "allTime": "全部时间",
+      "today": "今天",
+      "thisWeek": "本周",
+      "thisMonth": "本月",
+      "customRange": "自定义范围",
+      "allTypes": "全部类型",
+      "simple": "简易",
+      "intermediate": "进阶",
+      "advanced": "高级"
+    },
+    "clearFilters": "清除筛选",
+    "noReadings": "未找到占卜",
+    "noReadingsDesc": "你还没有创建任何塔罗占卜。用你的第一次占卜开启神秘之旅吧！",
+    "startReading": "开始占卜",
+    "loadingReadings": "正在加载你的占卜……",
+    "error": "加载占卜失败",
+    "errorDesc": "加载你的占卜历史时出错，请重试。",
+    "retry": "重试",
+    "loadMore": "滚动以加载更多",
+    "loadingMore": "正在加载更多占卜……",
+    "noQuestion": "（无问题）",
+    "readingTypes": {
+      "simple": "简易",
+      "intermediate": "进阶",
+      "advanced": "高级"
+    },
+    "delete": "删除",
+    "deleteSuccess": "占卜删除成功",
+    "deleteError": "删除占卜失败",
+    "swipeToDelete": "向左滑动以删除",
+    "contextMenu": {
+      "openReading": "打开占卜",
+      "openInNewTab": "在新标签页打开",
+      "copyLink": "复制链接",
+      "share": "分享",
+      "linkCopied": "链接已复制到剪贴板",
+      "shareError": "无法分享"
+    }
+  },
+  "StarsBalance": {
+    "available": "可用星星",
+    "nextRefill": "下次补充",
+    "planLabel": "{plan}",
+    "balance": "余额：{current}/{total}",
+    "dailyBalance": "每日星星：{current}/{total}",
+    "planBalance": "套餐星星：{current}/{total}",
+    "addonBalance": "附加星星：{current}/{total}",
+    "engagementBalance": "互动星星：{current}/{total}",
+    "nextBilling": "下次扣费 {date}",
+    "buyAddons": "购买附加包",
+    "anonymousPrefix": "匿名用户：",
+    "anonymousRefill": "每天午夜（UTC+7）补充至 3 颗星星。倒计时显示距下次宇宙对齐的时间。",
+    "autoRefill": "首次使用 5 小时后，{cap} 颗星星将一次性全部补充。",
+    "subscriptionRefill": "每个计费周期补充至多 {cap} 颗星星。",
+    "dailyRefillNote": "每日星星将在首次使用 5 小时后一次性补满至 {cap} 颗。",
+    "planRefillNote": "你的 {plan} 套餐将在下次扣费日补充至 {cap} 颗星星。"
+  },
+  "SignInAccordion": {
+    "title": "登录",
+    "description": "新账户起始有 5 颗星星。开始使用 5 小时后，{cap} 颗将一次性全部补充。",
+    "button": "登录"
+  },
+  "OneTapTopUp": {
+    "packs": {
+      "starter": "入门",
+      "explorer": "探索者",
+      "seeker": "求道者",
+      "mystic": "神秘家",
+      "master": "大师",
+      "grandMaster": "宗师",
+      "ultimate": "至尊"
+    }
+  },
+  "SubscribeDropdown": {
+    "aria": "选择订阅周期",
+    "monthly": "按月",
+    "monthlyPrice": "$9.99/月",
+    "annual": "按年",
+    "annualPrice": "$99.99/年"
+  },
+  "StarsPage": {
+    "comingSoon": "即将推出",
+    "hero": {
+      "badge": "星星系统"
+    },
+    "subscribe": {
+      "title": "订阅方案",
+      "subtitle": "为你的套餐选择按月或按年获取星星",
+      "features": {
+        "unlimitedReadings": "无限占卜",
+        "premiumFeatures": "高级功能",
+        "prioritySupport": "优先支持"
+      },
+      "button": "订阅",
+      "monthly": "按月",
+      "annual": "按年",
+      "starsPerMonth": "每月星星",
+      "starsPerYear": "每年星星",
+      "priceLabel": "{price} 按{cycle}收费",
+      "notConfigured": "价格尚未配置。",
+      "downgrade": "降级",
+      "mostPopular": "最受欢迎",
+      "saveStarsPercent": "省 {percent}%（从 {from} 增至 {to} 颗星星）",
+      "savePercent": "省 {percent}%",
+      "upgrade": "升级",
+      "upgradeSuccess": "升级成功",
+      "downgradeSuccess": "降级成功",
+      "upgradeError": "升级失败",
+      "signInToUpgrade": "请登录以升级",
+      "upgradeDialogTitle": "确认升级",
+      "upgradeDialogDescription": "你只需支付当前套餐与此套餐之间的差额（{amount}）。你的计费周期保持不变。",
+      "downgradeDialogTitle": "确认降级",
+      "downgradeDialogDescription": "你的套餐将在下一个计费周期变更。届时将按新价格收费，在此日期之前你仍可保留当前的星星额度。",
+      "summaryTitle": "结账摘要",
+      "starsSummaryTitle": "星星影响",
+      "currentPlanLabel": "当前套餐",
+      "targetPlanLabel": "新套餐",
+      "differenceLabel": "今日差额",
+      "refillLabel": "补充日期",
+      "currentStarsLabel": "当前星星",
+      "projectedStarsLabel": "变更后",
+      "dialogConfirm": "确认",
+      "dialogCancel": "取消",
+      "basic": {
+        "title": "Basic",
+        "subtitle": "每月 100 颗星星"
+      },
+      "pro": {
+        "title": "Pro",
+        "subtitle": "每月 599 颗星星"
+      },
+      "custom": {
+        "title": "定制",
+        "subtitle": "通过此表单联系我们"
+      }
+    },
+    "earn": {
+      "comingSoon": "即将推出",
+      "title": "赚取星星的方式",
+      "subtitle": "探索多种途径积累宇宙能量，解锁更深层的神秘体验",
+      "purchase": {
+        "title": "购买星星",
+        "subtitle": "即时充值",
+        "body": "现在就需要星星？选择一个套餐，结账后星星将立即添加到你的余额中。查看价格以比较各项选择。",
+        "viewPricing": "查看价格",
+        "instant": "即时"
+      },
+      "social": {
+        "title": "在社交平台关注我们",
+        "subtitle": "每个平台赚取 +5 颗星星（最多共 25 颗）。",
+        "description": "点击一个平台，关注 Askingfate，我们会立即为你添加奖励。每个平台只可领取一次。",
+        "rewardLabel": "+5 颗星星奖励",
+        "followCta": "关注我们",
+        "openCta": "打开链接",
+        "claimed": "已领取",
+        "signIn": "登录以领取这些社交奖励。",
+        "success": "感谢你在 {platform} 关注我们！已添加 +5 颗星星。",
+        "alreadyClaimed": "你已领取过 {platform}。",
+        "error": "我们现在无法发放星星，请重试。",
+        "progress": "已领取 {claimed}/{total}"
+      },
+      "platforms": {
+        "facebook": "Facebook",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X（Twitter）"
+      },
+      "content": {
+        "title": "创作关于我们的内容",
+        "subtitle": "创作内容，赚取星星。",
+        "body": "创作关于 Askingfate 的内容——文字、图片或视频——并根据形式赚取星星。提交一个公开链接，我们会在 24–48 小时内审核。",
+        "items": {
+          "textTitle": "文章或博客帖子",
+          "textSubtitle": "以文字分享你的洞见",
+          "imageTitle": "图片帖子（社交媒体）",
+          "imageSubtitle": "配文字说明的视觉内容",
+          "videoTitle": "视频内容",
+          "videoSubtitle": "YouTube、TikTok 或 Reels"
+        },
+        "note": "💡 分享你内容的公开链接。我们会在 24-48 小时内人工审核并批准。",
+        "learnMore": "了解更多",
+        "submitContent": "提交内容"
+      },
+      "share": {
+        "title": "分享一次占卜",
+        "subtitle": "分享链接。每天最多从 3 次访问中赚取。",
+        "body": "每有一位独立访客打开你分享的占卜，即可赚取 +5 颗星星——每天最多奖励 3 次访问。奖励将自动发放。",
+        "learnMore": "了解更多"
+      },
+      "refer": {
+        "title": "推荐好友",
+        "subtitle": "邀请好友。一起赚取。",
+        "body": "分享你的推荐链接。你和好友各得 20 颗星星（每周最多 10 位好友）。若一周内有 10 位好友注册，你将额外获得 50 颗星星奖励。当受邀好友完成注册时即发放星星。",
+        "learnMore": "了解更多",
+        "viewReferral": "查看推荐链接"
+      }
+    }
+  },
+  "CheckoutSuccess": {
+    "badge": "支付成功",
+    "title": "感谢你的购买！",
+    "description": "你的付款已成功处理。星星已添加到你的账户，随时可用。",
+    "descriptionWithStars": "你的付款已成功处理。{stars} 颗星星已添加到你的账户，随时可用。",
+    "emailLabel": "收据已发送至你的邮箱地址：",
+    "viewStars": "查看我的星星",
+    "viewBilling": "账单记录",
+    "backToPricing": "返回价格",
+    "backToStars": "返回星星",
+    "supportText": "如有任何疑问，请发送邮件至"
+  },
+  "InsufficientStars": {
+    "title": "星星不足",
+    "descriptionLoggedIn": "你至少需要 1 颗星星才能抽牌并获得占卜。充值星星以继续你的神秘之旅。",
+    "descriptionAnonymous": "你至少需要 1 颗星星才能抽牌。登录即可解锁 5 颗免费星星，每 5 小时补充一次！",
+    "descriptionHoroscopeLoggedIn": "你至少需要 1 颗星星才能获得星座运势解读。充值星星以继续你的宇宙之旅。",
+    "descriptionHoroscopeAnonymous": "你至少需要 1 颗星星才能获得星座运势解读。登录即可解锁 5 颗免费星星，每 5 小时补充一次！",
+    "quickTopUp": "快速充值",
+    "packsNotConfigured": "星星套餐尚未配置。",
+    "proRequired": "附加包仅供 Pro 订阅者购买。",
+    "viewAllOptions": "查看所有价格选项",
+    "benefit1Title": "5 颗免费星星",
+    "benefit1Desc": "立即获得 5 颗星星起步",
+    "benefit2Title": "自动补充",
+    "benefit2Desc": "5 颗星星每 5 小时全部补充",
+    "signInButton": "登录以继续",
+    "signInNote": "创建一个免费账户，获得 5 颗星星，开启你的塔罗之旅",
+    "chatMessageLoggedIn": "看起来你现在的星星不足以抽牌。你至少需要 1 颗星星才能继续占卜。你可以用下面的某个选项立即充值星星，或等待星星自动补充。",
+    "chatMessageAnonymous": "看起来你现在的星星不足以抽牌。登录即可解锁 5 颗免费星星，每 5 小时补充一次，或创建一个账户来开启你的神秘之旅！",
+    "promoBasicTitle": "升级到 Pro 以获得更多星星",
+    "promoGuestTitle": "立即解锁更多星星",
+    "promoBasicDescription": "你正在使用 Basic。升级到 Pro 可获得更多每月星星投放，并享有附加包。",
+    "promoGuestDescription": "在下方选择一个套餐，无需等待即可继续你的占卜。",
+    "monthly": "按月",
+    "annual": "按年",
+    "unavailable": "暂不可用",
+    "bestValue": "超值之选",
+    "proPlan": "Pro 套餐",
+    "basicPlan": "Basic 套餐",
+    "proShort": "Pro",
+    "basicShort": "Basic",
+    "starsPerMonthLabel": "{stars} 颗星星 / 月",
+    "starsPerYearLabel": "{stars} 颗星星 / 年",
+    "perMonth": "/ 月",
+    "owned": "已拥有",
+    "upgradeNow": "立即升级",
+    "getPlan": "获取 {plan}",
+    "savePercent": "省 {percent}%"
+  },
+  "BirthForm": {
+    "datePlaceholder": "日/月/年",
+    "yearEraCE": "公元",
+    "yearEraBE": "佛历",
+    "dateErrorDay": "日须在 1 到 31 之间",
+    "dateErrorMonth": "月须在 1 到 12 之间",
+    "missingTimeHint": "我们需要你的出生时间以提高精确度。",
+    "missingDateHint": "我们需要你的出生日期。",
+    "inlineAccuracyHint": "发送前请在此填写你的出生日期与时间。",
+    "timeAccuracyHint": "确切的出生时间能带来最准确的解读。若你不知道，请选择白天或夜晚，准确度可能会下降。",
+    "timePlaceholder": "时:分",
+    "timePickerTitle": "选择时间",
+    "timePickerHour": "时",
+    "timePickerMinute": "分",
+    "timePickerDone": "完成",
+    "birthDate": "出生日期",
+    "birthTime": "出生时间",
+    "exactTime": "确切时间",
+    "daytime": "白天",
+    "nighttime": "夜晚",
+    "birthPlace": "出生地（可选）",
+    "country": "国家",
+    "stateProvince": "省 / 州",
+    "locationSettings": "位置设置",
+    "useCurrentLocation": "使用当前位置",
+    "advanced": "高级（纬度、经度、时区）",
+    "latitude": "纬度",
+    "longitude": "经度",
+    "timezone": "时区（例如 7）",
+    "rememberBirth": "记住我的出生日期",
+    "removeBirth": "移除"
+  },
+  "HoroscopeChat": {
+    "usingSavedBirthDate": "正在使用你保存的出生日期进行此次解读……",
+    "loading": "正在查阅你的本命星盘……",
+    "fallbackAnswerError": "我暂时还无法解读这张星盘。",
+    "analysisFailed": "抱歉，星座运势分析失败，请重试。",
+    "parseFailed": "我无法解析这些出生信息，请重试。",
+    "askBirthDate": "请先发送你的出生日期（日/月/年 或 年-月-日）。",
+    "askBirthTime": "现在请告诉我你的出生时间。若不知道，只需告诉我白天还是夜晚。上升点大约每 2 小时变化一次，因此大致的时间可能会降低准确度。",
+    "askBirthPlace": "请告诉我你的出生地（城市/国家）。若不知道，我可以使用你的当前位置，但解读可能不太准确。",
+    "usingLocationFallback": "正在使用你的当前位置作为替代。这可能会降低宫位与上升点的精确度。",
+    "processFailed": "抱歉，我现在无法处理星座运势信息。",
+    "paywallOtherPersonAssistantText": "解读他人的星盘不在免费版之列——你可以<drawPill>改为抽一张牌</drawPill>，我会为你解读。",
+    "paywallOtherPersonTitle": "解读他人需要付费套餐",
+    "paywallOtherPersonBody": "免费账户只能查看自己的星盘。升级到 Basic 或 Pro 即可为朋友、家人或伴侣解读。",
+    "paywallOtherPersonPaywallTitle": "解读他人是订阅者专属功能",
+    "paywallOtherPersonPaywallDesc": "用你的星星为朋友、家人或伴侣解读。升级到 Basic 或 Pro 即可解锁——结账在下一页由 Stripe 提供支持。",
+    "paywallOtherPersonPaywallFeature": "根据他人的出生信息解读其星盘",
+    "paywallOtherPersonPaywallInsufficient": "需要升级",
+    "paywallOtherPersonPaywallNote": "选择套餐后将进入安全的 Stripe 结账页面。",
+    "paywallUpgradeCta": "升级套餐",
+    "transitDateLabel": "行运日期",
+    "birthFormTitle": "填写你的出生信息",
+    "birthFormSubmit": "使用此出生数据",
+    "composerBirthPlaceholder": "在此输入你的出生日期、出生时间与地点。任何日期格式皆可。",
+    "underAgeWarningTitle": "不允许的出生日期",
+    "underAgeWarningBody": "Askingfate 不向十三（13）岁以下的用户开放。你之前的出生日期已被还原。",
+    "underAgeWarningClose": "关闭",
+    "tabs": {
+      "overview": "概览",
+      "aspect": "影响相位",
+      "transit": "技术信息",
+      "birthChartInfo": "本命星盘信息"
+    },
+    "natalSpotlight": {
+      "title": "你的本命星盘亮点",
+      "subtitle": "能回答这个问题的星体配置",
+      "titleTransit": "当前星空位置",
+      "subtitleTransit": "这些行星此刻所处的位置"
+    },
+    "verdict": {
+      "moodGood": "好日子",
+      "moodCaution": "需留意",
+      "moodRest": "休息日",
+      "answerHeading": "针对你的问题",
+      "watchHeading": "一点提醒",
+      "focusHeading": "专注",
+      "dateRelativeToday": "今天",
+      "dateRelativeTomorrow": "明天",
+      "dateRelativeYesterday": "昨天"
+    },
+    "transit": {
+      "feedTitle": "活跃行运",
+      "showMore": "显示更多",
+      "showLess": "显示更少",
+      "transitLabel": "行运",
+      "natalLabel": "本命",
+      "emptyFallback": "正在显示这一天的完整解读。",
+      "aspectConjunction": "合相",
+      "aspectOpposition": "对分相",
+      "aspectSquare": "刑相",
+      "aspectTrine": "三分相",
+      "aspectSextile": "六分相"
+    },
+    "timeline": {
+      "title": "可能会发生什么",
+      "subtitleHourly": "这一天的逐时走向",
+      "subtitleDaily": "这段时间的逐日走向",
+      "granularityHourly": "逐时视图",
+      "granularityDaily": "逐日视图",
+      "loading": "正在构建你的时间线……",
+      "moodGood": "顺畅",
+      "moodCaution": "需留意",
+      "moodRest": "放慢脚步",
+      "moodMixed": "信号交织",
+      "focusHeading": "专注",
+      "hourBuckets": {
+        "lateNight": "深夜",
+        "dawn": "黎明",
+        "morning": "上午",
+        "midday": "正午",
+        "afternoon": "下午",
+        "evening": "傍晚",
+        "night": "夜晚"
+      }
+    }
+  },
+  "Settings": {
+    "title": "设置",
+    "subtitle": "管理你的账户偏好与邮件营销设置",
+    "loading": "正在加载设置……",
+    "saving": "保存中……",
+    "save": "保存设置",
+    "saveSuccess": "设置保存成功",
+    "saveError": "保存设置失败",
+    "fetchError": "加载设置失败",
+    "authRequired": "请登录以访问设置",
+    "emailMarketing": {
+      "title": "邮件营销",
+      "enable": "启用邮件营销",
+      "enableDesc": "接收我们的营销邮件",
+      "promotional": "促销邮件",
+      "promotionalDesc": "特别优惠与折扣",
+      "newsletter": "新闻通讯",
+      "newsletterDesc": "每周更新与洞见",
+      "productUpdates": "产品更新",
+      "productUpdatesDesc": "新功能与改进",
+      "readingReminders": "占卜提醒",
+      "readingRemindersDesc": "提醒你查看占卜",
+      "specialOffers": "特别优惠",
+      "specialOffersDesc": "专属优惠与促销"
+    },
+    "notifications": {
+      "title": "推送通知",
+      "enable": "启用推送通知",
+      "enableDesc": "在你的设备上接收推送通知",
+      "readingReminders": "占卜提醒",
+      "specialOffers": "特别优惠",
+      "systemUpdates": "系统更新"
+    },
+    "privacy": {
+      "title": "隐私设置",
+      "profileVisibility": "资料可见性",
+      "private": "私密",
+      "public": "公开",
+      "friends": "仅好友",
+      "showEmail": "显示邮箱",
+      "showEmailDesc": "在你的个人资料上显示邮箱",
+      "showBirthDate": "显示出生日期",
+      "showBirthDateDesc": "在你的个人资料上显示出生日期",
+      "allowMessages": "允许私信",
+      "allowMessagesDesc": "允许他人向你发送私信"
+    },
+    "reading": {
+      "title": "占卜偏好",
+      "autoSave": "自动保存占卜",
+      "autoSaveDesc": "自动保存你的占卜",
+      "shareByDefault": "默认分享占卜",
+      "shareByDefaultDesc": "自动分享新的占卜"
+    },
+    "localization": {
+      "title": "语言与本地化",
+      "language": "语言",
+      "timeFormat": "时间格式"
+    },
+    "accessibility": {
+      "title": "无障碍",
+      "reducedMotion": "减弱动态效果",
+      "reducedMotionDesc": "减少动画与过渡效果",
+      "highContrast": "高对比度",
+      "highContrastDesc": "提高对比度以增强可见性",
+      "fontSize": "字体大小",
+      "small": "小",
+      "medium": "中",
+      "large": "大"
+    }
+  },
+  "PlanetaryPanel": {
+    "transitSuffix": " 行运",
+    "natalSuffix": " 本命",
+    "noChartPosition": "无星盘位置",
+    "defaultKeyword": "个性化相位",
+    "exactDatePrefix": "于 {date}",
+    "rangeDate": "始于 {start}（峰值 {peak}）",
+    "rangeDateStart": "始于 {start}",
+    "rangeDatePeak": "峰值 {peak}",
+    "rangeDateEnd": "止于 {end}",
+    "mainEvents": "主要事件",
+    "showDailyVibes": "显示每日氛围（{count}）",
+    "showLifeSituation": "显示所有行星相位（{count}）",
+    "showRelatedAspects": "显示相关（{count}）",
+    "showAllAspects": "显示全部（{count}）",
+    "showMore": "显示更多",
+    "showTechnical": "显示技术数据",
+    "hideTechnical": "隐藏技术数据",
+    "timelineAriaLabel": "相位从 {start} 经峰值 {peak} 至 {end}",
+    "timelineToday": "今天",
+    "timelineUpcoming": "{days} 天后",
+    "timelinePassed": "{days} 天前",
+    "defaultInsight": "这一相位标志着此生活领域寻求关注的方式出现了明显的转变。",
+    "impactLabel": "领域：",
+    "intensityLabel": "强度：",
+    "intensity": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "dignity": {
+      "exalted": "庙旺",
+      "ownSign": "入庙",
+      "debilitated": "落陷",
+      "retrograde": "逆行"
+    },
+    "orbLabel": "容许度（今日）",
+    "peakLabel": "峰值",
+    "longTermSectionLabel": "长期影响",
+    "showBirthDetails": "显示出生信息",
+    "showTransitDetails": "显示行运信息",
+    "birthDetails": "出生信息",
+    "transitDetails": "行运信息",
+    "birthDateLabel": "出生日期",
+    "birthTimeLabel": "出生时间",
+    "transitDateLabel": "行运日期",
+    "transitTimeLabel": "行运时间",
+    "locationLabel": "地点",
+    "systemLabel": "系统",
+    "ascendantLabel": "上升点",
+    "sunLabel": "太阳",
+    "moonLabel": "月亮",
+    "planets": {
+      "Sun": "太阳",
+      "Moon": "月亮",
+      "Mercury": "水星",
+      "Venus": "金星",
+      "Mars": "火星",
+      "Jupiter": "木星",
+      "Saturn": "土星",
+      "Rahu": "罗睺（北交点）",
+      "Ketu": "计都（南交点）",
+      "Uranus": "天王星",
+      "Neptune": "海王星",
+      "Pluto": "冥王星",
+      "Ascendant": "上升点"
+    },
+    "aspects": {
+      "conjunction": "合相",
+      "opposition": "对分相",
+      "square": "刑相",
+      "trine": "三分相",
+      "sextile": "六分相"
+    },
+    "zodiac": {
+      "Aries": "白羊座",
+      "Taurus": "金牛座",
+      "Gemini": "双子座",
+      "Cancer": "巨蟹座",
+      "Leo": "狮子座",
+      "Virgo": "处女座",
+      "Libra": "天秤座",
+      "Scorpio": "天蝎座",
+      "Sagittarius": "射手座",
+      "Capricorn": "摩羯座",
+      "Aquarius": "水瓶座",
+      "Pisces": "双鱼座"
+    },
+    "askMore": "追问",
+    "readDescription": "阅读说明",
+    "askAspectQuestion": "行运 {transit} 与本命 {natal} 形成 {aspect} 会如何影响我？"
+  },
+  "SupportBlock": {
+    "openPage": "打开页面",
+    "readArticle": "阅读文章",
+    "readFullMeaning": "阅读完整牌义",
+    "majorArcana": "大阿尔克那",
+    "minorArcana": "小阿尔克那 · {suit}",
+    "minorArcanaShort": "小阿尔克那",
+    "suits": {
+      "wands": "权杖",
+      "cups": "圣杯",
+      "swords": "宝剑",
+      "pentacles": "钱币"
+    },
+    "topics": {
+      "pricing": {
+        "title": "价格方案",
+        "description": "选择 Basic 或 Pro 订阅，比较按月与按年的星星，并继续结账。"
+      },
+      "star-packs": {
+        "title": "星星与附加包",
+        "description": "查看你的星星余额、补充规则，以及供 Pro 订阅者购买的一次性附加包。"
+      },
+      "contact": {
+        "title": "联系客服",
+        "description": "给我们留言。我们通常会在 1 个工作日内通过 admin@askingfate.com 回复。"
+      },
+      "help": {
+        "title": "帮助与支持",
+        "description": "关于账户、占卜、账单与星星的常见问题排查。"
+      },
+      "faq": {
+        "title": "常见问题",
+        "description": "关于占卜、星星、准确度与账单的快速解答。"
+      },
+      "how-to-play": {
+        "title": "如何使用",
+        "description": "提出问题、选牌，并逐步反思其中的含义。"
+      },
+      "privacy-redaction": {
+        "title": "隐私与个人信息脱敏",
+        "description": "Askingfate 如何从你的提示中检测并移除个人信息。"
+      },
+      "privacy-policy": {
+        "title": "隐私政策",
+        "description": "我们如何收集、使用并保护你的数据。"
+      },
+      "terms-of-service": {
+        "title": "服务条款",
+        "description": "我们的条款、可接受使用规范与支付政策。"
+      },
+      "refer-a-friend": {
+        "title": "推荐好友",
+        "description": "邀请好友加入 Askingfate。好友加入时，你们双方都能赚取星星。"
+      },
+      "share-reading": {
+        "title": "分享一次占卜",
+        "description": "分享你的占卜链接，每天最多从访问中赚取 3 颗星星。"
+      },
+      "create-content": {
+        "title": "创作内容并赚取星星",
+        "description": "撰写、发布或拍摄关于 Askingfate 的内容，内容获批后即可赚取星星。"
+      },
+      "tarot-card": {
+        "title": "塔罗牌",
+        "description": "正位与逆位牌义，附实用指引。",
+        "indexListing": {
+          "title": "塔罗牌牌义",
+          "description": "浏览全部 78 张牌——大阿尔克那与四组小阿尔克那花色。"
+        }
+      },
+      "tarot-cards-index": {
+        "title": "所有塔罗牌",
+        "description": "浏览全部 78 张牌——大阿尔克那与四组小阿尔克那花色。"
+      },
+      "birth-chart": {
+        "title": "本命星盘",
+        "description": "查看你个性化的瑞士星历本命星盘、行星与宫位。"
+      },
+      "horoscope": {
+        "title": "个性化星座运势",
+        "description": "根据你的出生信息与今日星空，提供每日、每月与每年的星座运势解读。"
+      },
+      "account": {
+        "title": "账户",
+        "description": "管理你的个人资料、订阅与已保存的出生信息。"
+      },
+      "settings": {
+        "title": "设置",
+        "description": "调整外观、地区、通知与占卜偏好。"
+      },
+      "about": {
+        "title": "关于 Askingfate",
+        "description": "我们的使命、产品的打造历程，以及我们的占卜有何不同。"
+      },
+      "articles": {
+        "title": "文章与指南",
+        "description": "涵盖 Askingfate 方方面面的文档式指南。"
+      },
+      "sign-in": {
+        "title": "登录",
+        "description": "登录以保存你的占卜、星星与出生资料。"
+      },
+      "sign-up": {
+        "title": "创建账户",
+        "description": "创建一个免费账户，留存你的占卜、星星与出生资料。"
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
+      }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
+    }
+  }
+}

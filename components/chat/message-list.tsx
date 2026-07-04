@@ -17,18 +17,38 @@ import ActionSection from "@/components/tarot/interpretation/action"
 import ShareSection from "@/components/tarot/interpretation/share"
 import InsufficientStarsBlock from "@/components/stars/insufficient-stars-block"
 import { ConsultingBadge } from "@/components/consulting-badge"
-import AutoHeightTextarea from "@/components/ui/auto-height-textarea"
+import { DynamicThinking } from "@/components/chat/dynamic-thinking"
+import MentionTextarea from "@/components/chat/mention-textarea"
+import { CharacterMentionProvider } from "@/components/chat/character-mention-context"
 import HoroscopeReadingTabs from "@/components/chat/horoscope-reading-tabs"
-import { TarotAssistantInterpretation } from "@/components/chat/tarot-interpretation"
+import { extractTransitPlanets } from "@/lib/share-astrology-planets"
+import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
+import OracleHero from "@/components/chat/oracle/oracle-hero"
+import SynastryReading from "@/components/chat/synastry-reading"
+import { UserMessageText } from "@/components/chat/user-message-text"
+import type { Character } from "@/types/character"
+import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
+import {
+    TarotAssistantInterpretation,
+    type ReadingImageExportStatus,
+} from "@/components/chat/tarot-interpretation"
 import { HoroscopeAuthGateBlock } from "@/components/chat/horoscope-auth-gate-block"
 import PaywallBlock from "@/components/chat/paywall-block"
 import { SupportBlock } from "@/components/chat/support/support-block"
 import GeneralReadingTabs from "@/components/chat/general/general-reading-tabs"
-import {
-    PrivacyHighlightedText,
-    PrivacyHighlightedUserText,
-} from "@/components/chat/privacy/privacy-highlighted-user-text"
+import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PrivacyRedactedNoticeHover } from "@/components/chat/privacy/privacy-redacted-notice-hover"
+import {
+    AttachmentPreviewDialog,
+    type MediaPreview,
+} from "@/components/chat/attachment-preview-dialog"
+import {
+    prepareAttachments,
+    type ChatAttachment,
+} from "@/lib/chat/attachments"
+import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
+import CharacterComposerButton from "@/components/chat/character-composer-button"
+import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
@@ -46,6 +66,7 @@ import {
     MoveHorizontal,
     Pencil,
     RotateCw,
+    CornerDownRight,
     Send,
     Share2,
     Square,
@@ -54,6 +75,7 @@ import {
     Triangle,
     Minus,
     MousePointerClick,
+    Paperclip,
     X,
 } from "lucide-react"
 
@@ -227,6 +249,12 @@ type MessageListProps = {
     editingMessageId: string | null
     editingDraft: string
     setEditingDraft: Dispatch<SetStateAction<string>>
+    /** Editable copy of the edited message's attachments (removable / addable). */
+    editingAttachments: ChatAttachment[]
+    onEditingAttachmentsChange: (attachments: ChatAttachment[]) => void
+    /** Interpretation mode shown inside the edit box (drives the resend). */
+    editInterpretationMode: InterpretationMode
+    onEditInterpretationModeChange: (mode: InterpretationMode) => void
     isChatLoading: boolean
     consulting: boolean
     isInterpreting: boolean
@@ -235,6 +263,8 @@ type MessageListProps = {
     assistantReactions: Record<string, "like" | "dislike" | null>
     messageNotices: Record<string, string>
     isHoroscopeIntakeActive?: boolean
+    /** The user's saved characters, for highlighting @mentions in sent messages. */
+    characters?: Character[]
     isCheckingStars: boolean
     checkingStarsText: string
     showInsufficientStars: boolean
@@ -246,6 +276,31 @@ type MessageListProps = {
     onStartEditAt: (messageIndex: number) => void
     onCancelEdit: () => void
     onSendEditAt: (messageIndex: number) => void
+    /**
+     * Fires when the viewer taps a topic chip inside an inline horoscope
+     * calendar tool (variant: "horoscope-calendar"). The session sends a
+     * follow-up question for the chosen topic + date.
+     */
+    onCalendarChipClick?: (
+        chipId: string,
+        topicLabel: string,
+        date: Date,
+    ) => void
+    /**
+     * Fires whenever the viewer picks a date (or new DayData lands) in the
+     * inline horoscope calendar tool. The session refreshes its
+     * originContext so the AI sees that day on follow-up questions.
+     */
+    onCalendarSelectionChange?: (
+        date: Date | null,
+        dayData: import("@/lib/calendar-helper").DayData | null,
+    ) => void
+    /**
+     * Bumped by the chat session to clear the inline calendar tool's
+     * date selection — typically right after the viewer cancels the
+     * originContext from the composer's OriginContextStrip.
+     */
+    calendarToolResetSignal?: number
     onAskAspectDetail?: (
         question: string,
         aspectKey: string,
@@ -276,6 +331,10 @@ type MessageListProps = {
     onShare: (id: string, text: string) => void
     onReadingTextDownloaded?: (messageId: string) => void
     onReadingTextDownloadFailed?: (messageId: string) => void
+    onReadingImageExportStatus?: (
+        messageId: string,
+        status: ReadingImageExportStatus | null,
+    ) => void
     onReadAloud: (id: string, text: string) => void
     /**
      * Replaces session-scoped privacy placeholders (e.g. `[Person_0]`) with the
@@ -307,6 +366,10 @@ export default function MessageList({
     messages,
     editingMessageId,
     editingDraft,
+    editingAttachments,
+    onEditingAttachmentsChange,
+    editInterpretationMode,
+    onEditInterpretationModeChange,
     setEditingDraft,
     isChatLoading,
     consulting,
@@ -327,6 +390,10 @@ export default function MessageList({
     onStartEditAt,
     onCancelEdit,
     onSendEditAt,
+    onCalendarChipClick,
+    characters,
+    onCalendarSelectionChange,
+    calendarToolResetSignal,
     onAskAspectDetail,
     onPickTransitDate,
     onHoroscopeAuthGateCardsSelected,
@@ -341,6 +408,7 @@ export default function MessageList({
     onShare,
     onReadingTextDownloaded,
     onReadingTextDownloadFailed,
+    onReadingImageExportStatus,
     unmask,
     privacyAliases,
     lastAssistantMessageRef,
@@ -352,7 +420,17 @@ export default function MessageList({
     const t = useTranslations("Home")
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
+    const tSynastry = useTranslations("Synastry")
     const consultingBase = t("consulting")
+    const thinkingLabels = useMemo(
+        () => ({
+            consulting: `${t("consulting")}…`,
+            active: t("thinkingActive"),
+            complete: t("thinkingCompleteTimed"),
+            toggle: t("thinkingToggle"),
+        }),
+        [t],
+    )
 
     const askedAspectKeys = useMemo(() => {
         const map: Record<string, string> = {}
@@ -372,6 +450,8 @@ export default function MessageList({
     const scrollRootRef = useRef<HTMLDivElement | null>(null)
     const interpretationSentinelRef = useRef<HTMLDivElement | null>(null)
     const [showScrollToBottomFab, setShowScrollToBottomFab] = useState(false)
+    // Lightbox for clicked image attachments on user messages.
+    const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
 
     const recomputeScrollToBottomFab = useCallback(() => {
         if (typeof window === "undefined") return
@@ -485,16 +565,172 @@ export default function MessageList({
                                     id={`msg-${message.id}`}
                                     className='flex flex-col items-end gap-2'
                                 >
+                                    {message.originContextSnapshot?.kind ===
+                                        "calendar-day" ||
+                                    message.originContextSnapshot?.kind ===
+                                        "tarot-card" ? (
+                                        <div
+                                            className='inline-flex max-w-[80%] items-center gap-1.5 text-xs text-amber-200/70'
+                                            role='note'
+                                            aria-label={
+                                                message.originContextSnapshot
+                                                    .label
+                                            }
+                                        >
+                                            <CornerDownRight
+                                                className='size-3.5 shrink-0'
+                                                aria-hidden
+                                            />
+                                            <span className='truncate'>
+                                                {
+                                                    message
+                                                        .originContextSnapshot
+                                                        .label
+                                                }
+                                            </span>
+                                        </div>
+                                    ) : null}
+                                    {!isEditing &&
+                                    message.attachments?.length ? (
+                                        <div className='flex max-w-[80%] flex-wrap justify-end gap-1.5'>
+                                            {message.attachments.map(
+                                                (attachment, i) =>
+                                                    attachment.kind ===
+                                                        "image" &&
+                                                    attachment.dataUrl ? (
+                                                        <button
+                                                            key={`${message.id}-att-${i}`}
+                                                            type='button'
+                                                            onClick={() =>
+                                                                setMediaPreview(
+                                                                    {
+                                                                        src: attachment.dataUrl as string,
+                                                                        name: attachment.name,
+                                                                    },
+                                                                )
+                                                            }
+                                                            className='cursor-zoom-in'
+                                                            aria-label={
+                                                                attachment.name
+                                                            }
+                                                        >
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={
+                                                                    attachment.dataUrl
+                                                                }
+                                                                alt={
+                                                                    attachment.name
+                                                                }
+                                                                className='h-24 w-24 rounded-xl border border-border/60 object-cover shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition-transform hover:scale-[1.03]'
+                                                            />
+                                                        </button>
+                                                    ) : (
+                                                        <span
+                                                            key={`${message.id}-att-${i}`}
+                                                            className='inline-flex max-w-[14rem] items-center gap-1.5 rounded-lg border border-border/60 bg-white/5 px-2 py-1 text-xs text-white/80'
+                                                        >
+                                                            <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                                            <span className='truncate'>
+                                                                {
+                                                                    attachment.name
+                                                                }
+                                                            </span>
+                                                        </span>
+                                                    ),
+                                            )}
+                                        </div>
+                                    ) : null}
+                                    {(isEditing ||
+                                        (typeof displayText === "string" &&
+                                            displayText.trim() !== "")) && (
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                         {isEditing ? (
+                                            <CharacterMentionProvider
+                                                value={editingDraft}
+                                                onChange={setEditingDraft}
+                                            >
                                             <div className='relative'>
-                                                <AutoHeightTextarea
+                                                {editingAttachments.length >
+                                                    0 && (
+                                                    <div className='mb-2 flex flex-wrap items-center gap-1.5'>
+                                                        {editingAttachments.map(
+                                                            (attachment, i) =>
+                                                                attachment.kind ===
+                                                                    "image" &&
+                                                                attachment.dataUrl ? (
+                                                                    <span
+                                                                        key={`edit-att-${i}`}
+                                                                        className='relative inline-block h-16 w-16 overflow-hidden rounded-xl border border-white/15 bg-white/5'
+                                                                    >
+                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                        <img
+                                                                            src={
+                                                                                attachment.dataUrl
+                                                                            }
+                                                                            alt={
+                                                                                attachment.name
+                                                                            }
+                                                                            className='h-full w-full object-cover'
+                                                                        />
+                                                                        <button
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                onEditingAttachmentsChange(
+                                                                                    editingAttachments.filter(
+                                                                                        (
+                                                                                            _,
+                                                                                            idx,
+                                                                                        ) =>
+                                                                                            idx !==
+                                                                                            i,
+                                                                                    ),
+                                                                                )
+                                                                            }
+                                                                            aria-label={`Remove ${attachment.name}`}
+                                                                            className='absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white/80 backdrop-blur hover:text-white'
+                                                                        >
+                                                                            <X className='size-3' />
+                                                                        </button>
+                                                                    </span>
+                                                                ) : (
+                                                                    <span
+                                                                        key={`edit-att-${i}`}
+                                                                        className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
+                                                                    >
+                                                                        <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                                                        <span className='truncate'>
+                                                                            {
+                                                                                attachment.name
+                                                                            }
+                                                                        </span>
+                                                                        <button
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                onEditingAttachmentsChange(
+                                                                                    editingAttachments.filter(
+                                                                                        (
+                                                                                            _,
+                                                                                            idx,
+                                                                                        ) =>
+                                                                                            idx !==
+                                                                                            i,
+                                                                                    ),
+                                                                                )
+                                                                            }
+                                                                            aria-label={`Remove ${attachment.name}`}
+                                                                            className='shrink-0 text-white/50 hover:text-white'
+                                                                        >
+                                                                            <X className='size-3' />
+                                                                        </button>
+                                                                    </span>
+                                                                ),
+                                                        )}
+                                                    </div>
+                                                )}
+                                                <MentionTextarea
                                                     value={editingDraft}
-                                                    onChange={(e) =>
-                                                        setEditingDraft(
-                                                            e.target.value,
-                                                        )
-                                                    }
+                                                    onChange={setEditingDraft}
                                                     onKeyDown={(e) => {
                                                         if (e.key !== "Enter")
                                                             return
@@ -510,11 +746,45 @@ export default function MessageList({
                                                             messageIndex,
                                                         )
                                                     }}
-                                                    className='w-full bg-transparent text-white placeholder:text-white/60 outline-none border border-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/30 rounded-xl px-3 py-2 pr-12'
                                                     placeholder='Edit your message...'
-                                                    disabled={isChatLoading}
+                                                    interpretationMode='auto'
+                                                    appearance='bare'
                                                 />
-                                                <div className='mt-2 flex items-center justify-end gap-2'>
+                                                {/* Composer controls: add media + interpretation mode. */}
+                                                <div className='mt-2 flex items-center gap-2'>
+                                                    <CharacterComposerButton
+                                                        onAddMedia={(file) => {
+                                                            void prepareAttachments(
+                                                                [file],
+                                                            ).then(
+                                                                ([prepared]) => {
+                                                                    if (
+                                                                        prepared
+                                                                    ) {
+                                                                        onEditingAttachmentsChange(
+                                                                            [
+                                                                                ...editingAttachments,
+                                                                                prepared,
+                                                                            ].slice(
+                                                                                0,
+                                                                                8,
+                                                                            ),
+                                                                        )
+                                                                    }
+                                                                },
+                                                            )
+                                                        }}
+                                                    />
+                                                    <InterpretationModeSelector
+                                                        value={
+                                                            editInterpretationMode
+                                                        }
+                                                        onChange={
+                                                            onEditInterpretationModeChange
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className='mt-2 flex items-center justify-between gap-2'>
                                                     <button
                                                         type='button'
                                                         className='inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1 text-[11px] text-white/70 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
@@ -534,7 +804,9 @@ export default function MessageList({
                                                         }
                                                         disabled={
                                                             isChatLoading ||
-                                                            !editingDraft.trim()
+                                                            (!editingDraft.trim() &&
+                                                                editingAttachments.length ===
+                                                                    0)
                                                         }
                                                     >
                                                         <Send className='h-3 w-3' />
@@ -542,21 +814,33 @@ export default function MessageList({
                                                     </button>
                                                 </div>
                                             </div>
-                                        ) : message.privacyRedacted &&
-                                          typeof displayText === "string" &&
-                                          displayText.length > 0 &&
-                                          typeof message.text === "string" &&
-                                          message.text !== displayText &&
-                                          privacyAliases.length > 0 ? (
-                                            <PrivacyHighlightedUserText
-                                                displayText={displayText}
-                                                sanitizedText={message.text}
-                                                aliases={privacyAliases}
-                                            />
+                                            </CharacterMentionProvider>
                                         ) : (
-                                            displayText
+                                            <UserMessageText
+                                                displayText={
+                                                    typeof displayText ===
+                                                    "string"
+                                                        ? displayText
+                                                        : ""
+                                                }
+                                                characters={characters ?? []}
+                                                aliases={privacyAliases}
+                                                privacyHighlight={Boolean(
+                                                    message.privacyRedacted &&
+                                                        typeof displayText ===
+                                                            "string" &&
+                                                        displayText.length > 0 &&
+                                                        typeof message.text ===
+                                                            "string" &&
+                                                        message.text !==
+                                                            displayText &&
+                                                        privacyAliases.length >
+                                                            0,
+                                                )}
+                                            />
                                         )}
                                     </div>
+                                    )}
                                     {message.privacyRedacted ? (
                                         <PrivacyRedactedNoticeHover />
                                     ) : null}
@@ -656,6 +940,15 @@ export default function MessageList({
                                 }
                                 className='flex flex-col items-start gap-4'
                             >
+                                {message.horoscopeForOtherPerson && (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <OtherPersonReadingBadge
+                                            info={
+                                                message.horoscopeForOtherPerson
+                                            }
+                                        />
+                                    </div>
+                                )}
                                 {((message.cards && message.cards.length > 0) ||
                                     message.variant === "box") && (
                                     <TarotAssistantInterpretation
@@ -679,12 +972,68 @@ export default function MessageList({
                                         onReadingTextDownloadFailed={
                                             onReadingTextDownloadFailed
                                         }
+                                        onReadingImageExportStatus={
+                                            onReadingImageExportStatus
+                                        }
                                         unmask={unmask}
                                         privacyAliases={privacyAliases}
                                     />
                                 )}
-                                {message.variant ===
-                                "box" ? null : message.variant ===
+                                {message.variant === "oracle" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <OracleHero
+                                            reading={message.oracleReading}
+                                            isLoading={message.isLoading}
+                                            privacyAliases={privacyAliases}
+                                        />
+                                    </div>
+                                ) : null}
+                                {message.variant === "synastry" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        {message.synastryReading ? (
+                                            <SynastryReading
+                                                reading={message.synastryReading}
+                                            />
+                                        ) : (
+                                            <div className='flex items-center gap-2 rounded-2xl border border-pink-400/20 bg-white/[0.04] px-4 py-3 text-sm text-white/70'>
+                                                <Loader2 className='size-4 shrink-0 animate-spin text-pink-300' />
+                                                {tSynastry("analyzing")}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+                                {message.variant === "horoscope-calendar" ? (
+                                    <div className='w-full md:max-w-[85%]'>
+                                        <HoroscopeCalendarTool
+                                            onChipClick={(
+                                                chipId,
+                                                topicLabel,
+                                                date,
+                                            ) =>
+                                                onCalendarChipClick?.(
+                                                    chipId,
+                                                    topicLabel,
+                                                    date,
+                                                )
+                                            }
+                                            onSelectionChange={(date, data) =>
+                                                onCalendarSelectionChange?.(
+                                                    date,
+                                                    data,
+                                                )
+                                            }
+                                            clearSelectionSignal={
+                                                calendarToolResetSignal
+                                            }
+                                            responseLocale={
+                                                message.responseLocale
+                                            }
+                                        />
+                                    </div>
+                                ) : message.variant === "box" ||
+                                  message.variant === "oracle" ||
+                                  message.variant ===
+                                      "synastry" ? null : message.variant ===
                                   "horoscope" ? (
                                     <>
                                         {message.sourceAspectEvent && (
@@ -704,6 +1053,9 @@ export default function MessageList({
                                                     question: displayQuestion,
                                                 }}
                                                 privacyAliases={privacyAliases}
+                                                onRegenerateHoroscope={
+                                                    onRegenerateHoroscope
+                                                }
                                                 onAskAspectDetail={
                                                     onAskAspectDetail
                                                 }
@@ -772,11 +1124,41 @@ export default function MessageList({
                                                                 <ActionSection
                                                                     variant='embedded'
                                                                     mode='horoscope'
+                                                                    theme={
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.mode ===
+                                                                        "technical"
+                                                                            ? "astrology-technical"
+                                                                            : "astrology"
+                                                                    }
+                                                                    allowVideo={
+                                                                        false
+                                                                    }
+                                                                    planets={extractTransitPlanets(
+                                                                        message.chartData,
+                                                                    )}
                                                                     question={
                                                                         displayQuestion
                                                                     }
                                                                     interpretation={unmask(
                                                                         message.text,
+                                                                    )}
+                                                                    headline={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.headline,
+                                                                    )}
+                                                                    subtitle={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.keyMessage
+                                                                            ?.subtitle,
+                                                                    )}
+                                                                    detailedHtml={unmask(
+                                                                        message
+                                                                            .dailyVerdict
+                                                                            ?.detailedHtml,
                                                                     )}
                                                                     messageId={
                                                                         message.id
@@ -878,31 +1260,46 @@ export default function MessageList({
                                                 />
                                             </div>
                                         )}
-                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap'>
-                                            {message.isLoading &&
-                                            !message.text?.trim() ? (
-                                                <span className='inline-flex items-center gap-2 rounded-full border border-primary/30 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 px-4 py-2 backdrop-blur-xl shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] text-sm font-medium text-white/90'>
-                                                    <Loader2 className='h-4 w-4 animate-spin shrink-0' />
-                                                    <LoadingDotsText
-                                                        active={
-                                                            !!(
-                                                                message.isLoading &&
-                                                                !message.text?.trim()
-                                                            )
-                                                        }
-                                                        getText={(d) =>
-                                                            `${consultingBase}${".".repeat(d)}`
-                                                        }
-                                                    />
-                                                </span>
-                                            ) : (
+                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap space-y-3'>
+                                            {(message.isLoading ||
+                                                message.reasoningText) && (
+                                                <DynamicThinking
+                                                    reasoningText={
+                                                        message.reasoningText ??
+                                                        ""
+                                                    }
+                                                    isThinking={
+                                                        !!message.isLoading &&
+                                                        !message.text?.trim()
+                                                    }
+                                                    labels={thinkingLabels}
+                                                />
+                                            )}
+                                            {message.text?.trim() ? (
                                                 <PrivacyHighlightedText
                                                     text={message.text || ""}
                                                     aliases={privacyAliases}
                                                     supportMarkdown
                                                 />
-                                            )}
+                                            ) : null}
                                         </div>
+                                        {!message.isLoading &&
+                                            (message.explainAspectEvents
+                                                ?.length ?? 0) > 0 && (
+                                                <div className='w-full md:max-w-[85%] mt-2 flex gap-2 overflow-x-auto pb-1 animate-fade-in'>
+                                                    {message.explainAspectEvents!.map(
+                                                        (event) => (
+                                                            <SourceAspectCard
+                                                                key={
+                                                                    event.aspectKey
+                                                                }
+                                                                event={event}
+                                                                tPanel={tPanel}
+                                                            />
+                                                        ),
+                                                    )}
+                                                </div>
+                                            )}
                                         {!message.isLoading &&
                                             message.supportBlock && (
                                                 <div className='w-full md:max-w-[85%] animate-fade-in'>
@@ -1079,6 +1476,10 @@ export default function MessageList({
                     <div ref={messagesEndRef} />
                 </div>
             </div>
+            <AttachmentPreviewDialog
+                media={mediaPreview}
+                onClose={() => setMediaPreview(null)}
+            />
         </div>
     )
 }

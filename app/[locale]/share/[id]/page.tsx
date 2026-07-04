@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { supabase } from "@/lib/supabase"
-import { getMetadataBase } from "@/lib/seo"
+import { getMetadataBase, getSocialImageUrls } from "@/lib/seo"
 import SharedTarotView from "./shared-tarot-view"
 
 type SharedTarotData = {
@@ -42,7 +42,11 @@ export async function generateMetadata({
     const { id, locale } = await params
     const data = await getSharedTarot(id)
     const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
-    const ogImage = `${baseUrl}/${locale}/opengraph-image`
+    // The rendered reading poster — link shares unfurl into the actual
+    // cards and interpretation instead of the generic site image.
+    const ogImage = data
+        ? `${baseUrl}/api/share-image/${id}?style=og`
+        : getSocialImageUrls(locale).ogImage
 
     const title = data?.question
         ? `${data.question.slice(0, 60)} — AskingFate`
@@ -53,7 +57,15 @@ export async function generateMetadata({
         description:
             data?.interpretation?.slice(0, 160) ??
             "A shared tarot reading on AskingFate",
-        openGraph: { title, images: [ogImage] },
+        openGraph: {
+            title,
+            images: [{ url: ogImage, width: 1200, height: 630, alt: title }],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            images: [ogImage],
+        },
     }
 }
 

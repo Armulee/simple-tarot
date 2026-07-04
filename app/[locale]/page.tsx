@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server"
 import HomeHero from "@/components/home"
 import ReferralHandler from "@/components/referral-handler"
 
-import { getMetadataBase } from "@/lib/seo"
+import { getSocialImageUrls } from "@/lib/seo"
 
 export async function generateMetadata({
     params,
@@ -14,9 +14,7 @@ export async function generateMetadata({
     const { locale } = await params
     const t = await getTranslations("Meta.Home")
     const s = await getTranslations("Meta.Site")
-    const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
-    const ogImage = `${baseUrl}/${locale}/opengraph-image`
-    const twitterImage = `${baseUrl}/${locale}/twitter-image`
+    const { ogImage, twitterImage } = getSocialImageUrls(locale)
 
     return {
         title: t("title"),

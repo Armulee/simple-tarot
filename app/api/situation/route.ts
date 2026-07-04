@@ -1,5 +1,6 @@
 import { generateObject } from "ai"
 
+import { deepseekThinking } from "@/lib/chat/model-options"
 import { situationSchema } from "@/lib/chat/situation-schema"
 import { supabaseAdmin } from "@/lib/supabase"
 import type { TarotCodexRow } from "@/lib/tarot/rag"
@@ -8,7 +9,14 @@ import { getBaseCardName, isReversed } from "@/lib/tarot/rag"
 const MODEL = "deepseek/deepseek-v3.2"
 
 const USER_SITUATION_PROMPT = `
-You are a tarot reasoning engine. Your job is to:
+You are a tarot reasoning engine.
+
+CURRENT QUESTION FIRST (highest priority):
+- Everything you extract (topic, intent, emotion, focus, questionDomain) and the cardReadingDirection MUST be about the "Current user question" block — the user's LATEST message.
+- "Conversation context" and "Previous tarot reading" are BACKGROUND ONLY. Use them to figure out what an ambiguous current question really means (e.g. "who?", "what about him?", "so should I wait?" after a topic) — never as the question itself.
+- Never re-answer a previous question from the context. If the current question changes topic, drop the old topic entirely and reason only about the new one.
+
+Your job is to:
 1. Extract the user's situation (topic, intent, emotion, focus)
 2. Set questionDomain: classify the USER'S QUESTION into exactly one of general | legal | medical | financial (English enum values only).
    - legal: law, contracts, lawsuits, rights, immigration rules, criminal/regulatory matters.
@@ -16,9 +24,10 @@ You are a tarot reasoning engine. Your job is to:
    - financial: investing, trading, specific tax positions, debt relief strategies, retirement or estate planning that implies licensed financial/tax advice.
    - general: all other topics (love, career vibes, spirituality, tarot itself, creative work, everyday decisions without the above).
    When in doubt between a sensitive label and general, prefer general unless the user clearly seeks actionable professional-domain guidance.
-3. Determine WHAT the tarot answer should be (cardReadingDirection)
+3. Set needsClarification: true ONLY when the current question is too vague to know what it refers to even with the context (e.g. "Should I do it?" with nothing identifying "it"). Otherwise false.
+4. Determine WHAT the tarot answer should be (cardReadingDirection)
 
-topic examples: career, relationship, money, project, decision
+topic: pick the enum bucket (love | career | money | health | family | education | travel | spirituality | decision | other) that best fits the CURRENT question — English enum value only, even for non-English questions.
 intent examples: reconciliation, success, change, uncertainty
 emotion examples: hope, anxiety, confusion, curiosity
 
@@ -32,6 +41,8 @@ cardReadingDirection rules:
 - LAST SENTENCE: Give concrete, practical advice the user can act on — specific enough that they could start doing it today
 - If conversation context or a previous reading is provided, use it ONLY to disambiguate what the user means (same thread/topic). cardReadingDirection must be justified entirely by the CURRENT cards and the user's current message. Do NOT restate, preserve, or copy the verdict or advice from the previous reading—each sentence must reflect reasoning from THIS spread. Prior text is not evidence; the new cards are.
 - Be SPECIFIC and DECISIVE — never say "it depends" or give wishy-washy maybe answers. Pick a side.
+- VAGUE QUESTION EXCEPTION: when needsClarification is true, still give the leaning the cards show, but do NOT invent named specifics the user never mentioned (no contracts, other people, paperwork, dates). Keep the direction generic to the decision itself and note the ambiguity so the narrator can invite the user to say more.
+- SENSITIVE DOMAIN EXCEPTION (questionDomain = medical | legal | financial): the first sentence must NOT be an outcome verdict (no "yes, she will recover", no "you will win the case", no prognosis or case/investment result). Instead direct the narrator toward the emotional landscape, what the user can control, how to support the people involved, and a warm reminder that the real answer belongs to the professionals handling it. Decisiveness applies to the guidance, never to the outcome.
 - The narrator model is weak at reasoning — your direction IS the answer. If your direction is vague, the final answer will be vague.
 - CRITICAL: Never give generic self-help advice like "be honest and transparent". Always tie card meanings to the SPECIFIC domain the user asked about (content strategy, business, relationships, etc.) with actionable details.
 `
@@ -116,25 +127,36 @@ function buildSituationPrompt({
     question,
     cardSummary,
     conversationContext,
+    previousQuestion,
     previousInterpretation,
 }: {
     question: string
     cardSummary: string
     conversationContext?: string | null
+    previousQuestion?: string | null
     previousInterpretation?: string | null
 }) {
     const parts: string[] = []
 
     if (conversationContext) {
-        parts.push(`Conversation context:\n${conversationContext}`)
+        parts.push(
+            `Conversation context (background only — for disambiguating the current question, never the question to answer):\n${conversationContext}`,
+        )
+    }
+    if (previousQuestion) {
+        parts.push(
+            `Previous user question (background only — helps resolve what an ambiguous current question refers to):\n${previousQuestion}`,
+        )
     }
     if (previousInterpretation) {
-        parts.push(`Previous tarot reading:\n${previousInterpretation}`)
+        parts.push(
+            `Previous tarot reading (background only — not evidence for this draw):\n${previousInterpretation}`,
+        )
     }
     if (cardSummary) {
         parts.push(`Cards drawn and their meanings:\n${cardSummary}`)
     }
-    parts.push(`User message:\n${question}`)
+    parts.push(`Current user question (ANSWER THIS):\n${question}`)
 
     return parts.join("\n\n")
 }
@@ -145,6 +167,7 @@ export async function POST(req: Request) {
             question?: string
             cards?: string[]
             conversationContext?: string | null
+            previousQuestion?: string | null
             previousInterpretation?: string | null
         }
         try {
@@ -155,8 +178,13 @@ export async function POST(req: Request) {
             })
         }
 
-        const { question, cards, conversationContext, previousInterpretation } =
-            body ?? {}
+        const {
+            question,
+            cards,
+            conversationContext,
+            previousQuestion,
+            previousInterpretation,
+        } = body ?? {}
         if (!question) {
             return new Response("Question is required", { status: 400 })
         }
@@ -187,14 +215,20 @@ export async function POST(req: Request) {
             question,
             cardSummary,
             conversationContext,
+            previousQuestion,
             previousInterpretation,
         })
 
+        // This is the reasoning stage that decides the whole answer — the
+        // narrator downstream only rephrases it. It is non-streaming, so
+        // enabling thinking costs latency the user never sees mid-stream and
+        // buys a materially better read of the question.
         const { object: situation } = await generateObject({
             model: MODEL,
             schema: situationSchema,
             system: USER_SITUATION_PROMPT,
             prompt,
+            providerOptions: deepseekThinking(true, "low"),
         })
 
         let cardMeanings: string[][] = []

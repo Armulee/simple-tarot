@@ -121,23 +121,29 @@ ${conversationContextText}
 
 `
                 : ""
-        }<main_question>${previousQuestion}</main_question>
+        }<previous_question>${previousQuestion}</previous_question>
 
 <previous_interpretation>
 ${previousInterpretation}
 </previous_interpretation>
 
-<follow_up_question>${question}</follow_up_question>
+<current_question>${question}</current_question>
 
 <cards>${cards}</cards>
 
+<answer_target>
+ANSWER THE CURRENT QUESTION ONLY: every output field (headline, subtitle, keyMessage, detailedHtml, perCard, nextStep, interpretation, conclusion, cardInsights) must answer <current_question> — the user's LATEST message. Never answer <previous_question> or any older question that appears in <session_context>.
+HISTORY IS FOR DISAMBIGUATION ONLY: when <current_question> is vague or leans on context ("who?", "what about him?", "so should I wait?", "really?"), use <previous_question>, <previous_interpretation>, and <session_context> to work out what the user is really asking — then answer THAT current question.
+ON CONFLICT, CURRENT WINS: if the current question changes topic or contradicts the history, follow the current question and drop the old topic entirely.
+</answer_target>
+
 <follow_up_rules>
-REFERENCE ONLY: <previous_interpretation> and session context exist so you understand topic continuity and what the user is clarifying. They are NOT the answer and NOT evidence for this draw.
+REFERENCE ONLY: <previous_question>, <previous_interpretation>, and session context exist so you understand topic continuity and what the user is clarifying. They are NOT the answer and NOT evidence for this draw.
 GROUND TRUTH: The authoritative source for this reading is ONLY the current spread in <cards> (and any <card_energies> / <reading_direction> blocks added below). headline, subtitle, perCard, nextStep, keyMessage, interpretation, conclusion, detailedHtml, and cardInsights must follow from THIS draw.
 NO PARROTING: Do NOT copy, quote, or closely paraphrase <previous_interpretation>. Do NOT recycle the prior verdict or advice as if it were new—if the cards align, say so in fresh words tied to the current symbols.
-NO META CALLBACKS: Do NOT say things like "last time", "as before", "continuing from the earlier reading", or "like we said" unless the follow-up question explicitly asks about the prior reading.
-STYLE: Answer the follow-up directly. No card names. No Markdown in the "interpretation" or "conclusion" fields. Same language as the follow-up question.
-DETAILED HTML: For the "detailedHtml" field, produce a SHORT (1-3 paragraphs) decorated HTML fragment that magnifies the key takeaways of this follow-up. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. FORBIDDEN: any heading tag (<h1>–<h6>) — the headline field already plays that role and the UI prints a small "Detailed" label above this block. Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases, and an <ul>/<ol> list only when a short list (2-4 items) genuinely helps the user scan the message. No other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Output the HTML fragment directly and write it in the SAME language as the follow-up question.
+NO META CALLBACKS: Do NOT say things like "last time", "as before", "continuing from the earlier reading", or "like we said" unless the current question explicitly asks about the prior reading.
+STYLE: Answer the current question directly. No card names. No Markdown in the "interpretation" or "conclusion" fields. Same language as the current question.
+DETAILED HTML: For the "detailedHtml" field, produce a SHORT (1-3 paragraphs) decorated HTML fragment that magnifies the key takeaways of this follow-up. ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. FORBIDDEN: any heading tag (<h1>–<h6>) — the headline field already plays that role and the UI prints a small "Detailed" label above this block. Use <span class="highlight-gold">…</span> to highlight 1-3 key phrases, and an <ul>/<ol> list only when a short list (2-4 items) genuinely helps the user scan the message. No other tags, attributes, classes, scripts, links, images, code fences, or Markdown. Output the HTML fragment directly and write it in the SAME language as the current question.
 Output JSON only.
 </follow_up_rules>`
     }
@@ -150,7 +156,7 @@ Cards: [The Fool] (Innocence) + [10 of Wands] (Burden)
 
 Bad: "**ไม่น่าโดนครับ** ไพ่ The Fool บอกว่าคุณจะมีการเริ่มต้นใหม่..." (Uses Markdown, mentions card names.)
 Bad: "ไม่โดนใบเตือนแน่นอน สบายใจได้เลย" (Too definite — speaks like a verdict, uses คำว่า "แน่นอน".)
-Good: "สัญญาณตอนนี้ค่อนข้างไปทางว่าน่าจะไม่โดนใบเตือนนะ พลังงานช่วงนี้ดูจะผ่านไปได้แบบงงๆ หรือหัวหน้าอาจจะแค่บ่นปากเปล่าแล้วจบ แต่แนวโน้มที่ต้องระวังกว่าคือภาระงานที่กำลังหนักขึ้นจนเริ่มแบกไม่ไหว ลองจัดลำดับงานไว้ก่อน เผื่อช่วงนี้รับเยอะแล้วจะพลาดง่าย" (Direction is clear "น่าจะไม่โดน" but framed as signal/tendency. No card names. Plain text. Uses พลังงาน, แนวโน้ม.)
+Good: "รอบนี้น่าจะรอดนะ เรื่องใบเตือนดูเป็นแค่เสียงบ่นมากกว่าจะกลายเป็นเอกสารจริง สิ่งที่น่าห่วงกว่าคืองานที่กองสูงขึ้นเรื่อยๆ จนเริ่มแบกไม่ไหว ถ้าจัดลำดับงานให้ชัดตั้งแต่ตอนนี้ โอกาสพลาดจนโดนเรียกคุยก็จะยิ่งน้อยลง" (Direction is clear "น่าจะรอด" and framed as a tendency — but worded for THIS question, not a stock hedge formula. No card names. Plain text.)
 
 HOW/STRATEGY Example (Thai):
 User: "ควรลงคอนเทนต์ยังไงให้ปัง"
@@ -158,7 +164,7 @@ Cards: [Justice] (Balance, Fairness)
 
 Bad: "ใช่ คุณจะประสบความสำเร็จ แต่ต้องเน้นที่ความซื่อสัตย์และความเป็นธรรม..." (Answers yes/no to a how question. Generic self-help. Formal Thai.)
 Bad: "เน้นคอนเทนต์เปรียบเทียบรับรองว่าปังแน่นอน" (Too definite — uses รับรอง / แน่นอน.)
-Good: "พลังงานช่วงนี้ดูเหมือนจะเวิร์คกับคอนเทนต์แนวเปรียบเทียบหรือรีวิวตรงๆ แบบชั่งน้ำหนักข้อดีข้อเสียให้คนดูเห็นภาพชัด สัญญาณบอกว่าสไตล์คนกลางที่พูดตรง ไม่เข้าข้างใคร น่าจะดูน่าเชื่อถือกว่าทุกแบบ ลองทำซีรีส์จับสองอย่างมาเทียบ หรือแกะเบื้องหลังให้เห็นทุกมุม แนวโน้มออกไปทางพูดจริงยิ่งมีโอกาสปัง" (Strategy is clear, but framed as พลังงาน/สัญญาณ/แนวโน้ม. No "แน่นอน".)
+Good: "คอนเทนต์สายเปรียบเทียบคือทางที่เข้ามือคุณสุดตอนนี้ รีวิวแบบชั่งข้อดีข้อเสียตรงๆ ให้คนดูตัดสินเองได้ สไตล์คนกลางที่ไม่เข้าข้างใครมีโอกาสดูน่าเชื่อถือกว่าทุกแบบ ลองทำซีรีส์จับสองอย่างมาเทียบ หรือแกะเบื้องหลังให้เห็นทุกมุม ยิ่งพูดจริงยิ่งมีโอกาสปัง" (Strategy leads, phrased as opportunity/likelihood — no "แน่นอน", no stock opener.)
 
 YES/NO Example (English):
 User: "Will I get the job?"
@@ -166,7 +172,7 @@ Cards: [The Magician] (Manifestation) + [The World] (Completion)
 
 Bad: "**Yes, you will.** The Magician indicates..." (Uses Markdown, mentions card names.)
 Bad: "Yes, you will get the job, no doubt about it." (Too definite — sounds like a fixed verdict, uses "no doubt".)
-Good: "Likely yes — the signals here lean strongly in your favor. The energy points to skills and momentum lining up at the right time, with patterns suggesting this could be a real turning point in your career. Stay grounded, keep showing up, and let the process unfold — the direction looks supportive."
+Good: "That offer looks close — your skills and the timing are lining up in a way that favors you. What you showed them reads as exactly what this chapter of your career has been building toward. Stay grounded, keep showing up, and give the process room to land; the direction favors you even if the paperwork takes its time." (Clear probable-yes, worded for this specific question — not a "likely yes — the signals..." formula.)
 
 HOW/STRATEGY Example (English):
 User: "How should I grow my side business?"
@@ -174,25 +180,27 @@ Cards: [The Emperor] (Structure, Authority)
 
 Bad: "Yes, your business will grow. Focus on being a strong leader..." (Answers yes/no to a how question. Sounds like a guarantee.)
 Bad: "Definitely build a system. You will absolutely succeed if you do this." (Uses "definitely" / "absolutely" / "will".)
-Good: "The energy here points to building a system before you scale. Patterns suggest setting up repeatable processes, templates, and clear boundaries for your time will likely set you apart from everyone winging it. Think SOPs, scheduling, automating the boring stuff — once that foundation is solid, growth tends to happen almost on its own. The signals also lean against chasing every shiny opportunity; one focused lane is more likely to outperform a scattered approach."
+Good: "Build the system before you chase the scale. Repeatable processes, templates, and firm boundaries around your time are what separate you from everyone winging it — think SOPs, scheduling, automating the boring stuff. Once that skeleton is standing, growth tends to compound on its own, and one focused lane will most probably outperform grabbing every shiny opportunity." (Strategy first, tendency-framed, no stock hedge opener.)
 
 IMPORTANT: For HOW/STRATEGY questions, NEVER open with "yes" or "no". Lead with the strategic direction the cards are pointing to, framed as a likely approach.
+NOTE how each Good example opens differently and speaks in the question's own vocabulary — never copy one hedge formula across readings.
 These examples show format only. Always respond in the SAME language as the user's question above.
 </format_examples>
 
 <user_session>
-<user_question>${question}</user_question>
 ${
     conversationContextText
-        ? `<session_main_point>${userMainPoint || "N/A"}</session_main_point>
-
-<session_context>
+        ? `<session_context>
 ${conversationContextText}
 </session_context>
 
+<session_main_point>${userMainPoint || "N/A"}</session_main_point>
+
 `
         : ""
-}<cards_drawn>
+}<user_question>${question}</user_question>
+
+<cards_drawn>
 ${cards}
 </cards_drawn>
 
@@ -211,8 +219,8 @@ ${typeInstructions}
 4. DO NOT use Markdown (**, __, etc) in the "interpretation" or "conclusion" fields.
 5. CRITICAL: Respond in the SAME language as the user's question. Infer from the question text only. If the question is in English, write in English. If in Thai, write in Thai. Support any language—always match the question.
 6. When writing Thai, write like a real Thai person texting a friend. Avoid formal/translated phrasing like "ฉันรู้สึกว่า", "การรักษาความยุติธรรม", "ผลลัพธ์จะสะท้อนกลับมา". Use casual, natural Thai instead.
-7. Use session context to support continuity, but keep the latest question as the top priority.
-8. TONE: Treat this as a reading of patterns, tendencies, and energy — never a fixed prophecy. Stay clear about which way the cards lean, but always frame it as a leaning, signal, or tendency. PREFER: likely, tends to, leans toward, the signals point to, the energy here suggests, the pattern shows, there's a real possibility (Thai: น่าจะ, มีแนวโน้ม, สัญญาณบอกว่า, พลังงานช่วงนี้, ดูเหมือนว่า, มีโอกาส). AVOID: definitely, absolutely, certainly, guaranteed, no doubt, 100%, will-as-fixed-future, must (Thai: แน่นอน, รับรอง, ชัวร์, ฟันธง, ต้องเป็น). Never speak like a judge declaring an absolute truth.
+7. ANSWER TARGET: Answer ONLY the <user_question> above — the user's LATEST message. <session_context> and <session_main_point> are background: use them to resolve ambiguous references in the question (pronouns, "him", "that job", "should I wait?") and to keep continuity of tone. Never answer an older question that appears in the context; if the context and the current question conflict or change topic, the current question wins.
+8. TONE: Treat this as a reading of patterns, tendencies, and energy — never a fixed prophecy. Stay clear about which way the cards lean, but always frame it as a leaning, signal, or tendency. AVOID: definitely, absolutely, certainly, guaranteed, no doubt, 100%, will-as-fixed-future, must (Thai: แน่นอน, รับรอง, ชัวร์, ฟันธง, ต้องเป็น). Never speak like a judge declaring an absolute truth. VARIETY: express the leaning in words specific to THIS question — stock hedges ("the signals point to...", "the energy suggests...", "พลังงานช่วงนี้...", "สัญญาณบอกว่า...") may appear AT MOST ONCE across the whole reading, and no two fields may open with the same word or construction.
 9. The "detailedHtml" field is a SHORT, decorated rich-text block (1-3 paragraphs total) that magnifies the message of the reading. It renders BELOW the "headline"/"subtitle" key-message box and ABOVE the cards, so it MUST NOT carry its own heading — the headline field already plays that role. Follow these rules strictly:
    - ALLOWED TAGS ONLY: <p>, <strong>, <em>, <ul>, <ol>, <li>, <br>, and <span class="highlight-gold">. No other tags, attributes, classes, inline styles, scripts, links, or images.
    - FORBIDDEN TAGS: <h1>, <h2>, <h3>, <h4>, <h5>, <h6>. Never emit a heading element — restate the message in paragraph form instead. The UI puts a small "Detailed" label above this block automatically.
@@ -444,7 +452,7 @@ ${question}
 3) If <calendar_recommendation> exists but confidence is low, say there is no single perfect day and present the top candidate as the strongest available opening.
 4) When no <calendar_recommendation> exists, identify the 1-3 strongest transit aspect windows from the data that are most relevant to the question topic. Anchor your answer around their exact start/end dates as recommended or cautionary periods. Weave them into a coherent narrative rather than a bullet-point timeline.
 5) When the user asks a "when" question and <calendar_recommendation> does not exist, lead with the single most impactful date range as your primary recommendation in the first 1-2 sentences, then explain why.
-6) For every timing reference, cite the EXACT start date and end date from the aspect window data (e.g., "15 มิถุนายน 2026 ถึง 22 กรกฎาคม 2026" or "June 15, 2026 to July 22, 2026"). If a single peak date is most relevant, cite that specific date. If <calendar_recommendation> exists, use the exact topCandidate date from that block.
+6) For every timing reference, cite the EXACT start date and end date from the aspect window data (e.g., "15 มิถุนายน 2026 ถึง 22 กรกฎาคม 2026" or "June 15, 2026 to July 22, 2026"). If a single peak date is most relevant, cite that specific date. If <calendar_recommendation> exists, use the exact topCandidate date from that block. THIN DATA HONESTY: if <personalized_transit_aspects> is null/empty, do NOT invent event dates — say plainly that no single strong window stands out in this period, anchor on the Question timeframe start/end boundaries, and give the practical guidance without fabricated precision.
 7) Keep it practical and human-centered: what this means emotionally, behaviorally, and for real decisions right now.
 ${terminologyRule}
 8) If this is a birth-chart suitability style question, emphasize personal strengths, natural fit, and realistic caution points in plain language.
@@ -453,7 +461,7 @@ ${terminologyRule}
 11) Never output internal tokens or IDs such as aspectKey, {#...}, pipe-delimited markers, or raw event identifiers.
 12) Make every date/date-range visually prominent using natural sentence emphasis (for example, place the date early in the sentence). Do NOT use markdown syntax such as **, __, or backticks.
 13) If there is no exact event date, use the exact timeframe boundaries from Question timeframe start/end and format them in output language month names.
-14) Only discuss transit aspects from planets listed under "Question topic: ... (focus planets: ...)" in system_context. Ignore aspects from unrelated planets unless no focus-planet aspects exist.
+14) PRIORITIZE transit aspects from planets listed under "Question topic: ... (focus planets: ...)" in system_context — lead with them and give them the most weight. You MAY also use a non-focus aspect when it is clearly the strongest or most relevant influence for this question (topic detection is keyword-based and can be wrong); never ignore an obviously dominant aspect just because its planet is not in the focus list.
 15) When <my_calendar_day> is present, interpretation and conclusion MUST align with its quality tier and overall score — do not call an excellent/good calendar day mostly catastrophic, and do not call a caution/avoid calendar day an effortless win. You may translate highlight/warning ideas into plain language (do not paste long internal strings verbatim).
 </instructions>
 
@@ -466,7 +474,7 @@ ${neverMentionRule}
 - NO HISTORY LEAKAGE: Do not bring up past events or timelines (like "April") from the <conversation_history> unless the user explicitly asks about them in the current <user_question>.
 - PRIORITY RULE: If any history conflicts with the current <user_question>, follow the current question and ignore the conflicting history.
 - NEVER expose machine-style tags or debug markers (e.g., {#Pluto|trine|Mars|...}, aspectKey, or JSON-like fragments) in interpretation or conclusion.
-- NEVER use vague timing words such as "soon", "this period", "around", "early to mid", "mid-year", "ช่วงนี้", "ปลายปี", "ต้นปีหน้า", "ช่วงต้นถึงกลาง", "ช่วงปลาย", "ช่วงกลาง", "ราวๆ", "ประมาณ", or similar approximations. Always use exact dates from the data instead.
+- When aspect/calendar data provides dates, NEVER use vague timing words such as "soon", "this period", "around", "early to mid", "mid-year", "ช่วงนี้", "ปลายปี", "ต้นปีหน้า", "ช่วงต้นถึงกลาง", "ช่วงปลาย", "ช่วงกลาง", "ราวๆ", "ประมาณ" — use the exact dates from the data. When NO aspect events exist for the timeframe, do NOT invent exact dates to satisfy this rule: use the Question timeframe start/end boundaries and be honest that no single strong window stands out.
 </critical_rules>
 
 <output_and_language_rules>
@@ -485,7 +493,7 @@ ${neverMentionRule}
 - intensity: exactly one of "low", "medium", or "high". Use "high" only for the 1-2 strongest aspects most relevant to the question. Use "medium" for supporting aspects. Use "low" for subtle or background influences.
 - interpretation: 4-8 short sentences answering the question.
 ${conclusionInstruction}
-- suggestions: EXACTLY 3–4 very short, casual follow-up prompts the user could ask next (single line each; conversational tone, not long formal questions).
+- suggestions: EXACTLY 3–4 follow-up QUESTIONS the user would tap to ask next, written in the user's own voice and ending like a question ("...ไหม" / "...เมื่อไหร่" / "...?"). They are NOT advice or to-do items and NOT a restatement of the conclusion — never tell the user what to do; ask what they'd want to know next. Single line each, casual, all differing in angle.
 - relevance: an array of up to 5 dominant life-areas that this reading actually covers, used to render a proportional relevance bar above the answer.
 - relevance items must contain { label, pct } only. Integer pcts MUST sum to exactly 100. Sort the array descending by pct.
 - relevance.label MUST be one of the canonical domains, written in the SAME language as the output: Career/การงาน, Finance/การเงิน, Love/ความรัก, Family/ครอบครัว, Health/สุขภาพ, Relationships/ความสัมพันธ์, Education/การศึกษา, Travel/การเดินทาง, Luck/โชคลาภ, Spirituality/จิตวิญญาณ, Reputation/ชื่อเสียง, Caution/คำเตือน. Do NOT invent new labels.
@@ -539,8 +547,12 @@ ${JSON.stringify(myCalendarDay)}
 
 `
         : ""
-    const myCalendarMoodLock = myCalendarDay
-        ? `LOCKED MOOD (My Calendar): set \`mood\` EXACTLY to "${mapMyCalendarQualityToVerdictMood(myCalendarDay.quality)}" — derived from calendar quality "${myCalendarDay.quality}". headline, keyMessage, and detailedHtml MUST agree with this mood (no opposite framing). Personalized aspects explain texture only; they must not override the calendar day's favorability tier.
+    const shouldLockMood =
+        myCalendarDay !== null &&
+        myCalendarDay !== undefined &&
+        myCalendarDay.quality !== "neutral"
+    const myCalendarMoodLock = shouldLockMood
+        ? `LOCKED MOOD (My Calendar): set \`mood\` EXACTLY to "${mapMyCalendarQualityToVerdictMood(myCalendarDay!.quality)}" — derived from calendar quality "${myCalendarDay!.quality}". headline, keyMessage, and detailedHtml MUST agree with this mood (no opposite framing). Personalized aspects explain texture only; they must not override the calendar day's favorability tier.
 `
         : ""
     return `<role>
@@ -575,7 +587,7 @@ Required fields (every string in ${lang}):
   - "good" = supportive flow with mostly positive aspects active that day; the user can take action and start things.
   - "caution" = high-friction or pressured day with one or more high/medium intensity bad aspects; the user should slow down and be careful.
   - "rest" = mixed-but-low intensity, scattered, or quiet planetary day; the user should recharge instead of pushing.
-  ${myCalendarDay ? `When <my_calendar_day> is present, IGNORE the bullet definitions above for choosing mood — use the LOCKED MOOD line instead.` : `Derive the mood from the dominant sentiments + intensities of the personalized transit aspects.`}
+  ${shouldLockMood ? `When <my_calendar_day> is present (and not a "neutral" quality day), IGNORE the bullet definitions above for choosing mood — use the LOCKED MOOD line instead.` : `Derive the mood from the dominant sentiments + intensities of the personalized transit aspects. Use the bullet definitions above. Do NOT default to "rest" just because the day's overall score is middling — only choose "rest" when the day genuinely reads as scattered or low-intensity. A balanced or context-rich neutral day is usually "good" or "caution" depending on the dominant aspect sentiment.`}
 
 - headline: a short, punchy verdict line (2-8 words). Plain language only. NO planet names, NO zodiac signs, NO astrology jargon. Example tones: "A clear day to begin", "Pause before reacting", "Soft day, recharge well".
 

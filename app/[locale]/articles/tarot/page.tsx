@@ -5,12 +5,26 @@ import {
 } from "@/components/articles/article-layout"
 import { Link } from "@/i18n/navigation"
 import Image from "next/image"
-import { getMajor, getMinorBySuit } from "@/lib/tarot/cards"
+import { getTranslations, setRequestLocale } from "next-intl/server"
+import {
+    getMajor,
+    getMinorBySuit,
+    TAROT_ARTICLE_LOCALES,
+} from "@/lib/tarot/cards"
 
-export async function generateMetadata(): Promise<Metadata> {
-    const title = "Tarot Guide: What it is, History, Major & Minor Arcana"
-    const desc =
-        "Learn tarot fundamentals with a concise guide: history, Major Arcana meanings, Minor Arcana by suits, and links to all 78 cards."
+export function generateStaticParams() {
+    return TAROT_ARTICLE_LOCALES.map((locale) => ({ locale }))
+}
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+    const { locale } = await params
+    const t = await getTranslations({ locale, namespace: "TarotGuide" })
+    const title = t("metaTitle")
+    const desc = t("metaDescription")
     return {
         title: `${title} | AskingFate`,
         description: desc,
@@ -19,43 +33,33 @@ export async function generateMetadata(): Promise<Metadata> {
     }
 }
 
-export default async function TarotGuidePage() {
+export default async function TarotGuidePage({
+    params,
+}: {
+    params: Promise<{ locale: string }>
+}) {
+    const { locale } = await params
+    setRequestLocale(locale)
+    const t = await getTranslations("TarotGuide")
+
     const whatIs: ArticleSection = {
         id: "what-is",
-        title: "What is Tarot?",
+        title: t("whatIsTitle"),
         content: (
             <div className='space-y-3'>
-                <p>
-                    Tarot is a reflective tool. Each card acts like a
-                    symbol-rich mirror that helps you see a situation from new
-                    angles, connect patterns, and choose next steps
-                    intentionally.
-                </p>
-                <p>
-                    Rather than predicting fate, tarot encourages mindful
-                    decisions by pairing archetypes with your lived context. Use
-                    it to clarify questions, not to surrender judgment.
-                </p>
+                <p>{t("whatIsP1")}</p>
+                <p>{t("whatIsP2")}</p>
             </div>
         ),
     }
 
     const history: ArticleSection = {
         id: "history",
-        title: "A brief history",
+        title: t("historyTitle"),
         content: (
             <div className='space-y-3'>
-                <p>
-                    Tarot originated as playing cards in 15th‑century Europe.
-                    Over time, artists and mystics expanded their symbolic
-                    language, culminating in modern decks like Rider‑Waite–Smith
-                    that popularized the imagery used today.
-                </p>
-                <p>
-                    Contemporary readers treat tarot as a language of
-                    symbols—flexible enough to support journaling, coaching, and
-                    personal reflection.
-                </p>
+                <p>{t("historyP1")}</p>
+                <p>{t("historyP2")}</p>
             </div>
         ),
     }
@@ -63,14 +67,10 @@ export default async function TarotGuidePage() {
     const major = getMajor()
     const majorSection: ArticleSection = {
         id: "major",
-        title: "Major Arcana",
+        title: t("majorTitle"),
         content: (
             <div className='space-y-3'>
-                <p>
-                    The 22 Major Arcana describe pivotal themes—identity,
-                    change, challenge, and integration. They map the Fool’s
-                    Journey: cycles of learning that repeat at deeper levels.
-                </p>
+                <p>{t("majorIntro")}</p>
                 <div className='not-prose grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4'>
                     {major.map((c) => (
                         <Link
@@ -109,39 +109,37 @@ export default async function TarotGuidePage() {
         "swords",
         "pentacles",
     ]
+    const suitNameKey = {
+        wands: "suitWandsName",
+        cups: "suitCupsName",
+        swords: "suitSwordsName",
+        pentacles: "suitPentaclesName",
+    } as const
+    const suitThemeKey = {
+        wands: "suitWands",
+        cups: "suitCups",
+        swords: "suitSwords",
+        pentacles: "suitPentacles",
+    } as const
     const minorSection: ArticleSection = {
         id: "minor",
-        title: "Minor Arcana",
+        title: t("minorTitle"),
         content: (
             <div className='space-y-5'>
-                <p>
-                    The 56 Minor Arcana zoom into everyday domains. Each suit
-                    explores a different field: Wands (energy and action), Cups
-                    (emotion and relationships), Swords (thought and truth), and
-                    Pentacles (work and resources).
-                </p>
+                <p>{t("minorIntro")}</p>
                 <div className='space-y-8'>
                     {suits.map((suit) => {
                         const cards = getMinorBySuit(suit)
-                        const title =
-                            suit.charAt(0).toUpperCase() + suit.slice(1)
                         return (
                             <div key={suit} className='space-y-3'>
                                 <div className='flex items-center gap-3'>
                                     <div className='p-2 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 text-primary'>
                                         <span className='text-xs font-semibold capitalize'>
-                                            {title}
+                                            {t(suitNameKey[suit])}
                                         </span>
                                     </div>
                                     <p className='text-xs sm:text-sm text-muted-foreground'>
-                                        {suit === "wands" &&
-                                            "Themes: energy, passion, creativity, action."}
-                                        {suit === "cups" &&
-                                            "Themes: emotion, intuition, connection, relationships."}
-                                        {suit === "swords" &&
-                                            "Themes: thought, clarity, conflict, truth."}
-                                        {suit === "pentacles" &&
-                                            "Themes: work, resources, stability, health."}
+                                        {t(suitThemeKey[suit])}
                                     </p>
                                 </div>
                                 <div className='not-prose grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4'>
@@ -186,27 +184,25 @@ export default async function TarotGuidePage() {
 
     return (
         <ArticleLayout
-            title='Tarot'
-            subtitle='Understand tarot foundations and explore links to every card.'
-            backLabel='Articles'
+            title={t("title")}
+            subtitle={t("subtitle")}
+            backLabel={t("backLabel")}
             sections={sections}
             related={[
                 {
                     href: "/articles/how-to-play",
-                    title: "How to Play",
-                    description:
-                        "Learn the reading flow and get practical tips.",
+                    title: t("relatedHowToPlayTitle"),
+                    description: t("relatedHowToPlayDesc"),
                 },
                 {
                     href: "/articles/faq",
-                    title: "FAQ",
-                    description:
-                        "Quick answers about readings, stars, and privacy.",
+                    title: t("relatedFaqTitle"),
+                    description: t("relatedFaqDesc"),
                 },
                 {
                     href: "/articles/help-support",
-                    title: "Help & Support",
-                    description: "Troubleshoot common issues and contact us.",
+                    title: t("relatedHelpTitle"),
+                    description: t("relatedHelpDesc"),
                 },
             ]}
         />

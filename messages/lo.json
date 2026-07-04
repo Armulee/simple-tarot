@@ -13,6 +13,7 @@
   "PageContextComposer": {
     "eyebrow": "ບໍລິບົດ",
     "hint": "ບໍລິບົດນີ້ຈະຖືກສົ່ງໃຫ້ AI",
+    "clear": "ລຶບບໍລິບົດ",
     "error": "ຂໍອະໄພ ມີຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່"
   },
   "Chat": {
@@ -70,7 +71,8 @@
       "optionalLocationHint": "ເລືອກປະເທດ ແລະ ແຂວງ/ລັດ ຫຼື ອະນຸຍາດການກວດຫາຕຳແໜ່ງເພື່ອກອກໃຫ້ອັດຕະໂນມັດ.",
       "detectLocationButton": "ກວດຫາຕຳແໜ່ງ",
       "detectLocationLoading": "ກຳລັງກວດຫາ...",
-      "detectLocationError": "ບໍ່ສາມາດກວດຫາຕຳແໜ່ງໄດ້. ທ່ານສາມາດເລືອກປະເທດ ແລະ ແຂວງ/ລັດແທນໄດ້."
+      "detectLocationError": "ບໍ່ສາມາດກວດຫາຕຳແໜ່ງໄດ້. ທ່ານສາມາດເລືອກປະເທດ ແລະ ແຂວງ/ລັດແທນໄດ້.",
+      "scrollHint": "ເລື່ອນເພື່ອເບິ່ງລາຍລະອຽດເພີ່ມເຕີມ"
     },
     "cookies": {
       "bannerTitle": "ການຕັ້ງຄ່າຄຸກກີ",
@@ -116,7 +118,41 @@
     "reversed": "ໄພ່ກັບຫົວ",
     "yesNo": "ແມ່ນ/ບໍ່",
     "zodiac": "ຈັກກະລາສີ",
-    "element": "ທາດ"
+    "element": "ທາດ",
+    "tarot": "Tarot",
+    "majorArcana": "Major Arcana",
+    "minorArcana": "Minor Arcana",
+    "theReading": "The Reading",
+    "continue": "Continue",
+    "readArticle": "Read article",
+    "askPlaceholder": "Ask a question about this card...",
+    "askEyebrow": "About this card",
+    "askHint": "explains its meaning only",
+    "askSuggestions": [
+      "What does this card mean?",
+      "What does it mean for love?",
+      "What does it say about work & career?",
+      "How does the reversed differ from upright?"
+    ],
+    "lightGathers": "Light gathers",
+    "lightRecedes": "Light recedes",
+    "tapToFlip": "Tap to change card orientation",
+    "orientationGroup": "Choose card orientation",
+    "allTarotCards": "All Tarot Cards",
+    "allTarotCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "howToPlay": "How to Play",
+    "howToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "faq": "FAQ",
+    "faqDesc": "Answers to common questions about readings.",
+    "cardSubtitle": "Upright and reversed meanings with practical guidance.",
+    "onThisPage": "On this page",
+    "backToTarot": "Tarot",
+    "relatedAllCardsTitle": "All Tarot Cards",
+    "relatedAllCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "relatedHowToPlayTitle": "How to Play",
+    "relatedHowToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "relatedFaqTitle": "FAQ",
+    "relatedFaqDesc": "Answers to common questions about readings and stars."
   },
   "Sidebar": {
     "services": "ບໍລິການ",
@@ -130,12 +166,16 @@
     "contactSupport": "ຕິດຕໍ່ & ສະໜັບສະໜູນ",
     "planOptions": "ຕົວເລືອກແພັກເກດ",
     "proTopUpOnly": "ສະເພາະສະມາຊິກ Pro ເທົ່ານັ້ນທີ່ຊື້ດາວເສີມໄດ້",
-    "userMenu": "ຜູ້ໃຊ້"
+    "userMenu": "ຜູ້ໃຊ້",
+    "collapse": "ຫຍໍ້ແຖບເມນູ",
+    "expand": "ຂະຫຍາຍແຖບເມນູ",
+    "yourStars": "ດາວຂອງທ່ານ"
   },
   "Services": {
     "tarot": "ໄພ່ທາໂຣ",
     "birthChart": "ວິເຄາະດວງຊະຕາເກີດ",
     "astrology": "ດວງຊະຕາ",
+    "lifeMonitor": "ກວດຊີວິດປັດຈຸບັນ",
     "namelogy": "ນາມສາດ",
     "numerology": "ເລກສາດ",
     "fatedRelations": "ສຳພັນລິຂິດ",
@@ -144,8 +184,16 @@
   },
   "Languages": {
     "en": "English",
-    "th": "ໄທ",
-    "lo": "ລາວ"
+    "th": "ไทย",
+    "lo": "ລາວ",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ja": "日本語",
+    "ko": "한국어",
+    "id": "Bahasa Indonesia",
+    "es": "Español",
+    "pt-BR": "Português (Brasil)",
+    "my": "မြန်မာ"
   },
   "Profile": {
     "title": "ຕັ້ງຄ່າໂປຣໄຟລ໌",
@@ -357,6 +405,7 @@
       "cta": "ເລີ່ມອ່ານດວງຂອງທ່ານ"
     },
     "getStarted": "ເລີ່ມຕົ້ນ",
+    "getStartedPrompt": "ຊ່ວຍເບິ່ງດວງໃຫ້ຂ້ອຍແດ່",
     "tourInstruction": "ພິມຄຳຖາມທີ່ທ່ານຢາກຖາມໂຊກຊະຕາຂອງທ່ານທີ່ນີ້:",
     "tourExamples": "ເຊັ່ນ \"ຂໍ້ຄວາມທີ່ຂ້ອຍຕ້ອງໄດ້ຍິນມື້ນີ້ຄືຫຍັງ?\" ຫຼື \"ຂ້ອຍຈະຫາຄວາມຊັດເຈນໃນອາຊີບໄດ້ແນວໃດ?\"",
     "learnMore": "ຮຽນຮູ້ເພີ່ມເຕີມ",
@@ -364,15 +413,21 @@
     "quickCards": {
       "tarotCard": "ໄພ່ທາໂຣດ",
       "birthChart": "ແຜນຠູມເກີດ",
-      "horoscope": "ໂຮໂຣສໂຄບ"
+      "horoscope": "ໂຫລາສາດ",
+      "calendarYear": "ປະຕິທິນດວງ"
     },
     "quickCardQuestions": {
       "tarotCard": "ຈັບໄພ່ທາໂຣດໃຫ້ຂ້ອຍ",
       "birthChart": "ບອກແຜນຠູມເກີດຂອງຂ້ອຍໃຫ້ຟັງ",
-      "horoscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ"
+      "horoscope": "ດວງຂອງຂ້ອຍມື້ນີ້ເປັນແນວໃດ",
+      "calendarYear": "ຂໍເບິ່ງປະຕິທິນດວງຂອງຂ້ອຍ"
     },
     "selectedCards": "ທ່ານເລືອກໄພ່ແລ້ວ {selectedCount}/{cardsToSelect} ໃບ",
     "consulting": "ກຳລັງປຶກສາ",
+    "thinkingActive": "ກຳລັງຄິດ",
+    "thinkingComplete": "ວິເຄາະສຳເລັດແລ້ວ",
+    "thinkingCompleteTimed": "ປຶກສາເຊິ່ງເລິກ {seconds} ວິນາທີ",
+    "thinkingToggle": "ສະແດງຂັ້ນຕອນການຄິດ",
     "enterBirthDate": "ກະລຸນາກອກວັນເກີດຂອງທ່ານ",
     "streamStopped": "ຢຸດຄຳຕອບໄວ້ແລ້ວ",
     "scrollToBottom": "ເລື່ອນລົງລຸ່ມສຸດ",
@@ -419,6 +474,13 @@
       "national_id": "ເລກບັດປະຈຳຕົວ"
     },
     "sanitizingPrompt": "ກຳລັງຊຳລະລ້າງ",
+    "signInGate": {
+      "eyebrow": "ຄຳທຳນາຍຂອງເຈົ້າລໍຖ້າຢູ່",
+      "title": "ເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ງານຕໍ່",
+      "description": "ກະລຸນາເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ຄຸນສົມບັດນີ້. ພວກເຮົາຈະພາທ່ານກັບມາທີ່ຄຳຖາມຂອງທ່ານທັນທີ.",
+      "signIn": "ເຂົ້າສູ່ລະບົບ",
+      "cancel": "ຍົກເລີກ"
+    },
     "horoscopeAuthGate": {
       "intro": "ຄຳຖາມນີ້ຄວນຕອບໂດຍ<pill>ດວງຊາຕາ</pill>ຂອງເຈົ້າ. ເຈົ້າຕ້ອງ",
       "introSignedIn": "ຄຳຖາມນີ້ຄວນຕອບໂດຍ<pill>ດວງຊາຕາ</pill>ຂອງເຈົ້າ.",
@@ -442,6 +504,7 @@
     "composerSuggestionsOff": "ປິດ",
     "newBirthInfo": "ຂໍ້ມູນວັນເກີດ",
     "editBirthInfo": "ແກ້ໄຂຂໍ້ມູນວັນເກີດ",
+    "shareAccess": "ແບ່ງປັນການເຂົ້າເຖິງ",
     "birthInfo": "ຂໍ້ມູນວັນເກີດ: {date}",
     "chooseCardInstead": "ປ່ຽນໄປເລືອກໄພ່ແທນ",
     "location": "ຕຳແໜ່ງ: {value}",
@@ -454,16 +517,116 @@
     "longitude": "ລອງຈິຈູດ",
     "saveLocation": "ບັນທຶກຕຳແໜ່ງ"
   },
+  "Character": {
+    "addMedia": "ເພີ່ມຮູບ ຫຼື ໄຟລ໌",
+    "addCharacter": "ເພີ່ມຕົວລະຄອນ",
+    "add": "ເພີ່ມ",
+    "addTitle": "ເພີ່ມຕົວລະຄອນ",
+    "addDescription": "ບັນທຶກຂໍ້ມູນວັນເກີດຂອງຄົນຮູ້ຈັກ ເພື່ອເບິ່ງດວງຄວາມເຂົ້າກັນ ແລະ ຕິດຕາມການເຄື່ອນໄຫວຂອງດາວປັດຈຸບັນຂອງເຂົາ",
+    "editTitle": "ແກ້ໄຂຕົວລະຄອນ",
+    "editDescription": "ອັບເດດຂໍ້ມູນວັນເກີດຂອງຄົນນີ້",
+    "edit": "ແກ້ໄຂ",
+    "updated": "ອັບເດດ {name} ແລ້ວ",
+    "nameLabel": "ຊື່",
+    "namePlaceholder": "ເຊັ່ນ ອາເລັກ",
+    "birthDateLabel": "ວັນເກີດ",
+    "birthTimeLabel": "ເວລາເກີດ (ບໍ່ບັງຄັບ)",
+    "birthTimeHint": "ປະວ່າງໄວ້ໄດ້ຖ້າບໍ່ຮູ້ ລະບົບຈະໃຊ້ທ່ຽງມື້ແທນ",
+    "birthLocationLabel": "ສະຖານທີ່ເກີດ (ບໍ່ບັງຄັບ)",
+    "dayLabel": "ວັນ",
+    "monthLabel": "ເດືອນ",
+    "yearLabel": "ປີ",
+    "hourLabel": "ຊົ່ວໂມງ",
+    "minuteLabel": "ນາທີ",
+    "cancel": "ຍົກເລີກ",
+    "save": "ບັນທຶກຕົວລະຄອນ",
+    "saving": "ກຳລັງບັນທຶກ…",
+    "created": "ເພີ່ມ {name} ແລ້ວ",
+    "errorGeneric": "ບັນທຶກບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່",
+    "readingError": "ເບິ່ງດວງໃຫ້ຕົວລະຄອນນີ້ບໍ່ສຳເລັດ ລອງໃໝ່ອີກຄັ້ງ",
+    "menuTitle": "ຕົວລະຄອນ",
+    "menuAddNew": "ເພີ່ມຕົວລະຄອນໃໝ່",
+    "menuEmpty": "ຍັງບໍ່ມີຕົວລະຄອນ",
+    "delete": "ລຶບ",
+    "deleteConfirm": "ລຶບ {name} ?",
+    "deleteConfirmHint": "ການລຶບນີ້ບໍ່ສາມາດກູ້ຄືນໄດ້",
+    "deleted": "ລຶບ {name} ແລ້ວ",
+    "paywallTitle": "ເພີ່ມຄົນສຳຄັນໃນຊີວິດຂອງທ່ານ",
+    "paywallDescription": "ການບັນທຶກຕົວລະຄອນຊ່ວຍໃຫ້ທ່ານເບິ່ງດວງຄວາມເຂົ້າກັນ ແລະ ຕິດຕາມດາວຂອງເຂົາໄດ້ ອັບເກຣດເພື່ອເພີ່ມຄົນ",
+    "paywallFeature": "ບັນທຶກຕົວລະຄອນໄດ້ບໍ່ຈຳກັດ",
+    "mentionPaidOnly": "ການກ່າວເຖິງ (mention) ຕົວລະຄອນໃຊ້ໄດ້ສະເພາະສະມາຊິກແບບເສຍເງິນ",
+    "mentionNotFound": "ບໍ່ພົບຕົວລະຄອນ",
+    "signInRequired": "ເຂົ້າສູ່ລະບົບເພື່ອເພີ່ມຕົວລະຄອນ"
+  },
+  "Synastry": {
+    "you": "ທ່ານ",
+    "them": "ອີກຝ່າຍ",
+    "compatibility": "ຄວາມເຂົ້າກັນ",
+    "comparison": "ປຽບທຽບກັນ",
+    "interpretation": "ຄຳຕອບຂອງທ່ານ",
+    "intakeTitle": "ຂໍ້ມູນວັນເກີດຂອງອີກຝ່າຍ",
+    "intakeDescription": "ຕ້ອງການວັນເກີດຂອງອີກຝ່າຍເພື່ອເບິ່ງຄວາມເຂົ້າກັນ",
+    "analyze": "ເບິ່ງຄວາມເຂົ້າກັນ",
+    "analyzing": "ກຳລັງເບິ່ງ…",
+    "needYourBirth": "ເພີ່ມຂໍ້ມູນວັນເກີດຂອງທ່ານກ່ອນ ເພື່ອເບິ່ງຄວາມເຂົ້າກັນ",
+    "error": "ເບິ່ງຄວາມເຂົ້າກັນບໍ່ສຳເລັດ ລອງໃໝ່ອີກຄັ້ງ"
+  },
+  "LifeMonitor": {
+    "title": "Life Monitor",
+    "subtitle": "ສະພາບດວງດາວຂອງທ່ານ ຕອນນີ້",
+    "you": "ຂ້ອຍ",
+    "score": "ຄະແນນ",
+    "loading": "ກຳລັງອ່ານດວງດາວປັດຈຸບັນ…",
+    "error": "ໂຫລດມໍນິເຕີບໍ່ສຳເລັດ",
+    "retry": "ລອງໃໝ່",
+    "refresh": "ໂຫລດໃໝ່",
+    "approxNote": "ບໍ່ຮູ້ເວລາເກີດ — ຜົນເປັນພາບລວມກວ້າງໆ",
+    "signInTitle": "ເຂົ້າສູ່ລະບົບເພື່ອເບິ່ງມໍນິເຕີຂອງທ່ານ",
+    "signInBody": "Life monitor ອ່ານດວງເກີດຂອງທ່ານທຽບກັບດວງດາວປັດຈຸບັນ",
+    "signInCta": "ເຂົ້າສູ່ລະບົບ",
+    "noBirthTitle": "ຕັ້ງຄ່າດວງເກີດຂອງທ່ານກ່ອນ",
+    "noBirthBody": "ເພີ່ມຂໍ້ມູນວັນເກີດເພື່ອໃຫ້ພວກເຮົາອ່ານ transit ຂອງທ່ານໄດ້",
+    "noBirthCta": "ເພີ່ມຂໍ້ມູນວັນເກີດ",
+    "supportTitle": "ວິທີຢູ່ຄຽງຂ້າງເຂົາ",
+    "characterDisclaimer": "ເປັນການສະທ້ອນพะລັງດວງດາວ ບໍ່ແມ່ນຂໍ້ເທັດຈິງຂອງບຸກຄົນອື່ນ",
+    "mood": {
+      "bright": "ສົດໃສ",
+      "mixed": "ປະປົນ",
+      "tough": "ທ້າທາຍ"
+    },
+    "areas": {
+      "mood": "ອາລົມ",
+      "love": "ຄວາມຮັກ",
+      "career": "ການງານ",
+      "money": "ການເງິນ",
+      "health": "ສຸຂະພາບ",
+      "growth": "ການເຕີບໂຕ",
+      "social": "ສັງຄົມ"
+    }
+  },
   "InterpretationMode": {
     "auto": "ອັດຕະໂນມັດ",
     "tarot": "ໄພ່ທາໂຣດ",
     "horoscope": "ດວງຊະຕາ",
     "chat": "ແຊັດ",
+    "oracle": "ຈິດສຳພັດ",
+    "synastry": "ຄວາມເຂົ້າກັນ",
+    "synastryPaidOnly": "ອັບເກຣດເພື່ອໃຊ້ການເບິ່ງຄວາມເຂົ້າກັນ",
     "horoscopeLoginRequired": "ເຂົ້າສູ່ລະບົບເພື່ອໃຊ້ດວງຊະຕາ",
     "composerSettingsAriaLabel": "ການຕັ້ງຄ່າການອ່ານ",
     "composerSettingsPanelTitle": "ການຕັ້ງຄ່າ",
     "composerSettingsSectionPreferences": "ຄ່າທີ່ນິຍົມ",
     "composerSettingsSectionActions": "ການດຳເນີນການ"
+  },
+  "OracleReading": {
+    "messageReceived": "ຂໍ້ຄວາມທີ່ໄດ້ຮັບ",
+    "oracleEnergy": "ພະລັງງານໂອຣາເຄິລ",
+    "meaning": "ຄວາມໝາຍ",
+    "guidance": "ແນວທາງທີ່ຄວນເຮັດ",
+    "listening": "ກຳລັງຮັບຂໍ້ຄວາມ…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "ອ່ານດວງໃຫ້ຄົນເກີດ {date}"
   },
   "About": {
     "whatIs": "ແມ່ນຫຍັງ",
@@ -725,11 +888,23 @@
       }
     }
   },
+  "ShareImageProgress": {
+    "render": "ກຳລັງແຕ້ມຮູບຄຳທຳນາຍຂອງເຈົ້າ…",
+    "download": "ກຳລັງດາວໂຫຼດຮູບພາບ…",
+    "animate": "ກຳລັງບັນທຶກອະນິເມຊັນຈັກກະວານຂອງເຈົ້າ…",
+    "done": "ບັນທຶກລົງເຄື່ອງແລ້ວ"
+  },
   "QuestionInput": {
     "label": "ຄຳຖາມຂອງທ່ານ",
+    "removeAttachment": "ລຶບໄຟລ໌ແນບ",
     "placeholder": "ພິມຄຳຖາມຂອງທ່ານ...",
     "followUpSuggestionLabel": "ຄຳແນະນຳຕໍ່ຄຳຖາມ",
-    "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ"
+    "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ",
+    "avatarMode": "ແມ່ໝໍ",
+    "chatMode": "ແຊທ",
+    "avatarModeAria": "ສົ່ງໃຫ້ແມ່ໝໍເວົ້າ",
+    "chatModeAria": "ສົ່ງເປັນຂໍ້ຄວາມແຊທ",
+    "comingSoon": "ໄວໆນີ້"
   },
   "Prompts": {
     "title": "ແຮງບັນດານໃຈສຳລັບຄຳຖາມ",
@@ -1563,7 +1738,19 @@
         "wechat": "WeChat",
         "reddit": "Reddit",
         "sms": "SMS",
-        "email": "ອີເມວ"
+        "email": "ອີເມວ",
+        "imagePreparing": "ກຳລັງກະກຽມຮູບພາບຄຳທຳນາຍຂອງທ່ານ…",
+        "selectInSheet": "ເລືອກ {platform} ໃນໜ້າຕ່າງແບ່ງປັນ",
+        "imageCopied": "ສຳເນົາຮູບແລ້ວ — ນຳໄປວາງໃນ {platform} ໄດ້ເລີຍ",
+        "imageSaved": "ບັນທຶກຮູບແລ້ວ — ແນບຮູບໃນ {platform} ໄດ້ເລີຍ",
+        "imageError": "ບໍ່ສາມາດກະກຽມຮູບພາບໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+        "formatLabel": "ຮູບແບບການແບ່ງປັນ",
+        "formatImage": "ຮູບພາບ",
+        "formatVideo": "ວິດີໂອ",
+        "videoPreparing": "ກຳລັງບັນທຶກວິດີໂອຄຳທຳນາຍຂອງທ່ານ…",
+        "videoReady": "ວິດີໂອພ້ອມແລ້ວ — ແຕະ {platform} ອີກຄັ້ງເພື່ອແບ່ງປັນ",
+        "videoSaved": "ບັນທຶກວິດີໂອແລ້ວ — ແນບວິດີໂອໃນ {platform} ໄດ້ເລີຍ",
+        "videoError": "ບໍ່ສາມາດກະກຽມວິດີໂອໄດ້ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ"
       },
       "buttons": {
         "regenerate": "ສ້າງຄຳທຳນາຍໃໝ່",
@@ -1577,6 +1764,7 @@
         "share": "ແຊຣ໌",
         "downloadReadingText": "ດາວໂຫຼດການອ່ານເປັນໄຟລ໌ຂໍ້ຄວາມ",
         "downloadReadingImage": "ດາວໂຫຼດການອ່ານເປັນຮູບພາບ",
+        "shareCta": "ຖາມຄຳຖາມຂອງເຈົ້າເອງໄດ້ທີ່ askingfate.com",
         "copyResult": "ຄັດລອກຄຳທຳນາຍ",
         "askFollowUp": "ຖາມຕໍ່",
         "askFollowUpPrompt": "ຊ່ວຍຂະຫຍາຍຄຳທຳນາຍນີ້ໃຫ້ເພີ່ມເຕີມໄດ້ບໍ?",
@@ -1596,6 +1784,7 @@
         "downloadBrandingTitle": "ແບຣນ",
         "downloadBrandingHint": "ພຣີວິວລວມແບຣນ",
         "downloadStyleStory": "ສະຕໍຣີ",
+        "downloadStylePost": "ໂພສ",
         "downloadStyleSquare": "ສີ່ຫຼ່ຽມຈັດຕຸລັດ",
         "downloadStyleLandscape": "ແນວນອນ",
         "downloadTabImage": "ຮູບພາບ",
@@ -1629,6 +1818,9 @@
       "adViewing": {
         "title": "ເບິ່ງໂຄສະນາເພື່ອປົດລ໋ອກການອ່ານຂອງທ່ານ",
         "description": "ກະລຸນາເບິ່ງໂຄສະນາສັ້ນໆ ເພື່ອປົດລ໋ອກຄຳທຳນາຍໄພ່ທາໂຣສ່ວນບຸກຄົນຂອງທ່ານ ການສະໜັບສະໜູນຂອງທ່ານຊ່ວຍໃຫ້ພວກເຮົາສາມາດໃຫ້ບໍລິການອ່ານຟຣີໄດ້"
+      },
+      "detailed": {
+        "label": "ລະອຽດ"
       }
     },
     "adViewing": {
@@ -1848,6 +2040,7 @@
     "yourReading": "ການອ່ານຂອງທ່ານ",
     "calendar": "ປະຕິທິນດວງຂອງຂ້ອຍ",
     "birthChart": "ດວງກຳເນີດຂອງຂ້ອຍ",
+    "lifeMonitor": "ກວດຊີວິດປັດຈຸບັນ",
     "profile": "ໂປຣໄຟລ໌",
     "account": "ບັນຊີ",
     "theme": "ທີມ",
@@ -2268,7 +2461,7 @@
     "pricingFaqTitle": "ຄຳຖາມກ່ຽວກັບລາຄາ ແລະ ການເຕີມດາວ",
     "pricingFaq": {
       "refillQuestion": "ການເຕີມດາວຂອງສະມາຊິກເຮັດວຽກແນວໃດ?",
-      "refillAnswer": "ທຸກບັນຊີຈະເຕີມດາວລາຍມື້ສູງສຸດ 6 ດວງ (ເພີ່ມ 1 ດວງທຸກ 2 ຊົ່ວໂມງ) ແຜນ Basic ແລະ Pro ຈະມີຄັງດາວຂອງແຜນແຍກຕ່າງຫາກ ແລະ ຣີເຊັດເປັນຈຳນວນດາວຂອງແຜນໃນມື້ຮອບບິນ ແພັກເສີມຈະສ້າງຄັງດາວເສີມທີ່ເຕີມໃນທຸກຊ່ວງບິນເຊັ່ນກັນ",
+      "refillAnswer": "ທຸກບັນຊີມີດາວລາຍມື້ຟຣີສູງສຸດ 5 ດວງ ເມື່ອທ່ານໃຊ້ດາວດວງທຳອິດ ລະບົບຈະເລີ່ມນັບເວລາ 5 ຊົ່ວໂມງ ແລະ ເມື່ອຄົບກຳນົດ ດາວທັງ 5 ດວງຈະເຕີມກັບພ້ອມກັນໃນຄັ້ງດຽວ (ບໍ່ມີການເຕີມເທື່ອລະດວງທີ່ໄວກວ່ານີ້) ແຜນ Basic ແລະ Pro ຈະມີຄັງດາວຂອງແຜນແຍກຕ່າງຫາກ ແລະ ຣີເຊັດເປັນຈຳນວນດາວຂອງແຜນໃນມື້ຮອບບິນ ແພັກເສີມຈະສ້າງຄັງດາວເສີມທີ່ເຕີມໃນທຸກຊ່ວງບິນເຊັ່ນກັນ",
       "changeQuestion": "ອັບເກຣດ ຫຼື ດາວເກຣດມີຜົນແນວໃດ?",
       "changeAnswer": "ການອັບເກຣດມີຜົນທັນທີ ແລະ ຄິດສະເພາະສ່ວນຕ່າງ ການດາວເກຣດມີຜົນໃນຮອບບິນຕໍ່ໄປ ແລະ ດາວຂອງແຜນຈະເຕີມຕາມຈຳນວນໃໝ່",
       "addonsQuestion": "ໃຜສາມາດຊື້ແພັກດາວເສີມໄດ້?",
@@ -2393,14 +2586,14 @@
     "buyAddons": "ຊື້ແພັກເສີມ",
     "anonymousPrefix": "ຜູ້ໃຊ້ບໍ່ລະບຸຊື່:",
     "anonymousRefill": "ເຕີມເປັນ 3 ດວງດາວເວລາທ່ຽງຄືນ (UTC+7) ຕົວນັບສະແດງເວລາເຖິງການຈັດຕຳແໜ່ງຈັກກະວານຄັ້ງຕໍ່ໄປ",
-    "autoRefill": "ເຕີມອັດຕະໂນມັດຄັ້ງລະ 1 ດວງດາວທຸກ 2 ຊົ່ວໂມງ (ສູງສຸດ {cap} ດວງດາວ).",
+    "autoRefill": "ດາວທັງ {cap} ດວງຈະເຕີມກັບພ້ອມກັນຫຼັງຈາກໃຊ້ດວງທຳອິດຄົບ 5 ຊົ່ວໂມງ",
     "subscriptionRefill": "ເຕີມດວງດາວສູງສຸດ {cap} ດວງດາວໃນທຸກຊ່ວງບິນ",
-    "dailyRefillNote": "ດາວລາຍມື້ຈະເຕີມຄັ້ງລະ 1 ທຸກ 2 ຊົ່ວໂມງ (ສູງສຸດ {cap})",
+    "dailyRefillNote": "ດາວລາຍມື້ຈະເຕີມກັບເຕັມ {cap} ດວງໃນຄັ້ງດຽວ ຫຼັງຈາກໃຊ້ດວງທຳອິດຄົບ 5 ຊົ່ວໂມງ",
     "planRefillNote": "ແຜນ {plan} ຈະເຕີມດາວກັບເປັນ {cap} ໃນຮອບບິນຕໍ່ໄປ"
   },
   "SignInAccordion": {
     "title": "ເຂົ້າສູ່ລະບົບ",
-    "description": "ບັນຊີໃໝ່ເລີ່ມຕົ້ນທີ່ 6 ດວງດາວ ເຕີມອັດຕະໂນມັດ 1 ດວງດາວທຸກ 2 ຊົ່ວໂມງ (ສູງສຸດ {cap}).",
+    "description": "ບັນຊີໃໝ່ເລີ່ມຕົ້ນທີ່ 5 ດວງດາວ ດາວທັງ {cap} ດວງຈະເຕີມກັບພ້ອມກັນຫຼັງຈາກເລີ່ມໃຊ້ຄົບ 5 ຊົ່ວໂມງ",
     "button": "ເຂົ້າສູ່ລະບົບ"
   },
   "OneTapTopUp": {
@@ -2471,6 +2664,10 @@
       "pro": {
         "title": "Pro",
         "subtitle": "599 ດາວຕໍ່ເດືອນ"
+      },
+      "custom": {
+        "title": "ກຳນົດເອງ",
+        "subtitle": "ຕິດຕໍ່ພວກເຮົາຜ່ານແບບຟອມນີ້"
       }
     },
     "earn": {
@@ -2638,21 +2835,21 @@
   "InsufficientStars": {
     "title": "ດວງດາວບໍ່ພຽງພໍ",
     "descriptionLoggedIn": "ທ່ານຕ້ອງມີຢ່າງໜ້ອຍ 1 ດວງດາວເພື່ອຈັ່ວໄພ່ ແລະ ຮັບການທຳນາຍ ເຕີມດວງດາວເພື່ອເດີນທາງຕໍ່ໃນໂລກລຶກລັບ",
-    "descriptionAnonymous": "ທ່ານຕ້ອງມີຢ່າງໜ້ອຍ 1 ດວງດາວເພື່ອຈັ່ວໄພ່ ເຂົ້າສູ່ລະບົບເພື່ອຮັບ 6 ດວງດາວຟຣີ ພ້ອມເຕີມອັດຕະໂນມັດທຸກ 2 ຊົ່ວໂມງ!",
+    "descriptionAnonymous": "ທ່ານຕ້ອງມີຢ່າງໜ້ອຍ 1 ດວງດາວເພື່ອຈັ່ວໄພ່ ເຂົ້າສູ່ລະບົບເພື່ອຮັບ 5 ດວງດາວຟຣີ ເຕີມກັບພ້ອມກັນທຸກ 5 ຊົ່ວໂມງ!",
     "descriptionHoroscopeLoggedIn": "ທ່ານຕ້ອງມີຢ່າງໜ້ອຍ 1 ດວງດາວເພື່ອຮັບການທຳນາຍດວງຊະຕາ ເຕີມດວງດາວເພື່ອເດີນທາງຕໍ່ໃນຈັກກະວານ",
-    "descriptionHoroscopeAnonymous": "ທ່ານຕ້ອງມີຢ່າງໜ້ອຍ 1 ດວງດາວເພື່ອຮັບການທຳນາຍດວງຊະຕາ ເຂົ້າສູ່ລະບົບເພື່ອຮັບ 6 ດວງດາວຟຣີ ພ້ອມເຕີມອັດຕະໂນມັດທຸກ 2 ຊົ່ວໂມງ!",
+    "descriptionHoroscopeAnonymous": "ທ່ານຕ້ອງມີຢ່າງໜ້ອຍ 1 ດວງດາວເພື່ອຮັບການທຳນາຍດວງຊະຕາ ເຂົ້າສູ່ລະບົບເພື່ອຮັບ 5 ດວງດາວຟຣີ ເຕີມກັບພ້ອມກັນທຸກ 5 ຊົ່ວໂມງ!",
     "quickTopUp": "ເຕີມດ່ວນ",
     "packsNotConfigured": "ແພັກເກດດວງດາວຍັງບໍ່ໄດ້ຕັ້ງຄ່າ",
     "proRequired": "ແພັກເສີມມີໃຫ້ສະເພາະສະມາຊິກ Pro ເທົ່ານັ້ນ",
     "viewAllOptions": "ເບິ່ງຕົວເລືອກລາຄາທັງໝົດ",
-    "benefit1Title": "6 ດວງດາວຟຣີ",
-    "benefit1Desc": "ເລີ່ມຕົ້ນດ້ວຍ 6 ດວງດາວທັນທີ",
+    "benefit1Title": "5 ດວງດາວຟຣີ",
+    "benefit1Desc": "ເລີ່ມຕົ້ນດ້ວຍ 5 ດວງດາວທັນທີ",
     "benefit2Title": "ເຕີມອັດຕະໂນມັດ",
-    "benefit2Desc": "ຮັບດວງດາວທຸກ 2 ຊົ່ວໂມງ",
+    "benefit2Desc": "ດາວທັງ 5 ດວງເຕີມກັບທຸກ 5 ຊົ່ວໂມງ",
     "signInButton": "ເຂົ້າສູ່ລະບົບເພື່ອດຳເນີນການຕໍ່",
-    "signInNote": "ສ້າງບັນຊີຟຣີ ແລະ ຮັບ 6 ດວງດາວເພື່ອເລີ່ມຕົ້ນການເດີນທາງທຳນາຍໄພ່ທາໂຣຂອງທ່ານ",
+    "signInNote": "ສ້າງບັນຊີຟຣີ ແລະ ຮັບ 5 ດວງດາວເພື່ອເລີ່ມຕົ້ນການເດີນທາງທຳນາຍໄພ່ທາໂຣຂອງທ່ານ",
     "chatMessageLoggedIn": "ເບິ່ງຄືວ່າທ່ານມີດວງດາວບໍ່ພຽງພໍທີ່ຈະຈັ່ວໄພ່ໃນຕອນນີ້ ທ່ານຕ້ອງມີຢ່າງໜ້ອຍ 1 ດວງດາວເພື່ອດຳເນີນການອ່ານໄພ່ຕໍ່ ທ່ານສາມາດເຕີມດວງດາວໄດ້ທັນທີໂດຍໃຊ້ຕົວເລືອກດ້ານລຸ່ມ ຫຼື ລໍຖ້າໃຫ້ດວງດາວເຕີມອັດຕະໂນມັດ",
-    "chatMessageAnonymous": "ເບິ່ງຄືວ່າທ່ານມີດວງດາວບໍ່ພຽງພໍທີ່ຈະຈັ່ວໄພ່ໃນຕອນນີ້ ເຂົ້າສູ່ລະບົບເພື່ອຮັບ 6 ດວງດາວຟຣີ ພ້ອມເຕີມອັດຕະໂນມັດທຸກ 2 ຊົ່ວໂມງ ຫຼື ສ້າງບັນຊີເພື່ອເລີ່ມຕົ້ນການເດີນທາງໃນໂລກລຶກລັບຂອງທ່ານ!",
+    "chatMessageAnonymous": "ເບິ່ງຄືວ່າທ່ານມີດວງດາວບໍ່ພຽງພໍທີ່ຈະຈັ່ວໄພ່ໃນຕອນນີ້ ເຂົ້າສູ່ລະບົບເພື່ອຮັບ 5 ດວງດາວຟຣີ ເຕີມກັບພ້ອມກັນທຸກ 5 ຊົ່ວໂມງ ຫຼື ສ້າງບັນຊີເພື່ອເລີ່ມຕົ້ນການເດີນທາງໃນໂລກລຶກລັບຂອງທ່ານ!",
     "promoBasicTitle": "ອັບເກຣດເປັນ Pro ເພື່ອຮັບດວງດາວເພີ່ມ",
     "promoGuestTitle": "ປົດລ໋ອກດວງດາວເພີ່ມໄດ້ທັນທີ",
     "promoBasicDescription": "ຕອນນີ້ທ່ານຢູ່ໃນແຜນ Basic ອັບເກຣດເປັນ Pro ເພື່ອຮັບດວງດາວລາຍເດືອນຫຼາຍຂຶ້ນ ແລະ ເຂົ້າເຖິງແພັກເສີມ",
@@ -2704,6 +2901,26 @@
     "timezone": "ເຂດເວລາ (ເຊັ່ນ 7)",
     "rememberBirth": "ຈົດຈຳຂໍ້ມູນວັນເກີດຂອງຂ້ອຍ",
     "removeBirth": "ລຶບຂໍ້ມູນ"
+  },
+  "HoroscopeCalendar": {
+    "intro": "ນີ້ແມ່ນປະຕິທິນດວງຂອງເຈົ້າ — ເລືອກມື້ໃດກໍ່ໄດ້ ແລ້ວກົດຫົວຂໍ້ ຫຼື ພິມຄຳຖາມທີ່ຢາກຖາມມາ.",
+    "actionTriggerHint": "ຄຳຖາມຕໍ່ໄປຈະຖືກອ່ານສຳລັບມື້ນີ້",
+    "followUpPrompt": "ຢາກຮູ້ເພີ່ມກ່ຽວກັບ {date} ບໍ? ກົດຫົວຂໍ້ ແລ້ວເຮົາຈະອ່ານໃຫ້ສຳລັບມື້ນັ້ນ ຫຼື ພິມຄຳຖາມທີ່ຢາກຖາມມາ.",
+    "followUpQuestion": "ຊ່ວຍບອກກ່ຽວກັບ {topic} ຂອງຂ້ອຍສຳລັບ {date}.",
+    "context": {
+      "noBirth": "ເພີ່ມຂໍ້ມູນວັນເກີດເພື່ອອ່ານມື້ນີ້ໃຫ້ເຈົ້າ.",
+      "noData": "ກຳລັງໂຫຼດຂໍ້ມູນຂອງມື້ນີ້.",
+      "selected": "{date} · ມື້ {quality} · {score}/10"
+    },
+    "chips": {
+      "financial": "ການເງິນ",
+      "love": "ຄວາມຮັກ",
+      "career": "ການງານ",
+      "health": "ສຸຂະພາບ",
+      "family": "ຄອບຄົວ",
+      "travel": "ການເດີນທາງ",
+      "thinkMore": "ຊ່ວຍຄິດໃຫ້ເພີ່ມ"
+    }
   },
   "HoroscopeChat": {
     "usingSavedBirthDate": "ກຳລັງໃຊ້ຂໍ້ມູນວັນເກີດທີ່ບັນທຶກໄວ້ທຳນາຍດວງ...",
@@ -2955,6 +3172,9 @@
   },
   "SupportBlock": {
     "openPage": "ເປີດໜ້າ",
+    "openCalendar": "ເປີດປະຕິທິນ",
+    "viewMore": "ເບິ່ງເພີ່ມ",
+    "calendarMonths": "ມ.ກ., ກ.ພ., ມີ.ນ., ມ.ສ., ພ.ພ., ມິ.ຖ., ກ.ລ., ສ.ຫ., ກ.ຍ., ຕ.ລ., ພ.ຈ., ທ.ວ.",
     "readArticle": "ອ່ານບົດຄວາມ",
     "readFullMeaning": "ອ່ານຄວາມໝາຍສະບັບເຕັມ",
     "majorArcana": "ອາການາໃຫຍ່",
@@ -3035,6 +3255,10 @@
         "title": "ດວງສ່ວນບຸກຄົນ",
         "description": "ດວງລາຍມື້ ລາຍເດືອນ ແລະລາຍປີຈາກວັນເກີດແລະຟ້າມື້ນີ້"
       },
+      "calendar-year": {
+        "title": "ປະຕິທິນຈັກກະວານຂອງທ່ານ",
+        "description": "ເບິ່ງປີຄື່ນຄາຍແຕ່ລະເດືອນ — ມື້ດີ, ມື້ຍາກ, ແລະຈຸດປ່ຽນແປງສຳຄັນທີ່ເບິ່ງເຫັນໄດ້ໃນແວບດຽວ."
+      },
       "account": {
         "title": "ບັນຊີ",
         "description": "ຈັດການໂປຣໄຟລ໌ ການສະຫມັກ ແລະຂໍ້ມູນວັນເກີດທີ່ບັນທຶກໄວ້"
@@ -3060,5 +3284,55 @@
         "description": "ສ້າງບັນຊີຟຣີເພື່ອເກັບການອ່ານ ດາວ ແລະໂປຣໄຟລ໌ວັນເກີດ"
       }
     }
+  },
+  "CheckoutSuccess": {
+    "badge": "ຊຳລະເງິນສຳເລັດ",
+    "title": "ຂອບໃຈສຳລັບການສັ່ງຊື້!",
+    "description": "ດຳເນີນການຊຳລະເງິນຂອງທ່ານສຳເລັດແລ້ວ ດວງດາວຖືກເພີ່ມເຂົ້າບັນຊີຂອງທ່ານ ແລະ ພ້ອມໃຊ້ງານແລ້ວ",
+    "descriptionWithStars": "ດຳເນີນການຊຳລະເງິນຂອງທ່ານສຳເລັດແລ້ວ ດວງດາວ {stars} ດວງຖືກເພີ່ມເຂົ້າບັນຊີຂອງທ່ານ ແລະ ພ້ອມໃຊ້ງານແລ້ວ",
+    "emailLabel": "ສົ່ງໃບຮັບເງິນໄປຫາອີເມວຂອງທ່ານແລ້ວ:",
+    "viewStars": "ເບິ່ງດວງດາວຂອງຂ້ອຍ",
+    "viewBilling": "ປະຫວັດການຊຳລະເງິນ",
+    "backToPricing": "ກັບໄປໜ້າລາຄາ",
+    "backToStars": "ກັບໄປໜ້າດວງດາວ",
+    "supportText": "ຫາກມີຄຳຖາມ ກະລຸນາສົ່ງອີເມວຫາພວກເຮົາ"
+  },
+  "Avatar": {
+    "title": "ລົມກັບແມ່ໝໍ",
+    "posterAlt": "ແມ່ໝໍກຳລັງລໍຖ້າເປີດໄພ່ໃຫ້ທ່ານ",
+    "idleHint": "ພິມຄຳຖາມໃນໃຈ ແລ້ວແມ່ໝໍຈະເປີດໄພ່ ແລະ ອ່ານໃຫ້ຟັງ",
+    "shuffling": "ແມ່ໝໍກຳລັງສັບໄພ່…",
+    "reversed": "ກັບຫົວ",
+    "freeRevealLabel": "ຄຳຖາມນີ້ແມ່ໝໍຈະເປີດໄພ່ ແລະ ເວົ້າໃຫ້ຟັງ · ຟຣີຄັ້ງທຳອິດຂອງທ່ານ",
+    "freeAvailable": "ທ່ານມີການເປີດໄພ່ຟຣີຄັ້ງທຳອິດໜຶ່ງຄັ້ງ",
+    "wishBalance": "ພອນຍັງເຫຼືອ: {count} (1 ພອນ = 1 ນາທີ)",
+    "askPlaceholder": "ພິມຄຳຖາມຂອງທ່ານ…",
+    "chatPlaceholder": "ພິມລົມກັບແມ່ໝໍ…",
+    "switchToChat": "ສະຫຼັບໄປລົມດ້ວຍຕົວອັກສອນ",
+    "switchToAvatar": "ສະຫຼັບໄປໃຫ້ແມ່ໝໍເວົ້າ",
+    "gateTitle": "ເຂົ້າສູ່ລະບົບເພື່ອພົບແມ່ໝໍ",
+    "gateBody": "ການເປີດໄພ່ແບບເຫັນໜ້າແມ່ໝໍ ສະຫງວນໄວ້ສຳລັບສະມາຊິກທີ່ເຂົ້າສູ່ລະບົບ ຄັ້ງທຳອິດຟຣີສຳລັບທ່ານ",
+    "signIn": "ເຂົ້າສູ່ລະບົບ",
+    "signUp": "ສະໝັກສະມາຊິກ",
+    "buyWishes": "ເຕີມພອນ",
+    "closingLine": "ດວງດາວເຜີຍໃຫ້ຂ້ອຍເຫັນໄດ້ພຽງເທົ່ານີ້… ຫາກໃຈຍັງມີຄຳຖາມ ໃຊ້ພອນໜຶ່ງຂໍ້ເດີ້",
+    "downgrade": "ພອນຂອງທ່ານໝົດແລ້ວເດີ້ ຄືນນີ້ເຮົາມາລົມຕໍ່ດ້ວຍຕົວອັກສອນກ່ອນໄດ້",
+    "transcriptTitle": "ຄຳທຳນາຍທີ່ບັນທຶກໄວ້",
+    "chatFallbackBody": "ຕອນນີ້ເຮົາມາລົມກັນດ້ວຍຕົວອັກສອນກ່ອນເດີ້ ເມື່ອມີພອນ ແມ່ໝໍຈະເປີດໄພ່ເວົ້າໃຫ້ຟັງອີກຄັ້ງ",
+    "openChat": "ໄປທີ່ຫ້ອງສົນທະນາ",
+    "errorNoWishes": "ພອນຂອງທ່ານໝົດແລ້ວ ເຕີມພອນອີກຂໍ້ແລ້ວກັບມາໃຫ້ແມ່ໝໍເປີດໄພ່ຕໍ່ໄດ້ເລີຍ",
+    "errorBusy": "ຕອນນີ້ແມ່ໝໍກຳລັງເປີດໄພ່ໃຫ້ຄົນອື່ນຢູ່ ລໍຖ້າອີກໜ້ອຍແລ້ວລອງໃໝ່ເດີ້",
+    "errorActive": "ເບິ່ງຄືວ່າທ່ານເປີດການເປີດໄພ່ຄ້າງໄວ້ອີກໜ້າຕ່າງໜຶ່ງ ປິດກ່ອນແລ້ວລອງໃໝ່ເດີ້",
+    "errorNotConfigured": "ແມ່ໝໍຍັງກຽມໄພ່ບໍ່ທັນ ກັບມາໃໝ່ອີກຄັ້ງເດີ້",
+    "errorGeneric": "ດວງດາວຂຸ່ນມົວຊົ່ວຄາວ ລອງຖາມໃໝ່ອີກຄັ້ງເດີ້",
+    "preparing": "ແມ່ໝໍກຳລັງກຽມພາບນິມິດ…",
+    "comingSoon": "ໄວໆນີ້",
+    "comingSoonTitle": "ແມ່ໝໍເວົ້າໄດ້ ກຳລັງຈະມາ",
+    "comingSoonBody": "ພົບກັບແມ່ໝໍທີ່ຈະເປີດໄພ່ ແລະ ອ່ານຄຳທຳນາຍໃຫ້ຟັງແບບເຫັນໜ້າ ກົດຕິດຕາມແລ້ວເຮົາຈະສົ່ງອີເມວແຈ້ງທ່ານທັນທີທີ່ພ້ອມ",
+    "subscribeCta": "ແຈ້ງເຕືອນຂ້ອຍ",
+    "subscribedTitle": "ທ່ານຢູ່ໃນລາຍຊື່ແລ້ວ",
+    "subscribedBody": "ເຮົາຈະສົ່ງອີເມວແຈ້ງທ່ານທັນທີທີ່ແມ່ໝໍເວົ້າໄດ້ພ້ອມໃຊ້ງານ",
+    "subscribeError": "ເກີດຂໍ້ຜິດພາດ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ",
+    "close": "ປິດ"
   }
 }

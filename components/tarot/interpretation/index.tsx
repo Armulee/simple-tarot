@@ -11,7 +11,7 @@ import {
 
 type PartialTarotInterpretation = Partial<TarotInterpretation>
 import QuestionInput from "../../question-input"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useAuth } from "@/hooks/use-auth"
 import { useTarot } from "@/contexts/tarot-context"
 import {
@@ -60,6 +60,7 @@ export default function Interpretation({
     streamingObject: streamingObjectProp,
 }: ReadingProps) {
     const t = useTranslations("ReadingPage.interpretation")
+    const locale = useLocale()
     const { user, session } = useAuth()
     const {
         isFollowUp,
@@ -346,6 +347,7 @@ export default function Interpretation({
                 isFollowUp,
                 previousQuestion,
                 previousInterpretation,
+                locale,
             })
         }
     }, [
@@ -362,6 +364,7 @@ export default function Interpretation({
         readingType,
         hasCheckedDB,
         initialInterpretation,
+        locale,
     ])
 
     useEffect(() => {

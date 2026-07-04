@@ -146,44 +146,27 @@ export default function PersonalBirthChart() {
 
     if (phase === "error") {
         return (
-            <div className='min-h-[calc(100dvh-64px)] flex items-center justify-center px-4 py-12'>
-                <div className='relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] via-white/[0.03] to-transparent backdrop-blur-xl p-8 sm:p-10 text-center shadow-[0_24px_60px_-24px_rgba(0,0,0,0.7)]'>
-                    <div
-                        aria-hidden
-                        className='pointer-events-none absolute -top-24 -right-16 h-48 w-48 rounded-full bg-rose-500/20 blur-3xl'
-                    />
-                    <div
-                        aria-hidden
-                        className='pointer-events-none absolute -bottom-24 -left-16 h-48 w-48 rounded-full bg-violet-500/20 blur-3xl'
-                    />
-                    <div className='relative space-y-6'>
-                        <div className='inline-flex items-center justify-center gap-3'>
-                            <span className='h-px w-6 bg-gradient-to-r from-transparent to-rose-300/60' />
-                            <p className='text-[10px] font-medium uppercase tracking-[0.32em] text-rose-200/80'>
-                                {t("computeFailedTitle")}
-                            </p>
-                            <span className='h-px w-6 bg-gradient-to-l from-transparent to-rose-300/60' />
-                        </div>
-                        <span className='mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/15 ring-1 ring-rose-300/40 shadow-[0_0_24px_-6px_rgba(244,63,94,0.55)]'>
-                            <Sparkles className='h-6 w-6 text-rose-200' />
-                        </span>
-                        <h1 className='font-serif italic text-2xl sm:text-3xl text-white'>
-                            {t("computeFailed")}
-                        </h1>
-                        <p className='text-sm leading-relaxed text-white/60 max-w-sm mx-auto'>
-                            {errorMessage}
-                        </p>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                computeAttemptedRef.current = true
-                                void computeChart()
-                            }}
-                            className='inline-flex items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 py-2.5 text-sm font-medium text-black hover:bg-amber-200 transition-colors shadow-[0_8px_24px_-8px_rgba(252,211,77,0.6)]'
-                        >
-                            <Sparkles className='h-4 w-4' /> {t("retry")}
-                        </button>
-                    </div>
+            <div className='min-h-[calc(100dvh-64px)] flex items-center justify-center px-5 py-12'>
+                <div className='w-full max-w-md rounded-3xl bg-white/[0.05] backdrop-blur-2xl ring-1 ring-white/[0.08] shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] p-8 sm:p-10 text-center space-y-6'>
+                    <p className='text-xs font-medium text-rose-200/85'>
+                        {t("computeFailedTitle")}
+                    </p>
+                    <h1 className='text-2xl sm:text-3xl font-semibold tracking-tight text-white'>
+                        {t("computeFailed")}
+                    </h1>
+                    <p className='text-[14px] leading-relaxed text-white/65 max-w-sm mx-auto'>
+                        {errorMessage}
+                    </p>
+                    <button
+                        type='button'
+                        onClick={() => {
+                            computeAttemptedRef.current = true
+                            void computeChart()
+                        }}
+                        className='inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-white/90 transition-colors'
+                    >
+                        <Sparkles className='h-4 w-4' /> {t("retry")}
+                    </button>
                 </div>
             </div>
         )

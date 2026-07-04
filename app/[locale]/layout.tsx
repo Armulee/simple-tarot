@@ -7,6 +7,7 @@ import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
+import { DesktopSidebarShell } from "@/components/navbar/desktop-sidebar-shell"
 import "../globals.css"
 import Footer from "@/components/footer/footer"
 import { CookiesBanner } from "@/components/cookies-banner"
@@ -16,8 +17,8 @@ import { BetaToaster } from "@/components/beta-toaster"
 import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
-import { getMessages, getTranslations } from "next-intl/server"
-import { getMetadataBase } from "@/lib/seo"
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server"
+import { getMetadataBase, getSocialImageUrls } from "@/lib/seo"
 import { ConsentAwareAnalytics } from "@/components/consent-aware-analytics"
 // StarConsentProvider and ReferralProvider are composed inside StarsProvider
 
@@ -44,8 +45,7 @@ export async function generateMetadata({
     const { locale } = await params
     const t = await getTranslations({ locale, namespace: "Meta.Layout" })
     const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
-    const ogImage = `${baseUrl}/${locale}/opengraph-image`
-    const twitterImage = `${baseUrl}/${locale}/twitter-image`
+    const { ogImage, twitterImage } = getSocialImageUrls(locale)
 
     return {
         metadataBase: getMetadataBase(),
@@ -134,10 +134,14 @@ export default async function RootLayout({
 }>) {
     // Ensure that the incoming `locale` is valid
     const { locale } = await params
-    const messages = await getMessages()
     if (!hasLocale(routing.locales, locale)) {
         notFound()
     }
+    // Opt into static rendering: tell next-intl the locale up front so
+    // getMessages()/getTranslations() don't read headers() (which would
+    // force the whole [locale] subtree to render dynamically).
+    setRequestLocale(locale)
+    const messages = await getMessages()
 
     return (
         <html lang={locale}>
@@ -151,17 +155,19 @@ export default async function RootLayout({
                             <TarotProvider>
                                 <div className='min-h-screen flex flex-col home-gradient relative'>
                                     <Navbar locale={locale} />
-                                    <main className='flex flex-1 flex-col pt-16 min-h-[calc(100dvh-64px)] relative min-h-0'>
-                                        <div className='flex min-h-0 min-w-0 flex-1 flex-col'>
-                                            <Suspense fallback={null}>
-                                                <div className='flex min-h-0 flex-1 flex-col'>
-                                                    {children}
-                                                </div>
-                                            </Suspense>
-                                        </div>
-                                        <CookiesBanner />
-                                    </main>
-                                    <Footer />
+                                    <DesktopSidebarShell>
+                                        <main className='flex flex-1 flex-col pt-16 min-h-[calc(100dvh-64px)] relative min-h-0'>
+                                            <div className='flex min-h-0 min-w-0 flex-1 flex-col'>
+                                                <Suspense fallback={null}>
+                                                    <div className='flex min-h-0 flex-1 flex-col'>
+                                                        {children}
+                                                    </div>
+                                                </Suspense>
+                                            </div>
+                                            <CookiesBanner />
+                                        </main>
+                                        <Footer />
+                                    </DesktopSidebarShell>
                                 </div>
                             </TarotProvider>
                         </StarsProvider>

@@ -4,8 +4,14 @@ import {
     PRIVACY_REDACTION_PROMPT_RULE,
     summarizePrivacyPlaceholdersInText,
 } from "@/lib/privacy/prompt-redaction"
+import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { createReasoningStreamResponse } from "@/lib/chat/reasoning-stream"
+import { deepseekThinking } from "@/lib/chat/model-options"
 
-const MODEL = "deepseek/deepseek-v3.2"
+const MODEL = "deepseek/deepseek-v4-pro"
+// DeepSeek is text-only; turns that carry image attachments are routed to a
+// vision-capable model instead so the AI can actually see the images.
+const VISION_MODEL = process.env.CHAT_VISION_MODEL ?? "google/gemini-2.5-flash"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -22,6 +28,21 @@ const requestSchema = z.object({
         .optional(),
     contextSummary: z.string().nullable().optional(),
     savedBirthInfo: z.string().nullable().optional(),
+    locale: z.string().optional(),
+    // Composer attachments: images arrive as downscaled data URLs (forwarded
+    // to the model as image parts); text-like files arrive as extracted text.
+    attachments: z
+        .array(
+            z.object({
+                kind: z.enum(["image", "file"]),
+                name: z.string().max(300),
+                mimeType: z.string().max(100).optional(),
+                dataUrl: z.string().max(3_500_000).optional(),
+                textContent: z.string().max(30_000).optional(),
+            }),
+        )
+        .max(8)
+        .optional(),
 })
 
 const CHAT_RESPONSE_SYSTEM_PROMPT = `
@@ -72,15 +93,6 @@ If mode is support:
   - faq: "I gathered the common answers for you below."
 `
 
-function detectQuestionLanguage(text: string): string {
-    if (/[\u0E80-\u0EFF]/.test(text)) return "Lao"
-    if (/[\u0E00-\u0E7F]/.test(text)) return "Thai"
-    if (/[\u3040-\u30FF\u4E00-\u9FFF]/.test(text)) return "Japanese"
-    if (/[\uAC00-\uD7AF]/.test(text)) return "Korean"
-    if (/[\u0400-\u04FF]/.test(text)) return "Russian"
-    return "English"
-}
-
 function getChatResponsePrompt({
     question,
     type,
@@ -89,6 +101,8 @@ function getChatResponsePrompt({
     history,
     contextSummary,
     savedBirthInfo,
+    locale,
+    attachments,
 }: z.infer<typeof requestSchema>) {
     const historyText =
         history && history.length
@@ -103,22 +117,44 @@ function getChatResponsePrompt({
             ? `Session context (previous readings/interactions):\n${contextSummary.trim()}\n\n`
             : ""
 
-    const detectedLang = detectQuestionLanguage(question)
+    const detectedLang = resolveResponseLanguage(locale, question)
     const savedBirthBlock = savedBirthInfo
         ? `Saved birth profile: available (${savedBirthInfo}).`
         : "Saved birth profile: not available."
 
+    // Attachments: images are delivered as separate image parts (vision
+    // model); text-like files are inlined here so the model can read them.
+    let attachmentsBlock = ""
+    if (attachments?.length) {
+        const imageCount = attachments.filter(
+            (a) => a.kind === "image" && a.dataUrl,
+        ).length
+        const fileSections = attachments
+            .filter((a) => a.kind === "file")
+            .map((a) =>
+                a.textContent
+                    ? `--- Attached file: ${a.name} ---\n${a.textContent}\n--- End of ${a.name} ---`
+                    : `--- Attached file (content unavailable, name only): ${a.name} ---`,
+            )
+        attachmentsBlock = `\nATTACHMENTS: The user attached ${attachments.length} item(s) to THIS message.${
+            imageCount > 0
+                ? ` ${imageCount} image(s) are provided alongside this prompt — look at them and use what you see in your answer.`
+                : ""
+        }${fileSections.length ? `\n${fileSections.join("\n")}` : ""}\nWhen the user's question refers to the attachment(s), base your answer on their actual content.\n`
+    }
+
     return `
-${contextBlock}Recent conversation:
+${contextBlock}Recent conversation (background only):
 ${historyText}
 
-User message:
+Current user message (reply to THIS message only):
 ${question}
-
+${attachmentsBlock}
 Response mode: ${type}
 Is follow-up: ${isFollowUp ? "yes" : "no"}
 ${type === "support" && supportTopic ? `Support topic: ${supportTopic}\n` : ""}${savedBirthBlock}
 DETECTED LANGUAGE: The user's message is in ${detectedLang}. Ignore the language of conversation history.
+ANSWER TARGET: The conversation and session context above are background only — use them to understand what an ambiguous message refers to and to keep continuity. Never re-answer an older question from the history; if history and the current message conflict, the current message wins.
 
 Write the user-facing response now.
 `
@@ -128,10 +164,40 @@ export async function POST(req: Request) {
     try {
         const body = requestSchema.parse(await req.json())
 
+        // Draw/horoscope replies are a single short "invite" sentence, so
+        // thinking there only adds latency. Enable chain-of-thought (for the
+        // live thinking headline) only for the substantive chat/support replies.
+        const enableThinking = body.type === "chat" || body.type === "support"
+
+        const promptText = getChatResponsePrompt(body)
+        const images = (body.attachments ?? []).filter(
+            (a) => a.kind === "image" && a.dataUrl,
+        )
+        const hasImages = images.length > 0
+
         const result = streamText({
-            model: MODEL,
+            // Image turns go to a vision-capable model; DeepSeek is text-only.
+            model: hasImages ? VISION_MODEL : MODEL,
+            providerOptions: hasImages
+                ? undefined
+                : deepseekThinking(enableThinking, "low"),
             system: CHAT_RESPONSE_SYSTEM_PROMPT,
-            prompt: getChatResponsePrompt(body),
+            ...(hasImages
+                ? {
+                      messages: [
+                          {
+                              role: "user" as const,
+                              content: [
+                                  { type: "text" as const, text: promptText },
+                                  ...images.map((a) => ({
+                                      type: "image" as const,
+                                      image: a.dataUrl as string,
+                                  })),
+                              ],
+                          },
+                      ],
+                  }
+                : { prompt: promptText }),
             onFinish: ({ text }) => {
                 const out = summarizePrivacyPlaceholdersInText(text)
                 const incoming = summarizePrivacyPlaceholdersInText(
@@ -155,7 +221,10 @@ export async function POST(req: Request) {
             },
         })
 
-        return result.toTextStreamResponse()
+        // Stream reasoning (chain-of-thought) and content on separate channels
+        // so the client can render the live "thinking" headline before the
+        // answer text begins.
+        return createReasoningStreamResponse(result)
     } catch (error) {
         console.error("Error generating chat response:", error)
         return new Response("Failed to generate response", { status: 500 })

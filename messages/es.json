@@ -1,0 +1,3183 @@
+{
+  "Navbar": {
+    "brand": "AskingFate",
+    "home": "Inicio",
+    "about": "Acerca de",
+    "pricing": "Precios",
+    "newReading": "Nueva lectura",
+    "signIn": "Iniciar sesión"
+  },
+  "Beta": {
+    "notice": "¡Estamos en fase beta! Es posible que encuentres errores y que algunas funciones aún estén en desarrollo."
+  },
+  "PageContextComposer": {
+    "eyebrow": "Contexto",
+    "hint": "este contexto se enviará a la IA",
+    "error": "Lo sentimos, algo salió mal. Inténtalo de nuevo.",
+    "clear": "Clear context"
+  },
+  "Chat": {
+    "originContext": {
+      "attached": "Contexto adjunto: {label}"
+    }
+  },
+  "StarConsent": {
+    "modal": {
+      "eyebrow": "Antes de adentrarte en tu destino",
+      "noticeHeading": "Aviso y consentimiento",
+      "languageLabel": "Idioma",
+      "languageLoadingLabel": "Cargando traducción...",
+      "experienceSectionLabel": "Acerca de esta experiencia",
+      "experienceBody": "AskingFate utiliza el <b>Tarot</b> y la <b>Astrología</b> (occidental y védica) como herramientas simbólicas de reflexión, no como una adivinación exacta, y no puede sustituir el asesoramiento profesional. Los resultados podrían <b>no coincidir</b> con tus creencias personales o religiosas.",
+      "liabilitySectionLabel": "Limitación de responsabilidad",
+      "liabilityBody": "Todas las interpretaciones, lecturas y análisis astrológicos generados por este servicio se ofrecen <b>únicamente con fines de entretenimiento y reflexión personal</b>. En ningún caso el contenido producido por AskingFate deberá interpretarse como asesoramiento profesional —ya sea médico, psicológico, financiero, legal o de cualquier otra índole— ni considerarse una afirmación de hecho objetivo, una verdad absoluta o un juicio definitivo sobre ningún asunto de importancia en la vida del Usuario. El Usuario reconoce expresamente que cualquier decisión de actuar, confiar o dar peso a dicho contenido <b>sin una verificación independiente, pruebas que lo respalden o la orientación de un profesional debidamente cualificado</b> se realiza por completo bajo el propio riesgo y la sola discreción del Usuario. El Proveedor, sus filiales, directivos, empleados y agentes no asumirán <b>responsabilidad alguna</b> por cualquier pérdida, daño o consecuencia adversa —ya sea directa, indirecta, incidental, consecuente o de otro tipo— que surja de dicha confianza. Asimismo, el contenido generado por este servicio <b>no podrá citarse, presentarse, aportarse como prueba ni invocarse de ningún otro modo en ningún procedimiento legal, judicial, arbitral, administrativo o regulatorio</b>, y el Proveedor declina toda responsabilidad por cualquier intento de hacerlo.",
+      "religiousSectionLabel": "Sensibilidad religiosa y cultural",
+      "religiousBody": "Este servicio emplea la adivinación con tarot y metodologías astrológicas que podrían ser <b>incompatibles con, contrarias a o expresamente prohibidas por</b> ciertas doctrinas religiosas, leyes eclesiásticas, tradiciones culturales o sistemas de creencias espirituales. El Proveedor no ofrece <b>ninguna declaración ni garantía</b> respecto a la compatibilidad de este servicio con ninguna tradición de fe, confesión, secta u orden religiosa en particular. El Proveedor no se hará responsable de ninguna consecuencia que surja del uso de este servicio por parte del Usuario, incluyendo, entre otras, <b>la excomunión, la censura eclesiástica, las penas religiosas, las sanciones espirituales, la pérdida de posición dentro de la comunidad, las medidas disciplinarias impuestas por autoridades religiosas</b> o cualquier otro resultado adverso atribuible a la participación del Usuario. Al continuar, el Usuario reconoce y acepta toda la responsabilidad de determinar si el uso de este servicio es compatible con sus propias obligaciones religiosas, convicciones espirituales y normas comunitarias.",
+      "ageSectionLabel": "Edad mínima",
+      "ageBody": "Este servicio <b>no está dirigido a, ni puede ser utilizado por, menores de trece (13) años</b>. Al continuar, el Usuario declara y garantiza que tiene al menos trece (13) años. Si el Usuario es menor de dieciocho (18) años, deberá utilizar este servicio únicamente con la participación, supervisión y consentimiento de un padre, madre o tutor legal, y el Proveedor podrá limitar, filtrar o restringir ciertas funciones, indicaciones o respuestas según corresponda.",
+      "safetySectionLabel": "Contenido sensible y moderación",
+      "safetyBody": "El Proveedor respeta la libertad de expresión legítima; no obstante, el Proveedor se reserva el derecho, a su sola discreción, de <b>filtrar, restringir, rechazar o moderar</b> indicaciones, respuestas u otro contenido que involucre material sexual, desnudez, explotación, abuso con fines de seducción, maltrato, autolesiones, suicidio, trastornos alimentarios, abuso de sustancias, conductas delictivas, acoso, conductas de odio, extremismo o violencia gráfica. Para los Usuarios menores de dieciocho (18) años, los criterios de moderación serán <b>considerablemente más restrictivos</b>. En particular, las respuestas a menores podrán omitirse, resumirse, depurarse o rechazarse cuando el contenido aborde temas sexuales, anatomía explícita, fetiches, conductas íntimas, dinámicas coercitivas, relaciones entre adultos y menores o cualquier otro tema que pueda resultar inseguro, inapropiado para la edad, explotador o ilegal. El Proveedor también podrá rechazar contenido que pudiera facilitar actos ilegales, aprovecharse de la vulnerabilidad o poner en peligro el bienestar físico, mental o emocional de un menor.",
+      "legalLinksLabel": "Políticas relacionadas",
+      "privacyLink": "Política de privacidad",
+      "termsLink": "Términos del servicio",
+      "consentScrollRegionLabel": "Texto de aviso y consentimiento",
+      "scrollToEndHint": "Desplázate hasta el final para continuar.",
+      "checkboxMain": "Reconozco el descargo de responsabilidad y las limitaciones de responsabilidad.",
+      "checkboxSub": "Entiendo que este contenido es solo para entretenimiento y reflexión personal.",
+      "enterButton": "Entrar a la lectura"
+    },
+    "ageGate": {
+      "blockedTitle": "Acceso no disponible",
+      "blockedBody": "AskingFate no está disponible para menores de trece (13) años. Según la fecha de nacimiento proporcionada, este dispositivo no puede utilizar la plataforma por el momento.",
+      "blockedSupportLabel": "Contactar con soporte",
+      "blockedBirthLabel": "Fecha de nacimiento registrada",
+      "gateTitle": "Cálculo de la carta natal",
+      "gateIntro": "Antes de continuar, introduce tu fecha de nacimiento y, si la conoces, tu hora de nacimiento, para que podamos calcular tu carta natal y verificar las restricciones de edad establecidas en nuestras políticas.",
+      "gateTimeNote": "La hora de nacimiento ayuda a mejorar la precisión de la carta natal. Si no la conoces, puedes dejarla en 00:00 y aun así usaremos tu fecha de nacimiento para aplicar nuestra política de restricción por edad.",
+      "optionalTimeLabel": "Hora de nacimiento (opcional)",
+      "optionalTimeHint": "Deja la hora en 00:00 si no la conoces.",
+      "optionalLocationLabel": "Ubicación (opcional)",
+      "optionalLocationHint": "Elige tu país y estado o provincia, o permite la detección de ubicación para completarlo automáticamente y mejorar la precisión del horóscopo.",
+      "detectLocationButton": "Detectar ubicación",
+      "detectLocationLoading": "Detectando...",
+      "detectLocationError": "No pudimos detectar tu ubicación. Puedes seleccionarla manualmente o continuar sin ella.",
+      "scrollHint": "Desplázate para ver detalles opcionales",
+      "statusSummary": "Usamos tus datos de nacimiento para calcular tu carta natal y determinar si tienes el acceso bloqueado por ser menor de 13 años, si se te clasifica como menor de edad (13-17) o como adulto (18+). Ese estado se guardará localmente y se usará más adelante para aplicar las protecciones correspondientes según nuestra política.",
+      "invalidDateMessage": "Introduce una fecha de nacimiento válida. La hora de nacimiento es opcional, pero la fecha es obligatoria.",
+      "continueButton": "Continuar",
+      "dayLabel": "Día",
+      "monthLabel": "Mes",
+      "yearLabel": "Año",
+      "hourLabel": "Hora",
+      "minuteLabel": "Minuto",
+      "deletingAccount": "Eliminando la cuenta por restricción de edad...",
+      "accountDeletedToast": "Tu cuenta fue eliminada porque eres menor de 13 años.",
+      "accountDeletionFailedToast": "No pudimos completar la eliminación de tu cuenta. Por favor, contacta con soporte."
+    },
+    "cookies": {
+      "bannerTitle": "Preferencias de cookies",
+      "bannerDescription": "Usamos cookies para mejorar tu experiencia y analizar el tráfico.",
+      "managePreferences": "Gestionar preferencias",
+      "closePreferencesMenu": "Cerrar el menú de preferencias",
+      "acceptAll": "Aceptar todo",
+      "rejectAll": "Rechazar todo",
+      "savePreferences": "Guardar preferencias",
+      "preferencesTitle": "Gestionar categorías de cookies",
+      "preferencesDescription": "Las categorías no esenciales permanecen desactivadas hasta que las actives explícitamente.",
+      "essentialTitle": "Cookies esenciales",
+      "essentialDescription": "Necesarias para las funciones básicas del sitio, las sesiones seguras y la continuidad del saldo de estrellas anónimo.",
+      "analyticsTitle": "Cookies de análisis",
+      "analyticsDescription": "Permiten Vercel Analytics, respetuoso con la privacidad, para que podamos entender el tráfico y mejorar el producto.",
+      "marketingTitle": "Cookies de marketing",
+      "marketingDescription": "Reservadas para futuras herramientas de campañas o personalización. No se ejecuta ningún script de marketing a menos que des tu consentimiento.",
+      "alwaysOnLabel": "Siempre activas",
+      "learnMoreLabel": "Más información en nuestra Política de privacidad"
+    }
+  },
+  "Admin": {
+    "title": "Panel de administración",
+    "subtitle": "Métricas en vivo de AskingFate",
+    "loading": "Cargando métricas...",
+    "notFoundTitle": "404",
+    "notFoundDescription": "No se pudo encontrar esta página.",
+    "metricsError": "No se pudieron cargar las métricas.",
+    "totalUsers": "Usuarios totales",
+    "anonymousUsers": "Usuarios anónimos",
+    "authenticatedUsers": "Usuarios autenticados",
+    "interpretations": "Interpretaciones",
+    "paidSubscribers": "Suscriptores de pago"
+  },
+  "Sidebar": {
+    "services": "Servicios",
+    "comingSoon": "Próximamente",
+    "privacyPolicy": "Política de privacidad",
+    "termsOfService": "Términos del servicio",
+    "home": "Inicio",
+    "about": "Acerca de",
+    "pricing": "Precios",
+    "articles": "Artículos y guías",
+    "contactSupport": "Contacto y soporte",
+    "planOptions": "Opciones de plan",
+    "proTopUpOnly": "Los suscriptores Pro pueden comprar estrellas adicionales.",
+    "userMenu": "Usuario"
+  },
+  "Services": {
+    "tarot": "Tarot",
+    "birthChart": "Carta natal",
+    "astrology": "Astrología",
+    "namelogy": "Nomología",
+    "numerology": "Numerología",
+    "luckyColors": "Colores de la suerte",
+    "palmistry": "Quiromancia",
+    "fatedRelations": "Vínculos del destino"
+  },
+  "Languages": {
+    "en": "English",
+    "th": "ไทย",
+    "lo": "ລາວ",
+    "zh-CN": "简体中文",
+    "zh-TW": "繁體中文",
+    "ja": "日本語",
+    "ko": "한국어",
+    "id": "Bahasa Indonesia",
+    "es": "Español",
+    "pt-BR": "Português (Brasil)",
+    "my": "မြန်မာ"
+  },
+  "Profile": {
+    "title": "Ajustes del perfil",
+    "subtitle": "Personaliza la información de tu perfil y tus preferencias de lectura para enriquecer tu viaje místico",
+    "authRequired": "Inicia sesión para acceder a tu perfil",
+    "loading": "Cargando perfil...",
+    "profileInformation": "Información del perfil",
+    "fullName": "Nombre completo",
+    "fullNameRequired": "Nombre completo *",
+    "fullNamePlaceholder": "Introduce tu nombre completo",
+    "gender": "Género",
+    "genderPlaceholder": "Selecciona el género",
+    "genderOptions": {
+      "male": "Masculino",
+      "female": "Femenino",
+      "nonBinary": "No binario",
+      "preferNotToSay": "Prefiero no decirlo"
+    },
+    "bio": "Biografía",
+    "bioPlaceholder": "Cuéntanos sobre ti...",
+    "occupation": "Ocupación",
+    "occupationPlaceholder": "Tu profesión u ocupación",
+    "birthPlace": "Lugar de nacimiento",
+    "birthPlacePlaceholder": "Ciudad, país",
+    "birthDate": "Fecha de nacimiento",
+    "birthDateRequired": "Fecha de nacimiento *",
+    "birthDateRequiredError": "La fecha de nacimiento es obligatoria.",
+    "under13Error": "Debes tener al menos 13 años.",
+    "birthTime": "Hora de nacimiento",
+    "saveChanges": "Guardar cambios",
+    "saving": "Guardando...",
+    "profileUpdated": "¡Perfil actualizado correctamente!",
+    "updateFailed": "No se pudo actualizar el perfil",
+    "signInRequired": "Inicia sesión para actualizar tu perfil"
+  },
+  "Account": {
+    "title": "Ajustes de la cuenta",
+    "subtitle": "Gestiona la información de tu cuenta, los ajustes de seguridad y tus preferencias",
+    "authRequired": "Inicia sesión para acceder a los ajustes de la cuenta",
+    "loading": "Cargando ajustes de la cuenta...",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "authentication": "Autenticación",
+    "password": "Contraseña",
+    "accountDeletionLabel": "Eliminación de la cuenta",
+    "emailSettings": {
+      "title": "Correo electrónico",
+      "currentEmail": "Correo actual",
+      "addEmail": "Añadir correo",
+      "editEmail": "Editar correo",
+      "verifyEmail": "Verificar correo",
+      "emailVerified": "Correo verificado",
+      "emailNotVerified": "Correo sin verificar",
+      "changeEmail": "Cambiar correo",
+      "addNewEmail": "Añadir nuevo correo",
+      "emailPlaceholder": "Introduce la nueva dirección de correo",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "verify": "Verificar",
+      "resendCode": "Reenviar código",
+      "enterOtp": "Introduce el código de verificación",
+      "otpPlaceholder": "Introduce el código de 6 dígitos",
+      "otpSent": "Código de verificación enviado a tu correo",
+      "otpExpired": "El código ha caducado. Solicita uno nuevo.",
+      "otpInvalid": "Código no válido. Inténtalo de nuevo.",
+      "otpSuccess": "¡Correo verificado correctamente!",
+      "otpFailed": "La verificación falló. Inténtalo de nuevo.",
+      "emailUpdated": "¡Correo actualizado correctamente!",
+      "emailUpdateFailed": "No se pudo actualizar el correo",
+      "otpRequired": "Introduce el código de verificación",
+      "emailRequired": "Introduce la dirección de correo",
+      "invalidEmail": "Introduce una dirección de correo válida"
+    },
+    "phoneSettings": {
+      "title": "Teléfono",
+      "currentPhone": "Teléfono actual",
+      "addPhone": "Añadir teléfono",
+      "editPhone": "Editar teléfono",
+      "verifyPhone": "Verificar teléfono",
+      "phoneVerified": "Teléfono verificado",
+      "phoneNotVerified": "Teléfono sin verificar",
+      "changePhone": "Cambiar teléfono",
+      "addNewPhone": "Añadir nuevo teléfono",
+      "phonePlaceholder": "Introduce el número de teléfono",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "verify": "Verificar",
+      "resendCode": "Reenviar código",
+      "enterOtp": "Introduce el código de verificación",
+      "otpPlaceholder": "Introduce el código de 6 dígitos",
+      "otpSent": "Código de verificación enviado a tu teléfono",
+      "otpExpired": "El código ha caducado. Solicita uno nuevo.",
+      "otpInvalid": "Código no válido. Inténtalo de nuevo.",
+      "otpSuccess": "¡Teléfono verificado correctamente!",
+      "otpFailed": "La verificación falló. Inténtalo de nuevo.",
+      "phoneUpdated": "¡Teléfono actualizado correctamente!",
+      "phoneUpdateFailed": "No se pudo actualizar el teléfono",
+      "otpRequired": "Introduce el código de verificación",
+      "phoneRequired": "Introduce el número de teléfono",
+      "invalidPhone": "Introduce un número de teléfono válido"
+    },
+    "loginMethods": {
+      "title": "Autenticación",
+      "activeProvider": "Proveedor activo",
+      "availableMethods": "Métodos de inicio de sesión disponibles",
+      "emailPassword": "Correo y contraseña",
+      "google": "Google",
+      "link": "Vincular",
+      "unlink": "Desvincular",
+      "linking": "Vinculando...",
+      "unlinking": "Desvinculando...",
+      "linkSuccess": "¡Proveedor vinculado correctamente!",
+      "linkFailed": "No se pudo vincular el proveedor",
+      "unlinkSuccess": "¡Proveedor desvinculado correctamente!",
+      "unlinkFailed": "No se pudo desvincular el proveedor",
+      "emailPasswordSetup": "Configuración de correo y contraseña",
+      "emailPasswordDescription": "Usa la sección de Ajustes de contraseña que aparece más abajo para configurar tu correo y tu contraseña.",
+      "googleSignIn": "Iniciar sesión con Google",
+      "googleSignInDescription": "Vincula tu cuenta de Google para iniciar sesión fácilmente",
+      "googleUnlinkDescription": "Desvincula tu cuenta de Google",
+      "noteLabel": "Nota:",
+      "note": "Puedes vincular varios métodos de autenticación a tu cuenta. Debes mantener al menos uno activo. Usa la sección de Ajustes de contraseña que aparece más abajo para gestionar tus credenciales de correo y contraseña."
+    },
+    "passwordSettings": {
+      "title": "Contraseña",
+      "description": "Cambia tu contraseña para mantener tu cuenta segura",
+      "currentPassword": "Contraseña actual",
+      "currentPasswordPlaceholder": "Introduce la contraseña actual",
+      "newPassword": "Nueva contraseña",
+      "newPasswordPlaceholder": "Introduce la nueva contraseña",
+      "confirmPassword": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Confirma la nueva contraseña",
+      "changePassword": "Cambiar contraseña",
+      "changing": "Cambiando...",
+      "passwordChanged": "¡Contraseña cambiada correctamente!",
+      "passwordChangeFailed": "No se pudo cambiar la contraseña",
+      "currentPasswordRequired": "Introduce la contraseña actual",
+      "newPasswordRequired": "Introduce la nueva contraseña",
+      "confirmPasswordRequired": "Confirma la nueva contraseña",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden",
+      "passwordTooShort": "La contraseña debe tener al menos 6 caracteres",
+      "currentPasswordIncorrect": "La contraseña actual es incorrecta"
+    },
+    "accountDeletion": {
+      "title": "Eliminación de la cuenta",
+      "description": "Elimina permanentemente tu cuenta y todos los datos asociados",
+      "warning": "Esta acción no se puede deshacer. Todos tus datos se eliminarán de forma permanente.",
+      "deleteAccount": "Eliminar cuenta",
+      "confirmDeletion": "Confirmar eliminación",
+      "typeToConfirm": "Escribe 'DELETE' para confirmar",
+      "confirmPlaceholder": "Escribe DELETE para confirmar",
+      "deleting": "Eliminando...",
+      "accountDeleted": "¡Cuenta eliminada correctamente!",
+      "deletionFailed": "No se pudo eliminar la cuenta",
+      "confirmationRequired": "Escribe 'DELETE' para confirmar",
+      "confirmationMismatch": "El texto de confirmación no coincide",
+      "cancel": "Cancelar"
+    }
+  },
+  "Home": {
+    "hero": {
+      "line1": "Pregúntame lo que quieras",
+      "line2": "sobre tu destino",
+      "rotatingPhrasesWhite": [
+        "Adéntrate en las ",
+        "Deja que el Tarot ",
+        "Guía a través del lenguaje de los ",
+        "Lecturas de Tarot ",
+        "Consulta a las ",
+        "Descubre lo que guardan las ",
+        "Escrito en las ",
+        "Tu mapa cósmico ",
+        "El cielo tiene un mensaje ",
+        "Horóscopos diarios y ",
+        "Revelaciones de la ",
+        "Explora tu ",
+        "Guía basada en las "
+      ],
+      "rotatingPhrasesGradient": [
+        "Cartas.",
+        "Revele tu camino.",
+        "Símbolos.",
+        "personalizadas.",
+        "Cartas.",
+        "Cartas.",
+        "Estrellas.",
+        "te espera.",
+        "para ti.",
+        "personalizados.",
+        "Astrología.",
+        "Carta natal.",
+        "Estrellas."
+      ]
+    },
+    "description": "Tu adivino con IA personalizado",
+    "prompts": [
+      "¿Volverá mi ex?",
+      "¿Todavía piensa en mí?",
+      "¿Debería dejar mi trabajo?",
+      "¿Cuándo conoceré a alguien de verdad?",
+      "¿Por qué siempre me enamoro de la persona equivocada?",
+      "¿Será este año mejor para mí?"
+    ],
+    "astrologyFeature": {
+      "title1": "Tránsito estelar",
+      "title2": "Lectura astrológica",
+      "tagline": "Una lectura de horóscopo personalizada basada en tus datos de nacimiento y el cielo de hoy.",
+      "instruction": "Introduce tus datos de nacimiento, deja el Tránsito en el momento actual (o elige una fecha), añade una pregunta opcional y toca Comenzar para generar tu horóscopo.",
+      "cta": "Comienza tu lectura astrológica"
+    },
+    "getStarted": "Comenzar",
+    "tourInstruction": "Escribe aquí la pregunta que quieres hacerle a tu destino:",
+    "tourExamples": "p. ej. \"¿Cuál es el mensaje que necesito escuchar hoy?\" o \"¿Cómo puedo encontrar claridad en mi carrera?\"",
+    "learnMore": "Más información",
+    "quickFeaturesLabel": "Prueba nuestras funciones",
+    "quickCards": {
+      "tarotCard": "Carta de tarot",
+      "birthChart": "Carta natal",
+      "horoscope": "Horóscopo",
+      "calendarYear": "Cosmic Calendar"
+    },
+    "quickCardQuestions": {
+      "tarotCard": "Sácame una carta de tarot",
+      "birthChart": "Háblame de mi carta natal",
+      "horoscope": "¿Cuál es mi horóscopo de hoy?",
+      "calendarYear": "Show me my cosmic calendar"
+    },
+    "selectedCards": "Has seleccionado {selectedCount}/{cardsToSelect} cartas",
+    "consulting": "Consultando",
+    "enterBirthDate": "Por favor, introduce tu fecha de nacimiento",
+    "streamStopped": "Respuesta detenida",
+    "scrollToBottom": "Ir al final",
+    "scrollToBottomAria": "Desplázate al final de la conversación",
+    "checkingStars": "Comprobando tu saldo de estrellas...",
+    "disclaimer": "No confíes ni te bases ciegamente en esta interpretación. AskingFate utiliza IA y puede cometer errores. Para decisiones importantes, consulta a un profesional cualificado.",
+    "readAloud": {
+      "play": "Leer en voz alta",
+      "stop": "Detener la lectura",
+      "error": "No se pudo generar el audio.",
+      "insufficientStars": "No tienes suficientes estrellas.",
+      "starCost": "estrella para generar",
+      "confirmTitle": "Generar voz",
+      "confirmDescription": "Generar la voz cuesta una estrella.",
+      "doNotShowAgain": "No volver a mostrar",
+      "confirm": "Generar",
+      "cancel": "Cancelar"
+    },
+    "copyPrompt": "Copiar pregunta",
+    "copyPromptSuccess": "Pregunta copiada al portapapeles",
+    "copyPromptFailed": "No se pudo copiar la pregunta",
+    "copyPromptUnavailable": "La copia no está disponible en este contexto",
+    "privacyRedactedNotice": "Los datos personales se ocultan antes de procesarse.",
+    "privacyRedactedPopoverTitle": "Acerca de este aviso",
+    "privacyRedactedPopoverIntro": "Los datos sensibles de este mensaje se eliminaron o sustituyeron antes de enviarse a nuestros servidores, guardarse o mostrarse a la IA, de modo que tus datos privados no se almacenan en tu historial de lecturas.",
+    "privacyRedactedPopoverCriteria": {
+      "name": "Nombres",
+      "email": "Direcciones de correo",
+      "phone": "Números de teléfono",
+      "handle": "Nombres de usuario en redes",
+      "address": "Direcciones postales o de calle"
+    },
+    "privacyRedactedReadGuide": "Leer la guía completa",
+    "privacyHighlightedTooltipTitle": "Cómo verá la IA este mensaje",
+    "privacyHighlightedAriaLabel": "{type} protegido: {value}",
+    "privacyHighlightedType": {
+      "person": "Nombre",
+      "email": "Correo",
+      "phone": "Número de teléfono",
+      "handle": "Nombre de usuario",
+      "address": "Dirección",
+      "card": "Tarjeta",
+      "passport": "Pasaporte",
+      "national_id": "Documento de identidad"
+    },
+    "sanitizingPrompt": "Purificando",
+    "horoscopeAuthGate": {
+      "intro": "Esta pregunta se respondería mejor a través de tu <pill>horóscopo</pill>. Tendrás que ",
+      "introSignedIn": "Esta pregunta se responde mejor a través de tu <pill>horóscopo</pill>.",
+      "signInLabel": "iniciar sesión",
+      "introSuffix": " para continuar.",
+      "fallback": "También puedes usar una carta de tarot, pero la precisión será menor.",
+      "cardAriaLabel": "Adelanto de carta de tarot: {name}",
+      "deckCaption": "Recorre la baraja, toca una carta y deslízala hacia arriba para elegir una: un breve adelanto del tarot sin iniciar sesión.",
+      "deckCaptionSignedIn": "Recorre la baraja, toca una carta y deslízala hacia arriba para elegir una: un breve adelanto del tarot.",
+      "deckSwipeHint": "Toca una carta y deslízala hacia arriba para seleccionarla.",
+      "reversedMark": " (invertida)",
+      "pickedTeaser": "Elegiste {name}{reversedLabel}. Inicia sesión arriba para ver tu horóscopo."
+    },
+    "getStartedPrompt": "Read my fortune for me",
+    "thinkingActive": "Thinking",
+    "thinkingComplete": "Consultation Complete",
+    "thinkingCompleteTimed": "Deep consult for {seconds} sec",
+    "thinkingToggle": "Show reasoning",
+    "signInGate": {
+      "eyebrow": "Your reading awaits",
+      "title": "Sign in to continue",
+      "description": "Sign in to use this feature. We'll bring you right back to your question.",
+      "signIn": "Sign in",
+      "cancel": "Cancel"
+    }
+  },
+  "ActionTrigger": {
+    "autoPickLabel": "Elegir carta automáticamente",
+    "autoPickOn": "activado",
+    "autoPickOff": "desactivado",
+    "composerSuggestionsLabel": "Respuestas sugeridas",
+    "composerSuggestionsOn": "activado",
+    "composerSuggestionsOff": "desactivado",
+    "newBirthInfo": "Nuevos datos de nacimiento",
+    "editBirthInfo": "Editar datos de nacimiento",
+    "birthInfo": "Datos de nacimiento: {date}",
+    "chooseCardInstead": "Elegir carta en su lugar",
+    "location": "Ubicación: {value}",
+    "locationUnknown": "Ubicación actual",
+    "cancelIntake": "Cancelar",
+    "birthTimeHelper": "Añade también tu hora de nacimiento para obtener la lectura más precisa.",
+    "locationDialogTitle": "Ajustes de ubicación",
+    "locationDialogDescription": "Elige tu país y estado o provincia. Lo usaremos para precisar la ubicación de tu horóscopo.",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "saveLocation": "Guardar ubicación",
+    "shareAccess": "Share access"
+  },
+  "InterpretationMode": {
+    "auto": "Automático",
+    "tarot": "Tarot",
+    "horoscope": "Horóscopo",
+    "chat": "Chat",
+    "horoscopeLoginRequired": "Inicia sesión para usar el horóscopo",
+    "composerSettingsAriaLabel": "Ajustes de lectura",
+    "composerSettingsPanelTitle": "Ajustes",
+    "composerSettingsSectionPreferences": "Preferencias",
+    "composerSettingsSectionActions": "Acciones",
+    "oracle": "Spiritual"
+  },
+  "About": {
+    "whatIs": "¿Qué es",
+    "brand": "AskingFate?",
+    "tagline": "Combinamos el simbolismo de toda la vida con la IA moderna para ofrecerte una guía serena y útil que puedes aprovechar hoy mismo.",
+    "learnMore": "Más información en la página Acerca de",
+    "requestDemo": "Solicitar una demo",
+    "askYourFate": "Pregúntale a tu destino",
+    "Services": {
+      "title": "Nuestros servicios",
+      "subtitle": "Servicios místicos",
+      "description": "Descubre las antiguas artes de la adivinación y el autoconocimiento",
+      "status": {
+        "available": "Disponible",
+        "comingSoon": "Próximamente"
+      },
+      "items": {
+        "tarot": {
+          "name": "Lectura de Tarot con IA",
+          "description": "Obtén lecturas de cartas de tarot personalizadas impulsadas por tecnología de IA avanzada"
+        },
+        "birthChart": {
+          "name": "Análisis de carta natal",
+          "description": "Descubre tu mapa cósmico a través de un análisis detallado de tu carta natal astrológica"
+        },
+        "astrology": {
+          "name": "Astrología",
+          "description": "Recibe revelaciones diarias personalizadas según tu signo zodiacal y los movimientos planetarios"
+        },
+        "namelogy": {
+          "name": "Nomología",
+          "description": "Descubre los significados y vibraciones ocultos detrás de los nombres mediante el antiguo análisis de las letras"
+        },
+        "numerology": {
+          "name": "Numerología",
+          "description": "Descifra el significado místico de los números en tu vida a través de la sabiduría numerológica"
+        },
+        "luckyColors": {
+          "name": "Colores de la suerte",
+          "description": "Descubre tu paleta de colores personal para la suerte, el éxito y la energía positiva"
+        },
+        "palmistry": {
+          "name": "Quiromancia",
+          "description": "Lee las líneas del destino escritas en tus palmas a través de la antigua sabiduría de la lectura de manos"
+        },
+        "fatedRelations": {
+          "name": "Vínculos del destino",
+          "description": "Descubre las conexiones cósmicas y la compatibilidad entre tú y tus seres queridos"
+        }
+      }
+    },
+    "Roadmap": {
+      "title": "Hoja de ruta",
+      "label": "Hoja de ruta de desarrollo",
+      "description": "Nuestro recorrido para ofrecerte la experiencia mística más completa",
+      "progress": "Progreso",
+      "status": {
+        "completed": "Completado",
+        "inDevelopment": "En desarrollo",
+        "planned": "Planificado"
+      },
+      "phases": {
+        "completed": "Completado",
+        "may_2026": "Mayo de 2026",
+        "jul_2026": "Julio de 2026",
+        "aug_2026": "Agosto de 2026",
+        "sep_2026": "Septiembre de 2026",
+        "oct_2026": "Octubre de 2026",
+        "nov_2026": "Noviembre de 2026",
+        "dec_2026": "Diciembre de 2026"
+      },
+      "tarot": {
+        "title": "Lectura de Tarot con IA",
+        "eta": "Disponible ahora",
+        "features": [
+          "Obtén lecturas de cartas de tarot personalizadas impulsadas por IA avanzada",
+          "Haz preguntas de seguimiento para profundizar en las revelaciones",
+          "Guarda y vuelve a consultar tus lecturas cuando quieras"
+        ]
+      },
+      "birthChart": {
+        "title": "Carta natal",
+        "eta": "Mayo de 2026",
+        "features": [
+          "Resumen de datos de tu carta natal personal",
+          "Posiciones planetarias y ángulos de aspecto vinculados a tus fortalezas",
+          "Inmersión profunda en tu mapa cósmico"
+        ]
+      },
+      "astrology": {
+        "title": "Astrología",
+        "eta": "Mayo de 2026",
+        "features": [
+          "Pronósticos de tránsitos a partir de tus datos de nacimiento y las fechas que elijas",
+          "Lecturas de tránsitos personalizadas",
+          "Conversa con la IA para una guía más profunda sobre los tránsitos"
+        ]
+      },
+      "namelogy": {
+        "title": "Nomología",
+        "eta": "Julio de 2026",
+        "features": [
+          "Descifra las vibraciones de los nombres",
+          "Revela la alineación espiritual, las fortalezas y las advertencias",
+          "Pregúntale a la IA cómo el nombre puede moldear tu camino"
+        ]
+      },
+      "numerology": {
+        "title": "Numerología",
+        "eta": "Agosto de 2026",
+        "features": [
+          "Descifra las vibraciones de los números",
+          "Destaca los patrones numéricos favorables y desafiantes",
+          "Pregúntale a la IA sobre los resultados ligados a cada número"
+        ]
+      },
+      "luckyColors": {
+        "title": "Colores de la suerte",
+        "eta": "Septiembre de 2026",
+        "features": [
+          "Paleta diaria acorde a los regentes planetarios",
+          "Recomendaciones para tu vestuario y tu espacio de trabajo",
+          "Rituales de color por temporada que puedes probar en casa"
+        ]
+      },
+      "mobileApp": {
+        "title": "Aplicación móvil",
+        "eta": "Noviembre de 2026",
+        "features": [
+          "Experiencia de lanzamiento nativa para iOS y Android",
+          "Lleva tus lecturas a todas partes con acceso sin conexión",
+          "Widgets con cartas diarias y fragmentos de astrología"
+        ]
+      },
+      "fatedRelations": {
+        "title": "Vínculos del destino",
+        "eta": "Octubre de 2026",
+        "features": [
+          "Explora la compatibilidad y la dinámica de las relaciones",
+          "Desentraña la dinámica de la relación y el potencial compartido",
+          "Pídele a la IA una guía más profunda sobre la conexión"
+        ]
+      },
+      "palmistry": {
+        "title": "Quiromancia",
+        "eta": "Diciembre de 2026",
+        "features": [
+          "Lecturas de la palma mediante la cámara web",
+          "Interpreta las líneas de la suerte, la vida y el destino",
+          "Haz preguntas concretas sobre lo que revela tu palma"
+        ]
+      },
+      "eta": "Fecha estimada"
+    },
+    "Technology": {
+      "title": "Tecnología e innovación",
+      "label": "Tecnología de vanguardia",
+      "description": "Impulsada por la tecnología más reciente para ofrecer revelaciones precisas y significativas",
+      "aiPowered": {
+        "title": "Impulsado por IA",
+        "desc": "Algoritmos avanzados de aprendizaje automático ofrecen lecturas personalizadas y precisas",
+        "features": [
+          "IA avanzada",
+          "Aprendizaje automático",
+          "Procesamiento del lenguaje natural"
+        ]
+      },
+      "securePrivate": {
+        "title": "Seguro y privado",
+        "desc": "El cifrado de extremo a extremo garantiza que tus datos personales y tus lecturas se mantengan confidenciales",
+        "features": [
+          "Cifrado de extremo a extremo",
+          "La privacidad primero",
+          "Almacenamiento seguro"
+        ]
+      },
+      "globalAccess": {
+        "title": "Acceso global",
+        "desc": "Disponible en todo el mundo con soporte multilingüe y adaptaciones culturales",
+        "features": [
+          "Acceso mundial",
+          "Multilingüe",
+          "Infraestructura en la nube"
+        ]
+      }
+    },
+    "Testimonials": {
+      "title": "Lo que dicen nuestros usuarios",
+      "label": "Testimonios de usuarios",
+      "description": "Escucha lo que nuestros usuarios cuentan sobre su viaje místico",
+      "autoPlay": {
+        "autoPlaying": "Reproduciendo automáticamente",
+        "clickToAutoPlay": "Haz clic para reproducir automáticamente"
+      },
+      "items": [
+        {
+          "quote": "Lo uso casi todas las mañanas para fijar una intención. Me ayuda a empezar el día sintiéndome más centrada.",
+          "author": "Yui",
+          "role": "Usuaria pionera",
+          "initial": "Y"
+        },
+        {
+          "quote": "Las reflexiones se sienten equilibradas: útiles sin ser insistentes. Se ha convertido en un ritual tranquilo que me ayuda a pensar con más claridad.",
+          "author": "Daniel",
+          "role": "Usuario pionero",
+          "initial": "D"
+        },
+        {
+          "quote": "Me gusta que va directo al grano. Las palabras clave hacen que sea fácil recordar en qué centrarme.",
+          "author": "Mina",
+          "role": "Lectora diaria",
+          "initial": "M"
+        },
+        {
+          "quote": "Sorprendentemente relajante. Incluso cuando no estoy de acuerdo con todo, igual me ayuda a hacer una pausa y reflexionar antes de actuar.",
+          "author": "Chris",
+          "role": "Escéptico pero curioso",
+          "initial": "C"
+        },
+        {
+          "quote": "Las preguntas de seguimiento son mis favoritas. Se siente como una conversación de verdad que me ayuda a ordenar mis pensamientos.",
+          "author": "Nok",
+          "role": "Usuaria recurrente",
+          "initial": "N"
+        }
+      ]
+    },
+    "Statistics": {
+      "title": "Datos rápidos",
+      "label": "Nuestro impacto",
+      "description": "Cifras que reflejan nuestro compromiso con la excelencia mística",
+      "growing": "Datos en tiempo real",
+      "items": [
+        {
+          "key": "totalUsers",
+          "label": "Jugadores totales"
+        },
+        {
+          "key": "profiles",
+          "label": "Usuarios registrados"
+        },
+        {
+          "key": "interpretations",
+          "label": "Interpretaciones con IA"
+        }
+      ]
+    },
+    "CTA": {
+      "title": "¿Listo para comenzar tu viaje?",
+      "label": "¿Listo para comenzar?",
+      "subheading": "Tu viaje te espera",
+      "desc": "Únete a miles de usuarios que han descubierto su camino a través de nuestra guía mística impulsada por IA.",
+      "primary": "Comienza tu lectura",
+      "secondary": "Más información",
+      "features": {
+        "instantAccess": "Acceso instantáneo",
+        "premiumQuality": "Calidad premium",
+        "mysticalExperience": "Experiencia mística"
+      }
+    }
+  },
+  "QuestionInput": {
+    "label": "Tu pregunta",
+    "placeholder": "Escribe tu pregunta...",
+    "followUpSuggestionLabel": "Preguntas de seguimiento sugeridas",
+    "dismissFollowUpStrip": "Descartar sugerencias y atajos del compositor"
+  },
+  "Prompts": {
+    "title": "Preguntas que inspiran",
+    "label": "Sugerencia de pregunta",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "selectCategory": "Elige una categoría",
+    "categories": {
+      "daily-life": {
+        "name": "Vida cotidiana",
+        "questions": [
+          "¿Cómo encuentro el equilibrio?",
+          "¿Qué debo soltar?",
+          "¿Cómo tomar mejores decisiones?",
+          "¿Qué mensaje tiene el universo para mí?",
+          "¿En qué enfocarme hoy?",
+          "¿Cómo mejorar mi rutina?",
+          "¿Qué hábitos cambiar?",
+          "¿Cómo ser más consciente?"
+        ]
+      },
+      "work-career": {
+        "name": "Trabajo y carrera",
+        "questions": [
+          "¿En qué enfocar mi carrera ahora?",
+          "¿Acepto esta oportunidad?",
+          "¿Cómo avanzar en mi puesto?",
+          "¿Qué habilidades desarrollar?",
+          "¿Es momento de cambiar de carrera?",
+          "¿Cómo mejorar las relaciones laborales?",
+          "¿Qué bloquea mi crecimiento?",
+          "¿Emprendo mi propio negocio?"
+        ]
+      },
+      "financial": {
+        "name": "Finanzas",
+        "questions": [
+          "¿Cómo mejorar mis finanzas?",
+          "¿Hago esta inversión?",
+          "¿Cómo será mi futuro financiero?",
+          "¿Cómo ahorrar más dinero?",
+          "¿Es el momento ideal para comprar?",
+          "¿Qué metas financieras fijarme?",
+          "¿Cómo reducir mis gastos?",
+          "¿Cambio mi estrategia de inversión?"
+        ]
+      },
+      "love-romance": {
+        "name": "Amor y romance",
+        "questions": [
+          "¿Qué hay de mi vida amorosa?",
+          "¿Es esta la persona correcta?",
+          "¿Cómo atraer a la pareja ideal?",
+          "¿Confieso mis sentimientos?",
+          "¿Qué bloquea mi vida amorosa?",
+          "¿Cómo mejorar esta relación?",
+          "¿Es momento de pasar página?",
+          "¿Cómo será mi futuro en el amor?"
+        ]
+      },
+      "family": {
+        "name": "Familia",
+        "questions": [
+          "¿Cómo fortalecer los lazos familiares?",
+          "¿Qué necesita mi familia?",
+          "¿Cómo resolver un conflicto familiar?",
+          "¿Tengo esta conversación difícil?",
+          "¿Cuál es mi papel en la familia?",
+          "¿Cómo apoyar mejor a mi familia?",
+          "¿Qué patrones familiares romper?",
+          "¿Cómo crear armonía en la familia?"
+        ]
+      },
+      "friendship-relationships": {
+        "name": "Amistad y relaciones",
+        "questions": [
+          "¿Cómo mejorar mis relaciones?",
+          "¿Pongo fin a esta amistad?",
+          "¿Cómo hacer nuevas amistades?",
+          "¿Cuál es la causa del conflicto?",
+          "¿Cómo ser mejor amigo o amiga?",
+          "¿Confío en esta persona?",
+          "¿Cómo resolver este conflicto?",
+          "¿Qué límites debo poner?"
+        ]
+      },
+      "personal-growth": {
+        "name": "Crecimiento personal",
+        "questions": [
+          "¿Qué bloquea mi crecimiento?",
+          "¿Cómo superar mis desafíos?",
+          "¿Cuál es el propósito de mi alma?",
+          "¿Cómo desarrollar mi intuición?",
+          "¿Qué creencias debo soltar?",
+          "¿Cómo cultivar más confianza?",
+          "¿Cuál es mi camino espiritual?",
+          "¿Cómo encontrar la paz interior?"
+        ]
+      }
+    }
+  },
+  "Footer": {
+    "copyright": "AskingFate, LLC. Todos los derechos reservados."
+  },
+  "AboutLegacy": {
+    "hero": {
+      "title1": "La sabiduría ancestral",
+      "title2": "se encuentra con la IA moderna",
+      "subtitle": "Descubre cómo unimos las tradiciones del tarot de siempre con la IA para ofrecerte una guía cósmica personalizada solo para ti."
+    },
+    "features": {
+      "ai": {
+        "title": "Una visión clara, potenciada por IA",
+        "desc": "Interpretaciones intencionales, afinadas a tu pregunta"
+      },
+      "cosmic": {
+        "title": "Una experiencia con foco",
+        "desc": "Un espacio sereno para leer, reflexionar y guardar lo que importa"
+      },
+      "personal": {
+        "title": "Pensado para ti",
+        "desc": "Creado para las decisiones del día a día y la reflexión serena"
+      }
+    },
+    "story": {
+      "title": "Por qué creamos esto",
+      "p1": "AskingFate nació de una sola idea: ofrecer un lugar sereno y confiable para detenerte y pensar con claridad. Sin ruido, solo una lectura breve y una invitación a reflexionar.",
+      "p2": "Lo mantenemos simple y práctico, mejorándolo semana a semana junto a nuestros primeros usuarios. Si te ayuda a tomar una sola decisión mejor, eso ya es un éxito."
+    },
+    "mission": {
+      "title": "Nuestra misión",
+      "p": "Ayudar a las personas a detenerse, reflexionar y tomar las decisiones cotidianas con más intención, mediante herramientas que se mantienen serenas, claras y verdaderamente útiles."
+    },
+    "vision": {
+      "title": "Nuestra visión",
+      "p": "Convertirnos en un compañero de confianza para las decisiones conscientes: fácil de usar para cualquiera y siempre respetuoso con tu privacidad."
+    },
+    "valuesSection": {
+      "title": "Nuestros valores",
+      "privacyFirst": {
+        "title": "La privacidad primero",
+        "desc": "Tus preguntas y lecturas se mantienen privadas. Nunca vendemos tus datos."
+      },
+      "clarity": {
+        "title": "Claridad antes que ruido",
+        "desc": "Interpretaciones breves y en lenguaje sencillo que puedes aplicar de inmediato."
+      },
+      "inclusive": {
+        "title": "Inclusivo por naturaleza",
+        "desc": "Útil tanto para quienes empiezan como para quienes practican; acoge a personas de toda procedencia y creencia."
+      }
+    },
+    "quickStatsSection": {
+      "title": "Datos rápidos",
+      "users": "Primeros usuarios",
+      "cards": "Cartas reveladas",
+      "updates": "Actualizaciones semanales",
+      "availability": "Disponible ahora"
+    },
+    "pressSection": {
+      "title": "Prensa, alianzas o preguntas",
+      "desc": "Aún estamos comenzando y damos la bienvenida a colaboraciones genuinas. Escríbenos para una demostración rápida o más detalles.",
+      "primary": "Solicitar una demo",
+      "secondary": "Contáctanos"
+    },
+    "aiSection": {
+      "title": "Cómo funciona",
+      "p1": "Tú haces una pregunta. Nosotros revelamos una carta y elaboramos una interpretación concisa, arraigada en los significados tradicionales y afinada para darte claridad.",
+      "p2": "Es una guía para considerar, no un veredicto. Tú sigues teniendo el control de cada decisión."
+    },
+    "values": {
+      "respectfulTradition": {
+        "title": "Honrar la tradición",
+        "description": "Respetamos las raíces sagradas del tarot y, a la vez, lo hacemos accesible para quienes buscan respuestas hoy."
+      },
+      "personalizedGuidance": {
+        "title": "Guía personalizada",
+        "description": "Cada lectura es distinta porque la moldea tu pregunta y el contexto de tu vida."
+      },
+      "inclusiveCommunity": {
+        "title": "Comunidad inclusiva",
+        "description": "Damos la bienvenida a buscadores de toda procedencia y creencia, creando un espacio seguro para explorar."
+      }
+    },
+    "cta": {
+      "title": "¿Lista o listo para empezar?",
+      "desc": "Acabamos de lanzarnos; únete a los primeros usuarios que exploran una guía serena, clara y práctica.",
+      "primary": "Comienza tu primera lectura",
+      "secondary": "Saber más"
+    }
+  },
+  "Demo": {
+    "hero": {
+      "title": "Solicita una demo",
+      "subtitle": "Mira un recorrido breve y prueba una vista previa interactiva sencilla."
+    },
+    "links": {
+      "about": "Conoce más sobre el producto",
+      "tryReading": "Prueba una lectura ahora"
+    },
+    "preview": {
+      "title": "Vista previa interactiva",
+      "subtitle": "Haz una pregunta sencilla y observa una carta de ejemplo y una pista",
+      "shuffle": "Barajar",
+      "questionLabel": "Tu pregunta",
+      "questionPlaceholder": "Escribe una pregunta breve...",
+      "cardLabel": "Carta"
+    },
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "teamSize": "Tamaño del equipo (opcional)",
+      "teamSizePlaceholder": "Solo yo, 2-10, más de 10",
+      "goals": "¿Qué te gustaría ver?",
+      "goalsPlaceholder": "Ejemplos: lecturas guardadas, uso compartido en equipo, API",
+      "notes": "Notas (opcional)",
+      "notesPlaceholder": "¿Alguna pregunta o contexto en particular?",
+      "submit": "Solicitar una demo",
+      "submitting": "Agendando...",
+      "footer": "Nos pondremos en contacto por correo en un plazo de 1 a 2 días hábiles."
+    }
+  },
+  "PrivacyPolicy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última actualización"
+  },
+  "TermsOfService": {
+    "title": "Términos del Servicio",
+    "backToHome": "Volver al inicio",
+    "lastUpdated": "Última actualización"
+  },
+  "Reading": {
+    "types": {
+      "simple": {
+        "title": "Lectura sencilla",
+        "description": "Claridad inmediata, energía del día, una respuesta simple"
+      },
+      "general": {
+        "title": "Lectura general",
+        "description": "Comprender el flujo y el movimiento"
+      },
+      "detailed": {
+        "title": "Pregunta detallada",
+        "description": "Toma de decisiones, resolución de problemas"
+      },
+      "expanded": {
+        "title": "Detalle ampliado",
+        "description": "Relaciones, caminos profesionales, influencias en capas"
+      },
+      "celtic": {
+        "title": "Cruz Celta",
+        "description": "Situaciones de vida profundas, patrones inevitables"
+      }
+    }
+  },
+  "BirthChart": {
+    "title": "Descifra tu",
+    "subtitle": "Mapa Cósmico",
+    "description": "Ingresa tu fecha, hora y lugar de nacimiento. Detectaremos automáticamente tu zona horaria y tu ubicación actual para ayudarte a generar una carta natal precisa.",
+    "pageTitle": "Tu Carta Natal",
+    "planetaryStrengths": "Fuerzas planetarias",
+    "yourHouses": "Tus casas",
+    "planetaryPositions": "Posiciones planetarias",
+    "birthDetailsTitle": "Datos de nacimiento",
+    "birthDateLabel": "Fecha de nacimiento",
+    "birthTimeLabel": "Hora de nacimiento",
+    "planetarySectionLabel": "Planetario",
+    "lifeAreasSectionLabel": "Áreas de la vida",
+    "transitDetailsTitle": "Datos del tránsito",
+    "transitDateLabel": "Fecha del tránsito",
+    "shareTitle": "Comparte tu carta natal",
+    "shareDescription": "Comparte tu mapa cósmico con tus amistades",
+    "questionLabel": "Pregunta sobre tu carta",
+    "questionPlaceholder": "Pregunta sobre el amor, la carrera, la personalidad...",
+    "composerPlaceholder": "Pregunta lo que quieras sobre tu carta…",
+    "composerContextLabel": "Tu carta natal",
+    "disclaimer": "Las lecturas de la carta natal tienen fines de entretenimiento únicamente. Las interpretaciones son generadas por IA y no deben considerarse asesoramiento profesional. No confíes ni dependas de ellas a ciegas. Tómalas como una perspectiva más y ten presente que las interpretaciones pueden ser inexactas. Consulta siempre con profesionales cualificados para las decisiones importantes de tu vida.",
+    "authRequired": "Inicia sesión para ver tu carta natal",
+    "loadingChart": "Cargando tu carta natal…",
+    "computingChart": "Trazando tu carta a partir de las estrellas…",
+    "computeFailed": "No pudimos generar tu carta natal. Inténtalo de nuevo.",
+    "computeFailedTitle": "No se pudo generar tu carta",
+    "retry": "Intentar de nuevo",
+    "needsBirthInfoTitle": "Cuéntanos cuándo y dónde naciste",
+    "needsBirthInfoDescription": "Guardaremos estos datos en tu perfil y calcularemos tu carta natal personal.",
+    "birthPlaceLabel": "Lugar de nacimiento",
+    "selectDate": "Selecciona la fecha",
+    "selectTimeOptional": "Selecciona la hora (opcional)",
+    "selectPlace": "Selecciona país y estado",
+    "optional": "opcional",
+    "back": "Atrás",
+    "backToCountries": "Volver a los países",
+    "searchCountry": "Buscar país…",
+    "searchState": "Buscar estado…",
+    "noResults": "Sin coincidencias",
+    "saveAndGenerate": "Guardar y generar mi carta",
+    "savingAndGenerating": "Guardando…",
+    "saveFailed": "No pudimos guardar tus datos de nacimiento. Inténtalo de nuevo.",
+    "stats": {
+      "archetypes": {
+        "Sun": "Liderazgo",
+        "Moon": "Emoción",
+        "Mars": "Impulso",
+        "Mercury": "Intelecto",
+        "Jupiter": "Sabiduría",
+        "Venus": "Romance",
+        "Saturn": "Disciplina",
+        "Rahu": "Ambición",
+        "Ketu": "Espiritualidad"
+      },
+      "descriptions": {
+        "Sun": "Alma, Ego, Vitalidad, Autoridad",
+        "Moon": "Mente, Bienestar, Intuición, Paz",
+        "Mars": "Energía, Acción, Valentía, Hermanos",
+        "Mercury": "Palabra, Negocios, Lógica, Comercio",
+        "Jupiter": "Riqueza, Crecimiento, Guía, Suerte",
+        "Venus": "Belleza, Lujo, Deseo, Arte",
+        "Saturn": "Karma, Demora, Esfuerzo, Estructura",
+        "Rahu": "Obsesión, Innovación, Ilusión, Lo extranjero",
+        "Ketu": "Desapego, Liberación, Pasado, Misticismo"
+      },
+      "status": {
+        "exalted": "Exaltado",
+        "ownSign": "Signo propio",
+        "debilitated": "Caído",
+        "normal": "Normal",
+        "retrograde": "Retrógrado"
+      }
+    },
+    "planets": {
+      "Sun": "Sol",
+      "Moon": "Luna",
+      "Mars": "Marte",
+      "Mercury": "Mercurio",
+      "Jupiter": "Júpiter",
+      "Venus": "Venus",
+      "Saturn": "Saturno",
+      "Rahu": "Rahu",
+      "Ketu": "Ketu",
+      "Uranus": "Urano",
+      "Neptune": "Neptuno",
+      "Pluto": "Plutón",
+      "Ascendant": "Ascendente"
+    },
+    "in": "en",
+    "house": "Casa",
+    "houseRuler": "Regente de la casa",
+    "zodiacSigns": {
+      "Aries": "Aries",
+      "Taurus": "Tauro",
+      "Gemini": "Géminis",
+      "Cancer": "Cáncer",
+      "Leo": "Leo",
+      "Virgo": "Virgo",
+      "Libra": "Libra",
+      "Scorpio": "Escorpio",
+      "Sagittarius": "Sagitario",
+      "Capricorn": "Capricornio",
+      "Aquarius": "Acuario",
+      "Pisces": "Piscis"
+    },
+    "systemWestern": "Occidental (Tropical)",
+    "systemVedic": "Védico (Sideral)",
+    "tabBirthChart": "Carta natal",
+    "tabTransitChart": "Carta de tránsitos",
+    "loading": "Cargando…",
+    "houseMeanings": {
+      "1": "Yo e identidad",
+      "2": "Dinero y posesiones",
+      "3": "Comunicación y hermanos",
+      "4": "Hogar y familia",
+      "5": "Creatividad y romance",
+      "6": "Salud y rutina",
+      "7": "Vínculos y matrimonio",
+      "8": "Transformación y misterio",
+      "9": "Filosofía y viajes",
+      "10": "Carrera y reputación",
+      "11": "Amistades y ganancias",
+      "12": "Subconsciente y soledad"
+    },
+    "houseDescriptions": {
+      "1": "Esta casa representa tu personalidad exterior, tu apariencia física y la forma en que enfrentas la vida.",
+      "2": "Esta casa rige tus finanzas personales, tus bienes materiales y tu sentido de autovaloración.",
+      "3": "Esta casa gobierna la comunicación, el intelecto, la educación temprana, los hermanos y los viajes cortos.",
+      "4": "Esta casa simboliza tu hogar, tus raíces, tu familia, la madre y tus cimientos emocionales.",
+      "5": "Esta casa abarca la autoexpresión, la creatividad, el romance, los hijos y el disfrute.",
+      "6": "Esta casa se relaciona con el trabajo diario, la salud, el servicio y la superación personal.",
+      "7": "Esta casa se centra en los vínculos serios, el matrimonio, los contratos comerciales y los enemigos declarados.",
+      "8": "Esta casa trata de la transformación, la muerte, el renacimiento, los recursos compartidos y lo oculto.",
+      "9": "Esta casa gobierna el aprendizaje superior, la filosofía, la religión, los viajes lejanos y la ley.",
+      "10": "Esta casa representa tu carrera, tu imagen pública, tu reputación, el padre y las figuras de autoridad.",
+      "11": "Esta casa rige las amistades, los grupos sociales, las esperanzas, los deseos y los intereses humanitarios.",
+      "12": "Esta casa abarca el subconsciente, los secretos, los enemigos ocultos, las instituciones y el karma."
+    },
+    "planetInHouse": {
+      "Sun": {
+        "1": "Tu identidad y tu autoexpresión son el centro de tu personalidad. Brillas a través de tu individualidad y posees fuertes cualidades de liderazgo. Tu ego y tu vitalidad se expresan directamente a través de tu persona exterior.",
+        "2": "Tu identidad está ligada a tus recursos y a tus valores. Encuentras seguridad a través de la estabilidad material y puedes expresarte mediante tus posesiones. Tu autovaloración se conecta con lo que posees y acumulas.",
+        "3": "Tu identidad se expresa a través de la comunicación y el aprendizaje. Brillas mediante tus palabras, tus ideas y tus inquietudes intelectuales. Tu ego está ligado a tu capacidad de expresarte y compartir conocimiento.",
+        "4": "Tu identidad se arraiga en el hogar y la familia. Encuentras seguridad a través de la estabilidad emocional y tus raíces. Tu ego se conecta con tu vida privada y con los cimientos que has construido.",
+        "5": "Tu identidad se expresa a través de la creatividad y la autoexpresión. Brillas mediante tus talentos, el romance y tu capacidad de disfrutar. Tu ego está ligado a tu producción creativa y a tu expresión personal.",
+        "6": "Tu identidad se expresa a través del servicio y el trabajo diario. Encuentras seguridad ayudando a los demás y cuidando tu salud. Tu ego se conecta con tu capacidad de ser útil y mejorar las cosas.",
+        "7": "Tu identidad se expresa a través de los vínculos y las relaciones. Brillas mediante tu capacidad de relacionarte con los demás. Tu ego está ligado a cómo te muestras en los vínculos y a tu capacidad de equilibrio.",
+        "8": "Tu identidad implica transformación y recursos compartidos. Encuentras seguridad a través del cambio profundo y la regeneración. Tu ego se conecta con tu capacidad de transformarte y manejar la intensidad.",
+        "9": "Tu identidad se expresa a través de la filosofía y el aprendizaje superior. Brillas mediante tus creencias, tu sabiduría y tu búsqueda de la verdad. Tu ego está ligado a tu visión del mundo y a tu comprensión espiritual.",
+        "10": "Tu identidad se expresa a través de la carrera y la imagen pública. Encuentras seguridad mediante los logros y el reconocimiento. Tu ego se conecta con tu reputación y tu éxito profesional.",
+        "11": "Tu identidad se expresa a través de las amistades y las esperanzas. Brillas mediante tus conexiones sociales y tus ideales humanitarios. Tu ego está ligado a tu capacidad de conectar con grupos y de hacer realidad tus sueños.",
+        "12": "Tu identidad implica el subconsciente y los asuntos ocultos. Encuentras seguridad a través de la conexión espiritual y de soltar el ego. Tu ego se conecta con tu mundo interior y tu crecimiento espiritual."
+      },
+      "Moon": {
+        "1": "Tus emociones son visibles y forman parte de tu personalidad exterior. Eres emocionalmente expresivo y los demás perciben tus sentimientos. Tus necesidades emocionales están ligadas a cómo te presentas.",
+        "2": "Tus emociones están ligadas a la seguridad y a los recursos. Te sientes seguro a través de la estabilidad material y puedes desarrollar apegos emocionales a tus posesiones. Tus sentimientos se conectan con tus valores.",
+        "3": "Tus emociones se expresan a través de la comunicación y el aprendizaje. Procesas los sentimientos hablando y mediante la actividad intelectual. Tus necesidades emocionales implican estímulo mental y variedad.",
+        "4": "Tus emociones están profundamente conectadas con el hogar y la familia. Esta es tu casa natural. Te sientes más seguro en casa y tienes fuertes lazos emocionales con tu familia y tus raíces.",
+        "5": "Tus emociones se expresan a través de la creatividad y el romance. Te sientes seguro mediante la autoexpresión y el disfrute. Tus necesidades emocionales implican ser creativo y gozar de la vida.",
+        "6": "Tus emociones están ligadas al trabajo diario y al servicio. Te sientes seguro a través de la rutina y de ayudar a los demás. Tus necesidades emocionales implican ser útil y cuidar tu salud.",
+        "7": "Tus emociones se expresan a través de los vínculos. Te sientes seguro mediante las relaciones y puedes depender emocionalmente de tu pareja. Tus sentimientos están ligados a cómo te ven los demás.",
+        "8": "Tus emociones implican transformación e intensidad. Te sientes seguro a través de vínculos emocionales profundos y puedes vivir experiencias emocionales intensas. Tus sentimientos se conectan con los recursos compartidos.",
+        "9": "Tus emociones se expresan a través de la filosofía y la expansión. Te sientes seguro aprendiendo y explorando creencias. Tus necesidades emocionales implican buscar la verdad y el sentido.",
+        "10": "Tus emociones están ligadas a la carrera y a la imagen pública. Te sientes seguro mediante los logros y puedes involucrarte emocionalmente en tu reputación. Tus sentimientos se conectan con tu vida profesional.",
+        "11": "Tus emociones se expresan a través de las amistades y las esperanzas. Te sientes seguro mediante las conexiones sociales y puedes desarrollar apegos emocionales a los grupos. Tus sentimientos están ligados a tus sueños.",
+        "12": "Tus emociones implican el subconsciente y los asuntos ocultos. Te sientes seguro a través de la conexión espiritual y puedes tener patrones emocionales profundos y ocultos. Tus sentimientos se conectan con tu mundo interior."
+      },
+      "Mercury": {
+        "1": "Tu forma de pensar y comunicar es el centro de tu identidad. Te expresas a través de las palabras y las ideas. Tu mente es ágil y eres conocido por tu estilo de comunicación.",
+        "2": "Tu forma de pensar se centra en los recursos y los valores. Comunicas sobre el dinero y las posesiones. Tu mente es práctica y piensas en la seguridad material.",
+        "3": "Tu forma de pensar es naturalmente versátil y comunicativa. Esta es tu casa natural. Destacas en el aprendizaje, la escritura y al compartir ideas. Tu mente es curiosa y adaptable.",
+        "4": "Tu forma de pensar está ligada al hogar y la familia. Comunicas sobre asuntos emocionales y puedes reflexionar sobre tus raíces. Tu mente se conecta con tu vida privada.",
+        "5": "Tu forma de pensar es creativa y expresiva. Comunicas a través del arte, el juego y la autoexpresión. Tu mente es imaginativa y piensas en el disfrute y el romance.",
+        "6": "Tu forma de pensar es práctica y orientada al servicio. Comunicas sobre el trabajo y la salud. Tu mente es analítica y piensas en mejorar y en los detalles.",
+        "7": "Tu forma de pensar se centra en los vínculos. Comunicas a través de las relaciones y puedes reflexionar sobre el equilibrio. Tu mente es diplomática y consideras la perspectiva de los demás.",
+        "8": "Tu forma de pensar implica transformación y profundidad. Comunicas sobre temas intensos y puedes reflexionar sobre los misterios. Tu mente es penetrante y buscas verdades ocultas.",
+        "9": "Tu forma de pensar es filosófica y expansiva. Comunicas sobre creencias y el aprendizaje superior. Tu mente busca la verdad y piensas en el sentido y el propósito.",
+        "10": "Tu forma de pensar se centra en la carrera y la reputación. Comunicas sobre tu profesión y tu imagen pública. Tu mente está orientada a metas y piensas en los logros.",
+        "11": "Tu forma de pensar implica las amistades y las esperanzas. Comunicas sobre grupos e ideales. Tu mente es innovadora y piensas en el futuro y en las causas humanitarias.",
+        "12": "Tu forma de pensar implica el subconsciente y los asuntos ocultos. Comunicas de manera intuitiva y puedes reflexionar sobre temas espirituales. Tu mente es creativa y procesas la información de forma inconsciente."
+      },
+      "Venus": {
+        "1": "Tus valores y tu manera de amar forman parte de tu personalidad exterior. Eres atractivo y encantador. Tu forma de vivir el amor y la belleza es visible para los demás.",
+        "2": "Tus valores están ligados a los recursos y las posesiones. Esta es tu casa natural. Encuentras belleza en lo material y puedes ganar dinero a través de lo estético. Tu manera de amar es sensual y estable.",
+        "3": "Tus valores se expresan a través de la comunicación y el aprendizaje. Encuentras belleza en las ideas y puedes amar mediante las palabras. Tu manera de amar es juguetona e intelectual.",
+        "4": "Tus valores están ligados al hogar y la familia. Encuentras belleza en tus raíces y puedes amar mediante el cuidado. Tu manera de amar es emocional y protectora.",
+        "5": "Tus valores se expresan a través de la creatividad y el romance. Encuentras belleza en la autoexpresión y amas con disfrute. Tu manera de amar es apasionada y dramática.",
+        "6": "Tus valores están ligados al servicio y al trabajo diario. Encuentras belleza al ayudar a los demás y puedes amar mediante el servicio. Tu manera de amar es práctica y servicial.",
+        "7": "Tus valores se expresan a través de los vínculos. Esta es también tu casa natural. Encuentras belleza en las relaciones y amas mediante el compañerismo. Tu manera de amar es equilibrada y armoniosa.",
+        "8": "Tus valores implican transformación e intensidad. Encuentras belleza en la profundidad y puedes amar con intensidad. Tu manera de amar es apasionada y transformadora.",
+        "9": "Tus valores se expresan a través de la filosofía y la expansión. Encuentras belleza en las creencias y puedes amar mediante el aprendizaje. Tu manera de amar es optimista y aventurera.",
+        "10": "Tus valores están ligados a la carrera y la reputación. Encuentras belleza en los logros y puedes amar mediante tu profesión. Tu manera de amar es ambiciosa y tradicional.",
+        "11": "Tus valores implican las amistades y las esperanzas. Encuentras belleza en los grupos y puedes amar mediante la amistad. Tu manera de amar es independiente y humanitaria.",
+        "12": "Tus valores implican el subconsciente y los asuntos espirituales. Encuentras belleza en los sueños y puedes amar mediante la compasión. Tu manera de amar es idealista y altruista."
+      },
+      "Mars": {
+        "1": "Tu energía y tu impulso son el centro de tu identidad. Eres asertivo y orientado a la acción. Tu forma de afrontar el conflicto y el deseo es directa y visible.",
+        "2": "Tu energía se centra en los recursos y los valores. Actúas para construir seguridad y puedes guiarte por metas materiales. Tu asertividad está ligada a las posesiones.",
+        "3": "Tu energía se expresa a través de la comunicación y el aprendizaje. Actúas mediante las palabras y las ideas. Tu impulso implica las inquietudes mentales y la variedad.",
+        "4": "Tu energía está ligada al hogar y la familia. Actúas para proteger tus raíces y puedes guiarte por la seguridad emocional. Tu asertividad se conecta con tu vida privada.",
+        "5": "Tu energía se expresa a través de la creatividad y el romance. Actúas mediante la autoexpresión y el disfrute. Tu impulso implica pasión y juego.",
+        "6": "Tu energía se centra en el servicio y el trabajo diario. Actúas ayudando a los demás y cuidando tu salud. Tu impulso implica la mejora y la rutina.",
+        "7": "Tu energía se expresa a través de los vínculos. Actúas mediante las relaciones y puedes guiarte por metas de pareja. Tu asertividad está ligada a cómo te relacionas.",
+        "8": "Tu energía implica transformación e intensidad. Esta es también tu casa natural. Actúas mediante el cambio profundo y puedes guiarte por el poder. Tu impulso es intenso y transformador.",
+        "9": "Tu energía se expresa a través de la filosofía y la expansión. Actúas mediante las creencias y puedes guiarte por la búsqueda de la verdad. Tu impulso implica la aventura y el aprendizaje.",
+        "10": "Tu energía se centra en la carrera y la reputación. Actúas mediante tu profesión y puedes guiarte por los logros. Tu asertividad está ligada a tu imagen pública.",
+        "11": "Tu energía implica las amistades y las esperanzas. Actúas mediante los grupos y puedes guiarte por los ideales. Tu impulso implica la innovación y las causas humanitarias.",
+        "12": "Tu energía implica el subconsciente y los asuntos ocultos. Actúas a través de la práctica espiritual y puedes reprimir la acción directa. Tu impulso es interno y puede implicar el servicio."
+      },
+      "Jupiter": {
+        "1": "Tu crecimiento y tu expansión son el centro de tu identidad. Eres optimista y filosófico. Afrontas la vida de manera expansiva y buscas el sentido a través de tu personalidad.",
+        "2": "Tu crecimiento está ligado a los recursos y los valores. Te expandes al construir seguridad y puedes encontrar suerte a través de las posesiones. Tu optimismo se conecta con la abundancia material.",
+        "3": "Tu crecimiento se expresa a través de la comunicación y el aprendizaje. Te expandes mediante el conocimiento y puedes encontrar suerte a través de las ideas. Tu optimismo implica las inquietudes mentales.",
+        "4": "Tu crecimiento está ligado al hogar y la familia. Te expandes mediante la seguridad emocional y puedes encontrar suerte a través de tus raíces. Tu optimismo se conecta con tus cimientos.",
+        "5": "Tu crecimiento se expresa a través de la creatividad y el romance. Te expandes mediante la autoexpresión y puedes encontrar suerte a través del disfrute. Tu optimismo implica el juego y la creatividad.",
+        "6": "Tu crecimiento se centra en el servicio y el trabajo diario. Te expandes ayudando a los demás y puedes encontrar suerte a través de la salud. Tu optimismo implica la mejora y la rutina.",
+        "7": "Tu crecimiento se expresa a través de los vínculos. Te expandes mediante las relaciones y puedes encontrar suerte a través de los demás. Tu optimismo se conecta con el equilibrio y la armonía.",
+        "8": "Tu crecimiento implica transformación y recursos compartidos. Te expandes mediante el cambio profundo y puedes encontrar suerte a través de la transformación. Tu optimismo se conecta con la regeneración.",
+        "9": "Tu crecimiento se expresa a través de la filosofía y el aprendizaje superior. Esta es tu casa natural. Te expandes mediante las creencias y encuentras suerte al buscar la verdad. Tu optimismo implica el sentido y el propósito.",
+        "10": "Tu crecimiento se centra en la carrera y la reputación. Te expandes mediante los logros y puedes encontrar suerte a través de tu profesión. Tu optimismo se conecta con tu imagen pública.",
+        "11": "Tu crecimiento implica las amistades y las esperanzas. Te expandes mediante los grupos y puedes encontrar suerte a través de los ideales. Tu optimismo implica las causas humanitarias y la innovación.",
+        "12": "Tu crecimiento implica el subconsciente y los asuntos espirituales. Esta es también tu casa natural. Te expandes mediante la conexión espiritual y puedes encontrar suerte a través de la compasión. Tu optimismo implica la trascendencia."
+      },
+      "Saturn": {
+        "1": "Tus desafíos y tu disciplina son el centro de tu identidad. Eres serio y responsable. Afrontas la vida con estructura y puedes sentirte limitado en tu autoexpresión.",
+        "2": "Tus desafíos están ligados a los recursos y los valores. Construyes seguridad mediante la disciplina y puedes enfrentar restricciones con el dinero. Tu responsabilidad implica la estabilidad material.",
+        "3": "Tus desafíos se expresan a través de la comunicación y el aprendizaje. Construyes conocimiento mediante la disciplina y puedes enfrentar restricciones al expresarte. Tu responsabilidad implica la educación.",
+        "4": "Tus desafíos están ligados al hogar y la familia. Construyes seguridad mediante la disciplina y puedes enfrentar restricciones con tus raíces. Tu responsabilidad implica los cimientos emocionales.",
+        "5": "Tus desafíos se expresan a través de la creatividad y el romance. Construyes tu autoexpresión mediante la disciplina y puedes enfrentar restricciones en el disfrute. Tu responsabilidad implica el trabajo creativo.",
+        "6": "Tus desafíos se centran en el servicio y el trabajo diario. Construyes salud mediante la disciplina y puedes enfrentar restricciones en la rutina. Tu responsabilidad implica el servicio y la mejora.",
+        "7": "Tus desafíos se expresan a través de los vínculos. Construyes relaciones mediante la disciplina y puedes enfrentar restricciones al relacionarte. Tu responsabilidad implica el compromiso y el equilibrio.",
+        "8": "Tus desafíos implican transformación y recursos compartidos. Construyes el cambio mediante la disciplina y puedes enfrentar restricciones con la intensidad. Tu responsabilidad implica la regeneración.",
+        "9": "Tus desafíos se expresan a través de la filosofía y el aprendizaje superior. Construyes tus creencias mediante la disciplina y puedes enfrentar restricciones en tu expansión. Tu responsabilidad implica la búsqueda de la verdad.",
+        "10": "Tus desafíos se centran en la carrera y la reputación. Esta es tu casa natural. Construyes tus logros mediante la disciplina y puedes enfrentar restricciones a nivel profesional. Tu responsabilidad implica tu imagen pública.",
+        "11": "Tus desafíos implican las amistades y las esperanzas. Construyes grupos mediante la disciplina y puedes enfrentar restricciones con los ideales. Tu responsabilidad implica la innovación y las causas humanitarias.",
+        "12": "Tus desafíos implican el subconsciente y los asuntos ocultos. Construyes tu espiritualidad mediante la disciplina y puedes enfrentar restricciones con las ilusiones. Tu responsabilidad implica el trabajo interior y el aprender a soltar."
+      },
+      "Rahu": {
+        "1": "Tus deseos implican ser independiente y tomar la iniciativa. Te atrae el liderazgo y puedes obsesionarte con ser el primero. Tus ambiciones están ligadas a tu identidad.",
+        "2": "Tus deseos implican acumular recursos y seguridad material. Te atraen las posesiones y puedes obsesionarte con el dinero. Tus ambiciones están ligadas a tus valores.",
+        "3": "Tus deseos implican la comunicación y el aprendizaje. Te atrae el conocimiento y puedes obsesionarte con las ideas. Tus ambiciones están ligadas a las inquietudes mentales.",
+        "4": "Tus deseos implican el hogar y la seguridad familiar. Te atraen tus raíces y puedes obsesionarte con la estabilidad emocional. Tus ambiciones están ligadas a tus cimientos.",
+        "5": "Tus deseos implican la creatividad y el reconocimiento. Te atrae la autoexpresión y puedes obsesionarte con ser admirado. Tus ambiciones están ligadas al juego y al romance.",
+        "6": "Tus deseos implican el servicio y la perfección. Te atrae ayudar a los demás y puedes obsesionarte con la salud. Tus ambiciones están ligadas a la mejora.",
+        "7": "Tus deseos implican los vínculos y el equilibrio. Te atraen las relaciones y puedes obsesionarte con encontrar la pareja perfecta. Tus ambiciones están ligadas a la armonía.",
+        "8": "Tus deseos implican la transformación y el poder. Te atrae la intensidad y puedes obsesionarte con el control. Tus ambiciones están ligadas al cambio profundo.",
+        "9": "Tus deseos implican la filosofía y la expansión. Te atrae la búsqueda de la verdad y puedes obsesionarte con las creencias. Tus ambiciones están ligadas al aprendizaje superior.",
+        "10": "Tus deseos implican la carrera y los logros. Te atrae el reconocimiento y puedes obsesionarte con el estatus. Tus ambiciones están ligadas a tu imagen pública.",
+        "11": "Tus deseos implican las amistades y la innovación. Te atraen los grupos y puedes obsesionarte con los ideales. Tus ambiciones están ligadas a las causas humanitarias.",
+        "12": "Tus deseos implican la espiritualidad y la evasión. Te atrae la trascendencia y puedes obsesionarte con las ilusiones. Tus ambiciones están ligadas al soltar."
+      },
+      "Ketu": {
+        "1": "Estás soltando el apego al ego y a la identidad. Tu camino espiritual implica aprender la humildad y dejar de lado la necesidad de ser el primero. Buscas el desapego del yo.",
+        "2": "Estás soltando el apego a las posesiones y a la seguridad material. Tu camino espiritual implica aprender a valorar lo no material. Buscas el desapego de los recursos.",
+        "3": "Estás soltando el apego a la comunicación y a la actividad mental. Tu camino espiritual implica aprender el silencio y trascender las palabras. Buscas el desapego de las ideas.",
+        "4": "Estás soltando el apego al hogar y a los patrones familiares. Tu camino espiritual implica aprender la independencia y dejar atrás el pasado. Buscas el desapego de tus raíces.",
+        "5": "Estás soltando el apego a la creatividad y al reconocimiento. Tu camino espiritual implica aprender la humildad y dejar de lado la necesidad de atención. Buscas el desapego de la autoexpresión.",
+        "6": "Estás soltando el apego al servicio y a la perfección. Tu camino espiritual implica aprender a aceptar la imperfección. Buscas el desapego de la mejora.",
+        "7": "Estás soltando el apego a los vínculos y al equilibrio. Tu camino espiritual implica aprender la independencia y dejar de lado la necesidad de los demás. Buscas el desapego de las relaciones.",
+        "8": "Estás soltando el apego al poder y al control. Tu camino espiritual implica aprender a soltar y encontrar paz en la entrega. Buscas el desapego de la transformación.",
+        "9": "Estás soltando el apego a las creencias y a la expansión. Tu camino espiritual implica aprender a estar presente y dejar de lado la necesidad de buscar más. Buscas el desapego de la filosofía.",
+        "10": "Estás soltando el apego a la carrera y a los logros. Tu camino espiritual implica aprender la flexibilidad y dejar de lado la necesidad de estatus. Buscas el desapego de la reputación.",
+        "11": "Estás soltando el apego a las amistades y a la innovación. Tu camino espiritual implica aprender a conectar y dejar de lado la necesidad de ser diferente. Buscas el desapego de los grupos.",
+        "12": "Estás soltando el apego a las ilusiones y a la evasión. Tu camino espiritual implica aprender a afrontar la realidad y dejar de lado la necesidad de trascender. Buscas el desapego del subconsciente."
+      },
+      "Ascendant": {
+        "1": "Tu personalidad exterior es tu identidad. Esta es tu casa natural. Cómo te ven los demás es el centro de quien eres. Tu forma de afrontar la vida define tu esencia.",
+        "2": "Tu personalidad exterior está ligada a los recursos y los valores. Los demás te ven estable y orientado a los valores. Tu forma de afrontar la vida implica construir seguridad.",
+        "3": "Tu personalidad exterior es comunicativa y versátil. Los demás te ven curioso y adaptable. Tu forma de afrontar la vida implica aprender y compartir ideas.",
+        "4": "Tu personalidad exterior es cuidadora y protectora. Los demás te ven emocional y orientado a la familia. Tu forma de afrontar la vida implica crear seguridad.",
+        "5": "Tu personalidad exterior es creativa y expresiva. Los demás te ven juguetón y dramático. Tu forma de afrontar la vida implica la autoexpresión y el disfrute.",
+        "6": "Tu personalidad exterior es práctica y orientada al servicio. Los demás te ven servicial y atento a los detalles. Tu forma de afrontar la vida implica la mejora y el servicio.",
+        "7": "Tu personalidad exterior es diplomática y centrada en las relaciones. Los demás te ven equilibrado y cooperativo. Tu forma de afrontar la vida implica el compañerismo y la armonía.",
+        "8": "Tu personalidad exterior es intensa y misteriosa. Los demás te ven transformador y profundo. Tu forma de afrontar la vida implica la intensidad y la regeneración.",
+        "9": "Tu personalidad exterior es optimista y filosófica. Los demás te ven aventurero y buscador de la verdad. Tu forma de afrontar la vida implica la expansión y el aprendizaje.",
+        "10": "Tu personalidad exterior es seria y ambiciosa. Los demás te ven responsable y orientado a metas. Tu forma de afrontar la vida implica los logros y la estructura.",
+        "11": "Tu personalidad exterior es única e independiente. Los demás te ven innovador y humanitario. Tu forma de afrontar la vida implica la libertad y los ideales.",
+        "12": "Tu personalidad exterior es soñadora e intuitiva. Los demás te ven artístico y compasivo. Tu forma de afrontar la vida implica la espiritualidad y el trabajo interior."
+      }
+    },
+    "planetInSign": {
+      "Sun": {
+        "Aries": "Tu identidad es audaz, independiente y pionera. Eres un líder nato que toma la iniciativa y no teme ser el primero. Tu confianza proviene de la acción y la valentía.",
+        "Taurus": "Tu identidad es estable, confiable y arraigada. Valoras la seguridad, la belleza y el bienestar. Tu confianza proviene de construir algo duradero y tangible.",
+        "Gemini": "Tu identidad es curiosa, comunicativa y versátil. Eres adaptable y amas aprender. Tu confianza proviene del conocimiento y de tu capacidad de expresar ideas.",
+        "Cancer": "Tu identidad es protectora, cuidadora y emocional. Valoras la familia y la seguridad. Tu confianza proviene de la conexión emocional y del cuidado de los demás.",
+        "Leo": "Tu identidad es segura, creativa y expresiva. Amas estar en el centro de atención y expresarte. Tu confianza proviene de la autoexpresión y del reconocimiento.",
+        "Virgo": "Tu identidad es práctica, analítica y orientada al servicio. Encuentras confianza a través de la mejora y de ser útil. Valoras la precisión y la eficiencia.",
+        "Libra": "Tu identidad es diplomática, estética y centrada en las relaciones. Tu confianza proviene de la armonía, la belleza y el compañerismo. Buscas el equilibrio en todo.",
+        "Scorpio": "Tu identidad es intensa, transformadora y poderosa. Tu confianza proviene de la profundidad y de tu capacidad de regenerarte. Te atraen los misterios y las verdades ocultas.",
+        "Sagittarius": "Tu identidad es optimista, aventurera y filosófica. Tu confianza proviene de buscar la verdad y de ampliar tus horizontes. Valoras la libertad y la honestidad.",
+        "Capricorn": "Tu identidad es ambiciosa, disciplinada y tradicional. Tu confianza proviene de los logros y de construir estructuras. Valoras la responsabilidad y el respeto.",
+        "Aquarius": "Tu identidad es única, independiente y visionaria. Tu confianza proviene de la innovación y de los valores humanitarios. Marchas a tu propio ritmo.",
+        "Pisces": "Tu identidad es soñadora, compasiva e intuitiva. Tu confianza proviene de la creatividad y de la conexión espiritual. Eres artístico y empático."
+      },
+      "Moon": {
+        "Aries": "Tus emociones son rápidas, ardientes e impulsivas. Sientes las cosas con intensidad y reaccionas de inmediato. Necesitas independencia y acción para sentirte seguro.",
+        "Taurus": "Tus emociones son estables, firmes y sensuales. Te sientes seguro a través del bienestar, la belleza y la estabilidad. Valoras la rutina y la seguridad material.",
+        "Gemini": "Tus emociones son cambiantes, curiosas y mentales. Procesas los sentimientos a través de la comunicación y la variedad. Necesitas estímulo mental para sentirte seguro.",
+        "Cancer": "Tus emociones son profundas, protectoras y cuidadoras. Este es tu signo natural, por lo que los sentimientos son centrales. Necesitas seguridad emocional y conexión familiar.",
+        "Leo": "Tus emociones son cálidas, expresivas y orgullosas. Te sientes seguro a través del reconocimiento y la autoexpresión. Necesitas sentirte especial y admirado.",
+        "Virgo": "Tus emociones son prácticas, analíticas y orientadas al servicio. Procesas los sentimientos ayudando a los demás y mejorando las cosas. Necesitas orden para sentirte seguro.",
+        "Libra": "Tus emociones son equilibradas, armoniosas y centradas en las relaciones. Te sientes seguro a través del compañerismo y la belleza. Necesitas armonía para tener estabilidad emocional.",
+        "Scorpio": "Tus emociones son intensas, profundas y transformadoras. Sientes las cosas con fuerza y puedes guardar tus sentimientos en secreto. Necesitas profundidad e intensidad para sentirte seguro.",
+        "Sagittarius": "Tus emociones son optimistas, aventureras y filosóficas. Te sientes seguro a través de la libertad y la expansión. Necesitas aventura y sentido para sentirte pleno.",
+        "Capricorn": "Tus emociones son controladas, disciplinadas y reservadas. Puedes reprimir tus sentimientos y necesitas estructura para sentirte seguro. Valoras la responsabilidad emocional.",
+        "Aquarius": "Tus emociones son desapegadas, independientes y humanitarias. Te sientes seguro a través de la libertad y la innovación. Puedes intelectualizar tus sentimientos.",
+        "Pisces": "Tus emociones son soñadoras, compasivas e intuitivas. Sientes las cosas profundamente y puedes absorber las emociones de los demás. Necesitas conexión espiritual para sentirte seguro."
+      },
+      "Mercury": {
+        "Aries": "Tu forma de pensar es rápida, directa y asertiva. Comunicas con audacia y tomas decisiones con rapidez. Eres franco y puedes impacientarte con quienes piensan despacio.",
+        "Taurus": "Tu forma de pensar es práctica, firme y arraigada. Comunicas de manera lenta y reflexiva. Piensas en la seguridad material y en los asuntos prácticos.",
+        "Gemini": "Tu forma de pensar es versátil, curiosa y rápida. Este es tu signo natural, por lo que la comunicación es central. Amas aprender y compartir ideas.",
+        "Virgo": "Tu forma de pensar es analítica, precisa y atenta a los detalles. Este es también tu signo natural. Destacas en el análisis y la resolución práctica de problemas.",
+        "Cancer": "Tu forma de pensar es emocional, intuitiva y centrada en la memoria. Comunicas con sentimiento y recuerdas los detalles emocionales. Piensas en la seguridad y la familia.",
+        "Leo": "Tu forma de pensar es creativa, expresiva y segura. Comunicas con estilo y amas compartir tus ideas. Piensas en la autoexpresión y el reconocimiento.",
+        "Libra": "Tu forma de pensar es equilibrada, diplomática y estética. Comunicas con armonía y consideras todas las perspectivas. Piensas en las relaciones y la belleza.",
+        "Scorpio": "Tu forma de pensar es intensa, penetrante y reservada. Comunicas con profundidad y puedes guardar algunos pensamientos en privado. Piensas en la transformación y los misterios.",
+        "Sagittarius": "Tu forma de pensar es filosófica, optimista y expansiva. Comunicas con entusiasmo y amas compartir conocimiento. Piensas en la verdad y el sentido.",
+        "Capricorn": "Tu forma de pensar es seria, estructurada y orientada a metas. Comunicas con propósito y piensas en planes a largo plazo y en tus responsabilidades.",
+        "Aquarius": "Tu forma de pensar es innovadora, independiente y original. Comunicas de manera única y piensas en el futuro y en los ideales humanitarios.",
+        "Pisces": "Tu forma de pensar es intuitiva, creativa y soñadora. Comunicas con imaginación y puedes pensar en imágenes o símbolos. Eres muy intuitivo."
+      },
+      "Venus": {
+        "Aries": "Te atraen las personas audaces e independientes y las relaciones apasionadas. El amor es emocionante y directo. Valoras la independencia y la acción en las relaciones.",
+        "Taurus": "Te atraen las personas estables y sensuales y las relaciones leales. Este es tu signo natural. Valoras la seguridad, la belleza y el bienestar físico en el amor.",
+        "Gemini": "Te atraen las personas comunicativas e intelectuales y las relaciones juguetonas. Valoras la conexión mental y la variedad en el amor. Puedes tener varios intereses.",
+        "Cancer": "Te atraen las personas cuidadoras y emocionales y las relaciones protectoras. Valoras la seguridad y la conexión emocional. Eres cariñoso y entregado.",
+        "Leo": "Te atraen las personas seguras y creativas y las relaciones intensas. Valoras la admiración y la autoexpresión. Amas ser adorado y brindar afecto.",
+        "Virgo": "Te atraen las personas prácticas y serviciales y las relaciones orientadas al servicio. Demuestras amor con actos de servicio y valoras la mejora en las relaciones.",
+        "Libra": "Te atraen las personas equilibradas y estéticas y las relaciones armoniosas. Este es tu signo natural. Valoras el compañerismo, la belleza y la armonía en el amor.",
+        "Scorpio": "Te atraen las personas intensas y transformadoras y las relaciones apasionadas. Valoras la profundidad y la intensidad. El amor es transformador y absorbente.",
+        "Sagittarius": "Te atraen las personas aventureras y filosóficas y las relaciones de espíritu libre. Valoras la honestidad y el crecimiento. Necesitas libertad en las relaciones.",
+        "Capricorn": "Te atraen las personas serias y ambiciosas y las relaciones tradicionales. Valoras el compromiso y la seguridad a largo plazo. El amor es práctico y responsable.",
+        "Aquarius": "Te atraen las personas únicas e independientes y las relaciones poco convencionales. Valoras la amistad y la libertad. El amor es innovador y no tradicional.",
+        "Pisces": "Te atraen las personas soñadoras y compasivas y las relaciones idealistas. Valoras la conexión espiritual y la empatía. El amor es romántico y altruista."
+      },
+      "Mars": {
+        "Aries": "Tu energía es directa, impulsiva y competitiva. Este es tu signo natural. Actúas de inmediato y no temes al conflicto. Eres un guerrero nato.",
+        "Taurus": "Tu energía es firme, persistente y sensual. Actúas despacio pero con constancia. Canalizas tu energía en construir seguridad y bienestar material.",
+        "Gemini": "Tu energía es rápida, versátil y comunicativa. Actúas a través de las palabras y las ideas. Puedes tener varios proyectos y necesitas estímulo mental.",
+        "Cancer": "Tu energía es emocional, protectora y defensiva. Actúas para proteger a tus seres queridos. Puedes reprimir el enojo y necesitas seguridad emocional para actuar.",
+        "Leo": "Tu energía es expresiva, segura y creativa. Actúas con estilo y amas ser reconocido. Canalizas tu energía en la autoexpresión y el liderazgo.",
+        "Virgo": "Tu energía es práctica, precisa y orientada al servicio. Actúas a través del trabajo detallado y la mejora. Canalizas tu energía en ayudar y perfeccionar.",
+        "Libra": "Tu energía es equilibrada, diplomática y centrada en las relaciones. Puedes evitar el conflicto directo y actuar a través del compañerismo. Canalizas tu energía en la armonía.",
+        "Scorpio": "Tu energía es intensa, enfocada y transformadora. Este es también tu signo natural. Actúas con determinación y canalizas tu energía en una transformación profunda.",
+        "Sagittarius": "Tu energía es aventurera, optimista y expansiva. Actúas a través de la aventura y la exploración. Canalizas tu energía en buscar la verdad y el sentido.",
+        "Capricorn": "Tu energía es disciplinada, ambiciosa y orientada a metas. Actúas de manera sistemática y canalizas tu energía en construir estructuras y alcanzar objetivos.",
+        "Aquarius": "Tu energía es innovadora, independiente y rebelde. Actúas a través de la innovación y canalizas tu energía en liberarte de la tradición.",
+        "Pisces": "Tu energía es intuitiva, compasiva y, a veces, pasiva. Puedes evitar la acción directa y canalizar tu energía en la creatividad, el servicio o las búsquedas espirituales."
+      },
+      "Jupiter": {
+        "Aries": "Tu crecimiento llega a través del liderazgo, la iniciativa y el espíritu pionero. Eres optimista ante los nuevos comienzos y encuentras suerte al actuar y ser el primero.",
+        "Taurus": "Tu crecimiento llega a través de construir seguridad, acumular recursos y apreciar la belleza. Encuentras suerte mediante el esfuerzo constante y la estabilidad material.",
+        "Gemini": "Tu crecimiento llega a través del aprendizaje, la comunicación y la variedad. Encuentras suerte mediante el conocimiento, la enseñanza y la conexión intelectual con los demás.",
+        "Cancer": "Tu crecimiento llega a través de la seguridad emocional, la familia y el cuidado. Este es tu signo natural. Encuentras suerte al cuidar de los demás y construir cimientos emocionales.",
+        "Leo": "Tu crecimiento llega a través de la creatividad, la autoexpresión y el reconocimiento. Encuentras suerte al compartir tus talentos y ser admirado. Eres generoso y optimista.",
+        "Virgo": "Tu crecimiento llega a través del servicio, la mejora y la sabiduría práctica. Encuentras suerte al ayudar a los demás y perfeccionar tus habilidades. Valoras la salud y la eficiencia.",
+        "Libra": "Tu crecimiento llega a través del compañerismo, la armonía y la estética. Encuentras suerte mediante las relaciones y al crear belleza. Valoras la justicia y el equilibrio.",
+        "Scorpio": "Tu crecimiento llega a través de la transformación, la profundidad y los recursos compartidos. Encuentras suerte mediante la regeneración y al descubrir verdades ocultas. Te atraen los misterios.",
+        "Sagittarius": "Tu crecimiento llega a través de la expansión, la filosofía y la aventura. Este es tu signo natural. Encuentras suerte al buscar la verdad, viajar y en el aprendizaje superior.",
+        "Capricorn": "Tu crecimiento llega a través de la disciplina, la estructura y los logros. Encuentras suerte al construir cimientos duraderos y asumir responsabilidades. Valoras la tradición.",
+        "Aquarius": "Tu crecimiento llega a través de la innovación, la independencia y los ideales humanitarios. Encuentras suerte al liberarte de la tradición y abrazar tu singularidad.",
+        "Pisces": "Tu crecimiento llega a través de la espiritualidad, la compasión y la creatividad. Este es también tu signo natural. Encuentras suerte mediante la intuición, el arte y la conexión espiritual."
+      },
+      "Saturn": {
+        "Aries": "Tus desafíos implican aprender la paciencia, controlar la impulsividad y asumir la responsabilidad de tus actos. Construyes disciplina a través del liderazgo y la iniciativa.",
+        "Taurus": "Tus desafíos implican la seguridad financiera, la estabilidad material y aprender a valorar lo que tienes. Construyes disciplina mediante el esfuerzo constante y la perseverancia.",
+        "Gemini": "Tus desafíos implican el enfoque, la comunicación y aprender a comprometerte con las ideas. Construyes disciplina a través de la educación y el pensamiento claro.",
+        "Cancer": "Tus desafíos implican la seguridad emocional, las responsabilidades familiares y aprender a protegerte. Construyes disciplina mediante el cuidado y la madurez emocional.",
+        "Leo": "Tus desafíos implican el ego, la creatividad y aprender la humildad. Construyes disciplina a través de la autoexpresión y al asumir la responsabilidad de tus talentos.",
+        "Virgo": "Tus desafíos implican el perfeccionismo, el servicio y aprender a aceptar la imperfección. Construyes disciplina a través del trabajo práctico y de ayudar a los demás.",
+        "Libra": "Tus desafíos implican las relaciones, el equilibrio y aprender a tomar decisiones. Construyes disciplina a través del compañerismo y al crear armonía.",
+        "Scorpio": "Tus desafíos implican la transformación, el poder y aprender a soltar. Construyes disciplina mediante el cambio profundo y al enfrentar tus sombras.",
+        "Sagittarius": "Tus desafíos implican las creencias, la expansión y aprender a ser realista. Construyes disciplina al buscar la verdad y al asumir la responsabilidad de tu filosofía.",
+        "Capricorn": "Tus desafíos implican la estructura, la autoridad y aprender a equilibrar el trabajo y la vida. Este es tu signo natural. Construyes disciplina a través de los logros y la tradición.",
+        "Aquarius": "Tus desafíos implican la independencia, la innovación y aprender a equilibrar la libertad con la responsabilidad. Construyes disciplina al liberarte sin perder los pies en la tierra.",
+        "Pisces": "Tus desafíos implican los límites, las ilusiones y aprender a afrontar la realidad. Construyes disciplina a través de la práctica espiritual y al aprender a distinguir la verdad de la ilusión."
+      },
+      "Rahu": {
+        "Aries": "Tus deseos implican ser independiente y tomar la iniciativa. Te atrae el liderazgo y puedes obsesionarte con ser el primero. Tus ambiciones están ligadas a tu identidad.",
+        "Taurus": "Tus deseos implican acumular recursos y seguridad material. Te atraen las posesiones y puedes obsesionarte con el dinero. Tus ambiciones están ligadas a tus valores.",
+        "Gemini": "Tus deseos implican la comunicación y el aprendizaje. Te atrae el conocimiento y puedes obsesionarte con las ideas. Tus ambiciones están ligadas a las inquietudes mentales.",
+        "Cancer": "Tus deseos implican el hogar y la seguridad familiar. Te atraen tus raíces y puedes obsesionarte con la estabilidad emocional. Tus ambiciones están ligadas a tus cimientos.",
+        "Leo": "Tus deseos implican la creatividad y el reconocimiento. Te atrae la autoexpresión y puedes obsesionarte con ser admirado. Tus ambiciones están ligadas al juego y al romance.",
+        "Virgo": "Tus deseos implican el servicio y la perfección. Te atrae ayudar a los demás y puedes obsesionarte con la salud. Tus ambiciones están ligadas a la mejora.",
+        "Libra": "Tus deseos implican los vínculos y el equilibrio. Te atraen las relaciones y puedes obsesionarte con encontrar la pareja perfecta. Tus ambiciones están ligadas a la armonía.",
+        "Scorpio": "Tus deseos implican la transformación y el poder. Te atrae la intensidad y puedes obsesionarte con el control. Tus ambiciones están ligadas al cambio profundo.",
+        "Sagittarius": "Tus deseos implican la filosofía y la expansión. Te atrae la búsqueda de la verdad y puedes obsesionarte con las creencias. Tus ambiciones están ligadas al aprendizaje superior.",
+        "Capricorn": "Tus deseos implican la carrera y los logros. Te atrae el reconocimiento y puedes obsesionarte con el estatus. Tus ambiciones están ligadas a tu imagen pública.",
+        "Aquarius": "Tus deseos implican las amistades y la innovación. Te atraen los grupos y puedes obsesionarte con los ideales. Tus ambiciones están ligadas a las causas humanitarias.",
+        "Pisces": "Tus deseos implican la espiritualidad y la evasión. Te atrae la trascendencia y puedes obsesionarte con las ilusiones. Tus ambiciones están ligadas al soltar."
+      },
+      "Ketu": {
+        "Aries": "Estás soltando el apego al ego y a la identidad. Tu camino espiritual implica aprender la humildad y dejar de lado la necesidad de ser el primero. Buscas el desapego del yo.",
+        "Taurus": "Estás soltando el apego a las posesiones y a la seguridad material. Tu camino espiritual implica aprender a valorar lo no material. Buscas el desapego de los recursos.",
+        "Gemini": "Estás soltando el apego a la comunicación y a la actividad mental. Tu camino espiritual implica aprender el silencio y trascender las palabras. Buscas el desapego de las ideas.",
+        "Cancer": "Estás soltando el apego al hogar y a los patrones familiares. Tu camino espiritual implica aprender la independencia y dejar atrás el pasado. Buscas el desapego de tus raíces.",
+        "Leo": "Estás soltando el apego a la creatividad y al reconocimiento. Tu camino espiritual implica aprender la humildad y dejar de lado la necesidad de atención. Buscas el desapego de la autoexpresión.",
+        "Virgo": "Estás soltando el apego al servicio y a la perfección. Tu camino espiritual implica aprender a aceptar la imperfección. Buscas el desapego de la mejora.",
+        "Libra": "Estás soltando el apego a los vínculos y al equilibrio. Tu camino espiritual implica aprender la independencia y dejar de lado la necesidad de los demás. Buscas el desapego de las relaciones.",
+        "Scorpio": "Estás soltando el apego al poder y al control. Tu camino espiritual implica aprender a soltar y encontrar paz en la entrega. Buscas el desapego de la transformación.",
+        "Sagittarius": "Estás soltando el apego a las creencias y a la expansión. Tu camino espiritual implica aprender a estar presente y dejar de lado la necesidad de buscar más. Buscas el desapego de la filosofía.",
+        "Capricorn": "Estás soltando el apego a la carrera y a los logros. Tu camino espiritual implica aprender la flexibilidad y dejar de lado la necesidad de estatus. Buscas el desapego de la reputación.",
+        "Aquarius": "Estás soltando el apego a las amistades y a la innovación. Tu camino espiritual implica aprender a conectar y dejar de lado la necesidad de ser diferente. Buscas el desapego de los grupos.",
+        "Pisces": "Estás soltando el apego a las ilusiones y a la evasión. Tu camino espiritual implica aprender a afrontar la realidad y dejar de lado la necesidad de trascender. Buscas el desapego del subconsciente."
+      },
+      "Ascendant": {
+        "Aries": "Te muestras audaz, independiente y orientado a la acción. Los demás te ven como un líder nato que toma la iniciativa. Afrontas la vida con valentía y franqueza.",
+        "Taurus": "Te muestras estable, confiable y arraigado. Los demás te ven paciente y sensual. Afrontas la vida con perseverancia y valoras la seguridad y el bienestar.",
+        "Gemini": "Te muestras curioso, comunicativo y versátil. Los demás te ven ágil de mente y adaptable. Afrontas la vida con curiosidad y amas aprender.",
+        "Cancer": "Te muestras cuidador, sensible y protector. Los demás te ven emocional e intuitivo. Afrontas la vida con cariño y valoras la seguridad y la familia.",
+        "Leo": "Te muestras seguro, creativo y expresivo. Los demás te ven carismático y cálido. Afrontas la vida con entusiasmo y amas ser reconocido.",
+        "Virgo": "Te muestras analítico, práctico y atento a los detalles. Los demás te ven organizado y servicial. Afrontas la vida con precisión y valoras la mejora.",
+        "Libra": "Te muestras diplomático, encantador y equilibrado. Los demás te ven cooperativo y estético. Afrontas la vida buscando la armonía y la belleza.",
+        "Scorpio": "Te muestras intenso, misterioso y poderoso. Los demás te ven transformador y profundo. Afrontas la vida con intensidad y te atraen los misterios.",
+        "Sagittarius": "Te muestras optimista, aventurero y filosófico. Los demás te ven de espíritu libre y honesto. Afrontas la vida buscando la verdad y la expansión.",
+        "Capricorn": "Te muestras serio, ambicioso y disciplinado. Los demás te ven responsable y tradicional. Afrontas la vida con estructura y valoras los logros.",
+        "Aquarius": "Te muestras único, independiente y visionario. Los demás te ven innovador y humanitario. Afrontas la vida con originalidad y valoras la libertad.",
+        "Pisces": "Te muestras soñador, compasivo e intuitivo. Los demás te ven artístico y empático. Afrontas la vida con imaginación y sensibilidad espiritual."
+      }
+    },
+    "form": {
+      "birthInformation": "Tus datos de nacimiento",
+      "birthInformationTooltip": "Tu fecha de nacimiento establece el marco planetario base que se usa para generar tu carta. Indicar tu hora de nacimiento es opcional, pero mejora notablemente la precisión, ya que las posiciones planetarias cambian a lo largo del día. Proporcionar tu lugar de nacimiento afina aún más el cálculo, pues permite al sistema alinear las coordenadas celestes con tu punto geográfico de origen exacto.",
+      "selectDate": "Selecciona la fecha",
+      "selectTime": "Selecciona la hora",
+      "selectLocation": "Selecciona la ubicación",
+      "backToHour": "Volver a la hora",
+      "enterBirthHour": "Ingresa la hora de tu nacimiento",
+      "enterBirthMinute": "Ingresa el minuto de tu nacimiento",
+      "backToCountry": "Volver al país",
+      "searchCountries": "Buscar países...",
+      "useCurrentLocation": "Usar ubicación actual",
+      "searchStatesProvinces": "Buscar estados/provincias...",
+      "generating": "Generando...",
+      "generateChart": "Generar carta",
+      "errors": {
+        "calculateFailed": "No se pudo calcular la carta natal",
+        "createFailed": "No se pudo crear la entrada de la carta natal. Asegúrate de que la tabla birth_charts exista en tu base de datos.",
+        "unexpectedError": "Ocurrió un error inesperado"
+      }
+    }
+  },
+  "ReadingPage": {
+    "disclaimer": "Esta interpretación es generada por IA con fines informativos y de reflexión. Las interpretaciones de la IA pueden contener errores. Tómala como una perspectiva más y ten presente que las predicciones pueden ser imprecisas. No confíes ni dependas ciegamente de esta interpretación. Consulta siempre a un profesional para las decisiones importantes; no te bases únicamente en esta interpretación.",
+    "questionHeading": "Pregunta",
+    "viewDetails": "Ver todos los detalles",
+    "followUp": {
+      "badge": "Seguimiento",
+      "title": "Lectura de seguimiento",
+      "desc": "Las preguntas de seguimiento usan una lectura sencilla de una sola carta para una guía más enfocada",
+      "simple": "Lectura sencilla - 1 carta"
+    },
+    "chooseType": {
+      "title": "Elige tu tipo de lectura",
+      "desc": "Selecciona la profundidad de la guía que buscas"
+    },
+    "chooseCards": {
+      "title": "Elige tus cartas",
+      "desc": "Confía en tu intuición y selecciona {amount} de la tirada cósmica",
+      "reversed": "Invertida",
+      "selectFromSpread": "{count, plural, one {Selecciona # carta de la tirada cósmica} other {Selecciona # cartas de la tirada cósmica}}",
+      "selectedCount": "{selected} de {total} seleccionadas",
+      "swipeUpToSelect": "Desliza una carta hacia arriba para seleccionarla",
+      "circular": "Circular",
+      "linear": "Lineal",
+      "confirm": "Confirmar selección ({selected}/{total})",
+      "shuffle": "Barajar",
+      "consumeStar": "Iniciar la interpretación consumirá 1 estrella.",
+      "random": "Elegir por mí",
+      "options": "Opciones",
+      "manualSelect": "Seleccionar carta manualmente",
+      "manualSelectTitle": "Elige tus cartas",
+      "manualSelectDesc": "Selecciona {count} {count, plural, one {carta} other {cartas}} del mazo completo",
+      "majorArcana": "Arcanos Mayores",
+      "minorArcana": "Arcanos Menores",
+      "cups": "Copas",
+      "swords": "Espadas",
+      "wands": "Bastos",
+      "pentacles": "Oros",
+      "manualSelected": "{selected} de {total} seleccionadas",
+      "upright": "Al derecho",
+      "reversedTab": "Invertida",
+      "freeTierMaxCardsHint": "El plan gratuito permite sacar hasta {max} cartas. Mejora tu plan para más.",
+      "manualPickPaywallTitle": "La selección manual de cartas es una función para suscriptores",
+      "manualPickPaywallDesc": "Elige la carta que quieras del mazo completo. Mejora a Basic o Pro para desbloquearlo: el pago se procesa con Stripe en la página siguiente.",
+      "manualPickPaywallFeature": "Selección manual de cartas del mazo completo",
+      "manualPickPaywallInsufficient": "Se requiere mejorar el plan",
+      "manualPickPaywallNote": "Al elegir un plan irás al pago seguro de Stripe."
+    },
+    "editQuestion": {
+      "title": "Edita tu pregunta",
+      "label": "Tu pregunta",
+      "placeholder": "Plantea tu pregunta al reino cósmico...",
+      "hint": "Pulsa Ctrl+Enter para guardar, Escape para cancelar",
+      "reset": "Restablecer",
+      "cancel": "Cancelar",
+      "save": "Guardar cambios",
+      "saving": "Guardando..."
+    },
+    "interpretation": {
+      "title": "Tu lectura",
+      "sectionTitle": "Interpretación",
+      "sectionSubtitle": "Análisis de tus cartas impulsado por IA",
+      "detailed": {
+        "label": "Detallada"
+      },
+      "professionalAdviceBadge": "Necesitas asesoramiento profesional",
+      "professionalAdviceBadgeAria": "Tema sensible: descubre qué significa esta insignia",
+      "professionalAdviceHoverTitle": "Qué significa esta insignia",
+      "professionalAdviceHoverIntro": "Tu pregunta se clasificó como un área en la que los profesionales habilitados —y no el tarot— ofrecen una guía vinculante. Aquí las cartas solo brindan una reflexión simbólica.",
+      "professionalAdviceHoverHowTitle": "Cómo señalamos los ámbitos sensibles",
+      "professionalAdviceHoverLegal": "Legal: contratos, disputas, derechos, estrategia judicial, normas de inmigración y asuntos similares.",
+      "professionalAdviceHoverMedical": "Médico: síntomas, diagnóstico, tratamiento, medicación o salud mental clínica o de crisis.",
+      "professionalAdviceHoverFinancial": "Financiero: inversiones, trading, declaración de impuestos, reestructuración de deudas o planificación de jubilación regulada.",
+      "professionalAdviceHint": "Esta lectura es solo para la reflexión y no constituye asesoramiento legal, médico ni financiero. Consulta a un profesional cualificado para las decisiones en este ámbito.",
+      "error": "No se pudo generar la interpretación. Inténtalo de nuevo.",
+      "loading": {
+        "title": "Analizando tus cartas...",
+        "subtitle": "Generando tu interpretación personalizada..."
+      },
+      "perCard": {
+        "singleHeader": "La carta dice",
+        "multiHeader": "Cada carta dice"
+      },
+      "actionsHeader": "Acciones",
+      "actionsDesc": "Gestiona tu lectura e interactúa con ella",
+      "dialogs": {
+        "report": {
+          "title": "Reportar esta lectura",
+          "desc": "Selecciona un motivo y, si quieres, añade detalles.",
+          "submit": "Enviar",
+          "cancel": "Cancelar",
+          "placeholder": "Describe el motivo...",
+          "reasons": {
+            "select": "Selecciona un motivo",
+            "inappropriate": "Contenido inapropiado",
+            "spam": "Spam o engañoso",
+            "harassment": "Acoso u odio",
+            "privacy": "Problema de privacidad",
+            "other": "Otro"
+          }
+        },
+        "feedback": {
+          "title": "Comparte tu opinión",
+          "desc": "¿Qué tan útil fue esta interpretación?",
+          "placeholder": "Comentarios opcionales",
+          "submit": "Enviar",
+          "cancel": "Cancelar"
+        },
+        "unavailable": {
+          "title": "No se puede compartir",
+          "desc": "Compartir en {label} no está disponible por ahora. Descarga el contenido y súbelo manualmente.",
+          "ok": "Aceptar"
+        }
+      },
+      "share": {
+        "title": "Comparte tu lectura",
+        "desc": "Gana 5 estrellas gratis por cada nueva persona que visite tu enlace compartido ({earned}/{max})",
+        "learnMore": "Más información",
+        "more": "Más",
+        "facebook": "Facebook",
+        "messenger": "Messenger",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X",
+        "line": "LINE",
+        "whatsapp": "WhatsApp",
+        "telegram": "Telegram",
+        "snapchat": "Snapchat",
+        "discord": "Discord",
+        "pinterest": "Pinterest",
+        "tumblr": "Tumblr",
+        "wechat": "WeChat",
+        "reddit": "Reddit",
+        "sms": "SMS",
+        "email": "Email",
+        "imagePreparing": "Preparing your reading image…",
+        "selectInSheet": "Select {platform} in the share sheet",
+        "imageCopied": "Image copied — paste it into {platform}",
+        "imageSaved": "Image saved — attach it in {platform}",
+        "imageError": "Couldn't prepare the image. Please try again.",
+        "formatLabel": "Share format",
+        "formatImage": "Image",
+        "formatVideo": "Video",
+        "videoPreparing": "Recording your reading video…",
+        "videoReady": "Video ready — tap {platform} again to share",
+        "videoSaved": "Video saved — attach it in {platform}",
+        "videoError": "Couldn't prepare the video. Please try again."
+      },
+      "buttons": {
+        "regenerate": "Regenerar lectura",
+        "newReading": "Nueva lectura"
+      },
+      "actions": {
+        "copyLink": "Copiar enlace",
+        "copiedLink": "¡Copiado!",
+        "linkCopiedDesc": "Enlace copiado al portapapeles",
+        "shareDesc": "Comparte esta lectura",
+        "share": "Compartir",
+        "downloadReadingText": "Descargar la lectura como archivo de texto",
+        "downloadReadingImage": "Descargar la lectura como imagen",
+        "copyResult": "Copiar interpretación",
+        "askFollowUp": "Hacer seguimiento",
+        "askFollowUpPrompt": "¿Puedes ampliar esta lectura para mí?",
+        "keyMessage": "Mensaje clave",
+        "textCopiedDesc": "Texto copiado al portapapeles",
+        "download": "Descargar",
+        "downloadDesc": "Guardar imagen",
+        "downloadSheetTitleImage": "Descargar imagen",
+        "downloadSheetTitleVideo": "Descargar video",
+        "downloadSheetDesc": "Elige un estilo y previsualiza antes de guardar.",
+        "downloadPreviewTitle": "Vista previa",
+        "downloadPreviewAlt": "Vista previa de descarga",
+        "downloadPreviewFallback": "La vista previa aparecerá aquí",
+        "downloadPreviewError": "No se pudo cargar la vista previa",
+        "downloadStylesTitle": "Estilos",
+        "downloadStylesHint": "Toca para seleccionar",
+        "downloadBrandingTitle": "Marca",
+        "downloadBrandingHint": "La vista previa incluye la marca",
+        "downloadStyleStory": "Historia",
+        "downloadStyleSquare": "Cuadrado",
+        "downloadStyleLandscape": "Horizontal",
+        "downloadTabImage": "Imagen",
+        "downloadTabVideo": "Video",
+        "downloadVideoButton": "Descargar video",
+        "downloadVideoError": "No se pudo generar el video.",
+        "downloadVideoPreviewFallback": "La vista previa del video aparecerá aquí",
+        "downloadCancel": "Cancelar",
+        "cancel": "Cancelar",
+        "downloadButton": "Descargar",
+        "downloadError": "No se pudo generar la imagen.",
+        "versions": "Versiones",
+        "versionsDesc": "Ver otras versiones",
+        "report": "Reportar",
+        "reportDesc": "Reportar esta lectura",
+        "feedback": "Dar mi opinión",
+        "feedbackDesc": "Comparte tu opinión",
+        "voteUp": "Útil",
+        "voteUpDesc": "Esto fue útil",
+        "voteDown": "Poco útil",
+        "voteDownDesc": "Esto no fue útil",
+        "removeVoteUpDesc": "Quitar voto",
+        "removeVoteDownDesc": "Quitar voto",
+        "shareCta": "Ask your own question at askingfate.com",
+        "downloadStylePost": "Post"
+      },
+      "followUp": {
+        "badge": "Seguimiento",
+        "label": "Haz una pregunta de seguimiento",
+        "placeholder": "Escribe aquí tu pregunta de seguimiento..."
+      },
+      "disclaimer": "No confíes ni dependas ciegamente de esta interpretación. Esta interpretación es generada por IA con fines informativos. Tómala como una perspectiva más y ten presente que las interpretaciones pueden ser imprecisas. Consulta siempre a profesionales cualificados para las decisiones importantes de la vida.",
+      "adViewing": {
+        "title": "Mira un anuncio para desbloquear tu lectura",
+        "description": "Mira este breve anuncio para desbloquear tu interpretación personalizada del tarot. Tu apoyo nos ayuda a ofrecer lecturas gratuitas."
+      }
+    },
+    "adViewing": {
+      "title": "Mira un anuncio para desbloquear tu lectura",
+      "description": "Mira este breve anuncio para desbloquear tu interpretación personalizada del tarot. Tu apoyo nos ayuda a ofrecer lecturas gratuitas.",
+      "followUp": {
+        "badge": "Seguimiento"
+      },
+      "disclaimer": "Ver este anuncio nos ayuda a mantener el servicio gratuito. Puedes saltarlo si lo necesitas, pero agradecemos tu apoyo."
+    },
+    "rewardedAd": {
+      "title": "Desbloquea tu lectura",
+      "subtitle": "Mira un breve anuncio para revelar tu guía cósmica",
+      "reward": "Lectura gratis",
+      "loading": "Cargando anuncio...",
+      "ready": {
+        "title": "Anuncio listo",
+        "description": "Haz clic para empezar a verlo y desbloquear tu lectura",
+        "button": "Ver anuncio"
+      },
+      "playing": {
+        "title": "Viendo el anuncio",
+        "timeRemaining": "Quedan {seconds} segundos",
+        "progress": "Progreso",
+        "skip": "Saltar"
+      },
+      "completed": {
+        "title": "¡Anuncio completado!",
+        "description": "Gracias por verlo. Tu lectura ya está desbloqueada.",
+        "button": "Obtener mi lectura"
+      },
+      "error": {
+        "title": "Error en el anuncio",
+        "retry": "Reintentar",
+        "skip": "Saltar anuncio"
+      }
+    },
+    "adViewingDialog": {
+      "title": "Mira un anuncio para desbloquear tu lectura",
+      "questionLabel": "Tu pregunta:",
+      "selectedCards": "Cartas seleccionadas:",
+      "benefits": {
+        "title": "Lo que obtendrás:",
+        "freeReading": "Interpretación completa del tarot",
+        "detailedInterpretation": "Guía cósmica personalizada",
+        "supportService": "Ayuda a mantener nuestro servicio gratuito"
+      },
+      "duration": "Duración del anuncio: ~30 segundos",
+      "rememberPreference": "No volver a mostrar este mensaje (reproducir anuncios automáticamente)",
+      "disclaimer": "Ver este anuncio nos ayuda a ofrecer lecturas gratuitas. Puedes saltarlo si lo necesitas.",
+      "skip": "Saltar anuncio",
+      "backToCardSelection": "Volver a la selección de cartas",
+      "watchAd": "Ver anuncio"
+    },
+    "optimizedRewardedAd": {
+      "title": "Desbloquea tu lectura",
+      "subtitle": "Mira un breve anuncio para revelar tu guía cósmica",
+      "reward": "Lectura gratis",
+      "optimized": "Optimizado",
+      "loading": "Cargando anuncio...",
+      "preparingReading": "Preparando tu lectura...",
+      "preparingInterpretation": "Preparando la interpretación...",
+      "interpretationReady": "¡Interpretación lista!",
+      "ready": {
+        "title": "Anuncio listo",
+        "description": "Haz clic para empezar a verlo y desbloquear tu lectura",
+        "button": "Ver anuncio"
+      },
+      "playing": {
+        "title": "Viendo el anuncio",
+        "timeRemaining": "Quedan {seconds} segundos",
+        "progress": "Progreso",
+        "skip": "Saltar"
+      },
+      "completed": {
+        "title": "¡Anuncio completado!",
+        "description": "Gracias por verlo. Tu lectura ya está desbloqueada.",
+        "button": "Obtener mi lectura"
+      },
+      "error": {
+        "title": "Error en el anuncio",
+        "retry": "Reintentar",
+        "skip": "Saltar anuncio"
+      }
+    }
+  },
+  "Meta": {
+    "Site": {
+      "siteName": "AskingFate",
+      "url": "https://askingfate.com"
+    },
+    "Layout": {
+      "title": "Adivino con IA - askingfate.com",
+      "description": "Descubre lecturas de fortuna impulsadas por IA en tarot, astrología, numerología, namelogía y más. Perspectivas personalizadas para ayudarte a recorrer tu destino. Por ahora el tarot es la estrella de la página de inicio.",
+      "keywords": "adivino con IA, adivino con IA gratis, adivinación en línea, lectura de tarot con IA, lectura de tarot gratis, guía espiritual, AskingFate, Asking Fate"
+    },
+    "Home": {
+      "title": "Adivino con IA - askingfate.com",
+      "description": "Obtén lecturas gratuitas de cartas de tarot con IA y guía espiritual. Pregunta lo que quieras sobre tu destino y recibe perspectivas personalizadas de nuestro avanzado sistema de tarot con IA.",
+      "keywords": "adivino con IA, adivino con IA gratis, adivinación en línea, lectura de tarot con IA, lectura de tarot gratis, guía espiritual, preguntas sobre el destino, interpretación de cartas de tarot, AskingFate, Asking Fate",
+      "ogTitle": "Adivino con IA - askingfate.com",
+      "ogDescription": "Obtén lecturas gratuitas de cartas de tarot con IA y guía espiritual. Pregunta lo que quieras sobre tu destino.",
+      "twitterTitle": "Adivino con IA - askingfate.com",
+      "twitterDescription": "Obtén lecturas gratuitas de cartas de tarot con IA y guía espiritual. Pregunta lo que quieras sobre tu destino."
+    },
+    "About": {
+      "title": "Sobre la lectura de fortuna con IA - AskingFate",
+      "description": "Descubre cómo AskingFate combina tradiciones del tarot con siglos de historia y tecnología de IA de vanguardia para ofrecer guía cósmica personalizada y perspectivas espirituales.",
+      "keywords": "tecnología de tarot con IA, historia de la lectura de tarot, guía espiritual con IA, tradiciones místicas, tecnología de interpretación de cartas de tarot",
+      "ogTitle": "Acerca de - Tecnología de lectura de tarot con IA",
+      "ogDescription": "Descubre cómo combinamos la antigua sabiduría del tarot con la moderna tecnología de IA para una guía espiritual personalizada.",
+      "twitterTitle": "Acerca de - Tecnología de lectura de tarot con IA",
+      "twitterDescription": "Descubre cómo combinamos la antigua sabiduría del tarot con la moderna tecnología de IA para una guía espiritual personalizada."
+    },
+    "Reading": {
+      "title": "Lectura de cartas de tarot con IA - AskingFate",
+      "description": "Obtén una lectura personalizada de cartas de tarot con IA, gratis. Haz tu pregunta y recibe interpretaciones detalladas con guía espiritual de nuestro avanzado sistema de IA.",
+      "keywords": "lectura de cartas de tarot, lectura de tarot con IA, lectura de tarot gratis, interpretación de cartas de tarot, guía espiritual, lectura de tarot en línea",
+      "ogTitle": "Lectura de cartas de tarot con IA - Obtén tu lectura gratis",
+      "ogDescription": "Obtén una lectura personalizada de cartas de tarot con IA, gratis. Haz tu pregunta y recibe interpretaciones detalladas.",
+      "twitterTitle": "Lectura de cartas de tarot con IA - Obtén tu lectura gratis",
+      "twitterDescription": "Obtén una lectura personalizada de cartas de tarot con IA, gratis. Haz tu pregunta y recibe interpretaciones detalladas."
+    },
+    "BirthChart": {
+      "title": "Carta natal - AskingFate",
+      "description": "Genera tu carta natal astrológica personalizada introduciendo tu fecha, hora y lugar de nacimiento. Descubre tu plano cósmico con posiciones planetarias y casas detalladas.",
+      "keywords": "carta natal, carta astral, gráfico astrológico, plano cósmico, posiciones planetarias, astrología, horóscopo",
+      "ogTitle": "Carta natal - Descifra tu plano cósmico",
+      "ogDescription": "Genera tu carta natal astrológica personalizada introduciendo tu fecha, hora y lugar de nacimiento.",
+      "twitterTitle": "Carta natal - Descifra tu plano cósmico",
+      "twitterDescription": "Genera tu carta natal astrológica personalizada introduciendo tu fecha, hora y lugar de nacimiento."
+    },
+    "Contact": {
+      "title": "Contáctanos - AskingFate",
+      "description": "¿Tienes preguntas sobre tu experiencia de lectura de tarot con IA? Contacta a nuestro equipo de soporte para recibir ayuda en tu viaje cósmico y guía espiritual.",
+      "keywords": "soporte de lectura de tarot, ayuda de tarot con IA, contacto de guía espiritual, preguntas sobre lectura de tarot, atención al cliente",
+      "ogTitle": "Contáctanos - Obtén ayuda con tu lectura de tarot con IA",
+      "ogDescription": "¿Tienes preguntas sobre tu experiencia de lectura de tarot con IA? Contacta a nuestro equipo de soporte para recibir ayuda.",
+      "twitterTitle": "Contáctanos - Obtén ayuda con tu lectura de tarot con IA",
+      "twitterDescription": "¿Tienes preguntas sobre tu experiencia de lectura de tarot con IA? Contacta a nuestro equipo de soporte para recibir ayuda."
+    },
+    "PrivacyPolicy": {
+      "title": "Política de privacidad - AskingFate",
+      "description": "Descubre cómo AskingFate protege tu privacidad y tu información personal al usar nuestro servicio de lectura de tarot con IA. Lee nuestra política de privacidad completa.",
+      "keywords": "política de privacidad, protección de datos, privacidad del tarot con IA, seguridad de la información personal, privacidad de la lectura de tarot, protección de datos del usuario",
+      "ogTitle": "Política de privacidad - Tu protección de datos y derechos de privacidad",
+      "ogDescription": "Descubre cómo AskingFate protege tu privacidad y tu información personal al usar nuestro servicio de lectura de tarot con IA.",
+      "twitterTitle": "Política de privacidad - Tu protección de datos y derechos de privacidad",
+      "twitterDescription": "Descubre cómo AskingFate protege tu privacidad y tu información personal al usar nuestro servicio de lectura de tarot con IA."
+    },
+    "TermsOfService": {
+      "title": "Términos del servicio - AskingFate",
+      "description": "Lee los términos del servicio de la plataforma de lectura de tarot con IA de AskingFate. Comprende tus derechos y responsabilidades al usar nuestro servicio de guía espiritual.",
+      "keywords": "términos del servicio, términos y condiciones, términos del tarot con IA, términos de la lectura de tarot, acuerdo de servicio, acuerdo de usuario",
+      "ogTitle": "Términos del servicio - Términos y condiciones de la lectura de tarot con IA",
+      "ogDescription": "Lee los términos del servicio de la plataforma de lectura de tarot con IA de AskingFate y comprende tus derechos y responsabilidades.",
+      "twitterTitle": "Términos del servicio - Términos y condiciones de la lectura de tarot con IA",
+      "twitterDescription": "Lee los términos del servicio de la plataforma de lectura de tarot con IA de AskingFate y comprende tus derechos y responsabilidades."
+    },
+    "Demo": {
+      "title": "Solicitar una demo - AskingFate",
+      "description": "Mira AskingFate en acción. Solicita una breve demostración en vivo y prueba una vista previa interactiva."
+    },
+    "Articles": {
+      "title": "Artículos y guías - AskingFate",
+      "description": "Guías al estilo documentación: cómo jugar, compartir lecturas, invitar amigos, crear contenido, ayuda y preguntas frecuentes."
+    },
+    "PrivacyRedactionArticle": {
+      "title": "Privacidad de los mensajes y ocultación de datos personales - AskingFate",
+      "description": "Cómo AskingFate detecta la información personal en las consultas y qué significa el aviso del chat."
+    }
+  },
+  "Articles": {
+    "title": "Artículos y guías",
+    "subtitle": "Guías útiles al estilo documentación sobre AskingFate.",
+    "knowledgeHub": "Centro de conocimiento",
+    "searchPlaceholder": "Buscar artículos...",
+    "cantFind": "¿No encuentras lo que buscas?",
+    "contactSupport": "Contactar con soporte",
+    "badges": {
+      "earn": "Gana estrellas",
+      "basics": "Conceptos básicos",
+      "support": "Soporte",
+      "faq": "Preguntas frecuentes",
+      "privacy": "Privacidad"
+    },
+    "items": {
+      "tarot": {
+        "title": "Significados de las cartas del tarot",
+        "description": "Explora los significados al derecho e invertidos de las 78 cartas (Arcanos Mayores y Menores)."
+      },
+      "createContent": {
+        "title": "Crea contenido sobre nosotros",
+        "description": "Escribe, publica o graba sobre AskingFate y gana estrellas."
+      },
+      "shareReading": {
+        "title": "Comparte una lectura",
+        "description": "Comparte el enlace de tu lectura y gana hasta 3 estrellas al día."
+      },
+      "referFriend": {
+        "title": "Invita a un amigo",
+        "description": "Invita a tus amigos. Ambos ganan estrellas cuando se unen."
+      },
+      "howToPlay": {
+        "title": "Cómo jugar",
+        "description": "Haz una pregunta, elige cartas y reflexiona, paso a paso."
+      },
+      "helpSupport": {
+        "title": "Ayuda y soporte",
+        "description": "Obtén ayuda, contacta con soporte y consejos para solucionar problemas."
+      },
+      "faq": {
+        "title": "Preguntas frecuentes",
+        "description": "Respuestas a las preguntas más comunes sobre las lecturas y las estrellas."
+      },
+      "privacyRedaction": {
+        "title": "Privacidad de los mensajes y ocultación de datos personales",
+        "description": "Qué significa el aviso del chat y cómo detectamos los datos personales en tus consultas."
+      }
+    }
+  },
+  "PrivacyRedactionArticle": {
+    "title": "Privacidad de los mensajes y ocultación de datos personales",
+    "subtitle": "Qué significa el pequeño aviso bajo tu mensaje, qué tratamos como información personal y cómo funciona la detección.",
+    "updated": "Mayo de 2026",
+    "onThisPage": "En esta página",
+    "sections": {
+      "notice": {
+        "title": "Qué significa el aviso",
+        "p1": "Si ves “Información personal eliminada antes del procesamiento” bajo tu consulta, nuestro sistema identificó datos que podrían identificar a una persona o contactarla, y eliminó o reemplazó esos fragmentos antes de seguir procesando el texto.",
+        "p2": "Es posible que sigas viendo tu redacción original en este dispositivo cuando podemos restaurarla desde la sesión de tu navegador. Las copias que se almacenan o se envían usan marcadores neutros en lugar de nombres, correos o números reales."
+      },
+      "criteria": {
+        "title": "Qué tratamos como información personal",
+        "intro": "La detección se centra en categorías comunes de información de identificación personal, entre ellas:",
+        "person": "Nombres de personas y referencias identificables a individuos",
+        "email": "Direcciones de correo electrónico",
+        "phone": "Números de teléfono (normalmente secuencias con suficientes dígitos para parecer una línea real)",
+        "handle": "Nombres de usuario de redes o plataformas (por ejemplo, @usuario)",
+        "address": "Direcciones postales o domicilios"
+      },
+      "how": {
+        "title": "Cómo funciona la detección",
+        "p1": "Cuando envías un mensaje, realizamos una revisión automática que busca este tipo de patrones y contexto antes de guardar la consulta o pasarla a la IA.",
+        "p2": "Un segundo paso aplica comprobaciones basadas en reglas (por ejemplo, formas evidentes de correo, @usuarios y secuencias de dígitos similares a teléfonos) para que las filtraciones obvias se detecten igualmente si el primer paso pasa algo por alto."
+      },
+      "placeholders": {
+        "title": "Marcadores que podrías ver",
+        "p1": "El texto saneado puede contener etiquetas como [Persona], [Email], [Teléfono], [Usuario] o [Dirección]. La asistente tiene instrucciones de responder de forma útil sin repetir esas etiquetas ni inventar los datos privados subyacentes.",
+        "privacyPolicyLink": "Para conocer prácticas de datos más amplias, consulta nuestra",
+        "privacyPolicy": "Política de privacidad"
+      },
+      "fallback": {
+        "title": "Tu privacidad más allá de este aviso",
+        "p1": "Esta guía explica la ocultación de datos en las consultas del chat. Para saber cómo gestionamos las cookies, las cuentas y el uso general de los datos, lee nuestra Política de privacidad."
+      }
+    }
+  },
+  "TarotArticle": {
+    "overviewUpright": "Resumen (al derecho)",
+    "overviewReversed": "Resumen (invertida)",
+    "relationships": "Relaciones",
+    "work": "Trabajo y carrera",
+    "finance": "Finanzas",
+    "health": "Salud",
+    "upright": "Al derecho",
+    "reversed": "Invertida",
+    "yesNo": "Sí/No",
+    "zodiac": "Zodiaco",
+    "element": "Elemento",
+    "tarot": "Tarot",
+    "majorArcana": "Major Arcana",
+    "minorArcana": "Minor Arcana",
+    "theReading": "The Reading",
+    "continue": "Continue",
+    "readArticle": "Read article",
+    "askPlaceholder": "Ask a question about this card...",
+    "askEyebrow": "About this card",
+    "askHint": "explains its meaning only",
+    "askSuggestions": [
+      "What does this card mean?",
+      "What does it mean for love?",
+      "What does it say about work & career?",
+      "How does the reversed differ from upright?"
+    ],
+    "lightGathers": "Light gathers",
+    "lightRecedes": "Light recedes",
+    "tapToFlip": "Tap to change card orientation",
+    "orientationGroup": "Choose card orientation",
+    "allTarotCards": "All Tarot Cards",
+    "allTarotCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "howToPlay": "How to Play",
+    "howToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "faq": "FAQ",
+    "faqDesc": "Answers to common questions about readings.",
+    "cardSubtitle": "Upright and reversed meanings with practical guidance.",
+    "onThisPage": "On this page",
+    "backToTarot": "Tarot",
+    "relatedAllCardsTitle": "All Tarot Cards",
+    "relatedAllCardsDesc": "Browse all 78 cards by arcana and suit.",
+    "relatedHowToPlayTitle": "How to Play",
+    "relatedHowToPlayDesc": "Follow a simple flow for meaningful readings.",
+    "relatedFaqTitle": "FAQ",
+    "relatedFaqDesc": "Answers to common questions about readings and stars."
+  },
+  "Auth": {
+    "SignIn": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión para continuar tu viaje cósmico",
+      "google": "Iniciar sesión con Google",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "Introduce tu correo",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Introduce tu contraseña",
+      "forgot": "¿Olvidaste tu contraseña?",
+      "button": "Iniciar sesión",
+      "buttonLoading": "Iniciando sesión...",
+      "signupPrompt": "¿Nuevo en AskingFate?",
+      "signupLink": "Crea una cuenta"
+    },
+    "SignUp": {
+      "title": "Únete al cosmos",
+      "subtitle": "Crea tu cuenta y comienza tu viaje místico",
+      "google": "Registrarse con Google",
+      "success": "¡Cuenta creada con éxito! Revisa tu correo para verificar tu cuenta. Redirigiendo al inicio de sesión...",
+      "nameLabel": "Nombre completo",
+      "namePlaceholder": "Introduce tu nombre completo",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "Introduce tu correo",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Crea una contraseña",
+      "confirmPasswordLabel": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Confirma tu contraseña",
+      "agreePrefix": "Acepto los",
+      "terms": "Términos del servicio",
+      "and": "y la",
+      "privacy": "Política de privacidad",
+      "button": "Crear cuenta",
+      "buttonLoading": "Creando cuenta...",
+      "signinPrompt": "¿Ya tienes una cuenta?",
+      "signinLink": "Inicia sesión"
+    }
+  },
+  "UserProfile": {
+    "notifications": "Notificaciones",
+    "yourReading": "Tu lectura",
+    "calendar": "Mi calendario",
+    "birthChart": "Mi carta natal",
+    "profile": "Perfil",
+    "account": "Cuenta",
+    "theme": "Tema",
+    "billing": "Facturación",
+    "settings": "Ajustes",
+    "signOut": "Cerrar sesión",
+    "signingOut": "Cerrando sesión...",
+    "themes": {
+      "default": "Predeterminado",
+      "antiverse": "Antiverso",
+      "zodiac": "Zodiaco",
+      "singularity": "Singularidad",
+      "luminous": "Luminoso",
+      "mystic": "Místico"
+    }
+  },
+  "Calendar": {
+    "eyebrow": "Mi calendario",
+    "title": "Mi calendario de la fortuna",
+    "subtitle": "Calculado a partir de las posiciones planetarias reales y tu carta natal. Toca cualquier día para ver detalles más profundos.",
+    "prevMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "todayGlance": "Hoy",
+    "auth": {
+      "title": "Inicia sesión para usar tu calendario",
+      "body": "Usamos tu fecha de nacimiento para calcular la fortuna de cada día. Esa información vive en tu perfil.",
+      "cta": "Iniciar sesión"
+    },
+    "birth": {
+      "title": "Añade tu fecha de nacimiento a tu perfil",
+      "body": "Necesitamos tu fecha de nacimiento para calcular la astrología diaria personalizada.",
+      "cta": "Ir al perfil"
+    },
+    "overview": {
+      "luckyDaysLabel": "Días de suerte",
+      "luckyDaysSub": "Días en que los astros te acompañan",
+      "cautionDaysLabel": "Días de cautela",
+      "cautionDaysSub": "Cautela y evitar combinados",
+      "peakDayLabel": "Día cumbre",
+      "peakDaySub": "Puntuación general {score}/10",
+      "daysSuffix": "días"
+    },
+    "weekdays": {
+      "sun": "Dom",
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb"
+    },
+    "grid": {
+      "loadError": "No se pudo cargar este mes: {error}"
+    },
+    "detail": {
+      "missingTitle": "No hay datos del cielo para este día",
+      "missingBody": "Este día está fuera del rango del códice disponible actualmente.",
+      "selectPrompt": "Selecciona un día del calendario para ver los detalles.",
+      "scoreCaption": "Puntuación diaria a partir de las posiciones planetarias reales de esa fecha",
+      "highlightsWarnings": "Aspectos destacados y advertencias",
+      "selectedTransitTitle": "Tránsito de este día",
+      "selectedTransitError": "No se pudieron cargar los detalles del tránsito de este día. Inténtalo de nuevo en un momento.",
+      "vitality": "Cómo te sientes ahora mismo",
+      "eventSignals": "Ideal para",
+      "lucky": "Detalles de la suerte"
+    },
+    "quality": {
+      "excellent": "Excelente",
+      "good": "Bueno",
+      "neutral": "Neutral",
+      "caution": "Cautela",
+      "avoid": "Evitar"
+    },
+    "vitalityLabels": {
+      "career": "Carrera",
+      "love": "Amor",
+      "finance": "Finanzas",
+      "health": "Salud",
+      "social": "Social",
+      "spiritual": "Espiritual"
+    },
+    "eventLabels": {
+      "job_change": "Cambio de trabajo",
+      "resignation": "Renuncia",
+      "marriage": "Matrimonio / Compromiso",
+      "contract_sign": "Firmar un contrato",
+      "travel_long": "Viaje largo",
+      "major_purchase": "Compra importante"
+    },
+    "lucky": {
+      "labels": {
+        "colors": "Colores de la suerte",
+        "numbers": "Números de la suerte",
+        "direction": "Dirección de la suerte",
+        "time": "Hora de la suerte"
+      },
+      "compassNorth": "N",
+      "colors": {
+        "gold": "Dorado",
+        "silver": "Plateado",
+        "purple": "Morado",
+        "sky": "Azul cielo",
+        "emerald": "Esmeralda",
+        "maroon": "Granate",
+        "pearlWhite": "Blanco perla",
+        "rosePink": "Rosa palo",
+        "goldenBrown": "Marrón dorado",
+        "mustardYellow": "Amarillo mostaza",
+        "azure": "Azul celeste",
+        "seaGreen": "Verde mar",
+        "amberOrange": "Naranja ámbar"
+      },
+      "directions": {
+        "north": "Norte",
+        "northEast": "Noreste",
+        "east": "Este",
+        "southEast": "Sureste",
+        "south": "Sur",
+        "southWest": "Suroeste",
+        "west": "Oeste",
+        "northWest": "Noroeste"
+      }
+    },
+    "premium": {
+      "label": "Premium",
+      "badge": "30 % de descuento",
+      "title": "Desbloquea el calendario de todo el año",
+      "body": "Consulta días futuros ilimitados, guarda tus perspectivas y recibe recordatorios de fechas importantes.",
+      "cta": "Mejora por ฿199/mes"
+    },
+    "locked": {
+      "title": "Desbloquea este día",
+      "paywallTitle": "Desbloquear fechas es una función para suscriptores",
+      "paywallDesc": "Consulta las perspectivas planetarias de cualquier fecha del año. Mejora a Basic o Pro para desbloquearlo: el pago se procesa con Stripe en la página siguiente.",
+      "paywallFeature": "Acceso al calendario más allá de tu ventana gratuita de ±30 días",
+      "paywallInsufficient": "Se requiere mejorar el plan",
+      "paywallNote": "Al elegir un plan irás al pago seguro de Stripe.",
+      "dialogBody": "Consulta las perspectivas planetarias de cualquier fecha. Suscríbete a Basic o Pro para desbloquearlo: el pago se procesa con Stripe en la página siguiente.",
+      "bodyFree": "Esta fecha está fuera de tu ventana gratuita (±30 días). Suscríbete a Basic para desbloquearla de inmediato: unos {price}/mes por ±1 año de acceso al calendario. El pago se procesa con Stripe en la página siguiente.",
+      "bodyBasic": "Esta fecha está fuera de tu ventana Basic (±1 año). Mejora a Pro para acceso ilimitado al calendario: desde {price}/mes. El pago se procesa con Stripe en la página siguiente.",
+      "noteFree": "Basic incluye una asignación mensual de estrellas para las lecturas del chat; el desbloqueo del calendario no se cobra por día.",
+      "ctaFree": "Ir al pago de Basic (Stripe)",
+      "ctaBasic": "Ir al pago de Pro (Stripe)",
+      "cta": "Mejorar",
+      "cellHint": "Disponible en Basic"
+    },
+    "starUnlock": {
+      "description": "O gasta una estrella para desvelar solo esta fecha. El desbloqueo se guarda en tu cuenta y queda disponible para siempre.",
+      "cta": "Desbloquear con {cost} estrella",
+      "insufficient": "No tienes suficientes estrellas para desbloquear esta fecha.",
+      "error": "No se pudo desbloquear esta fecha. Inténtalo de nuevo."
+    },
+    "ai": {
+      "title": "Pregúntale a tu calendario",
+      "body": "Elige una pregunta y exploraré tus días accesibles para encontrar la mejor oportunidad.",
+      "bestDay": "Mejor día",
+      "confidenceLabel": "Confianza",
+      "signalScore": "Puntuación de señal",
+      "overallScore": "Puntuación general",
+      "warningCount": "Advertencias",
+      "topHighlight": "Por qué destaca este día",
+      "watchOut": "Ten cuidado",
+      "noResult": "Todavía no hay un día destacado accesible en tu ventana actual.",
+      "error": "No pude explorar tu calendario en este momento. Inténtalo de nuevo.",
+      "summary": "Esta fecha muestra la señal de {action} más fuerte entre los días a los que puedes acceder actualmente.",
+      "confidence": {
+        "high": "Alta",
+        "medium": "Media",
+        "low": "Baja"
+      },
+      "prompts": {
+        "resignation": "Mejor día para renunciar",
+        "contract_sign": "Mejor día para firmar un contrato",
+        "travel_long": "Mejor día para viajar",
+        "major_purchase": "Mejor día para una compra grande"
+      }
+    },
+    "suggestions": {
+      "focusToday": "¿En qué debería centrarme este día?",
+      "goodDecisionDay": "¿Es un buen día para una gran decisión?",
+      "activitiesForToday": "¿Qué actividades encajan con la energía de este día?",
+      "warnings": "¿Algo a lo que deba prestar atención?"
+    },
+    "cta": {
+      "title": "¿Qué te gustaría preguntar a continuación?",
+      "body": "Deja que AskingFate te ayude a interpretar tu situación concreta.",
+      "button": "Preguntar a AskingFate"
+    },
+    "composerPlaceholder": "Pregunta sobre este día…"
+  },
+  "Notifications": {
+    "title": "Notificaciones",
+    "noNotifications": "No hay notificaciones",
+    "noNotificationsDescription": "¡Estás al día! Te avisaremos sobre actualizaciones importantes."
+  },
+  "Billing": {
+    "title": "Historial de transacciones",
+    "subtitle": "Consulta tus registros de compra y tu información de facturación",
+    "authRequired": "Inicia sesión para acceder a la facturación",
+    "loading": "Cargando tu historial de facturación...",
+    "currentPlan": "Plan actual",
+    "starterPlan": "Plan Inicial",
+    "basicPlan": "Básico",
+    "proPlan": "Pro",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "planSuffix": "Plan",
+    "renewalSuffix": "Renovación",
+    "active": "ACTIVO",
+    "ending": "FINALIZANDO",
+    "starsPerPeriod": "Estrellas por periodo",
+    "planDetails": "Detalles del plan",
+    "billingHistory": "Historial de facturación",
+    "paymentMethod": "Método de pago",
+    "managePaymentMethod": "Gestionar método de pago",
+    "nextBilling": "Próxima facturación",
+    "manageSubscription": "Gestionar suscripción",
+    "upgradePlan": "Mejorar plan",
+    "buyAddons": "Comprar complementos",
+    "viewInvoices": "Ver facturas",
+    "noTransactions": "No se encontraron transacciones",
+    "transactionId": "ID de transacción",
+    "amount": "Importe",
+    "status": "Estado",
+    "date": "Fecha",
+    "viewDetails": "Ver detalles",
+    "filterByDate": "Filtrar por fecha",
+    "pickDate": "Elige una fecha",
+    "clearFilters": "Borrar filtros",
+    "loadingHistory": "Cargando tu historial mágico...",
+    "noPurchases": "Aún no hay compras",
+    "noPurchasesDescription": "Tu viaje mágico comienza con tu primera compra de estrellas",
+    "stars": "Estrellas",
+    "purchase": "Compra",
+    "subscription": "Suscripción",
+    "digitalWallet": "Cartera digital",
+    "payment": "Pago",
+    "cancelSubscription": "Cancelar suscripción",
+    "cancelling": "Cancelando...",
+    "subscriptionCancelled": "Suscripción cancelada correctamente",
+    "confirmCancel": "¿Cancelar suscripción?",
+    "cancelWarning": "Tu suscripción seguirá activa hasta el final de tu periodo de facturación actual. Después de eso, tus estrellas volverán al límite del plan gratuito.",
+    "back": "Atrás",
+    "receipt": "Recibo",
+    "totalAmount": "Importe total",
+    "subscriptionAccessDesc": "Recargas de estrellas mensuales o anuales con interpretaciones premium.",
+    "addonPacks": "Paquetes complementarios",
+    "addonStars": "estrellas complementarias",
+    "noAddons": "Aún no tienes paquetes complementarios.",
+    "estimatedTotal": "Total estimado",
+    "refund": "Reembolso",
+    "refunded": "Reembolsado",
+    "confirmRefund": "¿Solicitar reembolso?",
+    "refundWarning": "Los reembolsos están disponibles dentro de los 7 días posteriores a la compra para las transacciones elegibles.",
+    "keepPurchase": "Conservar compra",
+    "confirmRefundAction": "Sí, reembolsar",
+    "refundSuccess": "Reembolso solicitado",
+    "refundFailed": "El reembolso falló",
+    "revertDowngrade": "Revertir cambio a plan inferior",
+    "revertDowngradeSuccess": "Cambio a plan inferior revertido",
+    "revertDowngradeFailed": "No se pudo revertir el cambio a plan inferior",
+    "removeAddon": "Quitar",
+    "addonRemoved": "Complemento eliminado",
+    "addonRemoveFailed": "No se pudo quitar el complemento",
+    "confirmRemoveAddon": "¿Quitar el paquete complementario?",
+    "removeAddonWarning": "Este complemento se eliminará a partir de tu próximo ciclo de facturación. Puedes seguir usando sus estrellas hasta entonces.",
+    "keepAddon": "Conservar complemento",
+    "confirmRemoveAddonAction": "Sí, quitar complemento",
+    "transactionDetails": "Detalles de la transacción",
+    "reference": "Referencia",
+    "currency": "Moneda",
+    "identifiers": "Identificadores",
+    "providerId": "ID del proveedor",
+    "needHelp": "¿Necesitas ayuda?",
+    "supportDesc": "Si tienes alguna pregunta sobre esta transacción, nuestro mágico equipo de soporte está aquí para ayudarte.",
+    "contactSupport": "Contactar con soporte",
+    "transactionNotFound": "Transacción no encontrada",
+    "starPurchase": "Compra de estrellas",
+    "starPackDesc": "Moneda celestial para tus lecturas cósmicas."
+  },
+  "Contact": {
+    "title": "Contacto y soporte",
+    "subtitle": "¿Necesitas ayuda? ¿Tienes preguntas? Estamos aquí para acompañarte en tu viaje místico.",
+    "faqTitle": "Preguntas frecuentes",
+    "stillNeedHelp": "¿Aún necesitas ayuda?",
+    "stillNeedHelpDescription": "Si no encuentras lo que buscas, no dudes en escribirnos. Nuestro equipo de soporte se dedica a que tengas la mejor experiencia con AskingFate.",
+    "sendMessage": "Envíanos un mensaje",
+    "emailSupport": "Soporte por correo",
+    "emailSupportDescription": "Recibe ayuda por correo electrónico",
+    "responseTime24h": "Respuesta en 24-48 h",
+    "liveChat": "Chat en vivo",
+    "liveChatDescription": "Conversa con nuestro equipo de soporte",
+    "availableHours": "Disponible de 9 a. m. a 6 p. m. (EST)",
+    "weekdays": "Lun a vie",
+    "responseTime": "Tiempo de respuesta",
+    "responseTimeDescription": "Tiempo de respuesta habitual",
+    "responseTimeValue": "Dentro de 24-48 horas",
+    "businessDays": "Días hábiles",
+    "faq": {
+      "howToGetStars": "¿Cómo consigo más estrellas?",
+      "howToGetStarsAnswer": "Puedes comprar estrellas en nuestra página de facturación o ganarlas mediante promociones especiales. Consulta la página de precios para ver los paquetes actuales.",
+      "refundPolicy": "¿Puedo solicitar un reembolso?",
+      "refundPolicyAnswer": "Ofrecemos reembolsos dentro de los 7 días posteriores a la compra por las estrellas no utilizadas. Escríbenos con los detalles de tu transacción para ayudarte.",
+      "dataPrivacy": "¿Mis datos de lectura son privados?",
+      "dataPrivacyAnswer": "Sí, todas tus lecturas e información personal se mantienen completamente privadas y seguras. Nunca compartimos tus datos con terceros.",
+      "readingAccuracy": "¿Qué tan precisas son las lecturas?",
+      "readingAccuracyAnswer": "Nuestras interpretaciones potenciadas por IA ofrecen una guía reveladora basada en la sabiduría tradicional del tarot. Úsalas como una herramienta para la reflexión y el crecimiento personal."
+    },
+    "form": {
+      "name": "Nombre",
+      "namePlaceholder": "Tu nombre",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@correo.com",
+      "subject": "Asunto",
+      "subjectPlaceholder": "¿En qué podemos ayudarte?",
+      "message": "Mensaje",
+      "messagePlaceholder": "Describe tu consulta o inquietud con todo detalle...",
+      "submit": "Enviar mensaje",
+      "submitting": "Enviando...",
+      "success": "¡Mensaje enviado correctamente! Te responderemos pronto.",
+      "error": "No se pudo enviar el mensaje. Inténtalo de nuevo."
+    }
+  },
+  "Pricing": {
+    "title": "Planes y precios",
+    "subtitle": "Elige el plan perfecto para tu viaje místico",
+    "heroTitle": "Elige tus estrellas y desbloquea revelaciones más profundas",
+    "heroDescription": "Elige Básico o Pro con estrellas mensuales o anuales.",
+    "priceNote": "Precios en THB. Los planes anuales se cobran una sola vez.",
+    "currency": "Moneda",
+    "changeCurrency": "Cambiar moneda",
+    "currencySearchPlaceholder": "Buscar moneda o código...",
+    "currencyNoResults": "Ninguna moneda coincide con tu búsqueda.",
+    "subscriptionPlans": "planes de suscripción",
+    "oneTimePacks": "paquetes de estrellas complementarias",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "mostPopular": "El más popular",
+    "getStarted": "Comenzar",
+    "currentPlan": "Plan actual",
+    "owned": "Adquirido",
+    "upgradeSuccess": "Mejora realizada con éxito",
+    "downgradeSuccess": "Cambio a plan inferior realizado con éxito",
+    "upgradeError": "La mejora falló",
+    "signInToUpgrade": "Inicia sesión para mejorar tu plan",
+    "upgradePlan": "Mejorar plan",
+    "monthlySubscription": "Suscripción mensual",
+    "firstMonthOffer": "Oferta solo para el primer mes",
+    "thenRegularPrice": "luego {price}/mes",
+    "annualSubscription": "Suscripción anual",
+    "perMonth": "al mes",
+    "perYear": "al año",
+    "autoRenew": "renovación automática",
+    "cancelAnytime": "cancela cuando quieras",
+    "billedYearly": "facturación anual",
+    "save17": "Ahorra 17 %",
+    "savePercent": "Ahorra {percent} %",
+    "oneTime": "Complemento",
+    "instantDelivery": "entrega instantánea",
+    "days": "días",
+    "stars": "estrellas",
+    "popular": "Popular",
+    "bestValue": "Mejor valor",
+    "ongoingSupport": "Soporte continuo para nuevas funciones",
+    "bonusStars": "Estrellas de regalo y ventajas ocasionales",
+    "cancelFromAccount": "Cancela cuando quieras desde tu cuenta",
+    "bestValueYearly": "El plan anual con mejor valor",
+    "samePerks": "Las mismas ventajas que el mensual",
+    "cancelRenewal": "Cancela la renovación cuando quieras",
+    "basicPlan": "Básico",
+    "proPlan": "Pro",
+    "basicDescription": "100 estrellas cada mes para una guía constante.",
+    "proDescription": "599 estrellas cada mes para una exploración más profunda.",
+    "subscribeNow": "Suscríbete ahora",
+    "downgradePlan": "Cambiar a plan inferior",
+    "planChange": {
+      "upgradeTitle": "Confirmar mejora",
+      "upgradeDescription": "Solo se te cobrará la diferencia entre tu plan actual y este plan ({amount}). Tu periodo de facturación se mantiene igual.",
+      "downgradeTitle": "Confirmar cambio a plan inferior",
+      "downgradeDescription": "Tu plan cambiará en el próximo ciclo de facturación. Se te cobrará el nuevo precio entonces y podrás conservar tu asignación actual de estrellas hasta esa fecha.",
+      "summaryTitle": "Resumen de la compra",
+      "starsSummaryTitle": "Impacto en las estrellas",
+      "currentPlanLabel": "Plan actual",
+      "targetPlanLabel": "Nuevo plan",
+      "differenceLabel": "Diferencia hoy",
+      "refillLabel": "Fecha de recarga",
+      "currentStarsLabel": "Estrellas actuales",
+      "projectedStarsLabel": "Tras el cambio",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar"
+    },
+    "proOnlyPacks": "Los paquetes de estrellas complementarias están disponibles solo para suscriptores Pro.",
+    "starsPerMonth": "Estrellas al mes",
+    "starsPerYear": "Estrellas al año",
+    "includesBonus": "Incluye estrellas de regalo",
+    "secureCheckout": "Pago seguro",
+    "oneTimePayment": "Pago único, sin renovación automática",
+    "bonus": "de regalo",
+    "limitedOffer": "Oferta limitada",
+    "unlimitedReadings": "Lecturas cósmicas ilimitadas",
+    "howItWorks": "Cómo funciona",
+    "signIn": "Iniciar sesión",
+    "signInDesc": "Crea una cuenta o inicia sesión",
+    "pickPack": "Elige un paquete",
+    "pickPackDesc": "Seleccionamos automáticamente tu moneda local. Los paquetes más grandes incluyen estrellas de regalo.",
+    "paySecurely": "Paga de forma segura",
+    "paySecurelyDesc": "Procesado por proveedores de confianza",
+    "instantDeliveryDesc": "Las estrellas aparecen justo después del pago",
+    "trustedTransparent": "Confiable y transparente",
+    "trustedTransparentDesc": "Precios claros. Sin cargos ocultos. Las estrellas son para tus lecturas.",
+    "secureCheckoutDesc": "Pagos gestionados por procesadores de prestigio con cifrado.",
+    "ongoingImprovements": "Mejoras continuas",
+    "ongoingImprovementsDesc": "Tu apoyo nos ayuda a ofrecer mejores lecturas con IA y nuevas funciones.",
+    "howFastStars": "¿Qué tan rápido llegan las estrellas?",
+    "howFastStarsAnswer": "Al instante después del pago. Si no las ves, actualiza la página de estrellas.",
+    "whatIsBonus": "¿Qué son las estrellas de regalo?",
+    "whatIsBonusAnswer": "฿1 siempre equivale a 60 estrellas. Los paquetes más grandes incluyen estrellas de regalo adicionales sobre la cantidad base.",
+    "pricingFaqTitle": "Preguntas frecuentes sobre precios y recargas",
+    "pricingFaq": {
+      "refillQuestion": "¿Cómo funcionan las recargas de la suscripción?",
+      "refillAnswer": "Cada cuenta tiene hasta 5 estrellas diarias gratis. Al usar una estrella comienza un temporizador de 5 horas y, cuando termina, las 5 estrellas se recargan juntas (sin recargas parciales más rápidas). Los planes Básico y Pro añaden un grupo de estrellas del plan aparte que se restablece a la cantidad del plan en tu fecha de facturación. Los paquetes adicionales crean un grupo aparte que también se recarga en cada período de facturación.",
+      "changeQuestion": "¿Qué sucede cuando mejoro o cambio a un plan inferior?",
+      "changeAnswer": "Las mejoras se aplican de inmediato y solo cobran la diferencia. Los cambios a un plan inferior se aplican en el próximo periodo de facturación, y entonces tus estrellas del plan se recargan a la nueva cantidad.",
+      "addonsQuestion": "¿Quién puede comprar paquetes de estrellas complementarias?",
+      "addonsAnswer": "Los paquetes complementarios están disponibles para suscriptores Pro. Añaden una reserva recurrente de estrellas que se recarga cada periodo de facturación hasta que se eliminen.",
+      "refundQuestion": "¿Puedo solicitar un reembolso?",
+      "refundAnswer": "Puedes solicitar un reembolso si aún no has usado ninguna estrella de tu plan actual. Las solicitudes de reembolso deben enviarse dentro de los 7 días posteriores a la fecha de facturación."
+    },
+    "features": {
+      "unlimitedReadings": "Lecturas ilimitadas",
+      "premiumInsights": "Revelaciones premium",
+      "prioritySupport": "Soporte prioritario",
+      "exclusiveContent": "Contenido exclusivo",
+      "advancedAnalytics": "Análisis avanzados"
+    }
+  },
+  "Stars": {
+    "title": "Saldo de estrellas",
+    "subtitle": "Gestiona tu moneda cósmica",
+    "currentBalance": "Saldo actual",
+    "addStars": "Añadir estrellas",
+    "purchaseHistory": "Historial de compras",
+    "howItWorks": "Cómo funciona",
+    "starPackages": {
+      "small": "Paquete pequeño",
+      "medium": "Paquete mediano",
+      "large": "Paquete grande",
+      "mega": "Paquete mega"
+    },
+    "transactions": {
+      "purchase": "Compra",
+      "spent": "Gastado",
+      "refund": "Reembolso",
+      "bonus": "Regalo"
+    }
+  },
+  "Checkout": {
+    "purchase": "Compra",
+    "subscribe": "Suscribirse",
+    "addOn": "Complemento",
+    "checkout": "Pago",
+    "loading": "Cargando...",
+    "redirecting": "Redirigiendo al pago seguro...",
+    "addonSuccess": "Complemento añadido",
+    "done": "Listo",
+    "back": "Atrás",
+    "unavailable": "No disponible",
+    "signInToSubscribe": "Inicia sesión para suscribirte",
+    "sessionError": "No pudimos iniciar el pago. Inténtalo de nuevo.",
+    "comingSoonTitle": "Las compras de estrellas llegarán pronto",
+    "comingSoonDescription": "Estamos dando los últimos retoques a una nueva forma de comprar estrellas de manera segura dentro de Askingfate.",
+    "comingSoonHelper": "¡Gracias por tu paciencia! Mientras tanto, puedes seguir explorando lecturas gratuitas y ganar estrellas de regalo con actividades de la comunidad.",
+    "close": "Cerrar",
+    "stripeReady": "Claves de Stripe detectadas: añade la clave secreta en el servidor para habilitar el pago.",
+    "stripeMissing": "Disponible cuando {countdown}",
+    "countdownUnknown": "la próxima versión esté lista"
+  },
+  "StarsPurchase": {
+    "badge": "Próximamente",
+    "title": "Las compras de estrellas llegarán pronto",
+    "description": "Estamos rediseñando el proceso de compra para que cada paquete y suscripción se sienta más seguro y fluido.",
+    "helper": "Mientras terminamos la actualización, puedes seguir disfrutando de lecturas gratuitas, referencias y recompensas de la comunidad para aumentar tu saldo.",
+    "backToPricing": "Volver a los precios",
+    "ctaBackToStars": "Ir al panel de estrellas",
+    "ctaEarnFree": "Gana estrellas gratis"
+  },
+  "ReadingHistory": {
+    "title": "Tu historial de lecturas",
+    "authRequired": "Inicia sesión para acceder a tu historial de lecturas",
+    "loading": "Cargando el historial de lecturas...",
+    "subtitle": "Explora tus lecturas de tarot y revelaciones anteriores",
+    "searchPlaceholder": "Buscar lecturas o cartas...",
+    "filters": {
+      "allTime": "Todo el tiempo",
+      "today": "Hoy",
+      "thisWeek": "Esta semana",
+      "thisMonth": "Este mes",
+      "customRange": "Rango personalizado",
+      "allTypes": "Todos los tipos",
+      "simple": "Simple",
+      "intermediate": "Intermedia",
+      "advanced": "Avanzada"
+    },
+    "clearFilters": "Borrar filtros",
+    "noReadings": "No se encontraron lecturas",
+    "noReadingsDesc": "Aún no has creado ninguna lectura de tarot. ¡Comienza tu viaje místico con tu primera lectura!",
+    "startReading": "Comenzar lectura",
+    "loadingReadings": "Cargando tus lecturas...",
+    "error": "No se pudieron cargar las lecturas",
+    "errorDesc": "Hubo un error al cargar tu historial de lecturas. Inténtalo de nuevo.",
+    "retry": "Reintentar",
+    "loadMore": "Desplázate para cargar más",
+    "loadingMore": "Cargando más lecturas...",
+    "noQuestion": "(Sin pregunta)",
+    "readingTypes": {
+      "simple": "Simple",
+      "intermediate": "Intermedia",
+      "advanced": "Avanzada"
+    },
+    "delete": "Eliminar",
+    "deleteSuccess": "Lectura eliminada correctamente",
+    "deleteError": "No se pudo eliminar la lectura",
+    "swipeToDelete": "Desliza a la izquierda para eliminar",
+    "contextMenu": {
+      "openReading": "Abrir lectura",
+      "openInNewTab": "Abrir en una pestaña nueva",
+      "copyLink": "Copiar enlace",
+      "share": "Compartir",
+      "linkCopied": "Enlace copiado al portapapeles",
+      "shareError": "No se pudo compartir"
+    }
+  },
+  "StarsBalance": {
+    "available": "Estrellas disponibles",
+    "nextRefill": "Próxima recarga",
+    "planLabel": "{plan}",
+    "balance": "Saldo: {current}/{total}",
+    "dailyBalance": "Estrellas diarias: {current}/{total}",
+    "planBalance": "Estrellas del plan: {current}/{total}",
+    "addonBalance": "Estrellas complementarias: {current}/{total}",
+    "engagementBalance": "Estrellas por participación: {current}/{total}",
+    "nextBilling": "Próxima facturación {date}",
+    "buyAddons": "Comprar complementos",
+    "anonymousPrefix": "Usuario anónimo:",
+    "anonymousRefill": "Se recarga a 3 estrellas a medianoche (UTC+7). La cuenta regresiva muestra el tiempo hasta la próxima alineación cósmica.",
+    "autoRefill": "Las {cap} estrellas se recargan juntas 5 horas después de tu primer uso.",
+    "subscriptionRefill": "Se recarga hasta {cap} estrellas cada periodo de facturación.",
+    "dailyRefillNote": "Las estrellas diarias se recargan a {cap} de una sola vez, 5 horas después de tu primer uso.",
+    "planRefillNote": "Tu plan {plan} se recarga a {cap} estrellas en tu próxima fecha de facturación."
+  },
+  "SignInAccordion": {
+    "title": "Iniciar sesión",
+    "description": "Las cuentas nuevas comienzan con 5 estrellas. Las {cap} se recargan juntas 5 horas después de empezar a usarlas.",
+    "button": "Iniciar sesión"
+  },
+  "OneTapTopUp": {
+    "packs": {
+      "starter": "Principiante",
+      "explorer": "Explorador",
+      "seeker": "Buscador",
+      "mystic": "Místico",
+      "master": "Maestro",
+      "grandMaster": "Gran Maestro",
+      "ultimate": "Supremo"
+    }
+  },
+  "SubscribeDropdown": {
+    "aria": "Elige el periodo de suscripción",
+    "monthly": "Mensual",
+    "monthlyPrice": "$9.99/mes",
+    "annual": "Anual",
+    "annualPrice": "$99.99/año"
+  },
+  "StarsPage": {
+    "comingSoon": "Próximamente",
+    "hero": {
+      "badge": "Sistema de estrellas"
+    },
+    "subscribe": {
+      "title": "Planes de suscripción",
+      "subtitle": "Elige estrellas mensuales o anuales para tu plan",
+      "features": {
+        "unlimitedReadings": "Lecturas ilimitadas",
+        "premiumFeatures": "Funciones premium",
+        "prioritySupport": "Soporte prioritario"
+      },
+      "button": "Suscribirse",
+      "monthly": "Mensual",
+      "annual": "Anual",
+      "starsPerMonth": "Estrellas al mes",
+      "starsPerYear": "Estrellas al año",
+      "priceLabel": "{price} facturado {cycle}",
+      "notConfigured": "El precio aún no está configurado.",
+      "downgrade": "Cambiar a plan inferior",
+      "mostPopular": "El más popular",
+      "saveStarsPercent": "Ahorra {percent} % (de {from} a {to} estrellas)",
+      "savePercent": "Ahorra {percent} %",
+      "upgrade": "Mejorar",
+      "upgradeSuccess": "Mejora realizada con éxito",
+      "downgradeSuccess": "Cambio a plan inferior realizado con éxito",
+      "upgradeError": "La mejora falló",
+      "signInToUpgrade": "Inicia sesión para mejorar tu plan",
+      "upgradeDialogTitle": "Confirmar mejora",
+      "upgradeDialogDescription": "Solo se te cobrará la diferencia entre tu plan actual y este plan ({amount}). Tu periodo de facturación se mantiene igual.",
+      "downgradeDialogTitle": "Confirmar cambio a plan inferior",
+      "downgradeDialogDescription": "Tu plan cambiará en el próximo ciclo de facturación. Se te cobrará el nuevo precio entonces y podrás conservar tu asignación actual de estrellas hasta esa fecha.",
+      "summaryTitle": "Resumen de la compra",
+      "starsSummaryTitle": "Impacto en las estrellas",
+      "currentPlanLabel": "Plan actual",
+      "targetPlanLabel": "Nuevo plan",
+      "differenceLabel": "Diferencia hoy",
+      "refillLabel": "Fecha de recarga",
+      "currentStarsLabel": "Estrellas actuales",
+      "projectedStarsLabel": "Tras el cambio",
+      "dialogConfirm": "Confirmar",
+      "dialogCancel": "Cancelar",
+      "basic": {
+        "title": "Básico",
+        "subtitle": "100 estrellas al mes"
+      },
+      "pro": {
+        "title": "Pro",
+        "subtitle": "599 estrellas al mes"
+      },
+      "custom": {
+        "title": "Personalizado",
+        "subtitle": "Contáctanos mediante este formulario"
+      }
+    },
+    "earn": {
+      "comingSoon": "Próximamente",
+      "title": "Formas de ganar estrellas",
+      "subtitle": "Explora múltiples caminos para acumular energía cósmica y desbloquear experiencias místicas más profundas",
+      "purchase": {
+        "title": "Comprar estrellas",
+        "subtitle": "Recarga instantánea",
+        "body": "¿Necesitas estrellas ahora mismo? Elige un plan y obtén estrellas añadidas a tu saldo de inmediato después del pago. Consulta los precios para comparar opciones.",
+        "viewPricing": "Ver precios",
+        "instant": "Instantáneo"
+      },
+      "social": {
+        "title": "Síguenos en redes sociales",
+        "subtitle": "Gana +5 estrellas por plataforma (hasta 25 en total).",
+        "description": "Toca una plataforma, sigue a AskingFate y añadiremos tu bonificación al instante. Cada plataforma se puede reclamar una sola vez.",
+        "rewardLabel": "Recompensa de +5 estrellas",
+        "followCta": "Síguenos",
+        "openCta": "Abrir enlace",
+        "claimed": "Reclamado",
+        "signIn": "Inicia sesión para reclamar estas recompensas sociales.",
+        "success": "¡Gracias por seguirnos en {platform}! +5 estrellas añadidas.",
+        "alreadyClaimed": "Ya reclamaste {platform}.",
+        "error": "No pudimos otorgarte estrellas en este momento. Inténtalo de nuevo.",
+        "progress": "{claimed}/{total} reclamadas"
+      },
+      "platforms": {
+        "facebook": "Facebook",
+        "instagram": "Instagram",
+        "threads": "Threads",
+        "tiktok": "TikTok",
+        "x": "X (Twitter)"
+      },
+      "content": {
+        "title": "Crea contenido sobre nosotros",
+        "subtitle": "Crea contenido. Gana estrellas.",
+        "body": "Crea contenido sobre AskingFate —texto, imágenes o video— y gana estrellas según el formato. Envía un enlace público; lo revisamos en un plazo de 24 a 48 horas.",
+        "items": {
+          "textTitle": "Artículo de texto o entrada de blog",
+          "textSubtitle": "Comparte tus reflexiones por escrito",
+          "imageTitle": "Publicación con imagen (redes sociales)",
+          "imageSubtitle": "Contenido visual con descripciones",
+          "videoTitle": "Contenido en video",
+          "videoSubtitle": "YouTube, TikTok o Reels"
+        },
+        "note": "💡 Comparte el enlace público a tu contenido. Lo revisaremos y aprobaremos manualmente en un plazo de 24 a 48 horas.",
+        "learnMore": "Saber más",
+        "submitContent": "Enviar contenido"
+      },
+      "share": {
+        "title": "Comparte una lectura",
+        "subtitle": "Comparte un enlace. Gana con hasta 3 visitas al día.",
+        "body": "Gana +5 estrellas por cada visitante único que abra tu lectura compartida, con un límite de 3 visitas recompensadas por día. Las recompensas se aplican automáticamente.",
+        "learnMore": "Saber más"
+      },
+      "refer": {
+        "title": "Invita a un amigo",
+        "subtitle": "Invita a tus amigos. Gana junto a ellos.",
+        "body": "Comparte tu enlace de referencia. Tú y tu amigo ganan 20 estrellas cada uno (hasta 10 amigos por semana). Si 10 amigos se registran en una semana, recibes una bonificación de 50 estrellas. Las estrellas se otorgan cuando los amigos invitados completan su registro.",
+        "learnMore": "Saber más",
+        "viewReferral": "Ver enlace de referencia"
+      }
+    }
+  },
+  "CheckoutSuccess": {
+    "badge": "Pago exitoso",
+    "title": "¡Gracias por tu compra!",
+    "description": "Tu pago se ha procesado correctamente. Tus estrellas se han añadido a tu cuenta y están listas para usar.",
+    "descriptionWithStars": "Tu pago se ha procesado correctamente. Se han añadido {stars} estrellas a tu cuenta y están listas para usar.",
+    "emailLabel": "El recibo se ha enviado a tu dirección de correo electrónico:",
+    "viewStars": "Ver mis estrellas",
+    "viewBilling": "Historial de facturación",
+    "backToPricing": "Volver a los precios",
+    "backToStars": "Volver a las estrellas",
+    "supportText": "Si tienes alguna pregunta, escríbenos a"
+  },
+  "InsufficientStars": {
+    "title": "No tienes suficientes estrellas",
+    "descriptionLoggedIn": "Necesitas al menos 1 estrella para sacar cartas y recibir tu lectura. Recarga tus estrellas para continuar tu viaje místico.",
+    "descriptionAnonymous": "Necesitas al menos 1 estrella para sacar cartas. ¡Inicia sesión para desbloquear 5 estrellas gratis que se recargan cada 5 horas!",
+    "descriptionHoroscopeLoggedIn": "Necesitas al menos 1 estrella para recibir la interpretación de tu horóscopo. Recarga tus estrellas para continuar tu viaje cósmico.",
+    "descriptionHoroscopeAnonymous": "Necesitas al menos 1 estrella para recibir la interpretación de tu horóscopo. ¡Inicia sesión para desbloquear 5 estrellas gratis que se recargan cada 5 horas!",
+    "quickTopUp": "Recarga rápida",
+    "packsNotConfigured": "Los paquetes de estrellas aún no están configurados.",
+    "proRequired": "Los paquetes complementarios están disponibles solo para suscriptores Pro.",
+    "viewAllOptions": "Ver todas las opciones de precios",
+    "benefit1Title": "5 estrellas gratis",
+    "benefit1Desc": "Comienza con 5 estrellas al instante",
+    "benefit2Title": "Recarga automática",
+    "benefit2Desc": "Las 5 estrellas se recargan cada 5 horas",
+    "signInButton": "Inicia sesión para continuar",
+    "signInNote": "Crea una cuenta gratuita y recibe 5 estrellas para comenzar tu viaje con el tarot",
+    "chatMessageLoggedIn": "Parece que no tienes suficientes estrellas para sacar cartas en este momento. Necesitas al menos 1 estrella para continuar con tu lectura. Puedes recargar tus estrellas al instante con una de las opciones de abajo, o esperar a que tus estrellas se recarguen automáticamente.",
+    "chatMessageAnonymous": "Parece que no tienes suficientes estrellas para sacar cartas en este momento. ¡Inicia sesión para desbloquear 5 estrellas gratis que se recargan cada 5 horas, o crea una cuenta para comenzar tu viaje místico!",
+    "promoBasicTitle": "Mejora a Pro para obtener más estrellas",
+    "promoGuestTitle": "Desbloquea más estrellas al instante",
+    "promoBasicDescription": "Estás en el plan Básico. Pásate a Pro para recibir cada mes más estrellas y acceder a los paquetes complementarios.",
+    "promoGuestDescription": "Elige un plan abajo y continúa tu lectura sin esperas.",
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "unavailable": "No disponible",
+    "bestValue": "Mejor valor",
+    "proPlan": "Plan Pro",
+    "basicPlan": "Plan Básico",
+    "proShort": "Pro",
+    "basicShort": "Básico",
+    "starsPerMonthLabel": "{stars} estrellas / mes",
+    "starsPerYearLabel": "{stars} estrellas / año",
+    "perMonth": "/ mes",
+    "owned": "Adquirido",
+    "upgradeNow": "Mejorar ahora",
+    "getPlan": "Obtener {plan}",
+    "savePercent": "Ahorra {percent} %"
+  },
+  "BirthForm": {
+    "datePlaceholder": "dd/mm/aaaa",
+    "yearEraCE": "d. C.",
+    "yearEraBE": "E. B.",
+    "dateErrorDay": "El día debe estar entre 1 y 31",
+    "dateErrorMonth": "El mes debe estar entre 1 y 12",
+    "missingTimeHint": "Necesitamos tu hora de nacimiento para mayor precisión.",
+    "missingDateHint": "Necesitamos tu fecha de nacimiento.",
+    "inlineAccuracyHint": "Añade aquí tu fecha y hora de nacimiento antes de enviar.",
+    "timeAccuracyHint": "La hora exacta de nacimiento ofrece la lectura más precisa. Si no la sabes, elige día o noche, aunque la precisión puede disminuir.",
+    "timePlaceholder": "hh:mm",
+    "timePickerTitle": "Seleccionar hora",
+    "timePickerHour": "Hora",
+    "timePickerMinute": "Minuto",
+    "timePickerDone": "Listo",
+    "birthDate": "Fecha de nacimiento",
+    "birthTime": "Hora de nacimiento",
+    "exactTime": "Hora exacta",
+    "daytime": "De día",
+    "nighttime": "De noche",
+    "birthPlace": "Lugar de nacimiento (opcional)",
+    "country": "País",
+    "stateProvince": "Estado / Provincia",
+    "locationSettings": "Configuración de ubicación",
+    "useCurrentLocation": "Usar ubicación actual",
+    "advanced": "Avanzado (lat, lng, zona horaria)",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "timezone": "Zona horaria (p. ej. 7)",
+    "rememberBirth": "Recordar mi fecha de nacimiento",
+    "removeBirth": "Quitar"
+  },
+  "HoroscopeChat": {
+    "usingSavedBirthDate": "Usando tu fecha de nacimiento guardada para esta interpretación...",
+    "loading": "Consultando tu carta natal...",
+    "fallbackAnswerError": "Aún no he podido leer esta carta.",
+    "analysisFailed": "Lo sentimos, el análisis del horóscopo falló. Inténtalo de nuevo.",
+    "parseFailed": "No pude interpretar esos datos de nacimiento. Inténtalo de nuevo.",
+    "askBirthDate": "Envía primero tu fecha de nacimiento (DD/MM/AAAA o AAAA-MM-DD).",
+    "askBirthTime": "Ahora comparte tu hora de nacimiento. Si no la conoces, dime simplemente si fue de día o de noche. El Ascendente puede cambiar cada 2 horas aproximadamente, así que una hora aproximada puede reducir la precisión.",
+    "askBirthPlace": "Comparte tu lugar de nacimiento (ciudad/país). Si no lo conoces, puedo usar tu ubicación actual, pero la lectura puede ser menos precisa.",
+    "usingLocationFallback": "Usando tu ubicación actual como alternativa. Esto puede reducir la precisión de las casas y el ascendente.",
+    "processFailed": "Lo sentimos, no pude procesar los detalles del horóscopo en este momento.",
+    "paywallOtherPersonAssistantText": "Leer la carta de otra persona no está disponible en el plan gratuito; puedes <drawPill>sacar una carta en su lugar</drawPill> y la leeré para ti.",
+    "paywallOtherPersonTitle": "Leer la carta de otra persona requiere un plan de pago",
+    "paywallOtherPersonBody": "Las cuentas gratuitas solo pueden ver su propia carta. Mejora a Básico o Pro para hacer lecturas a amigos, familiares o parejas.",
+    "paywallOtherPersonPaywallTitle": "Leer a otras personas es una función para suscriptores",
+    "paywallOtherPersonPaywallDesc": "Usa tus estrellas para hacer lecturas a amigos, familiares o parejas. Mejora a Básico o Pro para desbloquearlo: el pago se realiza con Stripe en la página siguiente.",
+    "paywallOtherPersonPaywallFeature": "Lee la carta de otra persona a partir de sus datos de nacimiento",
+    "paywallOtherPersonPaywallInsufficient": "Se requiere mejorar el plan",
+    "paywallOtherPersonPaywallNote": "Al seleccionar un plan accederás al pago seguro con Stripe.",
+    "paywallUpgradeCta": "Mejorar plan",
+    "transitDateLabel": "Fecha del tránsito",
+    "birthFormTitle": "Completa tus datos de nacimiento",
+    "birthFormSubmit": "Usar estos datos de nacimiento",
+    "composerBirthPlaceholder": "Escribe aquí tu fecha de nacimiento, tu hora de nacimiento y tu ubicación. Cualquier formato de fecha es válido.",
+    "underAgeWarningTitle": "Fecha de nacimiento no permitida",
+    "underAgeWarningBody": "AskingFate no está disponible para usuarios menores de trece (13) años. Se ha restaurado tu fecha de nacimiento anterior.",
+    "underAgeWarningClose": "Cerrar",
+    "tabs": {
+      "overview": "Resumen",
+      "aspect": "Aspectos influyentes",
+      "transit": "Información técnica",
+      "birthChartInfo": "Información de la carta natal"
+    },
+    "natalSpotlight": {
+      "title": "Lo más destacado de tu carta natal",
+      "subtitle": "Posiciones que responden a esta pregunta",
+      "titleTransit": "Posiciones actuales del cielo",
+      "subtitleTransit": "Dónde se encuentran estos planetas ahora mismo"
+    },
+    "verdict": {
+      "moodGood": "Buen día",
+      "moodCaution": "Mantente atento",
+      "moodRest": "Día de descanso",
+      "answerHeading": "Para tu pregunta",
+      "watchHeading": "Una salvedad",
+      "focusHeading": "Enfoque",
+      "dateRelativeToday": "Hoy",
+      "dateRelativeTomorrow": "Mañana",
+      "dateRelativeYesterday": "Ayer"
+    },
+    "transit": {
+      "feedTitle": "Tránsitos activos",
+      "showMore": "Mostrar más",
+      "showLess": "Mostrar menos",
+      "transitLabel": "Tránsito",
+      "natalLabel": "Natal",
+      "emptyFallback": "Mostrando la lectura completa de este día.",
+      "aspectConjunction": "En conjunción",
+      "aspectOpposition": "En oposición",
+      "aspectSquare": "En cuadratura",
+      "aspectTrine": "En trígono",
+      "aspectSextile": "En sextil"
+    },
+    "timeline": {
+      "title": "Lo que podría desplegarse",
+      "subtitleHourly": "Hora a hora durante este día",
+      "subtitleDaily": "Día a día a lo largo de este periodo",
+      "granularityHourly": "Vista por horas",
+      "granularityDaily": "Vista por días",
+      "loading": "Construyendo tu cronología...",
+      "moodGood": "Fluyendo",
+      "moodCaution": "Mantente atento",
+      "moodRest": "Baja el ritmo",
+      "moodMixed": "Señales mixtas",
+      "focusHeading": "Enfoque",
+      "hourBuckets": {
+        "lateNight": "Madrugada",
+        "dawn": "Amanecer",
+        "morning": "Mañana",
+        "midday": "Mediodía",
+        "afternoon": "Tarde",
+        "evening": "Atardecer",
+        "night": "Noche"
+      }
+    }
+  },
+  "Settings": {
+    "title": "Ajustes",
+    "subtitle": "Gestiona las preferencias de tu cuenta y los ajustes de marketing por correo",
+    "loading": "Cargando ajustes...",
+    "saving": "Guardando...",
+    "save": "Guardar ajustes",
+    "saveSuccess": "Ajustes guardados correctamente",
+    "saveError": "No se pudieron guardar los ajustes",
+    "fetchError": "No se pudieron cargar los ajustes",
+    "authRequired": "Inicia sesión para acceder a los ajustes",
+    "emailMarketing": {
+      "title": "Marketing por correo",
+      "enable": "Activar marketing por correo",
+      "enableDesc": "Recibe correos de marketing de nuestra parte",
+      "promotional": "Correos promocionales",
+      "promotionalDesc": "Ofertas especiales y descuentos",
+      "newsletter": "Boletín",
+      "newsletterDesc": "Novedades y revelaciones semanales",
+      "productUpdates": "Novedades del producto",
+      "productUpdatesDesc": "Nuevas funciones y mejoras",
+      "readingReminders": "Recordatorios de lectura",
+      "readingRemindersDesc": "Recordatorios para revisar tus lecturas",
+      "specialOffers": "Ofertas especiales",
+      "specialOffersDesc": "Promociones y ofertas exclusivas"
+    },
+    "notifications": {
+      "title": "Notificaciones push",
+      "enable": "Activar notificaciones push",
+      "enableDesc": "Recibe notificaciones push en tu dispositivo",
+      "readingReminders": "Recordatorios de lectura",
+      "specialOffers": "Ofertas especiales",
+      "systemUpdates": "Actualizaciones del sistema"
+    },
+    "privacy": {
+      "title": "Ajustes de privacidad",
+      "profileVisibility": "Visibilidad del perfil",
+      "private": "Privado",
+      "public": "Público",
+      "friends": "Solo amigos",
+      "showEmail": "Mostrar correo",
+      "showEmailDesc": "Muestra tu correo en tu perfil",
+      "showBirthDate": "Mostrar fecha de nacimiento",
+      "showBirthDateDesc": "Muestra tu fecha de nacimiento en tu perfil",
+      "allowMessages": "Permitir mensajes",
+      "allowMessagesDesc": "Permite que otros te envíen mensajes"
+    },
+    "reading": {
+      "title": "Preferencias de lectura",
+      "autoSave": "Guardar lecturas automáticamente",
+      "autoSaveDesc": "Guarda tus lecturas de forma automática",
+      "shareByDefault": "Compartir lecturas de forma predeterminada",
+      "shareByDefaultDesc": "Comparte automáticamente las nuevas lecturas"
+    },
+    "localization": {
+      "title": "Idioma y región",
+      "language": "Idioma",
+      "timeFormat": "Formato de hora"
+    },
+    "accessibility": {
+      "title": "Accesibilidad",
+      "reducedMotion": "Movimiento reducido",
+      "reducedMotionDesc": "Reduce las animaciones y transiciones",
+      "highContrast": "Alto contraste",
+      "highContrastDesc": "Aumenta el contraste para una mejor visibilidad",
+      "fontSize": "Tamaño de fuente",
+      "small": "Pequeño",
+      "medium": "Mediano",
+      "large": "Grande"
+    }
+  },
+  "PlanetaryPanel": {
+    "transitSuffix": " en tránsito",
+    "natalSuffix": " natal",
+    "noChartPosition": "Sin posición en la carta",
+    "defaultKeyword": "Aspecto personalizado",
+    "exactDatePrefix": "El {date}",
+    "rangeDate": "Comienza el {start} (pico el {peak})",
+    "rangeDateStart": "Comienza el {start}",
+    "rangeDatePeak": "Pico el {peak}",
+    "rangeDateEnd": "Termina el {end}",
+    "mainEvents": "Eventos principales",
+    "showDailyVibes": "Mostrar vibras diarias ({count})",
+    "showLifeSituation": "Mostrar todos los aspectos planetarios ({count})",
+    "showRelatedAspects": "Mostrar relacionados ({count})",
+    "showAllAspects": "Mostrar todos ({count})",
+    "showMore": "Mostrar más",
+    "showTechnical": "Mostrar datos técnicos",
+    "hideTechnical": "Ocultar datos técnicos",
+    "timelineAriaLabel": "Aspecto desde el {start} pasando por el pico el {peak} hasta el {end}",
+    "timelineToday": "Hoy",
+    "timelineUpcoming": "en {days} d",
+    "timelinePassed": "hace {days} d",
+    "defaultInsight": "Este aspecto marca un cambio notable en la forma en que esta área de la vida pide atención.",
+    "impactLabel": "Ámbito: ",
+    "intensityLabel": "Nivel: ",
+    "intensity": {
+      "low": "Bajo",
+      "medium": "Medio",
+      "high": "Alto"
+    },
+    "dignity": {
+      "exalted": "Exaltado",
+      "ownSign": "Signo propio",
+      "debilitated": "Caído",
+      "retrograde": "Retrógrado"
+    },
+    "orbLabel": "Orbe (hoy)",
+    "peakLabel": "Pico",
+    "longTermSectionLabel": "Influencias a largo plazo",
+    "showBirthDetails": "Mostrar datos de nacimiento",
+    "showTransitDetails": "Mostrar detalles del tránsito",
+    "birthDetails": "Datos de nacimiento",
+    "transitDetails": "Detalles del tránsito",
+    "birthDateLabel": "Fecha de nacimiento",
+    "birthTimeLabel": "Hora de nacimiento",
+    "transitDateLabel": "Fecha del tránsito",
+    "transitTimeLabel": "Hora del tránsito",
+    "locationLabel": "Ubicación",
+    "systemLabel": "Sistema",
+    "ascendantLabel": "Ascendente",
+    "sunLabel": "Sol",
+    "moonLabel": "Luna",
+    "planets": {
+      "Sun": "Sol",
+      "Moon": "Luna",
+      "Mercury": "Mercurio",
+      "Venus": "Venus",
+      "Mars": "Marte",
+      "Jupiter": "Júpiter",
+      "Saturn": "Saturno",
+      "Rahu": "Rahu",
+      "Ketu": "Ketu",
+      "Uranus": "Urano",
+      "Neptune": "Neptuno",
+      "Pluto": "Plutón",
+      "Ascendant": "Ascendente"
+    },
+    "aspects": {
+      "conjunction": "Conjunción",
+      "opposition": "Oposición",
+      "square": "Cuadratura",
+      "trine": "Trígono",
+      "sextile": "Sextil"
+    },
+    "zodiac": {
+      "Aries": "Aries",
+      "Taurus": "Tauro",
+      "Gemini": "Géminis",
+      "Cancer": "Cáncer",
+      "Leo": "Leo",
+      "Virgo": "Virgo",
+      "Libra": "Libra",
+      "Scorpio": "Escorpio",
+      "Sagittarius": "Sagitario",
+      "Capricorn": "Capricornio",
+      "Aquarius": "Acuario",
+      "Pisces": "Piscis"
+    },
+    "askMore": "Preguntar más",
+    "readDescription": "Leer descripción",
+    "askAspectQuestion": "¿Cómo me afecta el {transit} en tránsito en {aspect} con mi {natal} natal?"
+  },
+  "SupportBlock": {
+    "openPage": "Abrir página",
+    "readArticle": "Leer artículo",
+    "readFullMeaning": "Leer significado completo",
+    "majorArcana": "Arcanos Mayores",
+    "minorArcana": "Menor · {suit}",
+    "minorArcanaShort": "Arcanos Menores",
+    "suits": {
+      "wands": "Bastos",
+      "cups": "Copas",
+      "swords": "Espadas",
+      "pentacles": "Oros"
+    },
+    "topics": {
+      "pricing": {
+        "title": "Planes y precios",
+        "description": "Elige una suscripción Básico o Pro, compara las estrellas mensuales frente a las anuales y continúa al pago."
+      },
+      "star-packs": {
+        "title": "Estrellas y paquetes complementarios",
+        "description": "Consulta tu saldo de estrellas, las reglas de recarga y los paquetes complementarios para suscriptores Pro."
+      },
+      "contact": {
+        "title": "Contactar con soporte",
+        "description": "Envíanos un mensaje. Normalmente respondemos en 1 día hábil en admin@askingfate.com."
+      },
+      "help": {
+        "title": "Ayuda y soporte",
+        "description": "Solución de problemas habituales de cuentas, lecturas, facturación y estrellas."
+      },
+      "faq": {
+        "title": "Preguntas frecuentes",
+        "description": "Respuestas rápidas sobre lecturas, estrellas, precisión y facturación."
+      },
+      "how-to-play": {
+        "title": "Cómo jugar",
+        "description": "Haz una pregunta, elige cartas y reflexiona sobre el significado, paso a paso."
+      },
+      "privacy-redaction": {
+        "title": "Privacidad y eliminación de datos personales",
+        "description": "Cómo AskingFate detecta y elimina los datos personales de tus mensajes."
+      },
+      "privacy-policy": {
+        "title": "Política de privacidad",
+        "description": "Cómo recopilamos, usamos y protegemos tus datos."
+      },
+      "terms-of-service": {
+        "title": "Términos del servicio",
+        "description": "Nuestros términos, el uso aceptable y la política de pagos."
+      },
+      "refer-a-friend": {
+        "title": "Invita a un amigo",
+        "description": "Invita a tus amigos a AskingFate. Ambos ganan estrellas cuando se unen."
+      },
+      "share-reading": {
+        "title": "Comparte una lectura",
+        "description": "Comparte el enlace de tu lectura y gana hasta 3 estrellas al día por las visitas."
+      },
+      "create-content": {
+        "title": "Crea contenido y gana estrellas",
+        "description": "Escribe, publica o graba sobre AskingFate y gana estrellas cuando tu contenido sea aprobado."
+      },
+      "tarot-card": {
+        "title": "Carta de tarot",
+        "description": "Significados al derecho e invertidos con una guía práctica.",
+        "indexListing": {
+          "title": "Significados de las cartas de tarot",
+          "description": "Explora las 78 cartas: los Arcanos Mayores y los cuatro palos de los Arcanos Menores."
+        }
+      },
+      "tarot-cards-index": {
+        "title": "Todas las cartas de tarot",
+        "description": "Explora las 78 cartas: los Arcanos Mayores y los cuatro palos de los Arcanos Menores."
+      },
+      "birth-chart": {
+        "title": "Carta natal",
+        "description": "Consulta tu carta natal personalizada con Swiss Ephemeris, sus planetas y sus casas."
+      },
+      "horoscope": {
+        "title": "Horóscopo personalizado",
+        "description": "Lecturas de horóscopo diarias, mensuales y anuales basadas en tu nacimiento y el cielo de hoy."
+      },
+      "account": {
+        "title": "Cuenta",
+        "description": "Gestiona tu perfil, tu suscripción y tus datos de nacimiento guardados."
+      },
+      "settings": {
+        "title": "Ajustes",
+        "description": "Ajusta la apariencia, la región, las notificaciones y las preferencias de lectura."
+      },
+      "about": {
+        "title": "Acerca de AskingFate",
+        "description": "Nuestra misión, cómo construimos el producto y qué hace diferentes nuestras lecturas."
+      },
+      "articles": {
+        "title": "Artículos y guías",
+        "description": "Guías al estilo documentación que cubren todo lo que hay en AskingFate."
+      },
+      "sign-in": {
+        "title": "Iniciar sesión",
+        "description": "Inicia sesión para guardar tus lecturas, estrellas y perfil de nacimiento."
+      },
+      "sign-up": {
+        "title": "Crear una cuenta",
+        "description": "Crea una cuenta gratuita para conservar tus lecturas, estrellas y perfil de nacimiento."
+      },
+      "calendar-year": {
+        "title": "Your cosmic calendar",
+        "description": "See how the year unfolds month by month — favorable days, tense days, and major turning points at a glance."
+      }
+    },
+    "openCalendar": "Open calendar",
+    "viewMore": "View more",
+    "calendarMonths": "Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec"
+  },
+  "OracleReading": {
+    "messageReceived": "Message Received",
+    "oracleEnergy": "Oracle Energy",
+    "meaning": "Meaning",
+    "guidance": "Guidance",
+    "listening": "Listening for the message…"
+  },
+  "HoroscopeOtherPerson": {
+    "readingFor": "Reading for {date}"
+  },
+  "ShareImageProgress": {
+    "render": "Painting your reading…",
+    "download": "Downloading your image…",
+    "animate": "Recording your cosmic animation…",
+    "done": "Saved to your device"
+  },
+  "HoroscopeCalendar": {
+    "intro": "Here's your cosmic calendar — pick any day and tap a topic, or just type the question you want to ask.",
+    "actionTriggerHint": "Your next question will be read for this day",
+    "followUpPrompt": "Want to know more about {date}? Tap a topic and I'll read it for that day, or type the question you want to ask.",
+    "followUpQuestion": "Tell me about my {topic} for {date}.",
+    "context": {
+      "noBirth": "Add your birth info to read this day for you.",
+      "noData": "Day data is still loading.",
+      "selected": "{date} · {quality} day · {score}/10"
+    },
+    "chips": {
+      "financial": "Financial",
+      "love": "Love",
+      "career": "Career",
+      "health": "Health",
+      "family": "Family",
+      "travel": "Travel",
+      "thinkMore": "Please think more for me"
+    }
+  }
+}

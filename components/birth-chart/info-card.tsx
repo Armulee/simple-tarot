@@ -9,7 +9,16 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { Calendar, Clock, MapPin, Pencil, X, Check, Loader2, ChevronLeft } from "lucide-react"
+import {
+    Calendar,
+    Clock,
+    MapPin,
+    Pencil,
+    X,
+    Check,
+    Loader2,
+    ChevronLeft,
+} from "lucide-react"
 import { Country, State } from "country-state-city"
 import { resolveLocationFromCountryState } from "@/lib/location"
 import { toast } from "sonner"
@@ -43,41 +52,48 @@ export default function BirthChartInfoCard({
     const [isEditing, setIsEditing] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
 
-    // Form State
     const [date, setDate] = useState<Date | undefined>(
-        new Date(birthChart.year, birthChart.month - 1, birthChart.day)
+        new Date(birthChart.year, birthChart.month - 1, birthChart.day),
     )
-    const [time, setTime] = useState({ 
-        hour: birthChart.hour.toString().padStart(2, "0"), 
-        minute: birthChart.minute.toString().padStart(2, "0") 
+    const [time, setTime] = useState({
+        hour: birthChart.hour.toString().padStart(2, "0"),
+        minute: birthChart.minute.toString().padStart(2, "0"),
     })
     const [country, setCountry] = useState(birthChart.country || "")
     const [stateProv, setStateProv] = useState(birthChart.state_province || "")
-    
-    // UI State
+
     const [calendarOpen, setCalendarOpen] = useState(false)
     const [timeOpen, setTimeOpen] = useState(false)
     const [locationOpen, setLocationOpen] = useState(false)
     const [timeStep, setTimeStep] = useState<"hour" | "minute">("hour")
-    const [locationStep, setLocationStep] = useState<"country" | "state">("country")
+    const [locationStep, setLocationStep] = useState<"country" | "state">(
+        "country",
+    )
     const [searchCountry, setSearchCountry] = useState("")
     const [searchState, setSearchState] = useState("")
 
-    // Data
-    const [countries, setCountries] = useState<Array<{ name: string; code: string }>>([])
-    const [states, setStates] = useState<Array<{ name: string; code: string }>>([])
+    const [countries, setCountries] = useState<
+        Array<{ name: string; code: string }>
+    >([])
+    const [states, setStates] = useState<Array<{ name: string; code: string }>>(
+        [],
+    )
 
     useEffect(() => {
         const allCountries = Country.getAllCountries()
-        setCountries(allCountries.map(c => ({ name: c.name, code: c.isoCode })))
+        setCountries(allCountries.map((c) => ({ name: c.name, code: c.isoCode })))
     }, [])
 
     useEffect(() => {
         if (country) {
-            const countryObj = Country.getAllCountries().find(c => c.name === country)
+            const countryObj = Country.getAllCountries().find(
+                (c) => c.name === country,
+            )
             if (countryObj) {
                 const allStates = State.getStatesOfCountry(countryObj.isoCode)
-                setStates(allStates.map(s => ({ name: s.name, code: s.isoCode })))
+                setStates(
+                    allStates.map((s) => ({ name: s.name, code: s.isoCode })),
+                )
             }
         }
     }, [country])
@@ -85,19 +101,23 @@ export default function BirthChartInfoCard({
     const handleSave = async () => {
         if (!date) return
         setIsSaving(true)
-
         try {
             const day = date.getDate().toString()
             const month = (date.getMonth() + 1).toString()
             const year = date.getFullYear().toString()
 
-            // Resolve new location data
             let lat = birthChart.lat.toString()
             let lng = birthChart.lng.toString()
             let timezone = birthChart.timezone.toString()
 
-            if (country !== birthChart.country || stateProv !== birthChart.state_province) {
-                const resolved = resolveLocationFromCountryState(country, stateProv || undefined)
+            if (
+                country !== birthChart.country ||
+                stateProv !== birthChart.state_province
+            ) {
+                const resolved = resolveLocationFromCountryState(
+                    country,
+                    stateProv || undefined,
+                )
                 if (resolved) {
                     lat = resolved.latitude.toFixed(6)
                     lng = resolved.longitude.toFixed(6)
@@ -106,8 +126,6 @@ export default function BirthChartInfoCard({
             }
 
             if (mode === "personal") {
-                // Personal page: also persist to profile and recompute via the
-                // authed /me endpoint so the row is linked to owner_user_id.
                 const { data: sessionData } =
                     await supabase.auth.getSession()
                 const accessToken = sessionData.session?.access_token
@@ -155,7 +173,6 @@ export default function BirthChartInfoCard({
                 return
             }
 
-            // Calculate new horoscope
             const params = new URLSearchParams({
                 day,
                 month,
@@ -167,11 +184,12 @@ export default function BirthChartInfoCard({
                 lng,
             })
 
-            const calcRes = await fetch(`/api/calculate-horoscope?${params.toString()}`)
+            const calcRes = await fetch(
+                `/api/calculate-horoscope?${params.toString()}`,
+            )
             if (!calcRes.ok) throw new Error("Failed to calculate chart")
             const chartData = await calcRes.json()
 
-            // Create new chart entry (shared link mode)
             const createRes = await fetch("/api/birth-chart/create", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -191,12 +209,8 @@ export default function BirthChartInfoCard({
             })
 
             if (!createRes.ok) throw new Error("Failed to save chart")
-
             const { id } = await createRes.json()
-
-            // Redirect to new chart
             router.push(`/birth-chart/${id}`)
-
         } catch (error) {
             toast.error("Failed to update chart")
             console.error(error)
@@ -204,13 +218,12 @@ export default function BirthChartInfoCard({
         }
     }
 
-    const formatDateDisplay = (d: Date) => {
-        return d.toLocaleDateString("en-US", {
+    const formatDateDisplay = (d: Date) =>
+        d.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
             year: "numeric",
         })
-    }
 
     const formatTimeDisplay = (h: string, m: string) => {
         const hour = parseInt(h)
@@ -220,120 +233,138 @@ export default function BirthChartInfoCard({
     }
 
     const locationDisplay = [stateProv, country].filter(Boolean).join(", ")
-
-    const filteredCountries = countries.filter(c =>
-        c.name.toLowerCase().includes(searchCountry.toLowerCase())
+    const filteredCountries = countries.filter((c) =>
+        c.name.toLowerCase().includes(searchCountry.toLowerCase()),
+    )
+    const filteredStates = states.filter((s) =>
+        s.name.toLowerCase().includes(searchState.toLowerCase()),
     )
 
-    const filteredStates = states.filter(s =>
-        s.name.toLowerCase().includes(searchState.toLowerCase())
-    )
+    const popoverSurface =
+        "bg-white/[0.06] backdrop-blur-2xl border-white/[0.08] text-white shadow-[0_20px_60px_-24px_rgba(0,0,0,0.6)]"
 
     if (isEditing) {
         return (
-            <div className="mt-2 rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-5 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in-95 duration-200 text-left">
-                <div className="grid gap-4">
-                    {/* Date Picker */}
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Date</span>
-                        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <div className='rounded-2xl bg-white/[0.05] backdrop-blur-2xl ring-1 ring-white/[0.08] shadow-[0_20px_60px_-24px_rgba(0,0,0,0.55)] p-5 sm:p-6 animate-in fade-in zoom-in-95 duration-200 text-left'>
+                <div className='grid gap-4 sm:grid-cols-3'>
+                    <Field label='Date'>
+                        <Popover
+                            open={calendarOpen}
+                            onOpenChange={setCalendarOpen}
+                        >
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal bg-white/5 border-white/10 hover:bg-white/10 text-white">
-                                    <Calendar className="mr-2 h-4 w-4" />
-                                    {date ? formatDateDisplay(date) : "Select date"}
-                                </Button>
+                                <FieldButton
+                                    icon={<Calendar className='h-3.5 w-3.5' />}
+                                >
+                                    {date
+                                        ? formatDateDisplay(date)
+                                        : "Select date"}
+                                </FieldButton>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 bg-[#0A0F26] border-white/10">
+                            <PopoverContent
+                                className={cn("w-auto p-0", popoverSurface)}
+                            >
                                 <CalendarComponent
-                                    mode="single"
+                                    mode='single'
                                     selected={date}
                                     onSelect={(d) => {
                                         setDate(d)
                                         setCalendarOpen(false)
                                     }}
-                                    captionLayout="dropdown"
+                                    captionLayout='dropdown'
                                     fromYear={1900}
                                     toYear={new Date().getFullYear()}
-                                    className="rounded-md border-0"
+                                    className='rounded-md border-0'
                                 />
                             </PopoverContent>
                         </Popover>
-                    </div>
+                    </Field>
 
-                    {/* Time Picker */}
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Time</span>
+                    <Field label='Time'>
                         <Popover
                             open={timeOpen}
                             onOpenChange={(open) => {
-                                if (!open) {
-                                    setTimeStep("hour")
-                                }
+                                if (!open) setTimeStep("hour")
                                 setTimeOpen(open)
                             }}
                         >
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal bg-white/5 border-white/10 hover:bg-white/10 text-white">
-                                    <Clock className="mr-2 h-4 w-4" />
+                                <FieldButton
+                                    icon={<Clock className='h-3.5 w-3.5' />}
+                                >
                                     {formatTimeDisplay(time.hour, time.minute)}
-                                </Button>
+                                </FieldButton>
                             </PopoverTrigger>
-                            <PopoverContent className="w-64 p-0 bg-[#0A0F26] border-white/10">
-                                <div className="p-3">
+                            <PopoverContent
+                                className={cn("w-64 p-0", popoverSurface)}
+                            >
+                                <div className='p-3'>
                                     {timeStep === "minute" && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
+                                        <button
+                                            type='button'
                                             onClick={() => setTimeStep("hour")}
-                                            className="mb-2 h-6 text-xs text-white/70 hover:text-white pl-0"
+                                            className='mb-2 inline-flex h-6 items-center text-xs text-white/60 hover:text-white'
                                         >
-                                            <ChevronLeft className="w-3 h-3 mr-1" /> Back
-                                        </Button>
+                                            <ChevronLeft className='w-3 h-3 mr-1' />
+                                            Back
+                                        </button>
                                     )}
                                     {timeStep === "hour" ? (
-                                        <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto">
+                                        <div className='grid grid-cols-4 gap-1 max-h-48 overflow-y-auto'>
                                             {Array.from({ length: 24 }, (_, i) => {
-                                                const h = i.toString().padStart(2, "0")
+                                                const h = i
+                                                    .toString()
+                                                    .padStart(2, "0")
                                                 return (
-                                                    <Button
+                                                    <button
+                                                        type='button'
                                                         key={i}
-                                                        variant="ghost"
-                                                        size="sm"
                                                         onClick={() => {
-                                                            setTime(prev => ({ ...prev, hour: h }))
+                                                            setTime((prev) => ({
+                                                                ...prev,
+                                                                hour: h,
+                                                            }))
                                                             setTimeStep("minute")
                                                         }}
                                                         className={cn(
-                                                            "text-xs",
-                                                            time.hour === h ? "bg-accent text-accent-foreground" : "text-white/80"
+                                                            "rounded-lg px-2 py-1.5 text-xs tabular-nums transition-colors",
+                                                            time.hour === h
+                                                                ? "bg-white/15 text-white"
+                                                                : "text-white/75 hover:bg-white/10",
                                                         )}
                                                     >
                                                         {h}
-                                                    </Button>
+                                                    </button>
                                                 )
                                             })}
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-4 gap-1 max-h-48 overflow-y-auto">
+                                        <div className='grid grid-cols-4 gap-1 max-h-48 overflow-y-auto'>
                                             {Array.from({ length: 60 }, (_, i) => {
-                                                const m = i.toString().padStart(2, "0")
+                                                const m = i
+                                                    .toString()
+                                                    .padStart(2, "0")
                                                 return (
-                                                    <Button
+                                                    <button
+                                                        type='button'
                                                         key={i}
-                                                        variant="ghost"
-                                                        size="sm"
                                                         onClick={() => {
-                                                            setTime(prev => ({ ...prev, minute: m }))
+                                                            setTime((prev) => ({
+                                                                ...prev,
+                                                                minute: m,
+                                                            }))
                                                             setTimeOpen(false)
                                                             setTimeStep("hour")
                                                         }}
                                                         className={cn(
-                                                            "text-xs",
-                                                            time.minute === m ? "bg-accent text-accent-foreground" : "text-white/80"
+                                                            "rounded-lg px-2 py-1.5 text-xs tabular-nums transition-colors",
+                                                            time.minute === m
+                                                                ? "bg-white/15 text-white"
+                                                                : "text-white/75 hover:bg-white/10",
                                                         )}
                                                     >
                                                         {m}
-                                                    </Button>
+                                                    </button>
                                                 )
                                             })}
                                         </div>
@@ -341,145 +372,214 @@ export default function BirthChartInfoCard({
                                 </div>
                             </PopoverContent>
                         </Popover>
-                    </div>
+                    </Field>
 
-                    {/* Location Picker */}
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Location</span>
-                        <Popover open={locationOpen} onOpenChange={(open) => {
-                            if (!open) {
-                                setLocationStep("country")
-                                setSearchCountry("")
-                                setSearchState("")
-                            }
-                            setLocationOpen(open)
-                        }}>
+                    <Field label='Location'>
+                        <Popover
+                            open={locationOpen}
+                            onOpenChange={(open) => {
+                                if (!open) {
+                                    setLocationStep("country")
+                                    setSearchCountry("")
+                                    setSearchState("")
+                                }
+                                setLocationOpen(open)
+                            }}
+                        >
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal bg-white/5 border-white/10 hover:bg-white/10 text-white truncate">
-                                    <MapPin className="mr-2 h-4 w-4 shrink-0" />
-                                    <span className="truncate">{locationDisplay || "Select Location"}</span>
-                                </Button>
+                                <FieldButton
+                                    icon={<MapPin className='h-3.5 w-3.5' />}
+                                >
+                                    <span className='truncate'>
+                                        {locationDisplay || "Select Location"}
+                                    </span>
+                                </FieldButton>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[280px] p-0 bg-[#0A0F26] border-white/10">
-                                <div className="p-2">
+                            <PopoverContent
+                                className={cn("w-[280px] p-0", popoverSurface)}
+                            >
+                                <div className='p-2'>
                                     {locationStep === "state" && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
+                                        <button
+                                            type='button'
                                             onClick={() => {
                                                 setLocationStep("country")
                                                 setSearchState("")
                                             }}
-                                            className="mb-2 h-6 text-xs text-white/70 hover:text-white w-full justify-start"
+                                            className='mb-2 inline-flex h-6 w-full items-center text-xs text-white/60 hover:text-white'
                                         >
-                                            <ChevronLeft className="w-3 h-3 mr-1" /> Back to Countries
-                                        </Button>
+                                            <ChevronLeft className='w-3 h-3 mr-1' />
+                                            Back to Countries
+                                        </button>
                                     )}
                                     <input
-                                        className="w-full bg-white/5 border border-white/10 rounded px-2 py-1 text-sm text-white mb-2 focus:outline-none focus:border-accent/50"
-                                        placeholder={locationStep === "country" ? "Search country..." : "Search state..."}
-                                        value={locationStep === "country" ? searchCountry : searchState}
-                                        onChange={e => locationStep === "country" ? setSearchCountry(e.target.value) : setSearchState(e.target.value)}
+                                        className='w-full bg-white/10 border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-white mb-2 placeholder:text-white/40 focus:outline-none focus:border-white/30'
+                                        placeholder={
+                                            locationStep === "country"
+                                                ? "Search country..."
+                                                : "Search state..."
+                                        }
+                                        value={
+                                            locationStep === "country"
+                                                ? searchCountry
+                                                : searchState
+                                        }
+                                        onChange={(e) =>
+                                            locationStep === "country"
+                                                ? setSearchCountry(e.target.value)
+                                                : setSearchState(e.target.value)
+                                        }
                                     />
-                                    <div className="max-h-48 overflow-y-auto space-y-0.5">
+                                    <div className='max-h-48 overflow-y-auto space-y-0.5'>
                                         {locationStep === "country" ? (
                                             filteredCountries.length > 0 ? (
-                                                filteredCountries.map(c => (
-                                                    <Button
+                                                filteredCountries.map((c) => (
+                                                    <button
+                                                        type='button'
                                                         key={c.code}
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className={cn("w-full justify-start font-normal text-xs h-7", country === c.name ? "bg-white/10 text-white" : "text-white/70")}
                                                         onClick={() => {
                                                             setCountry(c.name)
                                                             setLocationStep("state")
                                                             setSearchCountry("")
                                                         }}
+                                                        className={cn(
+                                                            "w-full rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors",
+                                                            country === c.name
+                                                                ? "bg-white/15 text-white"
+                                                                : "text-white/75 hover:bg-white/10",
+                                                        )}
                                                     >
                                                         {c.name}
-                                                    </Button>
+                                                    </button>
                                                 ))
-                                            ) : <div className="text-xs text-white/40 p-2 text-center">No countries found</div>
+                                            ) : (
+                                                <div className='text-xs text-white/45 p-2 text-center'>
+                                                    No countries found
+                                                </div>
+                                            )
+                                        ) : filteredStates.length > 0 ? (
+                                            filteredStates.map((s) => (
+                                                <button
+                                                    type='button'
+                                                    key={s.code}
+                                                    onClick={() => {
+                                                        setStateProv(s.name)
+                                                        setLocationOpen(false)
+                                                        setLocationStep("country")
+                                                        setSearchState("")
+                                                    }}
+                                                    className={cn(
+                                                        "w-full rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors",
+                                                        stateProv === s.name
+                                                            ? "bg-white/15 text-white"
+                                                            : "text-white/75 hover:bg-white/10",
+                                                    )}
+                                                >
+                                                    {s.name}
+                                                </button>
+                                            ))
                                         ) : (
-                                            filteredStates.length > 0 ? (
-                                                filteredStates.map(s => (
-                                                    <Button
-                                                        key={s.code}
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className={cn("w-full justify-start font-normal text-xs h-7", stateProv === s.name ? "bg-white/10 text-white" : "text-white/70")}
-                                                        onClick={() => {
-                                                            setStateProv(s.name)
-                                                            setLocationOpen(false)
-                                                            setLocationStep("country")
-                                                            setSearchState("")
-                                                        }}
-                                                    >
-                                                        {s.name}
-                                                    </Button>
-                                                ))
-                                            ) : <div className="text-xs text-white/40 p-2 text-center">No states found</div>
+                                            <div className='text-xs text-white/45 p-2 text-center'>
+                                                No states found
+                                            </div>
                                         )}
                                     </div>
                                 </div>
                             </PopoverContent>
                         </Popover>
-                    </div>
+                    </Field>
+                </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 mt-2">
-                        <Button 
-                            variant="secondary" 
-                            className="flex-1 bg-white/10 hover:bg-white/20 text-white border-0"
-                            onClick={() => setIsEditing(false)}
-                            disabled={isSaving}
-                        >
-                            <X className="w-4 h-4 mr-2" /> Cancel
-                        </Button>
-                        <Button 
-                            className="flex-1 bg-accent hover:bg-accent/90 text-white border-0"
-                            onClick={handleSave}
-                            disabled={isSaving}
-                        >
-                            {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-                            {isSaving ? "Saving..." : "Update"}
-                        </Button>
-                    </div>
+                <div className='mt-5 flex justify-end gap-2'>
+                    <Button
+                        variant='ghost'
+                        className='rounded-full text-white/80 hover:text-white hover:bg-white/10'
+                        onClick={() => setIsEditing(false)}
+                        disabled={isSaving}
+                    >
+                        <X className='w-4 h-4 mr-1.5' /> Cancel
+                    </Button>
+                    <Button
+                        className='rounded-full bg-white text-black hover:bg-white/90 border-0'
+                        onClick={handleSave}
+                        disabled={isSaving}
+                    >
+                        {isSaving ? (
+                            <Loader2 className='w-4 h-4 mr-1.5 animate-spin' />
+                        ) : (
+                            <Check className='w-4 h-4 mr-1.5' />
+                        )}
+                        {isSaving ? "Saving..." : "Update"}
+                    </Button>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="mt-2 inline-flex w-full max-w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl px-3 sm:px-4 py-2.5 shadow-[0_12px_32px_-16px_rgba(0,0,0,0.7)]">
-            <div className="flex min-w-0 flex-1 flex-wrap items-center justify-start gap-x-3 gap-y-1.5 text-[11px] sm:text-xs font-medium text-white/85">
+        <div className='inline-flex w-full items-center justify-between gap-2 rounded-full bg-white/[0.05] backdrop-blur-2xl ring-1 ring-white/[0.08] shadow-[0_12px_40px_-16px_rgba(0,0,0,0.55)] pl-4 pr-1.5 py-1.5'>
+            <div className='flex min-w-0 flex-1 items-center gap-x-4 gap-y-1 text-sm text-white/85 overflow-hidden'>
                 <InfoChip
-                    icon={<Calendar className="h-3 w-3" />}
+                    icon={<Calendar className='h-3.5 w-3.5' />}
                     text={date ? formatDateDisplay(date) : "N/A"}
                 />
-                <span className="h-3 w-px bg-white/15" />
+                <Separator />
                 <InfoChip
-                    icon={<Clock className="h-3 w-3" />}
+                    icon={<Clock className='h-3.5 w-3.5' />}
                     text={formatTimeDisplay(time.hour, time.minute)}
                 />
-                <span className="h-3 w-px bg-white/15" />
+                <Separator />
                 <InfoChip
-                    icon={<MapPin className="h-3 w-3" />}
+                    icon={<MapPin className='h-3.5 w-3.5' />}
                     text={locationDisplay || "Unknown"}
                     truncate
                 />
             </div>
-
-            <Button
-                size="icon"
-                variant="ghost"
-                className="h-7 w-7 shrink-0 rounded-full border border-white/10 bg-white/[0.04] text-white/70 hover:border-amber-300/40 hover:bg-amber-300/10 hover:text-amber-200 transition-colors"
+            <button
+                type='button'
                 onClick={() => setIsEditing(true)}
-                aria-label="Edit birth details"
+                aria-label='Edit birth details'
+                className='inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white/85 hover:bg-white/20 hover:text-white transition-colors'
             >
-                <Pencil className="h-3 w-3" />
-            </Button>
+                <Pencil className='h-3.5 w-3.5' />
+            </button>
         </div>
+    )
+}
+
+function Separator() {
+    return (
+        <span
+            aria-hidden
+            className='hidden sm:inline-block h-3.5 w-px bg-white/15'
+        />
+    )
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+    return (
+        <div className='flex flex-col gap-1.5'>
+            <span className='text-xs font-medium text-white/55'>{label}</span>
+            {children}
+        </div>
+    )
+}
+
+function FieldButton({
+    icon,
+    children,
+}: {
+    icon: ReactNode
+    children: ReactNode
+}) {
+    return (
+        <Button
+            variant='outline'
+            className='w-full justify-start text-left font-normal rounded-xl bg-white/[0.05] border-white/[0.10] hover:bg-white/[0.10] hover:border-white/[0.18] text-white'
+        >
+            <span className='mr-2 text-white/65'>{icon}</span>
+            <span className='truncate'>{children}</span>
+        </Button>
     )
 }
 
@@ -493,9 +593,21 @@ function InfoChip({
     truncate?: boolean
 }) {
     return (
-        <span className={cn("inline-flex items-center gap-1.5", truncate ? "min-w-0" : "shrink-0")}>
-            <span className="text-amber-200/80">{icon}</span>
-            <span className={cn("whitespace-nowrap", truncate && "truncate")}>{text}</span>
+        <span
+            className={cn(
+                "inline-flex items-center gap-1.5 text-[13px] text-white/90",
+                truncate ? "min-w-0" : "shrink-0",
+            )}
+        >
+            <span className='text-white/55'>{icon}</span>
+            <span
+                className={cn(
+                    "whitespace-nowrap",
+                    truncate && "truncate",
+                )}
+            >
+                {text}
+            </span>
         </span>
     )
 }

@@ -195,38 +195,33 @@ exception
 end;
 $$ language plpgsql stable;
 
--- Helper: compute refill based on cap and interval hours per star
--- For authenticated users we will pass p_interval_hours = 2
--- For anonymous users we will bypass this function (daily reset logic applies elsewhere)
+-- Helper: batch refill. p_interval_hours is the FULL-REFILL period (5 hours
+-- for authenticated users): once it has elapsed since the balance dropped
+-- below the cap, the balance resets straight to the cap. No partial refill.
+-- For anonymous users we bypass this function (daily reset logic applies elsewhere).
 create or replace function public._star_apply_refill(
   p_current integer,
   p_last_refill timestamptz,
   p_now timestamptz,
   p_cap integer,
-  p_interval_hours integer default 1
+  p_interval_hours integer default 5
 ) returns table (new_current integer, new_last_refill timestamptz) as $$
 declare
   v_current integer := greatest(0, coalesce(p_current, 0));
   v_last timestamptz := public._star_coerce_refill_ts(p_last_refill, p_now);
   v_cap integer := greatest(0, coalesce(p_cap, 0));
-  v_hours integer;
-  v_add integer;
 begin
   if v_current >= v_cap then
     return query select v_current, case when v_cap = 0 then v_last else null end;
-  end if;
-
-  v_hours := floor(extract(epoch from (p_now - v_last)) / (greatest(1, p_interval_hours) * 3600))::int;
-  if v_hours <= 0 then
+  elsif p_now - v_last >= (greatest(1, p_interval_hours) || ' hours')::interval then
+    return query select v_cap, null::timestamptz;
+  else
     return query select v_current, v_last;
   end if;
-
-  v_add := least(v_hours, v_cap - v_current);
-  return query select v_current + v_add, v_last + (v_add * greatest(1, p_interval_hours) || ' hours')::interval;
 end;
 $$ language plpgsql stable;
 
--- Get/create and normalize state. On first login, create a new user row with default 6 daily stars.
+-- Get/create and normalize state. On first login, create a new user row with default 5 daily stars.
 create or replace function public.star_get_or_create(
   p_anon_device_id text,
   p_user_id uuid default null
@@ -249,7 +244,7 @@ create or replace function public.star_get_or_create(
 ) as $$
 declare
   v_state public.stars%rowtype;
-  v_cap integer := case when p_user_id is null then 3 else 6 end;
+  v_cap integer := case when p_user_id is null then 3 else 5 end;
   v_now timestamptz := now();
   v_new_current integer;
   v_new_last timestamptz;
@@ -263,7 +258,7 @@ begin
         v_legacy_did := v_state.anon_device_id;
         select new_current, coalesce(new_last_refill, v_state.daily_last_refill_at)
           into v_new_current, v_new_last
-          from public._star_apply_refill(v_state.daily_stars, v_state.daily_last_refill_at, v_now, v_cap, 2);
+          from public._star_apply_refill(v_state.daily_stars, v_state.daily_last_refill_at, v_now, v_cap, 5);
         update public.stars s
            set anon_device_id = null,
                daily_stars = v_new_current,
@@ -295,7 +290,7 @@ begin
             first_time_login_grant,
             updated_at
           )
-          values (p_user_id, 6, v_now, 0, 0, 6, v_now, true, true, v_now)
+          values (p_user_id, 5, v_now, 0, 0, 5, v_now, true, true, v_now)
           returning * into v_state;
         else
           insert into public.stars (
@@ -310,7 +305,7 @@ begin
             first_time_login_grant,
             updated_at
           )
-          values (p_user_id, 6, v_now, 0, 0, 6, v_now, true, true, v_now)
+          values (p_user_id, 5, v_now, 0, 0, 5, v_now, true, true, v_now)
           returning * into v_state;
         end if;
       else
@@ -326,14 +321,14 @@ begin
           first_time_login_grant,
           updated_at
         )
-        values (p_user_id, 6, v_now, 0, 0, 6, v_now, true, true, v_now)
+        values (p_user_id, 5, v_now, 0, 0, 5, v_now, true, true, v_now)
         returning * into v_state;
       end if;
     end if;
 
     select new_current, coalesce(new_last_refill, v_state.daily_last_refill_at)
       into v_new_current, v_new_last
-      from public._star_apply_refill(v_state.daily_stars, v_state.daily_last_refill_at, v_now, v_cap, 2);
+      from public._star_apply_refill(v_state.daily_stars, v_state.daily_last_refill_at, v_now, v_cap, 5);
     update public.stars s
        set daily_stars = v_new_current,
            daily_last_refill_at = v_new_last,
@@ -445,7 +440,7 @@ create or replace function public.star_spend(
 ) as $$
 declare
   v_row record;
-  v_cap integer := case when p_user_id is null then 3 else 6 end;
+  v_cap integer := case when p_user_id is null then 3 else 5 end;
   v_now timestamptz := now();
   v_new_daily integer;
   v_new_last timestamptz;
@@ -483,7 +478,7 @@ begin
              v_now
            )
       into v_new_daily, v_new_last
-      from public._star_apply_refill(v_row.daily_stars, v_row.daily_last_refill_at, v_now, v_cap, 2);
+      from public._star_apply_refill(v_row.daily_stars, v_row.daily_last_refill_at, v_now, v_cap, 5);
   else
     if public._star_bangkok_date_safe(v_new_last, v_now) < public._star_bangkok_date_safe(v_now, v_now) then
       v_new_daily := 3;
@@ -710,7 +705,7 @@ begin
   end if;
 
   select * from public.star_get_or_create(p_anon_device_id, p_user_id) into v_row;
-  v_daily := least(6, v_target);
+  v_daily := least(5, v_target);
   v_plan := greatest(0, v_target - v_daily);
   v_addon := 0;
 

@@ -11,6 +11,7 @@ export function getServiceIdFromPathname(
     const mappings: Array<[prefix: string, id: HomeServiceId]> = [
         ["/birth-chart", "birthChart"],
         ["/astrology", "astrology"],
+        ["/life-monitor", "lifeMonitor"],
         ["/tarot", "tarot"],
         ["/numerology", "numerology"],
         ["/namelogy", "namelogy"],
