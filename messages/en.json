@@ -676,7 +676,11 @@
     "noBirthCta": "Add birth details",
     "supportTitle": "How to be there for them",
     "characterDisclaimer": "A reflection of cosmic energy, not facts about another person.",
-    "mood": { "bright": "Bright", "mixed": "Mixed", "tough": "Demanding" },
+    "mood": {
+      "bright": "Bright",
+      "mixed": "Mixed",
+      "tough": "Demanding"
+    },
     "areas": {
       "mood": "Mood",
       "love": "Love",
@@ -2183,10 +2187,10 @@
     "askEyebrow": "About this card",
     "askHint": "explains its meaning only",
     "askSuggestions": [
-        "What does this card mean?",
-        "What does it mean for love?",
-        "What does it say about work & career?",
-        "How does the reversed differ from upright?"
+      "What does this card mean?",
+      "What does it mean for love?",
+      "What does it say about work & career?",
+      "How does the reversed differ from upright?"
     ],
     "lightGathers": "Light gathers",
     "lightRecedes": "Light recedes",
@@ -3467,6 +3471,7 @@
     "errorBusy": "The fortune teller is reading for someone else right now. Please try again in a moment.",
     "errorActive": "It looks like you have a reveal open in another window. Close it and try again.",
     "errorNotConfigured": "The fortune teller isn't ready yet. Please come back soon.",
-    "errorGeneric": "The stars clouded over for a moment. Please ask again."
+    "errorGeneric": "The stars clouded over for a moment. Please ask again.",
+    "preparing": "Summoning the vision…"
   }
 }

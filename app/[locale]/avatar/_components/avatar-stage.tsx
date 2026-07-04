@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useTranslations } from "next-intl"
-import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AvatarPhase } from "./use-avatar-session"
 import { CountdownTimer } from "./countdown-timer"
@@ -37,8 +36,18 @@ export function AvatarStage({
 
     // The intro clip streams progressively (plays partial frames as it
     // downloads). `introBuffering` is true whenever playback is waiting for
-    // more data, so we can surface a loading icon while the rest downloads.
+    // more data; `introProgress` is how much of the clip has downloaded (0-100).
     const [introBuffering, setIntroBuffering] = useState(true)
+    const [introProgress, setIntroProgress] = useState(0)
+
+    const updateProgress = (video: HTMLVideoElement) => {
+        if (video.duration > 0 && video.buffered.length > 0) {
+            const loaded = video.buffered.end(video.buffered.length - 1)
+            setIntroProgress(
+                Math.min(100, Math.round((loaded / video.duration) * 100)),
+            )
+        }
+    }
 
     const shuffling = phase === "shuffling"
     const showCard =
@@ -61,17 +70,18 @@ export function AvatarStage({
                 onPlaying={() => setIntroBuffering(false)}
                 onCanPlay={() => setIntroBuffering(false)}
                 onEnded={() => setIntroBuffering(false)}
+                onProgress={(e) => updateProgress(e.currentTarget)}
+                onTimeUpdate={(e) => updateProgress(e.currentTarget)}
+                onLoadedMetadata={(e) => updateProgress(e.currentTarget)}
                 className={cn(
                     "absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700",
                     connected ? "opacity-0" : "opacity-100",
                 )}
             />
 
-            {/* Loading icon while the intro clip is still downloading. */}
+            {/* Mystical download-progress loader while the intro clip streams. */}
             {introBuffering && !connected && !shuffling && (
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="h-10 w-10 animate-spin text-white/80 drop-shadow-lg" />
-                </div>
+                <IntroLoader progress={introProgress} label={t("preparing")} />
             )}
 
             {/* Live WebRTC video — fades in once a session connects. */}
@@ -121,6 +131,104 @@ export function AvatarStage({
             {phase === "live" && remainingSeconds !== null && (
                 <CountdownTimer seconds={remainingSeconds} />
             )}
+        </div>
+    )
+}
+
+/**
+ * Mystical circular download-progress loader, matching the site's cosmic tone
+ * (gold → periwinkle gradient ring, soft glow, a slowly turning celestial dashed
+ * ring, and the percentage in the display serif).
+ */
+function IntroLoader({ progress, label }: { progress: number; label: string }) {
+    const radius = 44
+    const circumference = 2 * Math.PI * radius
+    const clamped = Math.min(100, Math.max(0, progress))
+    const offset = circumference - (clamped / 100) * circumference
+
+    return (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="relative flex flex-col items-center gap-5">
+                {/* Soft cosmic glow. */}
+                <div className="absolute -top-3 h-44 w-44 animate-pulse rounded-full bg-primary/25 blur-3xl" />
+                <div className="absolute -top-3 h-28 w-28 rounded-full bg-amber-400/15 blur-2xl" />
+
+                <div className="relative h-28 w-28">
+                    {/* Slowly turning celestial dashed ring. */}
+                    <svg
+                        viewBox="0 0 100 100"
+                        className="absolute inset-0 h-full w-full text-amber-200/30"
+                        style={{ animation: "spin 9s linear infinite" }}
+                    >
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r="48"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="0.6"
+                            strokeDasharray="1.5 6"
+                            strokeLinecap="round"
+                        />
+                    </svg>
+
+                    {/* Progress ring. */}
+                    <svg
+                        viewBox="0 0 100 100"
+                        className="absolute inset-0 h-full w-full -rotate-90"
+                    >
+                        <defs>
+                            <linearGradient
+                                id="introProgressGrad"
+                                x1="0%"
+                                y1="0%"
+                                x2="100%"
+                                y2="100%"
+                            >
+                                <stop offset="0%" stopColor="#fcd34d" />
+                                <stop offset="55%" stopColor="#c4b5fd" />
+                                <stop offset="100%" stopColor="#818cf8" />
+                            </linearGradient>
+                        </defs>
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r={radius}
+                            fill="none"
+                            stroke="rgba(255,255,255,0.08)"
+                            strokeWidth="4"
+                        />
+                        <circle
+                            cx="50"
+                            cy="50"
+                            r={radius}
+                            fill="none"
+                            stroke="url(#introProgressGrad)"
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={offset}
+                            style={{
+                                transition: "stroke-dashoffset 0.4s ease-out",
+                                filter: "drop-shadow(0 0 6px rgba(196,181,253,0.5))",
+                            }}
+                        />
+                    </svg>
+
+                    {/* Percentage. */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="font-playfair bg-gradient-to-b from-amber-200 to-violet-200 bg-clip-text text-2xl font-semibold tabular-nums text-transparent drop-shadow">
+                            {Math.round(clamped)}%
+                        </span>
+                    </div>
+                </div>
+
+                {label && (
+                    <p className="text-sm font-medium text-white/75 drop-shadow">
+                        {label}
+                    </p>
+                )}
+            </div>
         </div>
     )
 }
