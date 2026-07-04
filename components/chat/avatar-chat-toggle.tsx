@@ -14,16 +14,29 @@ export type ComposerTarget = "avatar" | "chat"
 export function AvatarChatToggle({
     value,
     onChange,
+    comingSoon = false,
+    onComingSoonClick,
 }: {
     value: ComposerTarget
     onChange: (value: ComposerTarget) => void
+    /** When true, the avatar feature isn't live yet: show a "COMING SOON" badge. */
+    comingSoon?: boolean
+    /** Clicking the avatar segment while `comingSoon` calls this instead of onChange. */
+    onComingSoonClick?: () => void
 }) {
     const t = useTranslations("QuestionInput")
     return (
-        <div className="inline-flex items-center rounded-full border border-white/12 bg-white/5 p-0.5">
+        <div className="relative inline-flex items-center rounded-full border border-white/12 bg-white/5 p-0.5">
+            {comingSoon && (
+                <span className="pointer-events-none absolute -right-1.5 -top-2 z-10 rounded-full bg-amber-400 px-1.5 py-px text-[8px] font-bold uppercase leading-tight tracking-wide text-black shadow">
+                    {t("comingSoon")}
+                </span>
+            )}
             <Segment
                 active={value === "avatar"}
-                onClick={() => onChange("avatar")}
+                onClick={() =>
+                    comingSoon ? onComingSoonClick?.() : onChange("avatar")
+                }
                 aria={t("avatarModeAria")}
             >
                 <Sparkles className="h-3.5 w-3.5" />

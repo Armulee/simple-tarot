@@ -25,6 +25,7 @@ import {
     AvatarChatToggle,
     type ComposerTarget,
 } from "@/components/chat/avatar-chat-toggle"
+import { AvatarComingSoonDialog } from "@/components/chat/avatar-coming-soon-dialog"
 import {
     newComposerSessionId,
     persistInitialQuestion,
@@ -90,6 +91,7 @@ export default function QuestionInput({
     composerTarget,
     onComposerTargetChange,
     onAvatarSubmit,
+    avatarComingSoon = false,
     composerSettings,
     composerFollowUps,
     actionTrigger,
@@ -128,6 +130,9 @@ export default function QuestionInput({
      * to /avatar/{ref} with the question as the initial message.
      */
     onAvatarSubmit?: (value: string) => void | Promise<void>
+    /** When true, the avatar segment shows a "COMING SOON" badge and opens the
+     * subscribe dialog instead of routing to /avatar. */
+    avatarComingSoon?: boolean
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
@@ -150,6 +155,7 @@ export default function QuestionInput({
     const t = useTranslations("QuestionInput")
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
+    const [comingSoonOpen, setComingSoonOpen] = useState(false)
     const router = useRouter()
     const pathname = usePathname()
     const locale = useLocale()
@@ -521,12 +527,22 @@ export default function QuestionInput({
                                     <AvatarChatToggle
                                         value={composerTarget}
                                         onChange={handleComposerTargetChange}
+                                        comingSoon={avatarComingSoon}
+                                        onComingSoonClick={() =>
+                                            setComingSoonOpen(true)
+                                        }
                                     />
                                 )}
                         </div>
                     </div>
                 )}
             </div>
+            {avatarComingSoon && (
+                <AvatarComingSoonDialog
+                    open={comingSoonOpen}
+                    onOpenChange={setComingSoonOpen}
+                />
+            )}
         </div>
     )
 

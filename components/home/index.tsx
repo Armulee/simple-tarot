@@ -481,6 +481,7 @@ export default function Home() {
                     enableCharacterMention
                     composerTarget={composerTarget}
                     onComposerTargetChange={setComposerTarget}
+                    avatarComingSoon
                     composerSettings={{
                         showAutoPick: true,
                         autoPickOn,

@@ -990,7 +990,8 @@
     "avatarMode": "Avatar",
     "chatMode": "Chat",
     "avatarModeAria": "Send to the talking avatar",
-    "chatModeAria": "Send as text chat"
+    "chatModeAria": "Send as text chat",
+    "comingSoon": "COMING SOON"
   },
   "Prompts": {
     "title": "An inspiring prompts",
@@ -3472,6 +3473,14 @@
     "errorActive": "It looks like you have a reveal open in another window. Close it and try again.",
     "errorNotConfigured": "The fortune teller isn't ready yet. Please come back soon.",
     "errorGeneric": "The stars clouded over for a moment. Please ask again.",
-    "preparing": "Summoning the vision…"
+    "preparing": "Summoning the vision…",
+    "comingSoon": "COMING SOON",
+    "comingSoonTitle": "The talking avatar is coming soon",
+    "comingSoonBody": "Meet a fortune teller who draws your cards and speaks your reading aloud, face to face. Subscribe and we'll email you the moment it's ready.",
+    "subscribeCta": "Notify me",
+    "subscribedTitle": "You're on the list",
+    "subscribedBody": "We'll email you as soon as the talking avatar arrives.",
+    "subscribeError": "Something went wrong. Please try again.",
+    "close": "Close"
   }
 }
