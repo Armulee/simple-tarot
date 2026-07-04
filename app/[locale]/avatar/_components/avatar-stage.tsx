@@ -1,6 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { useTranslations } from "next-intl"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { AvatarPhase } from "./use-avatar-session"
 import { CountdownTimer } from "./countdown-timer"
@@ -33,25 +35,44 @@ export function AvatarStage({
     const t = useTranslations("Avatar")
     const introSrc = process.env.NEXT_PUBLIC_AVATAR_INTRO ?? "/avatar/intro.mp4"
 
+    // The intro clip streams progressively (plays partial frames as it
+    // downloads). `introBuffering` is true whenever playback is waiting for
+    // more data, so we can surface a loading icon while the rest downloads.
+    const [introBuffering, setIntroBuffering] = useState(true)
+
     const shuffling = phase === "shuffling"
     const showCard =
         (phase === "revealing" || phase === "speaking" || phase === "live") && cardName
 
     return (
         <div className="absolute inset-0 overflow-hidden bg-[#05050f]">
-            {/* Idle / greeting clip — plays once on arrival, then freezes on its
-                last frame as the idle pose (a non-looping <video> holds the
-                final frame). */}
+            {/* Idle / greeting clip — streams progressively: it starts playing
+                the moment enough has downloaded, and shows a loading icon while
+                it buffers the rest. Freezes on its last frame as the idle pose. */}
             <video
                 src={introSrc}
                 autoPlay
                 muted
                 playsInline
+                preload="auto"
+                onLoadStart={() => setIntroBuffering(true)}
+                onWaiting={() => setIntroBuffering(true)}
+                onStalled={() => setIntroBuffering(true)}
+                onPlaying={() => setIntroBuffering(false)}
+                onCanPlay={() => setIntroBuffering(false)}
+                onEnded={() => setIntroBuffering(false)}
                 className={cn(
                     "absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700",
                     connected ? "opacity-0" : "opacity-100",
                 )}
             />
+
+            {/* Loading icon while the intro clip is still downloading. */}
+            {introBuffering && !connected && !shuffling && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="h-10 w-10 animate-spin text-white/80 drop-shadow-lg" />
+                </div>
+            )}
 
             {/* Live WebRTC video — fades in once a session connects. */}
             <video
