@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { supabase } from "@/lib/supabase"
-import { getMetadataBase } from "@/lib/seo"
+import { getMetadataBase, getSocialImageUrls } from "@/lib/seo"
 import SharedTarotView from "./shared-tarot-view"
 
 type SharedTarotData = {
@@ -46,7 +46,7 @@ export async function generateMetadata({
     // cards and interpretation instead of the generic site image.
     const ogImage = data
         ? `${baseUrl}/api/share-image/${id}?style=og`
-        : `${baseUrl}/${locale}/opengraph-image`
+        : getSocialImageUrls(locale).ogImage
 
     const title = data?.question
         ? `${data.question.slice(0, 60)} — AskingFate`

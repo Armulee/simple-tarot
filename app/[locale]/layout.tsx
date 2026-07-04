@@ -18,7 +18,7 @@ import { hasLocale } from "next-intl"
 import { routing } from "@/i18n/routing"
 import { notFound } from "next/navigation"
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server"
-import { getMetadataBase } from "@/lib/seo"
+import { getMetadataBase, getSocialImageUrls } from "@/lib/seo"
 import { ConsentAwareAnalytics } from "@/components/consent-aware-analytics"
 // StarConsentProvider and ReferralProvider are composed inside StarsProvider
 
@@ -45,8 +45,7 @@ export async function generateMetadata({
     const { locale } = await params
     const t = await getTranslations({ locale, namespace: "Meta.Layout" })
     const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
-    const ogImage = `${baseUrl}/${locale}/opengraph-image`
-    const twitterImage = `${baseUrl}/${locale}/twitter-image`
+    const { ogImage, twitterImage } = getSocialImageUrls(locale)
 
     return {
         metadataBase: getMetadataBase(),

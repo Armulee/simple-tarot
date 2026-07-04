@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { getStructuredDataForPage } from "@/lib/structured-data"
+import { routing } from "@/i18n/routing"
 
 // SEO configuration for the AskingFate website
 export const seoConfig = {
@@ -52,10 +53,15 @@ export const seoConfig = {
 }
 
 export function getMetadataBase(): URL {
+    // In production, never fall back to VERCEL_URL: it points at the generated
+    // *.vercel.app deployment URL, which sits behind Vercel deployment
+    // protection and returns 401 to social media crawlers.
+    const vercelUrl =
+        process.env.VERCEL_ENV !== "production" && process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : ""
     const envUrl =
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
-        seoConfig.siteUrl
+        process.env.NEXT_PUBLIC_SITE_URL || vercelUrl || seoConfig.siteUrl
 
     try {
         return new URL(envUrl)
@@ -64,12 +70,28 @@ export function getMetadataBase(): URL {
     }
 }
 
+// Absolute URLs for the dynamic social preview images. With
+// localePrefix "as-needed", the default locale must stay unprefixed:
+// "/en/opengraph-image" 307-redirects to "/opengraph-image", and social
+// media crawlers don't reliably follow redirects on image URLs.
+export function getSocialImageUrls(locale: string): {
+    ogImage: string
+    twitterImage: string
+} {
+    const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
+    const prefix = locale === routing.defaultLocale ? "" : `/${locale}`
+    return {
+        ogImage: `${baseUrl}${prefix}/opengraph-image`,
+        twitterImage: `${baseUrl}${prefix}/twitter-image`,
+    }
+}
+
 // Generate metadata for different pages
 export function generatePageMetadata({
     title,
     description,
     keywords = [],
-    image = "/opengraph-image.png",
+    image = "/opengraph-image",
     url,
     type = "website",
 }: {
