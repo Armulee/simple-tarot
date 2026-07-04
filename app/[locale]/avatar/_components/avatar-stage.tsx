@@ -79,8 +79,9 @@ export function AvatarStage({
                 )}
             />
 
-            {/* Mystical download-progress loader while the intro clip streams. */}
-            {introBuffering && !connected && !shuffling && (
+            {/* Mystical download-progress loader while the intro clip streams.
+                Hidden once it's fully loaded and playing. */}
+            {introBuffering && introProgress < 100 && !connected && !shuffling && (
                 <IntroLoader progress={introProgress} label={t("preparing")} />
             )}
 
