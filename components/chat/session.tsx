@@ -7,6 +7,7 @@ import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { parsePartialJson } from "ai"
 import { useStars } from "@/contexts/stars-context"
 import { readReasoningStream } from "@/lib/chat/reasoning-stream-client"
+import type { ChatAttachment } from "@/lib/chat/attachments"
 import { matchMentionedAspectEvents } from "@/lib/chat/aspect-mention"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
@@ -633,6 +634,11 @@ type NormalizedTimelineSlot = NonNullable<
 
 const horoscopeVerdictStreamSchema = streamingDailyVerdictSchema.passthrough()
 
+// Synthetic instruction used when the user sends attachments with no text —
+// the bubble stays empty, but the AI pipeline needs a prompt to act on.
+const ATTACHMENT_ONLY_PROMPT =
+    "The user sent only the attached image(s)/file(s) with no text. Look at the attachment content and respond to it (describe or interpret what it contains)."
+
 /**
  * `currents` and `whisper` were removed from the generation schema (they were
  * never rendered), but old persisted replies may still carry them — keep them
@@ -1011,6 +1017,10 @@ export default function ChatSession({
     const [locationDraftCountry, setLocationDraftCountry] = useState("")
     const [locationDraftState, setLocationDraftState] = useState("")
     const abortControllerRef = useRef<AbortController | null>(null)
+    // Attachments for the current turn, forwarded to /api/chat/respond so the
+    // AI can read the attached images/files. Set on every submit (null when
+    // the turn has none) so a stale value never leaks into a later turn.
+    const pendingAttachmentsRef = useRef<ChatAttachment[] | null>(null)
     const [showInsufficientStars, setShowInsufficientStars] = useState<boolean>(
         initialSession?.showInsufficientStars ?? false,
     )
@@ -1174,6 +1184,11 @@ export default function ChatSession({
     // homepage → session decision respects the locked interpretation mode
     // instead of racing with the default "auto".
     const [settingsLoaded, setSettingsLoaded] = useState(false)
+    // Avatar/chat toggle in the composer (default "chat" here; switching to
+    // avatar routes to /avatar and remembers this session to return to).
+    const [composerTarget, setComposerTarget] = useState<"avatar" | "chat">(
+        "chat",
+    )
     const [savedBirth, setSavedBirth] = useState<HoroscopeBirthData | null>(
         null,
     )
@@ -1181,6 +1196,11 @@ export default function ChatSession({
         null,
     )
     const [editingDraft, setEditingDraft] = useState("")
+    // Editable copy of the edited message's attachments: removable via the ×
+    // on each preview inside the edit box, extendable via the "+" button.
+    const [editingAttachments, setEditingAttachments] = useState<
+        ChatAttachment[]
+    >([])
     const messagesEndRef = useRef<HTMLDivElement | null>(null)
     const lastAssistantMessageRef = useRef<HTMLDivElement | null>(null)
     const cardDrawTargetRef = useRef<HTMLDivElement | null>(null)
@@ -4999,6 +5019,10 @@ export default function ChatSession({
                 activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
+            // Attachments belong to the current turn only; consume them here
+            // so the AI reads the attached images/files with this reply.
+            const turnAttachments = pendingAttachmentsRef.current
+            pendingAttachmentsRef.current = null
             const response = await fetch("/api/chat/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -5010,6 +5034,7 @@ export default function ChatSession({
                     history,
                     savedBirthInfo: savedBirthInfo ?? undefined,
                     contextSummary: contextSummary || undefined,
+                    attachments: turnAttachments ?? undefined,
                 }),
                 signal: abortControllerRef.current.signal,
             })
@@ -6050,11 +6075,13 @@ export default function ChatSession({
         if (!target || target.role !== "user") return
         setEditingMessageId(target.id)
         setEditingDraft(target.displayText ?? target.text)
+        setEditingAttachments(target.attachments ?? [])
     }
 
     const handleCancelEdit = () => {
         setEditingMessageId(null)
         setEditingDraft("")
+        setEditingAttachments([])
     }
 
     const handleSendEditAt = async (messageIndex: number) => {
@@ -6062,10 +6089,15 @@ export default function ChatSession({
         const target = messages[messageIndex]
         if (!target || target.role !== "user") return
         const trimmed = (editingDraft ?? "").trim()
-        if (!trimmed) return
+        const editAttachments = editingAttachments
+        if (!trimmed && editAttachments.length === 0) return
+        // Attachment-only edit keeps the bubble empty; the AI still needs a
+        // textual instruction.
+        const promptText = trimmed || ATTACHMENT_ONLY_PROMPT
 
         setEditingMessageId(null)
         setEditingDraft("")
+        setEditingAttachments([])
 
         setMessages((prev) =>
             prev.map((m, idx) =>
@@ -6074,6 +6106,9 @@ export default function ChatSession({
                           ...m,
                           text: trimmed,
                           displayText: trimmed,
+                          attachments: editAttachments.length
+                              ? editAttachments
+                              : undefined,
                           isSanitizing: true,
                           privacyRedacted: false,
                           privacyStorageKey: undefined,
@@ -6084,7 +6119,7 @@ export default function ChatSession({
         )
 
         try {
-            const prepared = await prepareUserSubmission(trimmed, {
+            const prepared = await prepareUserSubmission(promptText, {
                 messageId: target.id,
                 // Editing keeps the context the message was originally sent
                 // with — the live strip (if any) stays for the next message.
@@ -6093,6 +6128,12 @@ export default function ChatSession({
             const editedUserMessage: ChatMessage = {
                 ...target,
                 ...prepared.userMessage,
+                // Attachment-only edits display previews without a bubble;
+                // the synthetic instruction is for the AI only.
+                ...(trimmed ? {} : { text: "", displayText: "" }),
+                attachments: editAttachments.length
+                    ? editAttachments
+                    : undefined,
                 isSanitizing: false,
                 // Non-redacted prepareUserSubmission omits displayText; spreading
                 // target would otherwise keep a stale displayText while text updates.
@@ -6125,6 +6166,11 @@ export default function ChatSession({
                 ...messages.slice(0, messageIndex),
                 editedUserMessage,
             ]
+            // The edited attachments belong to the regenerated turn: the
+            // chat reply reads them via the pending-attachments ref.
+            pendingAttachmentsRef.current = editAttachments.length
+                ? editAttachments
+                : null
             void runDecisionFlowFromMessages({
                 baseMessages: baseSnapshot,
                 questionText: prepared.sanitized,
@@ -7176,10 +7222,21 @@ export default function ChatSession({
         }
         if (messages.length === 1 && messages[0].role === "user") {
             hasBootstrapped.current = true
-            void startDecisionFlow(messages[0].text, {
+            const first = messages[0]
+            // Attachments on the opening message (created from the homepage
+            // composer) must reach the AI reply, and an attachment-only
+            // opener (empty text) needs the synthetic instruction.
+            const bootstrapText =
+                first.text?.trim() ||
+                (first.attachments?.length ? ATTACHMENT_ONLY_PROMPT : "")
+            if (!bootstrapText) return
+            pendingAttachmentsRef.current = first.attachments?.length
+                ? first.attachments
+                : null
+            void startDecisionFlow(bootstrapText, {
                 appendUserMessage: false,
                 turnOriginContext:
-                    messages[0].originContextSnapshot ??
+                    first.originContextSnapshot ??
                     originContextRef.current,
             })
             // The first message consumed the page context it was created
@@ -7420,7 +7477,13 @@ export default function ChatSession({
         [locale, sessionId, user?.id],
     )
 
-    const handleSubmit = async (value: string) => {
+    const handleSubmit = async (
+        value: string,
+        attachments?: ChatAttachment[],
+    ) => {
+        pendingAttachmentsRef.current = attachments?.length
+            ? attachments
+            : null
         if (showCardDraw && cardsToSelect > 0 && hasEnoughStars === true) {
             const matches = value.match(/\d+/g) ?? []
             const indices = matches
@@ -7440,8 +7503,12 @@ export default function ChatSession({
             }
         }
         const trimmed = value.trim()
-        if (!trimmed) return
+        const hasAttachments = Boolean(attachments?.length)
+        if (!trimmed && !hasAttachments) return
         setQuestion("")
+        // Attachment-only send: the bubble stays empty (previews only), but
+        // the AI pipeline needs a textual instruction to act on the media.
+        const promptText = trimmed || ATTACHMENT_ONLY_PROMPT
 
         // Capture the context strip for this turn, then consume it: the
         // strip belongs to the message it was attached to and disappears
@@ -7476,19 +7543,30 @@ export default function ChatSession({
                     displayText: trimmed,
                     isSanitizing: true,
                     originContextSnapshot: turnOriginContext,
+                    ...(attachments?.length ? { attachments } : {}),
                 },
             ]
         })
 
         try {
-            const prepared = await prepareUserSubmission(trimmed, {
+            const prepared = await prepareUserSubmission(promptText, {
                 messageId: userId,
                 originContextSnapshot: turnOriginContext,
             })
             setMessages((prev) =>
                 prev.map((m) =>
                     m.id === userId
-                        ? { ...prepared.userMessage, isSanitizing: false }
+                        ? {
+                              ...prepared.userMessage,
+                              // Attachment-only sends keep the bubble empty:
+                              // the synthetic instruction is for the AI, not
+                              // for display.
+                              ...(trimmed
+                                  ? {}
+                                  : { text: "", displayText: "" }),
+                              ...(attachments?.length ? { attachments } : {}),
+                              isSanitizing: false,
+                          }
                         : m,
                 ),
             )
@@ -8112,6 +8190,13 @@ export default function ChatSession({
                     isHoroscopeIntakeActive ? undefined : setInterpretationMode
                 }
                 enableCharacterMention={!isHoroscopeIntakeActive}
+                composerTarget={
+                    isHoroscopeIntakeActive ? undefined : composerTarget
+                }
+                onComposerTargetChange={
+                    isHoroscopeIntakeActive ? undefined : setComposerTarget
+                }
+                avatarComingSoon
                 composerSettings={
                     isHoroscopeIntakeActive
                         ? null
@@ -8266,6 +8351,10 @@ export default function ChatSession({
                 editingMessageId={editingMessageId}
                 editingDraft={editingDraft}
                 setEditingDraft={setEditingDraft}
+                editingAttachments={editingAttachments}
+                onEditingAttachmentsChange={setEditingAttachments}
+                editInterpretationMode={interpretationMode}
+                onEditInterpretationModeChange={setInterpretationMode}
                 isChatLoading={isChatLoading}
                 consulting={consulting}
                 isInterpreting={isInterpreting}

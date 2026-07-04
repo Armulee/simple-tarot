@@ -36,6 +36,7 @@ type DbNotification = {
 const POSITIVE_TYPES = new Set([
     "access_request_decision",
     "share_visit",
+    "stars_refilled",
 ])
 
 interface NotificationSheetProps {

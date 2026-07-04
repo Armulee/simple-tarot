@@ -1,0 +1,40 @@
+# Drives the star refill sweep every 10 minutes.
+#
+# Vercel Hobby only allows daily crons, so the frequent cadence runs here and
+# the Vercel cron (vercel.json) stays as a once-a-day backstop. Both hit the
+# same idempotent endpoint, so overlapping runs are harmless.
+#
+# Setup (repo → Settings):
+#   - Secret  CRON_SECRET: must equal the CRON_SECRET env var on Vercel.
+#   - Variable SWEEP_URL (optional): override the production endpoint URL.
+#
+# Note: scheduled workflows only run from the default branch, so this
+# activates once merged to main. GitHub may delay scheduled runs by a few
+# minutes under load — fine for this job.
+
+name: Star refill sweep
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call refill sweep endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SWEEP_URL: ${{ vars.SWEEP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET secret is not set" >&2
+            exit 1
+          fi
+          curl -fsS -m 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "${SWEEP_URL:-https://askingfate.com/api/stars/refill-sweep}"

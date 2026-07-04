@@ -1,0 +1,8 @@
+{
+    "crons": [
+        {
+            "path": "/api/stars/refill-sweep",
+            "schedule": "0 0 * * *"
+        }
+    ]
+}

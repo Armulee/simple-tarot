@@ -56,7 +56,10 @@ interface StarsContextType {
 
 const StarsContext = createContext<StarsContextType | undefined>(undefined)
 const DEFAULT_STARS = 3
-const REFILL_INTERVAL_MS_AUTH = 2 * 60 * 60 * 1000 // 2 hours for logged-in users
+// Batch refill for logged-in users: the full 5 daily stars come back in one
+// step 5 hours after the balance first dropped below the cap (no faster
+// partial refills). Must match `_star_apply_refill` in supabase-schema.sql.
+const REFILL_INTERVAL_MS_AUTH = 5 * 60 * 60 * 1000 // 5 hours → refill to full
 
 export function StarsProvider({ children }: { children: ReactNode }) {
     const [dailyStars, setDailyStars] = useState<number | null>(null)
@@ -85,7 +88,7 @@ export function StarsProvider({ children }: { children: ReactNode }) {
     const { subscription, refresh: refreshSubscription } =
         useActiveSubscription()
 
-    const refillCap = user ? 6 : 3
+    const refillCap = user ? 5 : 3
 
     const stars = useMemo(() => {
         if (dailyStars === null && planStars === null && addonStars === null) {

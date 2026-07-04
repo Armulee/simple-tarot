@@ -113,6 +113,13 @@ export default function AdminDashboardPage() {
                     <div className="flex flex-wrap items-center gap-2">
                         <ContentSubmissionLink />
                         <Link
+                            href="/admin/broadcast"
+                            className="inline-flex items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-2.5 text-sm font-medium text-sky-200 transition-colors hover:bg-sky-500/20 hover:border-sky-500/50"
+                        >
+                            Broadcast
+                            <span className="text-sky-400">→</span>
+                        </Link>
+                        <Link
                             href="/admin/tarot-codex"
                             className="inline-flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm font-medium text-amber-200 transition-colors hover:bg-amber-500/20 hover:border-amber-500/50"
                         >

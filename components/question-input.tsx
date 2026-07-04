@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, type RefObject } from "react"
+import { useEffect, useMemo, useState, type RefObject } from "react"
 import {
     CornerDownRight,
     Image as ImageIcon,
@@ -16,7 +16,28 @@ import "swiper/css/free-mode"
 import { Button } from "./ui/button"
 import { Label } from "./ui/label"
 import { useRouter } from "next/navigation"
+import { useLocale } from "next-intl"
+import { usePathname } from "@/i18n/navigation"
 import { useTarot } from "@/contexts/tarot-context"
+import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/use-auth"
+import {
+    AvatarChatToggle,
+    type ComposerTarget,
+} from "@/components/chat/avatar-chat-toggle"
+import { AvatarComingSoonDialog } from "@/components/chat/avatar-coming-soon-dialog"
+import {
+    newComposerSessionId,
+    persistInitialQuestion,
+} from "@/lib/avatar/composer-handoff"
+import {
+    prepareAttachments,
+    type ChatAttachment,
+} from "@/lib/chat/attachments"
+import {
+    AttachmentPreviewDialog,
+    type MediaPreview,
+} from "@/components/chat/attachment-preview-dialog"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
@@ -75,6 +96,10 @@ export default function QuestionInput({
     centered = false,
     interpretationMode,
     onInterpretationModeChange,
+    composerTarget,
+    onComposerTargetChange,
+    onAvatarSubmit,
+    avatarComingSoon = false,
     composerSettings,
     composerFollowUps,
     actionTrigger,
@@ -96,7 +121,10 @@ export default function QuestionInput({
     defaultValue?: string
     value?: string
     onChange?: (value: string) => void
-    onSubmit?: (value: string) => void | Promise<void>
+    onSubmit?: (
+        value: string,
+        attachments?: ChatAttachment[],
+    ) => void | Promise<void>
     onStop?: () => void
     isLoading?: boolean
     followUp?: boolean
@@ -104,6 +132,18 @@ export default function QuestionInput({
     centered?: boolean
     interpretationMode?: InterpretationMode
     onInterpretationModeChange?: (mode: InterpretationMode) => void
+    /** Avatar/chat toggle state. When set, the toggle renders in the bottom row. */
+    composerTarget?: ComposerTarget
+    onComposerTargetChange?: (target: ComposerTarget) => void
+    /**
+     * Override for avatar-mode submit (used on the /avatar page to reveal in
+     * place). When omitted, avatar-mode submit creates a session and navigates
+     * to /avatar/{ref} with the question as the initial message.
+     */
+    onAvatarSubmit?: (value: string) => void | Promise<void>
+    /** When true, the avatar segment shows a "COMING SOON" badge and opens the
+     * subscribe dialog instead of routing to /avatar. */
+    avatarComingSoon?: boolean
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
@@ -126,7 +166,12 @@ export default function QuestionInput({
     const t = useTranslations("QuestionInput")
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
+    const [comingSoonOpen, setComingSoonOpen] = useState(false)
+    const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
     const router = useRouter()
+    const pathname = usePathname()
+    const locale = useLocale()
+    const { user } = useAuth()
     const {
         setQuestion: setContextQuestion,
         setCurrentStep,
@@ -144,13 +189,32 @@ export default function QuestionInput({
     const question = value !== undefined ? value : internalQuestion
     const setQuestion = onChange || setInternalQuestion
 
-    // Attachments picked from the "+" menu. Shown as chips in the composer;
-    // not yet wired into the reading pipeline.
+    // Attachments picked from the "+" menu. Images preview as thumbnails,
+    // other files as chips; on submit they are serialized (downscaled data
+    // URLs / extracted text) and handed to onSubmit for the AI to read.
     const [attachments, setAttachments] = useState<File[]>([])
     const handleAddMedia = (file: File) =>
         setAttachments((prev) => [...prev, file].slice(0, 8))
     const removeAttachment = (index: number) =>
         setAttachments((prev) => prev.filter((_, i) => i !== index))
+
+    // Object-URL previews for image attachments (revoked on change/unmount).
+    const attachmentPreviews = useMemo(
+        () =>
+            attachments.map((file) =>
+                file.type.startsWith("image/")
+                    ? URL.createObjectURL(file)
+                    : null,
+            ),
+        [attachments],
+    )
+    useEffect(() => {
+        return () => {
+            attachmentPreviews.forEach((url) => {
+                if (url) URL.revokeObjectURL(url)
+            })
+        }
+    }, [attachmentPreviews])
 
     const showBottomChrome =
         actionTrigger != null ||
@@ -158,13 +222,86 @@ export default function QuestionInput({
         composerSettings != null ||
         statusStrip != null
 
+    // The toggle navigates instantly:
+    //  - "avatar": go to /avatar, remembering the originating chat session
+    //    (if any) so we can return to it.
+    //  - "chat" (while on /avatar): go back to the chat session we came from,
+    //    or home if we didn't arrive from one.
+    // `pathname` here is locale-less (e.g. "/avatar", "/avatar/x", "/a1B2c3D4e5F6").
+    const handleComposerTargetChange = (next: ComposerTarget) => {
+        onComposerTargetChange?.(next)
+        const path = pathname ?? ""
+        const onAvatarRoute = path === "/avatar" || path.startsWith("/avatar/")
+
+        if (next === "avatar" && !onAvatarRoute) {
+            const segments = path.split("/").filter(Boolean)
+            const fromSession =
+                segments.length === 1 && /^[A-Za-z0-9_-]{12}$/.test(segments[0])
+                    ? segments[0]
+                    : null
+            router.push(
+                fromSession
+                    ? `/${locale}/avatar?from=${fromSession}`
+                    : `/${locale}/avatar`,
+            )
+        } else if (next === "chat" && onAvatarRoute) {
+            const from =
+                typeof window !== "undefined"
+                    ? new URLSearchParams(window.location.search).get("from")
+                    : null
+            router.push(from ? `/${locale}/${from}` : `/${locale}`)
+        }
+    }
+
+    const handleAvatarSubmit = async (value: string) => {
+        // On the /avatar page the parent handles the reveal in place.
+        if (onAvatarSubmit) {
+            void onAvatarSubmit(value)
+            return
+        }
+        // Elsewhere: persist the question as a session and hand off to /avatar,
+        // mirroring how the text chat creates a session reference in the URL.
+        const id = newComposerSessionId()
+        const ok = await persistInitialQuestion({
+            id,
+            question: value,
+            userId: user?.id ?? null,
+        })
+        const target = ok ? `/${locale}/avatar/${id}` : `/${locale}/avatar`
+        try {
+            router.prefetch(target)
+        } catch {}
+        router.push(target)
+    }
+
     const handleStartReading = () => {
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
-        if (currentValue) {
+        // Attachment-only sends (no text) are allowed for chat flows: the
+        // AI is asked to read the attached media on its own.
+        if (!currentValue && attachments.length > 0 && onSubmit) {
+            const files = attachments
             setAttachments([])
+            void (async () => {
+                const prepared = await prepareAttachments(files)
+                await onSubmit("", prepared)
+            })()
+            return
+        }
+        if (currentValue) {
+            const files = attachments
+            setAttachments([])
+            if (composerTarget === "avatar") {
+                void handleAvatarSubmit(currentValue)
+                return
+            }
             if (onSubmit) {
-                void onSubmit(currentValue)
+                void (async () => {
+                    const prepared = files.length
+                        ? await prepareAttachments(files)
+                        : undefined
+                    await onSubmit(currentValue, prepared)
+                })()
                 return
             }
             if (followUp) {
@@ -345,28 +482,66 @@ export default function QuestionInput({
             </Label>
             <div className={`w-full ${className ?? "max-w-sm md:max-w-md"}`}>
                 {attachments.length > 0 && (
-                    <div className='mb-2 flex flex-wrap gap-1.5'>
-                        {attachments.map((file, i) => (
-                            <span
-                                key={`${file.name}-${i}`}
-                                className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
-                            >
-                                {file.type.startsWith("image/") ? (
-                                    <ImageIcon className='size-3.5 shrink-0 text-white/60' />
-                                ) : (
-                                    <Paperclip className='size-3.5 shrink-0 text-white/60' />
-                                )}
-                                <span className='truncate'>{file.name}</span>
-                                <button
-                                    type='button'
-                                    onClick={() => removeAttachment(i)}
-                                    aria-label={t("removeAttachment")}
-                                    className='shrink-0 text-white/50 hover:text-white'
+                    <div className='mb-2 flex flex-wrap items-center gap-1.5'>
+                        {attachments.map((file, i) =>
+                            attachmentPreviews[i] ? (
+                                <span
+                                    key={`${file.name}-${i}`}
+                                    className='relative inline-block h-16 w-16 overflow-hidden rounded-xl border border-white/15 bg-white/5'
                                 >
-                                    <X className='size-3' />
-                                </button>
-                            </span>
-                        ))}
+                                    <button
+                                        type='button'
+                                        onClick={() =>
+                                            setMediaPreview({
+                                                src: attachmentPreviews[
+                                                    i
+                                                ] as string,
+                                                name: file.name,
+                                            })
+                                        }
+                                        className='block h-full w-full cursor-zoom-in'
+                                        aria-label={file.name}
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={attachmentPreviews[i] as string}
+                                            alt={file.name}
+                                            className='h-full w-full object-cover'
+                                        />
+                                    </button>
+                                    <button
+                                        type='button'
+                                        onClick={() => removeAttachment(i)}
+                                        aria-label={t("removeAttachment")}
+                                        className='absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white/80 backdrop-blur hover:text-white'
+                                    >
+                                        <X className='size-3' />
+                                    </button>
+                                </span>
+                            ) : (
+                                <span
+                                    key={`${file.name}-${i}`}
+                                    className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
+                                >
+                                    {file.type.startsWith("image/") ? (
+                                        <ImageIcon className='size-3.5 shrink-0 text-white/60' />
+                                    ) : (
+                                        <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                    )}
+                                    <span className='truncate'>
+                                        {file.name}
+                                    </span>
+                                    <button
+                                        type='button'
+                                        onClick={() => removeAttachment(i)}
+                                        aria-label={t("removeAttachment")}
+                                        className='shrink-0 text-white/50 hover:text-white'
+                                    >
+                                        <X className='size-3' />
+                                    </button>
+                                </span>
+                            ),
+                        )}
                     </div>
                 )}
                 <div className='relative group w-full'>
@@ -395,7 +570,10 @@ export default function QuestionInput({
                     <Button
                         onClick={isLoading ? onStop : handleStartReading}
                         disabled={
-                            !isLoading && !question.trim() && !defaultValue
+                            !isLoading &&
+                            !question.trim() &&
+                            !defaultValue &&
+                            !(attachments.length > 0 && onSubmit)
                         }
                         size='lg'
                         variant='ghost'
@@ -411,24 +589,53 @@ export default function QuestionInput({
                         )}
                     </Button>
                 </div>
-                {interpretationMode !== undefined &&
-                    onInterpretationModeChange && (
-                        <div className='mt-2 flex items-center justify-start gap-2'>
+                {((composerTarget !== undefined && onComposerTargetChange) ||
+                    (interpretationMode !== undefined &&
+                        onInterpretationModeChange)) && (
+                    <div className='mt-2 flex items-center justify-between gap-2'>
+                        <div className='flex items-center gap-2'>
                             {enableCharacterMention ? (
                                 <CharacterComposerButton
                                     onAddMedia={handleAddMedia}
                                 />
                             ) : null}
-                            <InterpretationModeSelector
-                                value={interpretationMode}
-                                onChange={onInterpretationModeChange}
-                            />
+                            {interpretationMode !== undefined &&
+                                onInterpretationModeChange && (
+                                    <InterpretationModeSelector
+                                        value={interpretationMode}
+                                        onChange={onInterpretationModeChange}
+                                    />
+                                )}
                             {composerSettings ? (
                                 <ComposerSettingsMenu {...composerSettings} />
                             ) : null}
                         </div>
-                    )}
+                        <div className='flex items-center gap-2'>
+                            {composerTarget !== undefined &&
+                                onComposerTargetChange && (
+                                    <AvatarChatToggle
+                                        value={composerTarget}
+                                        onChange={handleComposerTargetChange}
+                                        comingSoon={avatarComingSoon}
+                                        onComingSoonClick={() =>
+                                            setComingSoonOpen(true)
+                                        }
+                                    />
+                                )}
+                        </div>
+                    </div>
+                )}
             </div>
+            {avatarComingSoon && (
+                <AvatarComingSoonDialog
+                    open={comingSoonOpen}
+                    onOpenChange={setComingSoonOpen}
+                />
+            )}
+            <AttachmentPreviewDialog
+                media={mediaPreview}
+                onClose={() => setMediaPreview(null)}
+            />
         </div>
     )
 
@@ -446,7 +653,10 @@ export default function QuestionInput({
     if (showBottomChrome) {
         return (
             <div
-                className={`border-t border-white/10 bg-[#07060f]/80 backdrop-blur ${wrapperClassName}`}
+                className={cn(
+                    "border-t border-white/10 bg-[#07060f]/80 backdrop-blur",
+                    wrapperClassName,
+                )}
             >
                 <div
                     ref={containerRef}
