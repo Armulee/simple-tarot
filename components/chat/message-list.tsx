@@ -42,6 +42,13 @@ import {
     AttachmentPreviewDialog,
     type MediaPreview,
 } from "@/components/chat/attachment-preview-dialog"
+import {
+    prepareAttachments,
+    type ChatAttachment,
+} from "@/lib/chat/attachments"
+import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
+import CharacterComposerButton from "@/components/chat/character-composer-button"
+import type { InterpretationMode } from "@/lib/interpretation-mode-storage"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
@@ -242,6 +249,12 @@ type MessageListProps = {
     editingMessageId: string | null
     editingDraft: string
     setEditingDraft: Dispatch<SetStateAction<string>>
+    /** Editable copy of the edited message's attachments (removable / addable). */
+    editingAttachments: ChatAttachment[]
+    onEditingAttachmentsChange: (attachments: ChatAttachment[]) => void
+    /** Interpretation mode shown inside the edit box (drives the resend). */
+    editInterpretationMode: InterpretationMode
+    onEditInterpretationModeChange: (mode: InterpretationMode) => void
     isChatLoading: boolean
     consulting: boolean
     isInterpreting: boolean
@@ -353,6 +366,10 @@ export default function MessageList({
     messages,
     editingMessageId,
     editingDraft,
+    editingAttachments,
+    onEditingAttachmentsChange,
+    editInterpretationMode,
+    onEditInterpretationModeChange,
     setEditingDraft,
     isChatLoading,
     consulting,
@@ -573,7 +590,8 @@ export default function MessageList({
                                             </span>
                                         </div>
                                     ) : null}
-                                    {message.attachments?.length ? (
+                                    {!isEditing &&
+                                    message.attachments?.length ? (
                                         <div className='flex max-w-[80%] flex-wrap justify-end gap-1.5'>
                                             {message.attachments.map(
                                                 (attachment, i) =>
@@ -633,6 +651,83 @@ export default function MessageList({
                                                 onChange={setEditingDraft}
                                             >
                                             <div className='relative'>
+                                                {editingAttachments.length >
+                                                    0 && (
+                                                    <div className='mb-2 flex flex-wrap items-center gap-1.5'>
+                                                        {editingAttachments.map(
+                                                            (attachment, i) =>
+                                                                attachment.kind ===
+                                                                    "image" &&
+                                                                attachment.dataUrl ? (
+                                                                    <span
+                                                                        key={`edit-att-${i}`}
+                                                                        className='relative inline-block h-16 w-16 overflow-hidden rounded-xl border border-white/15 bg-white/5'
+                                                                    >
+                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                        <img
+                                                                            src={
+                                                                                attachment.dataUrl
+                                                                            }
+                                                                            alt={
+                                                                                attachment.name
+                                                                            }
+                                                                            className='h-full w-full object-cover'
+                                                                        />
+                                                                        <button
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                onEditingAttachmentsChange(
+                                                                                    editingAttachments.filter(
+                                                                                        (
+                                                                                            _,
+                                                                                            idx,
+                                                                                        ) =>
+                                                                                            idx !==
+                                                                                            i,
+                                                                                    ),
+                                                                                )
+                                                                            }
+                                                                            aria-label={`Remove ${attachment.name}`}
+                                                                            className='absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white/80 backdrop-blur hover:text-white'
+                                                                        >
+                                                                            <X className='size-3' />
+                                                                        </button>
+                                                                    </span>
+                                                                ) : (
+                                                                    <span
+                                                                        key={`edit-att-${i}`}
+                                                                        className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
+                                                                    >
+                                                                        <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                                                        <span className='truncate'>
+                                                                            {
+                                                                                attachment.name
+                                                                            }
+                                                                        </span>
+                                                                        <button
+                                                                            type='button'
+                                                                            onClick={() =>
+                                                                                onEditingAttachmentsChange(
+                                                                                    editingAttachments.filter(
+                                                                                        (
+                                                                                            _,
+                                                                                            idx,
+                                                                                        ) =>
+                                                                                            idx !==
+                                                                                            i,
+                                                                                    ),
+                                                                                )
+                                                                            }
+                                                                            aria-label={`Remove ${attachment.name}`}
+                                                                            className='shrink-0 text-white/50 hover:text-white'
+                                                                        >
+                                                                            <X className='size-3' />
+                                                                        </button>
+                                                                    </span>
+                                                                ),
+                                                        )}
+                                                    </div>
+                                                )}
                                                 <MentionTextarea
                                                     value={editingDraft}
                                                     onChange={setEditingDraft}
@@ -655,7 +750,41 @@ export default function MessageList({
                                                     interpretationMode='auto'
                                                     appearance='bare'
                                                 />
-                                                <div className='mt-2 flex items-center justify-end gap-2'>
+                                                {/* Composer controls: add media + interpretation mode. */}
+                                                <div className='mt-2 flex items-center gap-2'>
+                                                    <CharacterComposerButton
+                                                        onAddMedia={(file) => {
+                                                            void prepareAttachments(
+                                                                [file],
+                                                            ).then(
+                                                                ([prepared]) => {
+                                                                    if (
+                                                                        prepared
+                                                                    ) {
+                                                                        onEditingAttachmentsChange(
+                                                                            [
+                                                                                ...editingAttachments,
+                                                                                prepared,
+                                                                            ].slice(
+                                                                                0,
+                                                                                8,
+                                                                            ),
+                                                                        )
+                                                                    }
+                                                                },
+                                                            )
+                                                        }}
+                                                    />
+                                                    <InterpretationModeSelector
+                                                        value={
+                                                            editInterpretationMode
+                                                        }
+                                                        onChange={
+                                                            onEditInterpretationModeChange
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className='mt-2 flex items-center justify-between gap-2'>
                                                     <button
                                                         type='button'
                                                         className='inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1 text-[11px] text-white/70 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40'
@@ -675,7 +804,9 @@ export default function MessageList({
                                                         }
                                                         disabled={
                                                             isChatLoading ||
-                                                            !editingDraft.trim()
+                                                            (!editingDraft.trim() &&
+                                                                editingAttachments.length ===
+                                                                    0)
                                                         }
                                                     >
                                                         <Send className='h-3 w-3' />

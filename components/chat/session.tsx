@@ -1196,6 +1196,11 @@ export default function ChatSession({
         null,
     )
     const [editingDraft, setEditingDraft] = useState("")
+    // Editable copy of the edited message's attachments: removable via the ×
+    // on each preview inside the edit box, extendable via the "+" button.
+    const [editingAttachments, setEditingAttachments] = useState<
+        ChatAttachment[]
+    >([])
     const messagesEndRef = useRef<HTMLDivElement | null>(null)
     const lastAssistantMessageRef = useRef<HTMLDivElement | null>(null)
     const cardDrawTargetRef = useRef<HTMLDivElement | null>(null)
@@ -6070,11 +6075,13 @@ export default function ChatSession({
         if (!target || target.role !== "user") return
         setEditingMessageId(target.id)
         setEditingDraft(target.displayText ?? target.text)
+        setEditingAttachments(target.attachments ?? [])
     }
 
     const handleCancelEdit = () => {
         setEditingMessageId(null)
         setEditingDraft("")
+        setEditingAttachments([])
     }
 
     const handleSendEditAt = async (messageIndex: number) => {
@@ -6082,10 +6089,15 @@ export default function ChatSession({
         const target = messages[messageIndex]
         if (!target || target.role !== "user") return
         const trimmed = (editingDraft ?? "").trim()
-        if (!trimmed) return
+        const editAttachments = editingAttachments
+        if (!trimmed && editAttachments.length === 0) return
+        // Attachment-only edit keeps the bubble empty; the AI still needs a
+        // textual instruction.
+        const promptText = trimmed || ATTACHMENT_ONLY_PROMPT
 
         setEditingMessageId(null)
         setEditingDraft("")
+        setEditingAttachments([])
 
         setMessages((prev) =>
             prev.map((m, idx) =>
@@ -6094,6 +6106,9 @@ export default function ChatSession({
                           ...m,
                           text: trimmed,
                           displayText: trimmed,
+                          attachments: editAttachments.length
+                              ? editAttachments
+                              : undefined,
                           isSanitizing: true,
                           privacyRedacted: false,
                           privacyStorageKey: undefined,
@@ -6104,7 +6119,7 @@ export default function ChatSession({
         )
 
         try {
-            const prepared = await prepareUserSubmission(trimmed, {
+            const prepared = await prepareUserSubmission(promptText, {
                 messageId: target.id,
                 // Editing keeps the context the message was originally sent
                 // with — the live strip (if any) stays for the next message.
@@ -6113,6 +6128,12 @@ export default function ChatSession({
             const editedUserMessage: ChatMessage = {
                 ...target,
                 ...prepared.userMessage,
+                // Attachment-only edits display previews without a bubble;
+                // the synthetic instruction is for the AI only.
+                ...(trimmed ? {} : { text: "", displayText: "" }),
+                attachments: editAttachments.length
+                    ? editAttachments
+                    : undefined,
                 isSanitizing: false,
                 // Non-redacted prepareUserSubmission omits displayText; spreading
                 // target would otherwise keep a stale displayText while text updates.
@@ -6145,6 +6166,11 @@ export default function ChatSession({
                 ...messages.slice(0, messageIndex),
                 editedUserMessage,
             ]
+            // The edited attachments belong to the regenerated turn: the
+            // chat reply reads them via the pending-attachments ref.
+            pendingAttachmentsRef.current = editAttachments.length
+                ? editAttachments
+                : null
             void runDecisionFlowFromMessages({
                 baseMessages: baseSnapshot,
                 questionText: prepared.sanitized,
@@ -8325,6 +8351,10 @@ export default function ChatSession({
                 editingMessageId={editingMessageId}
                 editingDraft={editingDraft}
                 setEditingDraft={setEditingDraft}
+                editingAttachments={editingAttachments}
+                onEditingAttachmentsChange={setEditingAttachments}
+                editInterpretationMode={interpretationMode}
+                onEditInterpretationModeChange={setInterpretationMode}
                 isChatLoading={isChatLoading}
                 consulting={consulting}
                 isInterpreting={isInterpreting}
