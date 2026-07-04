@@ -48,6 +48,7 @@ import {
     saveComposerSuggestionsEnabledToStorage,
 } from "@/lib/composer-suggestions-storage"
 import type { HoroscopeBirthData } from "@/types/horoscope"
+import type { ChatAttachment } from "@/lib/chat/attachments"
 
 export default function Home() {
     const tHome = useTranslations("Home")
@@ -224,9 +225,13 @@ export default function Home() {
         }
     }
 
-    const createSessionAndRedirect = async (value: string) => {
+    const createSessionAndRedirect = async (
+        value: string,
+        attachments?: ChatAttachment[],
+    ) => {
         const trimmed = value.trim()
-        if (!trimmed || isLinking) return
+        const hasAttachments = Boolean(attachments?.length)
+        if ((!trimmed && !hasAttachments) || isLinking) return
         linkingRequestIdRef.current += 1
         const requestId = linkingRequestIdRef.current
         const pendingSessionId = createPendingSessionId()
@@ -238,14 +243,17 @@ export default function Home() {
         pendingSessionIdRef.current = pendingSessionId
         setQuestion("")
         setError(null)
-        setLinkingQuestion(trimmed)
+        setLinkingQuestion(trimmed || attachments?.[0]?.name || "")
         setIsLinking(true)
         try {
-            const sanitizeResult = await sanitizePromptOnClient(trimmed, {
-                sessionId: pendingSessionId,
-                locale,
-                signal: controller.signal,
-            })
+            // Nothing to sanitize for attachment-only sends (empty prompt).
+            const sanitizeResult = trimmed
+                ? await sanitizePromptOnClient(trimmed, {
+                      sessionId: pendingSessionId,
+                      locale,
+                      signal: controller.signal,
+                  })
+                : { sanitized: "", redacted: false, redactionTypes: [] }
             if (
                 requestId !== linkingRequestIdRef.current ||
                 controller.signal.aborted
@@ -253,6 +261,15 @@ export default function Home() {
                 return
             }
             const sanitizedQuestion = sanitizeResult.sanitized || trimmed
+            // The session record needs a non-empty question (topic/metadata);
+            // fall back to the attachment names. The message text itself stays
+            // empty so the chat renders previews only.
+            const questionForSession =
+                sanitizedQuestion ||
+                `📎 ${(attachments ?? [])
+                    .map((a) => a.name)
+                    .join(", ")
+                    .slice(0, 200)}`
             const userMessageId = `user-${Date.now()}`
             const privacyStorageKey = sanitizeResult.redacted
                 ? buildPrivacyStorageKey(userMessageId)
@@ -266,13 +283,14 @@ export default function Home() {
                 signal: controller.signal,
                 body: JSON.stringify({
                     id: pendingSessionId,
-                    question: sanitizedQuestion,
+                    question: questionForSession,
                     user_id: user?.id ?? null,
                     messages: [
                         {
                             id: userMessageId,
                             role: "user",
                             text: sanitizedQuestion,
+                            ...(hasAttachments ? { attachments } : {}),
                             ...(privacyStorageKey && {
                                 privacyStorageKey,
                                 privacyRedacted: true,

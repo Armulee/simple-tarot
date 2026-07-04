@@ -634,6 +634,11 @@ type NormalizedTimelineSlot = NonNullable<
 
 const horoscopeVerdictStreamSchema = streamingDailyVerdictSchema.passthrough()
 
+// Synthetic instruction used when the user sends attachments with no text —
+// the bubble stays empty, but the AI pipeline needs a prompt to act on.
+const ATTACHMENT_ONLY_PROMPT =
+    "The user sent only the attached image(s)/file(s) with no text. Look at the attachment content and respond to it (describe or interpret what it contains)."
+
 /**
  * `currents` and `whisper` were removed from the generation schema (they were
  * never rendered), but old persisted replies may still carry them — keep them
@@ -7191,10 +7196,21 @@ export default function ChatSession({
         }
         if (messages.length === 1 && messages[0].role === "user") {
             hasBootstrapped.current = true
-            void startDecisionFlow(messages[0].text, {
+            const first = messages[0]
+            // Attachments on the opening message (created from the homepage
+            // composer) must reach the AI reply, and an attachment-only
+            // opener (empty text) needs the synthetic instruction.
+            const bootstrapText =
+                first.text?.trim() ||
+                (first.attachments?.length ? ATTACHMENT_ONLY_PROMPT : "")
+            if (!bootstrapText) return
+            pendingAttachmentsRef.current = first.attachments?.length
+                ? first.attachments
+                : null
+            void startDecisionFlow(bootstrapText, {
                 appendUserMessage: false,
                 turnOriginContext:
-                    messages[0].originContextSnapshot ??
+                    first.originContextSnapshot ??
                     originContextRef.current,
             })
             // The first message consumed the page context it was created
@@ -7466,9 +7482,7 @@ export default function ChatSession({
         setQuestion("")
         // Attachment-only send: the bubble stays empty (previews only), but
         // the AI pipeline needs a textual instruction to act on the media.
-        const promptText =
-            trimmed ||
-            "The user sent only the attached image(s)/file(s) with no text. Look at the attachment content and respond to it (describe or interpret what it contains)."
+        const promptText = trimmed || ATTACHMENT_ONLY_PROMPT
 
         // Capture the context strip for this turn, then consume it: the
         // strip belongs to the message it was attached to and disappears
