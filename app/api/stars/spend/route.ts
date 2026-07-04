@@ -3,6 +3,12 @@ import { readAndVerifyDid } from "@/lib/server/did"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
 import { getActiveSubscriptionInfo } from "@/lib/server/subscription"
 
+// Authenticated daily-star cap. Must match `v_cap` for logged-in users in
+// `star_spend` / `star_get_or_create` (supabase-schema.sql). If the stale
+// refill timestamp is not reset when the balance first drops below this cap,
+// the next `star_get_or_create` refills the balance straight back to the cap.
+const AUTH_DAILY_CAP = 5
+
 export async function POST(req: Request) {
     const { amount, user_id: userId } = await req.json()
     const did = await readAndVerifyDid()
@@ -148,7 +154,7 @@ export async function POST(req: Request) {
                 })
             }
 
-            if (dailyStars >= 6 && nextDaily < 6) {
+            if (dailyStars >= AUTH_DAILY_CAP && nextDaily < AUTH_DAILY_CAP) {
                 dailyLastRefillAt = new Date().toISOString()
             }
 
