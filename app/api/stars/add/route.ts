@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "BAD_AMOUNT" }, { status: 400 })
 
     if (userId) {
-        // For authenticated users, regular adds are capped to daily stars (6). Purchases should use subscription add-ons.
+        // For authenticated users, regular adds are capped to the daily-star cap (5,
+        // must match `v_cap` in supabase-schema.sql). Purchases should use subscription add-ons.
         const { data: currentData, error: currentErr } = await supabase.rpc(
             "star_get_or_create",
             {
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ data })
         }
 
-        const dailyCap = 6
+        const dailyCap = 5
         const nextDaily =
             dailyStars >= dailyCap
                 ? dailyStars
