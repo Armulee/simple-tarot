@@ -2,11 +2,27 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link } from "@/i18n/navigation"
-import { ArrowLeft, Send, Mail, Loader2 } from "lucide-react"
+import {
+    ArrowLeft,
+    ChevronDown,
+    Loader2,
+    Mail,
+    Search,
+    Send,
+    Users,
+} from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
+import type { BroadcastSubscriber } from "@/app/api/admin/broadcast/route"
 
-type FeatureEntry = { key: string; label: string; emails: string[] }
+type FeatureEntry = {
+    key: string
+    label: string
+    emails: string[]
+    subscribers: BroadcastSubscriber[]
+}
+
+const PAGE_SIZE = 10
 
 async function adminHeaders(): Promise<Record<string, string>> {
     const {
@@ -37,6 +53,9 @@ export default function AdminBroadcastPage() {
     const [sending, setSending] = useState(false)
     const [result, setResult] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
+    // Subscriber list controls.
+    const [subscriberSearch, setSubscriberSearch] = useState("")
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
     useEffect(() => {
         void (async () => {
@@ -55,6 +74,11 @@ export default function AdminBroadcastPage() {
         })()
     }, [])
 
+    // Reset the list paging when switching feature or search text.
+    useEffect(() => {
+        setVisibleCount(PAGE_SIZE)
+    }, [selected, subscriberSearch])
+
     const current = useMemo(
         () => features.find((f) => f.key === selected),
         [features, selected],
@@ -63,6 +87,19 @@ export default function AdminBroadcastPage() {
     const recipientCount = isCustom
         ? toText.split(/[,;\n]/).map((s) => s.trim()).filter(Boolean).length
         : (current?.emails.length ?? 0)
+
+    const filteredSubscribers = useMemo(() => {
+        const list = current?.subscribers ?? []
+        const q = subscriberSearch.trim().toLowerCase()
+        if (!q) return list
+        return list.filter(
+            (s) =>
+                s.email.toLowerCase().includes(q) ||
+                (s.name ?? "").toLowerCase().includes(q),
+        )
+    }, [current, subscriberSearch])
+    const visibleSubscribers = filteredSubscribers.slice(0, visibleCount)
+    const hasMore = filteredSubscribers.length > visibleCount
 
     const send = useCallback(async () => {
         setSending(true)
@@ -144,84 +181,178 @@ export default function AdminBroadcastPage() {
                 )}
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
-                {/* Form */}
-                <div className="space-y-4">
-                    <Field label="Subject">
-                        <input
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-amber-500/50"
-                        />
-                    </Field>
+            {/* Subscribed users — searchable list, 10 at a time. */}
+            {!isCustom && (
+                <div className="mb-6 rounded-xl border border-white/10 bg-white/[0.03]">
+                    <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+                        <Users className="h-4 w-4 text-white/50" />
+                        <h2 className="text-sm font-semibold text-white">
+                            Subscribed users
+                        </h2>
+                        <span className="text-xs text-white/40">
+                            {filteredSubscribers.length}
+                        </span>
+                    </div>
+                    <div className="p-4">
+                        <div className="relative mb-3">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                            <input
+                                value={subscriberSearch}
+                                onChange={(e) =>
+                                    setSubscriberSearch(e.target.value)
+                                }
+                                placeholder="Search by name or email…"
+                                className="w-full rounded-lg border border-white/10 bg-white/5 py-2 pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-amber-500/50"
+                            />
+                        </div>
 
-                    <Field
-                        label={`To ${isCustom ? "" : `(${recipientCount} subscribers)`}`}
-                    >
-                        {isCustom ? (
+                        {filteredSubscribers.length === 0 ? (
+                            <p className="py-6 text-center text-sm text-white/45">
+                                {(current?.subscribers.length ?? 0) === 0
+                                    ? "No subscribers yet."
+                                    : "No subscribers match your search."}
+                            </p>
+                        ) : (
+                            <>
+                                <ul className="divide-y divide-white/5">
+                                    {visibleSubscribers.map((s) => (
+                                        <li
+                                            key={s.email}
+                                            className="flex items-center gap-3 py-2.5"
+                                        >
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/30 text-xs font-semibold uppercase text-white">
+                                                {(s.name || s.email).charAt(0)}
+                                            </span>
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block truncate text-sm text-white">
+                                                    {s.name || "—"}
+                                                </span>
+                                                <span className="block truncate text-xs text-white/50">
+                                                    {s.email}
+                                                </span>
+                                            </span>
+                                            {s.createdAt && (
+                                                <span className="shrink-0 text-xs text-white/35">
+                                                    {new Date(
+                                                        s.createdAt,
+                                                    ).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                                {hasMore && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setVisibleCount(
+                                                (prev) => prev + PAGE_SIZE,
+                                            )
+                                        }
+                                        className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                                    >
+                                        More
+                                        <ChevronDown className="h-4 w-4" />
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Email composer, boxed with a header. */}
+            <div className="rounded-xl border border-white/10 bg-white/[0.03]">
+                <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
+                    <Mail className="h-4 w-4 text-white/50" />
+                    <h2 className="text-sm font-semibold text-white">
+                        Email Composer
+                    </h2>
+                </div>
+                <div className="grid gap-6 p-4 lg:grid-cols-2">
+                    {/* Form */}
+                    <div className="space-y-4">
+                        <Field label="Subject">
+                            <input
+                                value={subject}
+                                onChange={(e) => setSubject(e.target.value)}
+                                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-amber-500/50"
+                            />
+                        </Field>
+
+                        <Field label="To">
+                            {isCustom ? (
+                                <textarea
+                                    value={toText}
+                                    onChange={(e) => setToText(e.target.value)}
+                                    rows={2}
+                                    placeholder="comma or newline separated emails"
+                                    className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-amber-500/50"
+                                />
+                            ) : (
+                                <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70">
+                                    All {recipientCount} subscriber
+                                    {recipientCount === 1 ? "" : "s"} of{" "}
+                                    {current?.label ?? selected}
+                                </div>
+                            )}
+                        </Field>
+
+                        <Field label="Cc (optional)">
+                            <input
+                                value={ccText}
+                                onChange={(e) => setCcText(e.target.value)}
+                                placeholder="comma separated emails"
+                                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-amber-500/50"
+                            />
+                        </Field>
+
+                        <Field label="Body">
                             <textarea
-                                value={toText}
-                                onChange={(e) => setToText(e.target.value)}
-                                rows={2}
-                                placeholder="comma or newline separated emails"
+                                value={body}
+                                onChange={(e) => setBody(e.target.value)}
+                                rows={8}
                                 className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-amber-500/50"
                             />
-                        ) : (
-                            <div className="max-h-24 overflow-y-auto rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/50">
-                                {current?.emails.length
-                                    ? current.emails.join(", ")
-                                    : "No subscribers yet."}
+                        </Field>
+
+                        <Field label="Template">
+                            <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70">
+                                Default
                             </div>
+                        </Field>
+
+                        <button
+                            type="button"
+                            onClick={send}
+                            disabled={
+                                sending ||
+                                recipientCount === 0 ||
+                                !subject ||
+                                !body
+                            }
+                            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            {sending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Send className="h-4 w-4" />
+                            )}
+                            Send to {recipientCount}
+                        </button>
+                        {result && (
+                            <p className="text-sm text-emerald-400">{result}</p>
                         )}
-                    </Field>
+                        {error && <p className="text-sm text-red-400">{error}</p>}
+                    </div>
 
-                    <Field label="Cc (optional)">
-                        <input
-                            value={ccText}
-                            onChange={(e) => setCcText(e.target.value)}
-                            placeholder="comma separated emails"
-                            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-amber-500/50"
-                        />
-                    </Field>
-
-                    <Field label="Body">
-                        <textarea
-                            value={body}
-                            onChange={(e) => setBody(e.target.value)}
-                            rows={8}
-                            className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-amber-500/50"
-                        />
-                    </Field>
-
-                    <Field label="Template">
-                        <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70">
-                            Default
-                        </div>
-                    </Field>
-
-                    <button
-                        type="button"
-                        onClick={send}
-                        disabled={sending || recipientCount === 0 || !subject || !body}
-                        className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                        {sending ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Send className="h-4 w-4" />
-                        )}
-                        Send to {recipientCount}
-                    </button>
-                    {result && <p className="text-sm text-emerald-400">{result}</p>}
-                    {error && <p className="text-sm text-red-400">{error}</p>}
-                </div>
-
-                {/* Template preview — how the email will look (default template). */}
-                <div>
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-white/40">
-                        Preview
-                    </p>
-                    <EmailPreview heading={subject} body={body} />
+                    {/* Template preview — how the email will look (default template). */}
+                    <div>
+                        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-white/40">
+                            Preview
+                        </p>
+                        <EmailPreview heading={subject} body={body} />
+                    </div>
                 </div>
             </div>
         </div>

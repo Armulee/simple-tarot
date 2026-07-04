@@ -27,10 +27,16 @@ function parseEmails(input: unknown): string[] {
     return []
 }
 
+export type BroadcastSubscriber = {
+    email: string
+    name: string | null
+    createdAt: string | null
+}
+
 /**
- * GET — list broadcastable features with their subscriber emails/counts, so the
- * admin page can prefill the "to" field. Always includes a "custom" option
- * (arbitrary recipients, no subscribers).
+ * GET — list broadcastable features with their subscribers (name + email),
+ * so the admin page can render the subscriber list and recipient counts.
+ * Always includes a "custom" option (arbitrary recipients, no subscribers).
  */
 export async function GET(request: NextRequest) {
     const auth = await requireAdmin(request)
@@ -41,20 +47,53 @@ export async function GET(request: NextRequest) {
         key: string
         label: string
         emails: string[]
+        subscribers: BroadcastSubscriber[]
     }[] = []
 
     for (const f of FEATURES) {
         const { data } = await admin
             .from("feature_subscriptions")
-            .select("email")
+            .select("email, user_id, created_at")
             .eq("feature", f.key)
-        const emails = Array.from(
-            new Set((data ?? []).map((r) => String(r.email).toLowerCase())),
+            .order("created_at", { ascending: false })
+        const rows = data ?? []
+
+        const userIds = Array.from(
+            new Set(rows.map((r) => r.user_id as string).filter(Boolean)),
         )
-        features.push({ key: f.key, label: f.label, emails })
+        const nameByUser = new Map<string, string | null>()
+        if (userIds.length > 0) {
+            const { data: profs } = await admin
+                .from("profiles")
+                .select("id, name")
+                .in("id", userIds)
+            for (const p of profs ?? []) {
+                nameByUser.set(p.id as string, (p.name as string) ?? null)
+            }
+        }
+
+        const seen = new Set<string>()
+        const subscribers: BroadcastSubscriber[] = []
+        for (const r of rows) {
+            const email = String(r.email).toLowerCase()
+            if (seen.has(email)) continue
+            seen.add(email)
+            subscribers.push({
+                email,
+                name: nameByUser.get(r.user_id as string) ?? null,
+                createdAt: (r.created_at as string) ?? null,
+            })
+        }
+
+        features.push({
+            key: f.key,
+            label: f.label,
+            emails: subscribers.map((s) => s.email),
+            subscribers,
+        })
     }
 
-    features.push({ key: "custom", label: "Custom", emails: [] })
+    features.push({ key: "custom", label: "Custom", emails: [], subscribers: [] })
 
     return NextResponse.json({ features })
 }
