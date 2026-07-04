@@ -2022,3 +2022,26 @@
   60% { transform: translateX(-50%) rotateY(-8deg) scale(1.04); opacity: 1; }
   100% { transform: translateX(-50%) rotateY(0deg) scale(1); opacity: 1; }
 }
+
+/* ----- /avatar coming-soon dialog effects ----- */
+@keyframes csShimmer {
+  0% { transform: translateX(-180%) skewX(-12deg); }
+  100% { transform: translateX(320%) skewX(-12deg); }
+}
+@keyframes csFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.45; }
+  50% { transform: translateY(-7px); opacity: 1; }
+}
+@keyframes csGradientText {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes csPopIn {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes csRingBurst {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
