@@ -17,7 +17,10 @@ const REFILL_STARS = 5
 const MAX_EMAILS_PER_RUN = 500
 
 /**
- * GET — scheduled sweep (Vercel cron, see vercel.json).
+ * GET — scheduled sweep. Runs every 10 minutes via GitHub Actions
+ * (.github/workflows/star-refill-sweep.yml — Vercel Hobby only allows daily
+ * crons), with the Vercel cron (vercel.json) as a once-a-day backstop. Both
+ * hit this same idempotent endpoint.
  *
  * Applies every matured 5-hour batch refill proactively (the star RPCs would
  * otherwise apply it lazily on the user's next visit), then for each refilled
