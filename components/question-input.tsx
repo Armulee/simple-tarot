@@ -34,6 +34,10 @@ import {
     prepareAttachments,
     type ChatAttachment,
 } from "@/lib/chat/attachments"
+import {
+    AttachmentPreviewDialog,
+    type MediaPreview,
+} from "@/components/chat/attachment-preview-dialog"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
@@ -163,6 +167,7 @@ export default function QuestionInput({
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
     const [comingSoonOpen, setComingSoonOpen] = useState(false)
+    const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
     const router = useRouter()
     const pathname = usePathname()
     const locale = useLocale()
@@ -272,6 +277,17 @@ export default function QuestionInput({
     const handleStartReading = () => {
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
+        // Attachment-only sends (no text) are allowed for chat flows: the
+        // AI is asked to read the attached media on its own.
+        if (!currentValue && attachments.length > 0 && onSubmit) {
+            const files = attachments
+            setAttachments([])
+            void (async () => {
+                const prepared = await prepareAttachments(files)
+                await onSubmit("", prepared)
+            })()
+            return
+        }
         if (currentValue) {
             const files = attachments
             setAttachments([])
@@ -473,12 +489,26 @@ export default function QuestionInput({
                                     key={`${file.name}-${i}`}
                                     className='relative inline-block h-16 w-16 overflow-hidden rounded-xl border border-white/15 bg-white/5'
                                 >
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={attachmentPreviews[i] as string}
-                                        alt={file.name}
-                                        className='h-full w-full object-cover'
-                                    />
+                                    <button
+                                        type='button'
+                                        onClick={() =>
+                                            setMediaPreview({
+                                                src: attachmentPreviews[
+                                                    i
+                                                ] as string,
+                                                name: file.name,
+                                            })
+                                        }
+                                        className='block h-full w-full cursor-zoom-in'
+                                        aria-label={file.name}
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={attachmentPreviews[i] as string}
+                                            alt={file.name}
+                                            className='h-full w-full object-cover'
+                                        />
+                                    </button>
                                     <button
                                         type='button'
                                         onClick={() => removeAttachment(i)}
@@ -540,7 +570,10 @@ export default function QuestionInput({
                     <Button
                         onClick={isLoading ? onStop : handleStartReading}
                         disabled={
-                            !isLoading && !question.trim() && !defaultValue
+                            !isLoading &&
+                            !question.trim() &&
+                            !defaultValue &&
+                            !(attachments.length > 0 && onSubmit)
                         }
                         size='lg'
                         variant='ghost'
@@ -599,6 +632,10 @@ export default function QuestionInput({
                     onOpenChange={setComingSoonOpen}
                 />
             )}
+            <AttachmentPreviewDialog
+                media={mediaPreview}
+                onClose={() => setMediaPreview(null)}
+            />
         </div>
     )
 

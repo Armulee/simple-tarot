@@ -7461,8 +7461,14 @@ export default function ChatSession({
             }
         }
         const trimmed = value.trim()
-        if (!trimmed) return
+        const hasAttachments = Boolean(attachments?.length)
+        if (!trimmed && !hasAttachments) return
         setQuestion("")
+        // Attachment-only send: the bubble stays empty (previews only), but
+        // the AI pipeline needs a textual instruction to act on the media.
+        const promptText =
+            trimmed ||
+            "The user sent only the attached image(s)/file(s) with no text. Look at the attachment content and respond to it (describe or interpret what it contains)."
 
         // Capture the context strip for this turn, then consume it: the
         // strip belongs to the message it was attached to and disappears
@@ -7503,7 +7509,7 @@ export default function ChatSession({
         })
 
         try {
-            const prepared = await prepareUserSubmission(trimmed, {
+            const prepared = await prepareUserSubmission(promptText, {
                 messageId: userId,
                 originContextSnapshot: turnOriginContext,
             })
@@ -7512,6 +7518,12 @@ export default function ChatSession({
                     m.id === userId
                         ? {
                               ...prepared.userMessage,
+                              // Attachment-only sends keep the bubble empty:
+                              // the synthetic instruction is for the AI, not
+                              // for display.
+                              ...(trimmed
+                                  ? {}
+                                  : { text: "", displayText: "" }),
                               ...(attachments?.length ? { attachments } : {}),
                               isSanitizing: false,
                           }

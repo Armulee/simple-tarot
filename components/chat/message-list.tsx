@@ -38,6 +38,10 @@ import { SupportBlock } from "@/components/chat/support/support-block"
 import GeneralReadingTabs from "@/components/chat/general/general-reading-tabs"
 import { PrivacyHighlightedText } from "@/components/chat/privacy/privacy-highlighted-user-text"
 import { PrivacyRedactedNoticeHover } from "@/components/chat/privacy/privacy-redacted-notice-hover"
+import {
+    AttachmentPreviewDialog,
+    type MediaPreview,
+} from "@/components/chat/attachment-preview-dialog"
 import type { PromptAliasEntry } from "@/lib/privacy/prompt-redaction"
 import type { HoroscopeBirthData } from "@/types/horoscope"
 import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
@@ -429,6 +433,8 @@ export default function MessageList({
     const scrollRootRef = useRef<HTMLDivElement | null>(null)
     const interpretationSentinelRef = useRef<HTMLDivElement | null>(null)
     const [showScrollToBottomFab, setShowScrollToBottomFab] = useState(false)
+    // Lightbox for clicked image attachments on user messages.
+    const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
 
     const recomputeScrollToBottomFab = useCallback(() => {
         if (typeof window === "undefined") return
@@ -574,17 +580,33 @@ export default function MessageList({
                                                     attachment.kind ===
                                                         "image" &&
                                                     attachment.dataUrl ? (
-                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                        <img
+                                                        <button
                                                             key={`${message.id}-att-${i}`}
-                                                            src={
-                                                                attachment.dataUrl
+                                                            type='button'
+                                                            onClick={() =>
+                                                                setMediaPreview(
+                                                                    {
+                                                                        src: attachment.dataUrl as string,
+                                                                        name: attachment.name,
+                                                                    },
+                                                                )
                                                             }
-                                                            alt={
+                                                            className='cursor-zoom-in'
+                                                            aria-label={
                                                                 attachment.name
                                                             }
-                                                            className='h-24 w-24 rounded-xl border border-border/60 object-cover shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'
-                                                        />
+                                                        >
+                                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                            <img
+                                                                src={
+                                                                    attachment.dataUrl
+                                                                }
+                                                                alt={
+                                                                    attachment.name
+                                                                }
+                                                                className='h-24 w-24 rounded-xl border border-border/60 object-cover shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)] transition-transform hover:scale-[1.03]'
+                                                            />
+                                                        </button>
                                                     ) : (
                                                         <span
                                                             key={`${message.id}-att-${i}`}
@@ -601,6 +623,9 @@ export default function MessageList({
                                             )}
                                         </div>
                                     ) : null}
+                                    {(isEditing ||
+                                        (typeof displayText === "string" &&
+                                            displayText.trim() !== "")) && (
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                         {isEditing ? (
                                             <CharacterMentionProvider
@@ -684,6 +709,7 @@ export default function MessageList({
                                             />
                                         )}
                                     </div>
+                                    )}
                                     {message.privacyRedacted ? (
                                         <PrivacyRedactedNoticeHover />
                                     ) : null}
@@ -1319,6 +1345,10 @@ export default function MessageList({
                     <div ref={messagesEndRef} />
                 </div>
             </div>
+            <AttachmentPreviewDialog
+                media={mediaPreview}
+                onClose={() => setMediaPreview(null)}
+            />
         </div>
     )
 }
