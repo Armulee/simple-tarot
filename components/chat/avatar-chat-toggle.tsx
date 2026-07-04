@@ -26,22 +26,24 @@ export function AvatarChatToggle({
 }) {
     const t = useTranslations("QuestionInput")
     return (
-        <div className="relative inline-flex items-center rounded-full border border-white/12 bg-white/5 p-0.5">
-            {comingSoon && (
-                <span className="pointer-events-none absolute -right-1.5 -top-2 z-10 rounded-full bg-amber-400 px-1.5 py-px text-[8px] font-bold uppercase leading-tight tracking-wide text-black shadow">
-                    {t("comingSoon")}
-                </span>
-            )}
-            <Segment
-                active={value === "avatar"}
-                onClick={() =>
-                    comingSoon ? onComingSoonClick?.() : onChange("avatar")
-                }
-                aria={t("avatarModeAria")}
-            >
-                <Sparkles className="h-3.5 w-3.5" />
-                {t("avatarMode")}
-            </Segment>
+        <div className="inline-flex items-center rounded-full border border-white/12 bg-white/5 p-0.5">
+            <span className="relative inline-flex">
+                {comingSoon && (
+                    <span className="pointer-events-none absolute -right-1.5 -top-2 z-10 rounded-full bg-amber-400 px-1.5 py-px text-[8px] font-bold uppercase leading-tight tracking-wide text-black shadow">
+                        {t("comingSoon")}
+                    </span>
+                )}
+                <Segment
+                    active={value === "avatar"}
+                    onClick={() =>
+                        comingSoon ? onComingSoonClick?.() : onChange("avatar")
+                    }
+                    aria={t("avatarModeAria")}
+                >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {t("avatarMode")}
+                </Segment>
+            </span>
             <Segment
                 active={value === "chat"}
                 onClick={() => onChange("chat")}
