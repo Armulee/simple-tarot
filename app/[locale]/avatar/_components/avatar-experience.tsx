@@ -8,6 +8,14 @@ import { toast } from "sonner"
 import { Link } from "@/i18n/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import QuestionInput from "@/components/question-input"
 import {
     type InterpretationMode,
@@ -62,6 +70,9 @@ export function AvatarExperience({
     // On the avatar page the toggle defaults to "avatar".
     const [composerTarget, setComposerTarget] = useState<ComposerTarget>("avatar")
     const [composerVisible, setComposerVisible] = useState(false)
+    // Non-authenticated users still see the composer; submitting opens this
+    // login-required dialog instead of starting a reveal.
+    const [showLoginDialog, setShowLoginDialog] = useState(false)
     const autoRevealedRef = useRef(false)
 
     // Composer settings menu state (mirrors the home composer so the avatar
@@ -138,8 +149,19 @@ export function AvatarExperience({
         }
     }, [session.errorCode, t])
 
+    // The avatar feature requires sign-in. Non-authenticated users can type and
+    // hit send, but the reveal is blocked by a login-required dialog.
+    const requireLogin = (): boolean => {
+        if (!user) {
+            setShowLoginDialog(true)
+            return true
+        }
+        return false
+    }
+
     // Avatar mode: reveal in place (we're already on the avatar page).
     const handleAvatarSubmit = async (value: string) => {
+        if (requireLogin()) return
         setQuestion("")
         await session.submit(value)
     }
@@ -147,6 +169,7 @@ export function AvatarExperience({
     // Chat mode (user toggled to chat): hand off to the text chat, keeping
     // talking "in text", mirroring how the home composer creates a session.
     const handleChatSubmit = async (value: string) => {
+        if (requireLogin()) return
         setQuestion("")
         const id = newComposerSessionId()
         const ok = await persistInitialQuestion({
@@ -219,57 +242,61 @@ export function AvatarExperience({
                 </div>
             )}
 
-            {loggedOut ? (
-                <div className="mx-auto mb-4 flex max-w-md flex-col items-center gap-3 rounded-2xl border border-primary/25 bg-black/50 px-6 py-5 text-center">
-                    <p className="text-sm text-white/90">{t("gateBody")}</p>
-                    <div className="flex gap-3">
-                        <Button asChild size="sm">
-                            <Link href="/signin">{t("signIn")}</Link>
-                        </Button>
-                        <Button asChild size="sm" variant="outline">
-                            <Link href="/signup">{t("signUp")}</Link>
-                        </Button>
-                    </div>
-                </div>
-            ) : (
-                <QuestionInput
-                    value={question}
-                    onChange={setQuestion}
-                    onSubmit={handleChatSubmit}
-                    onAvatarSubmit={handleAvatarSubmit}
-                    isLoading={busy}
-                    centered
-                    className="w-full"
-                    placeholder={t("askPlaceholder")}
-                    interpretationMode={interpretationMode}
-                    onInterpretationModeChange={setInterpretationMode}
-                    composerTarget={composerTarget}
-                    onComposerTargetChange={setComposerTarget}
-                    composerSettings={{
-                        showAutoPick: true,
-                        autoPickOn,
-                        onToggleAutoPick: handleToggleAutoPick,
-                        showComposerSuggestionsToggle: true,
-                        composerSuggestionsEnabled,
-                        onComposerSuggestionsEnabledChange:
-                            handleComposerSuggestionsEnabledChange,
-                        exposeBirthDrawInMenu: false,
-                        savedBirth,
-                        onBirthInfoClick: () => {
-                            router.push(`/${locale}/profile`)
-                        },
-                        showDrawTrigger: false,
-                        showInsufficientStars: false,
-                        cardsToSelect: 0,
-                        cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
-                        onScrollToDraw: () => {},
-                    }}
-                    showDisclaimer={false}
-                    wrapperClassName="border-transparent bg-transparent backdrop-blur-none"
-                    inputWrapperClassName="w-full"
-                />
-            )}
+            <QuestionInput
+                value={question}
+                onChange={setQuestion}
+                onSubmit={handleChatSubmit}
+                onAvatarSubmit={handleAvatarSubmit}
+                isLoading={busy}
+                centered
+                className="w-full"
+                placeholder={t("askPlaceholder")}
+                interpretationMode={interpretationMode}
+                onInterpretationModeChange={setInterpretationMode}
+                composerTarget={composerTarget}
+                onComposerTargetChange={setComposerTarget}
+                composerSettings={{
+                    showAutoPick: true,
+                    autoPickOn,
+                    onToggleAutoPick: handleToggleAutoPick,
+                    showComposerSuggestionsToggle: true,
+                    composerSuggestionsEnabled,
+                    onComposerSuggestionsEnabledChange:
+                        handleComposerSuggestionsEnabledChange,
+                    exposeBirthDrawInMenu: false,
+                    savedBirth,
+                    onBirthInfoClick: () => {
+                        router.push(`/${locale}/profile`)
+                    },
+                    showDrawTrigger: false,
+                    showInsufficientStars: false,
+                    cardsToSelect: 0,
+                    cardUi: CARD_UI_TEXT[normalizeLocale(locale)],
+                    onScrollToDraw: () => {},
+                }}
+                showDisclaimer={false}
+                wrapperClassName="border-transparent bg-transparent backdrop-blur-none"
+                inputWrapperClassName="w-full"
+            />
         </div>
+
+        {/* Login-required dialog for non-authenticated users. */}
+        <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+            <DialogContent className="max-w-sm">
+                <DialogHeader>
+                    <DialogTitle>{t("gateTitle")}</DialogTitle>
+                    <DialogDescription>{t("gateBody")}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="gap-2 sm:justify-center">
+                    <Button asChild>
+                        <Link href="/signin">{t("signIn")}</Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link href="/signup">{t("signUp")}</Link>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
         {/* Persisted transcript (re-readable result cards) — flows below the
             full-page stage so it can be scrolled to and shared. */}
