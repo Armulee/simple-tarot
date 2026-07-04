@@ -64,6 +64,7 @@ import {
     Triangle,
     Minus,
     MousePointerClick,
+    Paperclip,
     X,
 } from "lucide-react"
 
@@ -564,6 +565,40 @@ export default function MessageList({
                                                         .label
                                                 }
                                             </span>
+                                        </div>
+                                    ) : null}
+                                    {message.attachments?.length ? (
+                                        <div className='flex max-w-[80%] flex-wrap justify-end gap-1.5'>
+                                            {message.attachments.map(
+                                                (attachment, i) =>
+                                                    attachment.kind ===
+                                                        "image" &&
+                                                    attachment.dataUrl ? (
+                                                        // eslint-disable-next-line @next/next/no-img-element
+                                                        <img
+                                                            key={`${message.id}-att-${i}`}
+                                                            src={
+                                                                attachment.dataUrl
+                                                            }
+                                                            alt={
+                                                                attachment.name
+                                                            }
+                                                            className='h-24 w-24 rounded-xl border border-border/60 object-cover shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'
+                                                        />
+                                                    ) : (
+                                                        <span
+                                                            key={`${message.id}-att-${i}`}
+                                                            className='inline-flex max-w-[14rem] items-center gap-1.5 rounded-lg border border-border/60 bg-white/5 px-2 py-1 text-xs text-white/80'
+                                                        >
+                                                            <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                                            <span className='truncate'>
+                                                                {
+                                                                    attachment.name
+                                                                }
+                                                            </span>
+                                                        </span>
+                                                    ),
+                                            )}
                                         </div>
                                     ) : null}
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>

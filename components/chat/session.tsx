@@ -7,6 +7,7 @@ import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { parsePartialJson } from "ai"
 import { useStars } from "@/contexts/stars-context"
 import { readReasoningStream } from "@/lib/chat/reasoning-stream-client"
+import type { ChatAttachment } from "@/lib/chat/attachments"
 import { matchMentionedAspectEvents } from "@/lib/chat/aspect-mention"
 import Footer from "@/components/footer/footer"
 import { TypewriterText } from "@/components/typewriter-text"
@@ -1011,6 +1012,10 @@ export default function ChatSession({
     const [locationDraftCountry, setLocationDraftCountry] = useState("")
     const [locationDraftState, setLocationDraftState] = useState("")
     const abortControllerRef = useRef<AbortController | null>(null)
+    // Attachments for the current turn, forwarded to /api/chat/respond so the
+    // AI can read the attached images/files. Set on every submit (null when
+    // the turn has none) so a stale value never leaks into a later turn.
+    const pendingAttachmentsRef = useRef<ChatAttachment[] | null>(null)
     const [showInsufficientStars, setShowInsufficientStars] = useState<boolean>(
         initialSession?.showInsufficientStars ?? false,
     )
@@ -5004,6 +5009,10 @@ export default function ChatSession({
                 activeOriginContextRef.current,
                 buildSessionContextSummary(messages),
             )
+            // Attachments belong to the current turn only; consume them here
+            // so the AI reads the attached images/files with this reply.
+            const turnAttachments = pendingAttachmentsRef.current
+            pendingAttachmentsRef.current = null
             const response = await fetch("/api/chat/respond", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -5015,6 +5024,7 @@ export default function ChatSession({
                     history,
                     savedBirthInfo: savedBirthInfo ?? undefined,
                     contextSummary: contextSummary || undefined,
+                    attachments: turnAttachments ?? undefined,
                 }),
                 signal: abortControllerRef.current.signal,
             })
@@ -7425,7 +7435,13 @@ export default function ChatSession({
         [locale, sessionId, user?.id],
     )
 
-    const handleSubmit = async (value: string) => {
+    const handleSubmit = async (
+        value: string,
+        attachments?: ChatAttachment[],
+    ) => {
+        pendingAttachmentsRef.current = attachments?.length
+            ? attachments
+            : null
         if (showCardDraw && cardsToSelect > 0 && hasEnoughStars === true) {
             const matches = value.match(/\d+/g) ?? []
             const indices = matches
@@ -7481,6 +7497,7 @@ export default function ChatSession({
                     displayText: trimmed,
                     isSanitizing: true,
                     originContextSnapshot: turnOriginContext,
+                    ...(attachments?.length ? { attachments } : {}),
                 },
             ]
         })
@@ -7493,7 +7510,11 @@ export default function ChatSession({
             setMessages((prev) =>
                 prev.map((m) =>
                     m.id === userId
-                        ? { ...prepared.userMessage, isSanitizing: false }
+                        ? {
+                              ...prepared.userMessage,
+                              ...(attachments?.length ? { attachments } : {}),
+                              isSanitizing: false,
+                          }
                         : m,
                 ),
             )

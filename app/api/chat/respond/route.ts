@@ -9,6 +9,9 @@ import { createReasoningStreamResponse } from "@/lib/chat/reasoning-stream"
 import { deepseekThinking } from "@/lib/chat/model-options"
 
 const MODEL = "deepseek/deepseek-v4-pro"
+// DeepSeek is text-only; turns that carry image attachments are routed to a
+// vision-capable model instead so the AI can actually see the images.
+const VISION_MODEL = process.env.CHAT_VISION_MODEL ?? "google/gemini-2.5-flash"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1),
@@ -26,6 +29,20 @@ const requestSchema = z.object({
     contextSummary: z.string().nullable().optional(),
     savedBirthInfo: z.string().nullable().optional(),
     locale: z.string().optional(),
+    // Composer attachments: images arrive as downscaled data URLs (forwarded
+    // to the model as image parts); text-like files arrive as extracted text.
+    attachments: z
+        .array(
+            z.object({
+                kind: z.enum(["image", "file"]),
+                name: z.string().max(300),
+                mimeType: z.string().max(100).optional(),
+                dataUrl: z.string().max(3_500_000).optional(),
+                textContent: z.string().max(30_000).optional(),
+            }),
+        )
+        .max(8)
+        .optional(),
 })
 
 const CHAT_RESPONSE_SYSTEM_PROMPT = `
@@ -85,6 +102,7 @@ function getChatResponsePrompt({
     contextSummary,
     savedBirthInfo,
     locale,
+    attachments,
 }: z.infer<typeof requestSchema>) {
     const historyText =
         history && history.length
@@ -104,13 +122,34 @@ function getChatResponsePrompt({
         ? `Saved birth profile: available (${savedBirthInfo}).`
         : "Saved birth profile: not available."
 
+    // Attachments: images are delivered as separate image parts (vision
+    // model); text-like files are inlined here so the model can read them.
+    let attachmentsBlock = ""
+    if (attachments?.length) {
+        const imageCount = attachments.filter(
+            (a) => a.kind === "image" && a.dataUrl,
+        ).length
+        const fileSections = attachments
+            .filter((a) => a.kind === "file")
+            .map((a) =>
+                a.textContent
+                    ? `--- Attached file: ${a.name} ---\n${a.textContent}\n--- End of ${a.name} ---`
+                    : `--- Attached file (content unavailable, name only): ${a.name} ---`,
+            )
+        attachmentsBlock = `\nATTACHMENTS: The user attached ${attachments.length} item(s) to THIS message.${
+            imageCount > 0
+                ? ` ${imageCount} image(s) are provided alongside this prompt — look at them and use what you see in your answer.`
+                : ""
+        }${fileSections.length ? `\n${fileSections.join("\n")}` : ""}\nWhen the user's question refers to the attachment(s), base your answer on their actual content.\n`
+    }
+
     return `
 ${contextBlock}Recent conversation (background only):
 ${historyText}
 
 Current user message (reply to THIS message only):
 ${question}
-
+${attachmentsBlock}
 Response mode: ${type}
 Is follow-up: ${isFollowUp ? "yes" : "no"}
 ${type === "support" && supportTopic ? `Support topic: ${supportTopic}\n` : ""}${savedBirthBlock}
@@ -130,11 +169,35 @@ export async function POST(req: Request) {
         // live thinking headline) only for the substantive chat/support replies.
         const enableThinking = body.type === "chat" || body.type === "support"
 
+        const promptText = getChatResponsePrompt(body)
+        const images = (body.attachments ?? []).filter(
+            (a) => a.kind === "image" && a.dataUrl,
+        )
+        const hasImages = images.length > 0
+
         const result = streamText({
-            model: MODEL,
-            providerOptions: deepseekThinking(enableThinking, "low"),
+            // Image turns go to a vision-capable model; DeepSeek is text-only.
+            model: hasImages ? VISION_MODEL : MODEL,
+            providerOptions: hasImages
+                ? undefined
+                : deepseekThinking(enableThinking, "low"),
             system: CHAT_RESPONSE_SYSTEM_PROMPT,
-            prompt: getChatResponsePrompt(body),
+            ...(hasImages
+                ? {
+                      messages: [
+                          {
+                              role: "user" as const,
+                              content: [
+                                  { type: "text" as const, text: promptText },
+                                  ...images.map((a) => ({
+                                      type: "image" as const,
+                                      image: a.dataUrl as string,
+                                  })),
+                              ],
+                          },
+                      ],
+                  }
+                : { prompt: promptText }),
             onFinish: ({ text }) => {
                 const out = summarizePrivacyPlaceholdersInText(text)
                 const incoming = summarizePrivacyPlaceholdersInText(

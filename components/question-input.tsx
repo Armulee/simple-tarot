@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, type RefObject } from "react"
+import { useEffect, useMemo, useState, type RefObject } from "react"
 import {
     CornerDownRight,
     Image as ImageIcon,
@@ -30,6 +30,10 @@ import {
     newComposerSessionId,
     persistInitialQuestion,
 } from "@/lib/avatar/composer-handoff"
+import {
+    prepareAttachments,
+    type ChatAttachment,
+} from "@/lib/chat/attachments"
 import AutoHeightTextarea from "./ui/auto-height-textarea"
 import { useTranslations } from "next-intl"
 import InterpretationModeSelector from "@/components/chat/interpretation-mode-selector"
@@ -113,7 +117,10 @@ export default function QuestionInput({
     defaultValue?: string
     value?: string
     onChange?: (value: string) => void
-    onSubmit?: (value: string) => void | Promise<void>
+    onSubmit?: (
+        value: string,
+        attachments?: ChatAttachment[],
+    ) => void | Promise<void>
     onStop?: () => void
     isLoading?: boolean
     followUp?: boolean
@@ -177,13 +184,32 @@ export default function QuestionInput({
     const question = value !== undefined ? value : internalQuestion
     const setQuestion = onChange || setInternalQuestion
 
-    // Attachments picked from the "+" menu. Shown as chips in the composer;
-    // not yet wired into the reading pipeline.
+    // Attachments picked from the "+" menu. Images preview as thumbnails,
+    // other files as chips; on submit they are serialized (downscaled data
+    // URLs / extracted text) and handed to onSubmit for the AI to read.
     const [attachments, setAttachments] = useState<File[]>([])
     const handleAddMedia = (file: File) =>
         setAttachments((prev) => [...prev, file].slice(0, 8))
     const removeAttachment = (index: number) =>
         setAttachments((prev) => prev.filter((_, i) => i !== index))
+
+    // Object-URL previews for image attachments (revoked on change/unmount).
+    const attachmentPreviews = useMemo(
+        () =>
+            attachments.map((file) =>
+                file.type.startsWith("image/")
+                    ? URL.createObjectURL(file)
+                    : null,
+            ),
+        [attachments],
+    )
+    useEffect(() => {
+        return () => {
+            attachmentPreviews.forEach((url) => {
+                if (url) URL.revokeObjectURL(url)
+            })
+        }
+    }, [attachmentPreviews])
 
     const showBottomChrome =
         actionTrigger != null ||
@@ -247,13 +273,19 @@ export default function QuestionInput({
         const currentValue =
             (question || "").trim() || (defaultValue || "").trim()
         if (currentValue) {
+            const files = attachments
             setAttachments([])
             if (composerTarget === "avatar") {
                 void handleAvatarSubmit(currentValue)
                 return
             }
             if (onSubmit) {
-                void onSubmit(currentValue)
+                void (async () => {
+                    const prepared = files.length
+                        ? await prepareAttachments(files)
+                        : undefined
+                    await onSubmit(currentValue, prepared)
+                })()
                 return
             }
             if (followUp) {
@@ -434,28 +466,52 @@ export default function QuestionInput({
             </Label>
             <div className={`w-full ${className ?? "max-w-sm md:max-w-md"}`}>
                 {attachments.length > 0 && (
-                    <div className='mb-2 flex flex-wrap gap-1.5'>
-                        {attachments.map((file, i) => (
-                            <span
-                                key={`${file.name}-${i}`}
-                                className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
-                            >
-                                {file.type.startsWith("image/") ? (
-                                    <ImageIcon className='size-3.5 shrink-0 text-white/60' />
-                                ) : (
-                                    <Paperclip className='size-3.5 shrink-0 text-white/60' />
-                                )}
-                                <span className='truncate'>{file.name}</span>
-                                <button
-                                    type='button'
-                                    onClick={() => removeAttachment(i)}
-                                    aria-label={t("removeAttachment")}
-                                    className='shrink-0 text-white/50 hover:text-white'
+                    <div className='mb-2 flex flex-wrap items-center gap-1.5'>
+                        {attachments.map((file, i) =>
+                            attachmentPreviews[i] ? (
+                                <span
+                                    key={`${file.name}-${i}`}
+                                    className='relative inline-block h-16 w-16 overflow-hidden rounded-xl border border-white/15 bg-white/5'
                                 >
-                                    <X className='size-3' />
-                                </button>
-                            </span>
-                        ))}
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                        src={attachmentPreviews[i] as string}
+                                        alt={file.name}
+                                        className='h-full w-full object-cover'
+                                    />
+                                    <button
+                                        type='button'
+                                        onClick={() => removeAttachment(i)}
+                                        aria-label={t("removeAttachment")}
+                                        className='absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white/80 backdrop-blur hover:text-white'
+                                    >
+                                        <X className='size-3' />
+                                    </button>
+                                </span>
+                            ) : (
+                                <span
+                                    key={`${file.name}-${i}`}
+                                    className='inline-flex max-w-[12rem] items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 px-2 py-1 text-xs text-white/80'
+                                >
+                                    {file.type.startsWith("image/") ? (
+                                        <ImageIcon className='size-3.5 shrink-0 text-white/60' />
+                                    ) : (
+                                        <Paperclip className='size-3.5 shrink-0 text-white/60' />
+                                    )}
+                                    <span className='truncate'>
+                                        {file.name}
+                                    </span>
+                                    <button
+                                        type='button'
+                                        onClick={() => removeAttachment(i)}
+                                        aria-label={t("removeAttachment")}
+                                        className='shrink-0 text-white/50 hover:text-white'
+                                    >
+                                        <X className='size-3' />
+                                    </button>
+                                </span>
+                            ),
+                        )}
                     </div>
                 )}
                 <div className='relative group w-full'>

@@ -133,6 +133,12 @@ export type ChatMessage = {
     id: string
     role: "user" | "assistant"
     text: string
+    /**
+     * Files/images attached to a user message. Image previews render above
+     * the bubble; the serialized content (data URLs / extracted text) is
+     * forwarded to the AI so it can read them.
+     */
+    attachments?: import("@/lib/chat/attachments").ChatAttachment[]
     /** Client-only raw text restored from sessionStorage for local display. */
     displayText?: string
     keyMessage?: string
