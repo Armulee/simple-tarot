@@ -133,6 +133,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { useActiveSubscription } from "@/hooks/use-active-subscription"
 import { useCharacters } from "@/hooks/use-characters"
 import { useProfile } from "@/contexts/profile-context"
+import { useStarConsent } from "@/components/star-consent"
 import { supabase } from "@/lib/supabase"
 import { sanitizePromptOnClient } from "@/lib/privacy/sanitize-client"
 import {
@@ -871,6 +872,7 @@ export default function ChatSession({
     const isPaid =
         subscription?.tier === "basic" || subscription?.tier === "pro"
     const { profile, birthChart: storedBirthChart } = useProfile()
+    const { requestBirthDateOnboarding } = useStarConsent()
     const { characters: ownedCharacters } = useCharacters()
     const storedBirthChartPayload = useMemo(
         () =>
@@ -1220,6 +1222,13 @@ export default function ChatSession({
     const interpretationLoadingIdRef = useRef<string | null>(null)
     const horoscopeTargetMessageIdRef = useRef<string | null>(null)
     const horoscopeVerdictTargetMessageIdRef = useRef<string | null>(null)
+    /**
+     * Horoscope question waiting on birth details: set when a signed-in user
+     * without a profile birth date hits the horoscope flow and we pop the
+     * onboarding birth-date dialog instead. Once the profile gains a
+     * birth_date the resume effect re-runs the question and clears this.
+     */
+    const pendingBirthOnboardingQuestionRef = useRef<string | null>(null)
     const generalReplyTargetMessageIdRef = useRef<string | null>(null)
     const talkReplyTargetMessageIdRef = useRef<string | null>(null)
     const oracleReplyTargetMessageIdRef = useRef<string | null>(null)
@@ -4788,15 +4797,26 @@ export default function ChatSession({
                     })
                 }
                 if (!birthToUse) {
+                    // Signed-in user whose profile has no birth date (legacy
+                    // account or cleared data): instead of a dead-end error,
+                    // pop the onboarding birth-date dialog (age gate →
+                    // consent). The resume effect re-runs this question once
+                    // the profile has a birth date.
+                    pendingBirthOnboardingQuestionRef.current =
+                        trimmed ||
+                        horoscopeQuestion ||
+                        lastQuestion ||
+                        "General horoscope reading"
                     setMessages((prev) => [
                         ...prev,
                         {
-                            id: `assistant-error-${Date.now()}`,
+                            id: `assistant-birth-needed-${Date.now()}`,
                             role: "assistant",
-                            text: tHoroscope("processFailed"),
+                            text: tHoroscope("birthDetailsNeeded"),
                             variant: "plain",
                         },
                     ])
+                    requestBirthDateOnboarding()
                     return
                 }
                 setHoroscopeBirth(birthToUse)
@@ -4885,6 +4905,7 @@ export default function ChatSession({
             locale,
             ensureBirthTimeDefaults,
             handleClearOriginContext,
+            requestBirthDateOnboarding,
             runHoroscopeReading,
             spendStars,
             tHoroscope,
@@ -4894,6 +4915,22 @@ export default function ChatSession({
             subscription,
         ],
     )
+
+    // Resume the horoscope question that popped the birth-date onboarding
+    // dialog: once the consent flow saves the profile (birth_date appears via
+    // refreshProfile), re-run the pending question through the normal flow —
+    // extract now sees the saved birth data, spends the star, and streams the
+    // reading.
+    useEffect(() => {
+        const pendingQuestion = pendingBirthOnboardingQuestionRef.current
+        if (!pendingQuestion) return
+        if (!user || !profile?.birth_date) return
+        pendingBirthOnboardingQuestionRef.current = null
+        setHoroscopeQuestion(pendingQuestion)
+        void handleHoroscopeInput(pendingQuestion, {
+            appendUserMessage: false,
+        })
+    }, [user, profile?.birth_date, handleHoroscopeInput])
 
     const fetchDecision = useCallback(
         async (

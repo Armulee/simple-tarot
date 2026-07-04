@@ -2792,6 +2792,7 @@
     "askBirthPlace": "Silakan bagikan tempat lahirmu (kota/negara). Jika tidak tahu, aku bisa menggunakan lokasimu saat ini, tetapi pembacaannya mungkin kurang akurat.",
     "usingLocationFallback": "Menggunakan lokasimu saat ini sebagai cadangan. Ini dapat mengurangi ketepatan untuk rumah dan ascendant.",
     "processFailed": "Maaf, aku tidak dapat memproses detail horoskop sekarang.",
+    "birthDetailsNeeded": "Untuk membaca horoskopmu, aku perlu data kelahiranmu dulu — silakan isi tanggal lahirmu untuk melanjutkan.",
     "paywallOtherPersonAssistantText": "Membaca bagan orang lain tidak termasuk dalam paket gratis — kamu bisa <drawPill>menarik kartu saja</drawPill> dan aku akan membacanya untukmu.",
     "paywallOtherPersonTitle": "Membaca orang lain membutuhkan paket berbayar",
     "paywallOtherPersonBody": "Akun gratis hanya bisa melihat bagannya sendiri. Tingkatkan ke Basic atau Pro untuk membaca bagi teman, keluarga, atau pasangan.",

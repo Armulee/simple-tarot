@@ -3062,6 +3062,7 @@
     "askBirthPlace": "Please share your birth place (city/country). If unknown, I can use your current location but the reading may be less accurate.",
     "usingLocationFallback": "Using your current location as fallback. This can reduce precision for houses and ascendant.",
     "processFailed": "Sorry, I couldn't process horoscope details right now.",
+    "birthDetailsNeeded": "To read your horoscope, I need your birth details first — please fill in your birth date to continue.",
     "paywallOtherPersonAssistantText": "Reading another person's chart isn't on the free plan — you can <drawPill>draw a card instead</drawPill> and I'll read that for you.",
     "paywallOtherPersonTitle": "Reading another person needs a paid plan",
     "paywallOtherPersonBody": "Free accounts can only see their own chart. Upgrade to Basic or Pro to read for friends, family, or partners.",

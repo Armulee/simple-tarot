@@ -78,6 +78,13 @@ type StarConsentContextType = {
     acceptAllCookies: () => void
     rejectAllCookies: () => void
     saveCookiePreferences: (preferences: CookiePreferences) => void
+    /**
+     * Re-opens the onboarding birth-date dialog (age gate → consent) for a
+     * signed-in user whose profile is missing `birth_date` — e.g. when a chat
+     * question routes to a horoscope reading that needs natal data. No-op when
+     * signed out or when the profile already has a birth date.
+     */
+    requestBirthDateOnboarding: () => void
 }
 
 const StarConsentContext = createContext<StarConsentContextType | undefined>(
@@ -278,6 +285,10 @@ export function StarConsentProvider({
     const scrollRef = useRef<HTMLDivElement>(null)
     const handledUnderThirteenForRef = useRef<string | null>(null)
     const onboardingStartedForRef = useRef<string | null>(null)
+    // True while the birth-date onboarding was re-opened on demand (via
+    // requestBirthDateOnboarding) for an already-consented user — stops the
+    // phase-driving effect from snapping back to "idle" mid-flow.
+    const manualBirthRequestRef = useRef(false)
 
     const consentOpen = phase === "consent" || phase === "saving"
     const ageOpen = phase === "age"
@@ -399,17 +410,19 @@ export function StarConsentProvider({
         if (!user) {
             handledUnderThirteenForRef.current = null
             onboardingStartedForRef.current = null
+            manualBirthRequestRef.current = false
             setPhase((prev) => (prev === "blocked" ? "idle" : prev))
             return
         }
 
         if (!profile) return
 
-        if (profile.consented_at) {
+        if (profile.consented_at && !manualBirthRequestRef.current) {
             onboardingStartedForRef.current = null
             setPhase("idle")
             return
         }
+        if (profile.consented_at) return
 
         if (onboardingStartedForRef.current === user.id) return
 
@@ -526,6 +539,7 @@ export function StarConsentProvider({
                 data: { session },
             } = await supabase.auth.getSession()
             if (!session) {
+                manualBirthRequestRef.current = false
                 setPhase("idle")
                 return
             }
@@ -572,6 +586,7 @@ export function StarConsentProvider({
 
             await refreshProfile()
             setPendingBirth(null)
+            manualBirthRequestRef.current = false
             setPhase("idle")
         } catch (err) {
             console.error("Onboarding save error:", err)
@@ -607,6 +622,16 @@ export function StarConsentProvider({
         [persistCookieConsent],
     )
 
+    const requestBirthDateOnboarding = useCallback(() => {
+        if (!user) return
+        // A malformed stored birth_date parses to null too — reopen the
+        // dialog for it so accept() can overwrite it with a valid value.
+        if (profileToAgeGateBirth(profile)) return
+        manualBirthRequestRef.current = true
+        setPendingBirth(null)
+        setPhase("age")
+    }, [user, profile])
+
     const value = useMemo<StarConsentContextType>(
         () => ({
             open: consentOpen,
@@ -624,6 +649,7 @@ export function StarConsentProvider({
             acceptAllCookies,
             rejectAllCookies,
             saveCookiePreferences,
+            requestBirthDateOnboarding,
         }),
         [
             consentOpen,
@@ -632,6 +658,7 @@ export function StarConsentProvider({
             acceptAllCookies,
             rejectAllCookies,
             saveCookiePreferences,
+            requestBirthDateOnboarding,
         ],
     )
 
