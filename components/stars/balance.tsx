@@ -57,7 +57,7 @@ export default function StarsBalance() {
         ? formatRefillDate(subscription.currentPeriodEnd)
         : ""
     const timeLeft = nextRefillAt ? Math.max(0, nextRefillAt - now) : 0
-    const refillCycle = refillCycleMs ?? 2 * 60 * 60 * 1000
+    const refillCycle = refillCycleMs ?? 5 * 60 * 60 * 1000
     const dailyRefillProgress = nextRefillAt
         ? Math.min(100, Math.max(0, (1 - timeLeft / refillCycle) * 100))
         : dailyValue >= dailyCap

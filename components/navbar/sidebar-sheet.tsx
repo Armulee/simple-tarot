@@ -123,7 +123,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
     }
 
-    const cycleMs = refillCycleMs ?? 2 * 60 * 60 * 1000
+    const cycleMs = refillCycleMs ?? 5 * 60 * 60 * 1000
     const timeProgress = nextRefillAt
         ? Math.min(100, Math.max(0, (1 - timeLeft / cycleMs) * 100))
         : 0
