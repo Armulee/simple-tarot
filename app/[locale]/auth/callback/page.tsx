@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { externalCallbackWithToken } from "@/lib/external-auth-callback"
 import BrandLoader from "@/components/brand-loader"
 
 export default function AuthCallback() {
@@ -37,6 +38,14 @@ export default function AuthCallback() {
                     router.push(`/signin?${qs.toString()}`)
                 } else if (data.session) {
                     const callbackUrl = params.get("callbackUrl") || "/"
+                    const external = externalCallbackWithToken(
+                        callbackUrl,
+                        data.session.access_token
+                    )
+                    if (external) {
+                        window.location.replace(external)
+                        return
+                    }
                     router.push(callbackUrl)
                 } else {
                     const callbackUrl = params.get("callbackUrl")

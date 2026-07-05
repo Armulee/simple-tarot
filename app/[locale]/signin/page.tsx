@@ -13,6 +13,8 @@ import Link from "next/link"
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { useAuth } from "@/hooks/use-auth"
+import { supabase } from "@/lib/supabase"
+import { externalCallbackWithToken } from "@/lib/external-auth-callback"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Mail, Lock, Sparkles, ArrowRight, Star } from "lucide-react"
@@ -23,7 +25,7 @@ export default function SignInPage() {
     const [password, setPassword] = useState("")
     const router = useRouter()
     const params = useSearchParams()
-    const { signIn, user } = useAuth()
+    const { signIn, user, session } = useAuth()
 
 
     useEffect(() => {
@@ -39,9 +41,14 @@ export default function SignInPage() {
     useEffect(() => {
         if (!user) return
         const callbackUrl = params.get("callbackUrl") || document.referrer || "/"
+        const external = externalCallbackWithToken(callbackUrl, session?.access_token)
+        if (external) {
+            window.location.replace(external)
+            return
+        }
         toast.info("You are already signed in. Please sign out before accessing this page.")
         router.replace(callbackUrl)
-    }, [user, router, params])
+    }, [user, session, router, params])
 
 
 
@@ -55,6 +62,15 @@ export default function SignInPage() {
                 toast.error(error.message || "Authentication error", { duration: Infinity, closeButton: true })
             } else {
                 const callbackUrl = params.get("callbackUrl") || "/"
+                const { data } = await supabase.auth.getSession()
+                const external = externalCallbackWithToken(
+                    callbackUrl,
+                    data.session?.access_token
+                )
+                if (external) {
+                    window.location.replace(external)
+                    return
+                }
                 router.push(callbackUrl)
                 router.refresh()
             }
