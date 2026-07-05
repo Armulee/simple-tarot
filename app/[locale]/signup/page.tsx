@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { useAuth } from "@/hooks/use-auth"
+import { externalCallbackWithToken } from "@/lib/external-auth-callback"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
@@ -29,14 +30,19 @@ export default function SignUpPage() {
     const [success, setSuccess] = useState(false)
     const router = useRouter()
     const params = useSearchParams()
-    const { signUp, user } = useAuth()
+    const { signUp, user, session } = useAuth()
     // Guard: if already authenticated and visiting sign-up, redirect back with toast
     useEffect(() => {
         if (!user) return
         const callbackUrl = params.get("callbackUrl") || document.referrer || "/"
+        const external = externalCallbackWithToken(callbackUrl, session?.access_token)
+        if (external) {
+            window.location.replace(external)
+            return
+        }
         toast.info("You are already signed in. Please sign out before accessing this page.")
         router.replace(callbackUrl)
-    }, [user, router, params])
+    }, [user, session, router, params])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
