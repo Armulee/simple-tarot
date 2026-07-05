@@ -2792,6 +2792,7 @@
     "askBirthPlace": "請分享你的出生地（城市／國家）。若不確定，我可以使用你目前的位置，但解讀可能會較不準確。",
     "usingLocationFallback": "正在以你目前的位置作為替代。這可能會降低宮位與上升星座的精準度。",
     "processFailed": "抱歉，我目前無法處理星座資料。",
+    "birthDetailsNeeded": "要為你解讀星盤，我需要先取得你的出生資訊——請填寫出生日期以繼續。",
     "paywallOtherPersonAssistantText": "為他人解讀星盤不在免費方案內——你可以改為<drawPill>抽一張牌</drawPill>，我會為你解讀。",
     "paywallOtherPersonTitle": "為他人解讀需要付費方案",
     "paywallOtherPersonBody": "免費帳號只能查看自己的星盤。升級至基本版或專業版，即可為朋友、家人或伴侶解讀。",

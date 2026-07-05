@@ -2792,6 +2792,7 @@
     "askBirthPlace": "태어난 곳(도시/국가)을 알려주세요. 모르신다면 현재 위치를 사용할 수 있지만 리딩이 덜 정확할 수 있습니다.",
     "usingLocationFallback": "현재 위치를 대체로 사용하고 있어요. 이 경우 하우스와 상승궁의 정확도가 낮아질 수 있습니다.",
     "processFailed": "죄송해요, 지금은 운세 정보를 처리할 수 없었어요.",
+    "birthDetailsNeeded": "운세를 읽으려면 먼저 출생 정보가 필요해요. 계속하려면 생년월일을 입력해 주세요.",
     "paywallOtherPersonAssistantText": "다른 사람의 차트를 읽는 것은 무료 플랜에 포함되어 있지 않아요 — 대신 <drawPill>카드를 한 장 뽑아보시면</drawPill> 제가 읽어 드릴게요.",
     "paywallOtherPersonTitle": "다른 사람 리딩은 유료 플랜이 필요합니다",
     "paywallOtherPersonBody": "무료 계정은 본인의 차트만 볼 수 있습니다. 친구, 가족, 연인을 위한 리딩을 하려면 Basic 또는 Pro로 업그레이드하세요.",

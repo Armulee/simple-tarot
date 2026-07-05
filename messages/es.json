@@ -2792,6 +2792,7 @@
     "askBirthPlace": "Comparte tu lugar de nacimiento (ciudad/país). Si no lo conoces, puedo usar tu ubicación actual, pero la lectura puede ser menos precisa.",
     "usingLocationFallback": "Usando tu ubicación actual como alternativa. Esto puede reducir la precisión de las casas y el ascendente.",
     "processFailed": "Lo sentimos, no pude procesar los detalles del horóscopo en este momento.",
+    "birthDetailsNeeded": "Para leer tu horóscopo, primero necesito tus datos de nacimiento. Completa tu fecha de nacimiento para continuar.",
     "paywallOtherPersonAssistantText": "Leer la carta de otra persona no está disponible en el plan gratuito; puedes <drawPill>sacar una carta en su lugar</drawPill> y la leeré para ti.",
     "paywallOtherPersonTitle": "Leer la carta de otra persona requiere un plan de pago",
     "paywallOtherPersonBody": "Las cuentas gratuitas solo pueden ver su propia carta. Mejora a Básico o Pro para hacer lecturas a amigos, familiares o parejas.",

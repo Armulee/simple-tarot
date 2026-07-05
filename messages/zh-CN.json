@@ -2792,6 +2792,7 @@
     "askBirthPlace": "请告诉我你的出生地（城市/国家）。若不知道，我可以使用你的当前位置，但解读可能不太准确。",
     "usingLocationFallback": "正在使用你的当前位置作为替代。这可能会降低宫位与上升点的精确度。",
     "processFailed": "抱歉，我现在无法处理星座运势信息。",
+    "birthDetailsNeeded": "要为你解读星盘，我需要先获取你的出生信息——请填写出生日期以继续。",
     "paywallOtherPersonAssistantText": "解读他人的星盘不在免费版之列——你可以<drawPill>改为抽一张牌</drawPill>，我会为你解读。",
     "paywallOtherPersonTitle": "解读他人需要付费套餐",
     "paywallOtherPersonBody": "免费账户只能查看自己的星盘。升级到 Basic 或 Pro 即可为朋友、家人或伴侣解读。",
