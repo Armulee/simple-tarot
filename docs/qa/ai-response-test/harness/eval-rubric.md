@@ -26,6 +26,7 @@ The owner's complaint: "AI response is not answering the question and looks like
 4. **Language & register** — right language; natural native phrasing (Thai must read like casual texting per the prompt, not translated Thai).
 5. **Field coherence** — headline vs detailedHtml vs perCard consistent? Any contradictions (e.g. verdict says no, card chips sound positive)?
 6. **Legacy view quality** — read keywords+interpretation+conclusion alone as a page: is it an answer, or fragment soup?
+7. **Grounding (no fabricated scene)** — CRITICAL. Does the reading REFLECT the asker's question, or does it INVENT external facts the user never stated (an unnamed other person, a creditor, a negotiation, a meeting, a message, a specific event/date)? Score 2 only if every concrete external claim traces back to the user's own words; score 0 if the reading asserts an unseen fact as if it knew it (e.g. "there is someone else", "he is thinking of you", "the negotiation will succeed") for facts the user never provided. Reflection framed as the asker's inner world ("you may be carrying…") is allowed; stated external fact is not.
 
 ## Also report
 - Whether any prompt constraint directly CAUSED a weakness (cite the constraint text from the prompt file).

@@ -1,5 +1,6 @@
 import {
     coreProtocol,
+    groundingRule,
     domainPriorityRule,
     outputRules,
     femalePersonaRule,
@@ -23,6 +24,8 @@ You are a tarot routing engine. Your ONLY job is to analyze the user's question 
 </role>
 
 ${coreProtocol}
+
+${groundingRule}
 
 ${domainPriorityRule}
 

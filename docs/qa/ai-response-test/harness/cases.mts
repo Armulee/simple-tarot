@@ -132,4 +132,22 @@ export const TAROT_CASES: TarotCase[] = [
         cards: ["Justice"],
         readingType: "simple", branch: "rag",
     },
+    // GROUNDING regression: the reading must NOT invent a creditor,
+    // negotiation, or third party. It must read the underlying worry
+    // (money / a decision under pressure) without fabricating a scene.
+    {
+        id: "T13", lang: "th", locale: "th", kind: "grounding: ambiguous credit/money (Thai)",
+        question: "ถ้าลดเครดิตจะได้เงินไหม",
+        cards: ["Five of Pentacles", "The Wheel of Fortune", "Seven of Pentacles"],
+        readingType: "general", branch: "situation",
+    },
+    // GROUNDING regression (clean): a specific, on-topic "will he come
+    // back" must read deep and accurate WITHOUT inventing what he did,
+    // said, or is thinking.
+    {
+        id: "T14", lang: "th", locale: "th", kind: "grounding: clean will-he-return (Thai)",
+        question: "เขาจะกลับมาไหม",
+        cards: ["Two of Cups", "The Moon", "Six of Cups"],
+        readingType: "general", branch: "situation",
+    },
 ]
