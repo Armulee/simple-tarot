@@ -22,9 +22,10 @@ export const routing = defineRouting({
     // Hide default locale prefix in URLs
     localePrefix: "as-needed",
 
-    // On first visit (no locale in path, no cookie), detect from Accept-Language
-    // and redirect to matching locale (en or th) instead of defaulting to English
-    localeDetection: true,
+    // Default to English on first visit. We do NOT auto-detect the browser
+    // language — a first-time visitor always lands on English and can switch
+    // manually (their choice is then remembered via the NEXT_LOCALE cookie).
+    localeDetection: false,
 
     // Remember detected locale for subsequent visits (set NEXT_LOCALE cookie)
     localeCookie: {
