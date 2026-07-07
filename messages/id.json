@@ -740,7 +740,7 @@
   },
   "QuestionInput": {
     "label": "Pertanyaanmu",
-    "placeholder": "Ketik pertanyaanmu...",
+    "placeholder": "Pejamkan matamu, tenangkan pikiran, lalu tanyakan apa yang mengganjal di hatimu…",
     "followUpSuggestionLabel": "Saran lanjutan",
     "dismissFollowUpStrip": "Tutup saran dan pintasan komposer"
   },

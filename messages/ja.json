@@ -740,7 +740,7 @@
   },
   "QuestionInput": {
     "label": "あなたの質問",
-    "placeholder": "質問を入力してください…",
+    "placeholder": "目を閉じて心を静め、胸の奥で気にかかっていることを尋ねてください…",
     "followUpSuggestionLabel": "おすすめの追加質問",
     "dismissFollowUpStrip": "おすすめと入力欄のショートカットを閉じる"
   },

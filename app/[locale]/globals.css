@@ -2045,3 +2045,30 @@
   0% { transform: scale(0.6); opacity: 0.7; }
   100% { transform: scale(1.8); opacity: 0; }
 }
+
+/* =====================================================================
+   Ritual reading — accessibility: honor prefers-reduced-motion.
+   The tarot experience leans on slow, deliberate motion (card flip,
+   glow, float, shuffle wiggle, starfield twinkle). For users who ask
+   for reduced motion we keep the reveal (state changes still apply)
+   but strip the decorative animation and instant-apply the flip.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .card-glow,
+  .float-animation {
+    animation: none !important;
+  }
+
+  /* Card flip: reveal instantly instead of spinning. */
+  .transform-style-preserve-3d {
+    transition: none !important;
+  }
+
+  /* Decorative starfield twinkle + shuffle wiggle add nothing for these
+     users and can cause discomfort. */
+  [class*="twinkle"],
+  [class^="star-layer"],
+  [class*="shuffle"] {
+    animation: none !important;
+  }
+}

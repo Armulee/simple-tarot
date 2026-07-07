@@ -740,7 +740,7 @@
   },
   "QuestionInput": {
     "label": "당신의 질문",
-    "placeholder": "질문을 입력하세요...",
+    "placeholder": "눈을 감고 마음을 가라앉힌 뒤, 마음에 걸리는 것을 물어보세요…",
     "followUpSuggestionLabel": "추천 후속 질문",
     "dismissFollowUpStrip": "추천 질문과 작성 단축키 닫기"
   },

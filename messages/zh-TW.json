@@ -740,7 +740,7 @@
   },
   "QuestionInput": {
     "label": "你的問題",
-    "placeholder": "輸入你的問題……",
+    "placeholder": "閉上眼睛，讓心靜下來，問出你心中掛念的事…",
     "followUpSuggestionLabel": "建議的延伸提問",
     "dismissFollowUpStrip": "關閉建議與輸入捷徑"
   },
