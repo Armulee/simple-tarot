@@ -11,6 +11,20 @@ export async function GET(req: NextRequest) {
     if (userId) {
         // Pass DID if present so first-login can grant (anon current + 10) to a new user row
         const did = await readAndVerifyDid()
+        // Persist the browser timezone (once) so the daily free-star refill
+        // fires at 09:00 in the user's own local time. Best-effort: never
+        // block the balance read on it.
+        const tz = req.nextUrl.searchParams.get("tz")
+        if (tz && supabaseAdmin) {
+            try {
+                await supabaseAdmin.rpc("star_set_timezone", {
+                    p_user_id: userId,
+                    p_timezone: tz,
+                })
+            } catch (tzErr) {
+                console.error("star_set_timezone failed", tzErr)
+            }
+        }
         const { data, error } = await supabaseClient.rpc("star_get_or_create", {
             p_anon_device_id: did,
             p_user_id: userId,

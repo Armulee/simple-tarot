@@ -23,8 +23,12 @@ function tsToMs(ts?: string | null): number | null {
     return Number.isFinite(ms) ? ms : null
 }
 
-/** Anonymous cap must match server `star_spend` / `star_get_or_create` (see supabase-schema). */
-const ANON_DAILY_CAP = 3
+/**
+ * Anonymous lifetime cap. v2 economy: anon users get 1 star for life
+ * (no refill, no daily reset). Must match server `star_spend` /
+ * `star_get_or_create` (see database-star-v2-economy.sql).
+ */
+const ANON_DAILY_CAP = 1
 
 function resolvePrimaryStars(
     user: User | null,
@@ -74,9 +78,25 @@ function resolveEngagementStars(
     }
 }
 
+function detectTimezone(): string | null {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || null
+    } catch {
+        return null
+    }
+}
+
 export async function starGetOrCreate(user: User | null): Promise<StarState> {
-    const url = user?.id
-        ? `/api/stars/get-or-create?user_id=${encodeURIComponent(user.id)}`
+    // Send the browser timezone so the server can grant the daily free star
+    // at 09:00 in the user's own local time (v2 economy). Stored once,
+    // server-side, on first non-empty capture.
+    const tz = user?.id ? detectTimezone() : null
+    const params = new URLSearchParams()
+    if (user?.id) params.set("user_id", user.id)
+    if (tz) params.set("tz", tz)
+    const qs = params.toString()
+    const url = qs
+        ? `/api/stars/get-or-create?${qs}`
         : "/api/stars/get-or-create"
     const res = await fetch(url, { method: "GET" })
     const json = await res.json()
