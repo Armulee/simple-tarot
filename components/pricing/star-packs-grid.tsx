@@ -129,7 +129,7 @@ export default function StarPacksGrid({ locale, currency }: StarPacksGridProps) 
                                 </ul>
 
                                 <Checkout
-                                    mode='addon'
+                                    mode='pack'
                                     packId={getPackPriceId(p, currency)}
                                     currency={currency}
                                     className='w-full'

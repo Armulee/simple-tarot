@@ -86,7 +86,7 @@ export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
                         return (
                             <Checkout
                                 key={p.id}
-                                mode='addon'
+                                mode='pack'
                                 packId={packId}
                                 currency={currency}
                                 customTrigger={

@@ -13,7 +13,25 @@ export type StarPackDefinition = {
     baseThbPrice: number
     stars: number
     bonus: number
+    /**
+     * Extra stars granted ONLY on the user's first-ever pack purchase
+     * (once per account, tracked by stars.has_purchased). This is the
+     * "first purchase boost" — the cheapest conversion lever, since the AI
+     * cost of bonus stars is near zero. Tunable; keep the pricing ladder
+     * intact ($/star must stay above the Basic subscription rate).
+     */
+    firstPurchaseBonus?: number
     labelKey?: LabelTranslationKey
+}
+
+/** Base stars a pack grants on every purchase (excludes first-purchase bonus). */
+export function getPackBaseStars(pack: StarPackDefinition): number {
+    return pack.stars + pack.bonus
+}
+
+/** First-purchase-only bonus for a pack (0 when unset). */
+export function getPackFirstPurchaseBonus(pack: StarPackDefinition): number {
+    return Math.max(0, pack.firstPurchaseBonus ?? 0)
 }
 
 export const STAR_PACKS: StarPackDefinition[] = [
@@ -25,6 +43,8 @@ export const STAR_PACKS: StarPackDefinition[] = [
         baseThbPrice: 35,
         stars: 30,
         bonus: 0,
+        // Entry pack doubles on the first-ever purchase (30 -> 60).
+        firstPurchaseBonus: 30,
     },
     {
         id: process.env.NEXT_PUBLIC_EXPLORER_PACK_ID,
@@ -34,6 +54,7 @@ export const STAR_PACKS: StarPackDefinition[] = [
         baseThbPrice: 69,
         stars: 65,
         bonus: 5,
+        firstPurchaseBonus: 20,
     },
     {
         id: process.env.NEXT_PUBLIC_SEEKER_PACK_ID,
@@ -43,6 +64,7 @@ export const STAR_PACKS: StarPackDefinition[] = [
         baseThbPrice: 109,
         stars: 100,
         bonus: 10,
+        firstPurchaseBonus: 30,
         labelKey: "popular",
     },
     {
@@ -53,6 +75,7 @@ export const STAR_PACKS: StarPackDefinition[] = [
         baseThbPrice: 179,
         stars: 175,
         bonus: 25,
+        firstPurchaseBonus: 45,
         labelKey: "bestValue",
     },
     {
@@ -63,6 +86,7 @@ export const STAR_PACKS: StarPackDefinition[] = [
         baseThbPrice: 249,
         stars: 250,
         bonus: 40,
+        firstPurchaseBonus: 60,
     },
     {
         id: process.env.NEXT_PUBLIC_100_STARS_ADDON_ID,

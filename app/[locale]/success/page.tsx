@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card"
 import { stripe } from "@/lib/stripe"
 import { getTranslations } from "next-intl/server"
 import { getPackById } from "@/lib/payments/star-products"
+import { grantPackPurchase } from "@/lib/payments/grant-purchase"
 import {
     SUBSCRIPTION_PLANS,
     getPlanKeyFromPriceId,
@@ -197,94 +198,92 @@ export default async function Success({
 
                 const amountTotal = session.amount_total || 0
                 const currency = (session.currency || "usd").toUpperCase()
-                const { error: transactionError } = await supabaseAdmin
-                    .from("billing_transactions")
-                    .insert({
-                        user_id: userId,
-                        type:
-                            mode === "subscribe"
-                                ? "subscription_initial"
-                                : "one_time",
-                        provider: "stripe",
-                        provider_payment_id: session_id,
-                        amount_cents: amountTotal,
-                        currency: currency,
-                        reference: `Checkout session: ${session_id}${mode === "subscribe" ? " (Subscription)" : ""}`,
-                        status: "succeeded",
-                        stars_amount: starsAmount,
-                        pack_name: pack?.name ?? planKey ?? "subscription",
-                        subscription_id: subscriptionId,
-                    })
-                    .select("id")
-                    .single()
 
-                if (transactionError) {
-                    if (transactionError.code === "23505") {
-                        console.log(
-                            "Transaction already processed for session:",
-                            session_id
-                        )
-                    } else {
-                        throw transactionError
-                    }
-                } else {
-                    const { data: currentData, error: currentErr } =
-                        await supabaseAdmin.rpc("star_get_or_create", {
-                            p_anon_device_id: null,
-                            p_user_id: userId,
+                if (mode === "subscribe") {
+                    const { error: transactionError } = await supabaseAdmin
+                        .from("billing_transactions")
+                        .insert({
+                            user_id: userId,
+                            type: "subscription_initial",
+                            provider: "stripe",
+                            provider_payment_id: session_id,
+                            amount_cents: amountTotal,
+                            currency: currency,
+                            reference: `Checkout session: ${session_id} (Subscription)`,
+                            status: "succeeded",
+                            stars_amount: starsAmount,
+                            pack_name: planKey ?? "subscription",
+                            subscription_id: subscriptionId,
                         })
+                        .select("id")
+                        .single()
 
-                    if (!currentErr && currentData?.[0]) {
-                        const starRow = currentData[0] as {
-                            current_stars?: number
-                            daily_stars?: number
-                            plan_stars?: number
-                            addon_stars?: number
+                    if (transactionError) {
+                        if (transactionError.code === "23505") {
+                            console.log(
+                                "Transaction already processed for session:",
+                                session_id
+                            )
+                        } else {
+                            throw transactionError
                         }
-                        const currentStars = starRow.current_stars || 0
-                        const currentDaily = Number(starRow.daily_stars ?? 0)
-                        const currentAddon = Number(starRow.addon_stars ?? 0)
-
-                        if (typeof starsAmount === "number") {
-                            const isSubscription = mode === "subscribe"
-                            const nextBalance = isSubscription
-                                ? Math.max(currentStars, starsAmount)
-                                : currentStars + starsAmount
-                            if (isSubscription) {
-                                const refillAt =
-                                    subscriptionPeriodStartMs ??
-                                    Date.now()
-                                const nextPlan = Math.max(0, starsAmount)
-                                const { error: updateError } =
-                                    await supabaseAdmin
-                                        .from("stars")
-                                        .update({
-                                            plan_stars: nextPlan,
-                                            plan_last_refill_at: new Date(
-                                                refillAt
-                                            ).toISOString(),
-                                            current_stars:
-                                                currentDaily +
-                                                nextPlan +
-                                                currentAddon,
-                                            updated_at:
-                                                new Date().toISOString(),
-                                        })
-                                        .eq("user_id", userId)
-                                if (updateError) {
-                                    console.error(
-                                        "Failed to set subscription stars:",
-                                        updateError
-                                    )
-                                }
-                            } else {
-                                await supabaseAdmin.rpc("star_set", {
-                                    p_anon_device_id: null,
-                                    p_new_balance: nextBalance,
-                                    p_user_id: userId,
+                    } else if (typeof starsAmount === "number") {
+                        const { data: currentData, error: currentErr } =
+                            await supabaseAdmin.rpc("star_get_or_create", {
+                                p_anon_device_id: null,
+                                p_user_id: userId,
+                            })
+                        if (!currentErr && currentData?.[0]) {
+                            const starRow = currentData[0] as {
+                                daily_stars?: number
+                                addon_stars?: number
+                            }
+                            const currentDaily = Number(
+                                starRow.daily_stars ?? 0
+                            )
+                            const currentAddon = Number(
+                                starRow.addon_stars ?? 0
+                            )
+                            const refillAt =
+                                subscriptionPeriodStartMs ?? Date.now()
+                            const nextPlan = Math.max(0, starsAmount)
+                            const { error: updateError } = await supabaseAdmin
+                                .from("stars")
+                                .update({
+                                    plan_stars: nextPlan,
+                                    plan_last_refill_at: new Date(
+                                        refillAt
+                                    ).toISOString(),
+                                    current_stars:
+                                        currentDaily + nextPlan + currentAddon,
+                                    updated_at: new Date().toISOString(),
                                 })
+                                .eq("user_id", userId)
+                            if (updateError) {
+                                console.error(
+                                    "Failed to set subscription stars:",
+                                    updateError
+                                )
                             }
                         }
+                    }
+                } else if (pack) {
+                    // One-time pack: idempotent, atomic grant. This is a safety
+                    // net — the Stripe webhook is the primary path — and both
+                    // share the session id as the idempotency key, so whichever
+                    // fires first grants exactly once.
+                    const result = await grantPackPurchase({
+                        userId,
+                        sessionId: session_id,
+                        priceId,
+                        amountCents: amountTotal,
+                        currency,
+                    })
+                    if (result.status === "error") {
+                        console.error(
+                            "Failed to grant pack on success page:",
+                            result.error
+                        )
                     }
                 }
             }

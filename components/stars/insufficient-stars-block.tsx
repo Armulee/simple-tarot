@@ -57,7 +57,6 @@ export default function InsufficientStarsBlock({
     const packs = useMemo(() => {
         return STAR_PACKS.filter((p) => !!p.id)
     }, [])
-    const isProSubscriber = subscription?.tier === "pro"
     const isBasicSubscriber = subscription?.tier === "basic"
     const isSubscribed = Boolean(subscription?.tier)
     const availablePlans = useMemo(() => {
@@ -99,7 +98,7 @@ export default function InsufficientStarsBlock({
                 {user ? (
                     /* Logged-in user: Show quick top-up options */
                     <div className="space-y-4">
-                        {isProSubscriber ? (
+                        {packs.length > 0 ? (
                             <>
                                 <div className="text-xs text-white/60 uppercase tracking-wider font-medium">
                                     {t("quickTopUp")}
@@ -133,7 +132,7 @@ export default function InsufficientStarsBlock({
                                                         className="!w-[180px]"
                                                     >
                                                         <Checkout
-                                                            mode="addon"
+                                                            mode="pack"
                                                             packId={packPriceId}
                                                             currency={currency}
                                                             customTrigger={
