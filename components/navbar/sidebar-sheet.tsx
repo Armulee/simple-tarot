@@ -123,7 +123,8 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
     }
 
-    const cycleMs = refillCycleMs ?? 5 * 60 * 60 * 1000
+    // v2 free refill spans at most a day (next 09:00 local when empty).
+    const cycleMs = refillCycleMs ?? 24 * 60 * 60 * 1000
     const timeProgress = nextRefillAt
         ? Math.min(100, Math.max(0, (1 - timeLeft / cycleMs) * 100))
         : 0
@@ -391,9 +392,12 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
 
                                         {!nextRefillAt && (
                                             <p className='text-[10px] text-yellow-500/50 italic'>
-                                                {dailyValue >= refillCap
-                                                    ? "Maximum stars reached"
-                                                    : "Refill active"}
+                                                {/* v2: no countdown while stars remain — the
+                                                    free star only returns once you hit 0.
+                                                    Anons never refill (1 lifetime star). */}
+                                                {user
+                                                    ? "A free star returns at 9:00 when you run out"
+                                                    : "Guest reading — sign in for 5 free stars"}
                                             </p>
                                         )}
 

@@ -30,8 +30,10 @@ export default function StarsBalance() {
         return () => window.clearInterval(id)
     }, [])
 
-    const dailyCap = refillCap
     const dailyValue = typeof dailyStars === "number" ? dailyStars : 0
+    // v2: the free pool has no hard cap (purchased packs stack onto it), so
+    // the gauge total grows with the balance instead of showing e.g. "60/5".
+    const dailyCap = Math.max(refillCap, dailyValue)
     const planValue = typeof planStars === "number" ? planStars : 0
     const addonValue = typeof addonStars === "number" ? addonStars : 0
     const engagementCurrent =
@@ -57,7 +59,8 @@ export default function StarsBalance() {
         ? formatRefillDate(subscription.currentPeriodEnd)
         : ""
     const timeLeft = nextRefillAt ? Math.max(0, nextRefillAt - now) : 0
-    const refillCycle = refillCycleMs ?? 5 * 60 * 60 * 1000
+    // v2 free refill spans at most a day (next 09:00 local when empty).
+    const refillCycle = refillCycleMs ?? 24 * 60 * 60 * 1000
     const dailyRefillProgress = nextRefillAt
         ? Math.min(100, Math.max(0, (1 - timeLeft / refillCycle) * 100))
         : dailyValue >= dailyCap
