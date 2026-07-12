@@ -703,7 +703,15 @@
     "composerSettingsAriaLabel": "Reading settings",
     "composerSettingsPanelTitle": "Settings",
     "composerSettingsSectionPreferences": "Preferences",
-    "composerSettingsSectionActions": "Actions"
+    "composerSettingsSectionActions": "Actions",
+    "descriptions": {
+      "auto": "Picks the right reading style for your question",
+      "chat": "Talk freely with Astra, no cards drawn",
+      "tarot": "Draw tarot cards for a guided reading",
+      "horoscope": "Reads your birth chart and current transits",
+      "synastry": "Compares two birth charts for compatibility",
+      "oracle": "Deep spiritual guidance for soul questions"
+    }
   },
   "OracleReading": {
     "messageReceived": "Message Received",

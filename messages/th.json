@@ -750,7 +750,15 @@
     "composerSettingsAriaLabel": "การตั้งค่าการอ่าน",
     "composerSettingsPanelTitle": "การตั้งค่า",
     "composerSettingsSectionPreferences": "การตั้งค่าทั่วไป",
-    "composerSettingsSectionActions": "การดำเนินการ"
+    "composerSettingsSectionActions": "การดำเนินการ",
+    "descriptions": {
+      "auto": "เลือกวิธีอ่านที่เหมาะกับคำถามให้อัตโนมัติ",
+      "chat": "คุยกับแอสตร้าได้อิสระ ไม่ต้องเปิดไพ่",
+      "tarot": "เปิดไพ่ทาโรต์เพื่อรับคำทำนาย",
+      "horoscope": "อ่านดวงจากผังดาวกำเนิดและดาวจร",
+      "synastry": "เทียบดวงสองคนเพื่อดูความเข้ากัน",
+      "oracle": "คำชี้แนะทางจิตวิญญาณเชิงลึก"
+    }
   },
   "OracleReading": {
     "messageReceived": "ข้อความที่ได้รับ",

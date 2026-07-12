@@ -476,7 +476,17 @@
     "composerSettingsPanelTitle": "Configurações",
     "composerSettingsSectionPreferences": "Preferências",
     "composerSettingsSectionActions": "Ações",
-    "oracle": "Spiritual"
+    "oracle": "Spiritual",
+    "synastry": "Sinastria",
+    "synastryPaidOnly": "Faça upgrade para usar a Sinastria",
+    "descriptions": {
+      "auto": "Escolhe o estilo de leitura certo para a sua pergunta",
+      "chat": "Converse livremente com a Astra, sem cartas",
+      "tarot": "Tire cartas de tarô para uma leitura",
+      "horoscope": "Lê seu mapa astral e os trânsitos atuais",
+      "synastry": "Compara dois mapas astrais para ver a compatibilidade",
+      "oracle": "Orientação espiritual mais profunda"
+    }
   },
   "About": {
     "whatIs": "O que é",

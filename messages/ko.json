@@ -476,7 +476,17 @@
     "composerSettingsPanelTitle": "설정",
     "composerSettingsSectionPreferences": "환경설정",
     "composerSettingsSectionActions": "동작",
-    "oracle": "Spiritual"
+    "oracle": "Spiritual",
+    "synastry": "궁합",
+    "synastryPaidOnly": "업그레이드 후 궁합을 볼 수 있어요",
+    "descriptions": {
+      "auto": "질문에 맞는 리딩 방식을 자동으로 골라줘요",
+      "chat": "카드 없이 아스트라와 자유롭게 대화해요",
+      "tarot": "타로 카드를 뽑아 리딩을 받아요",
+      "horoscope": "출생 차트와 현재 행성 흐름을 읽어요",
+      "synastry": "두 사람의 차트를 비교해 궁합을 봐요",
+      "oracle": "더 깊은 영적 안내"
+    }
   },
   "About": {
     "whatIs": "무엇일까요",

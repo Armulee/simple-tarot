@@ -476,7 +476,17 @@
     "composerSettingsPanelTitle": "ဆက်တင်များ",
     "composerSettingsSectionPreferences": "နှစ်သက်မှုများ",
     "composerSettingsSectionActions": "လုပ်ဆောင်ချက်များ",
-    "oracle": "Spiritual"
+    "oracle": "Spiritual",
+    "synastry": "ဇာတာနှိုင်းယှဉ်",
+    "synastryPaidOnly": "Synastry သုံးရန် အဆင့်မြှင့်ပါ",
+    "descriptions": {
+      "auto": "မေးခွန်းနှင့်ကိုက်ညီသော ဖတ်နည်းကို အလိုအလျောက် ရွေးပေးသည်",
+      "chat": "ကတ်မဖွင့်ဘဲ Astra နှင့် လွတ်လပ်စွာ စကားပြောပါ",
+      "tarot": "တာရိုကတ်များဖွင့်၍ ဟောစာတမ်း ရယူပါ",
+      "horoscope": "မွေးဖွားဇာတာနှင့် လက်ရှိဂြိုဟ်သွားများကို ဖတ်သည်",
+      "synastry": "နှစ်ဦး၏ဇာတာကို နှိုင်းယှဉ်၍ လိုက်ဖက်မှုကြည့်သည်",
+      "oracle": "နက်ရှိုင်းသော ဝိညာဉ်ရေးရာ လမ်းညွှန်မှု"
+    }
   },
   "About": {
     "whatIs": "ဘာလဲ",

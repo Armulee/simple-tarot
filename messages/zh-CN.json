@@ -476,7 +476,17 @@
     "composerSettingsPanelTitle": "设置",
     "composerSettingsSectionPreferences": "偏好",
     "composerSettingsSectionActions": "操作",
-    "oracle": "Spiritual"
+    "oracle": "Spiritual",
+    "synastry": "合盘",
+    "synastryPaidOnly": "升级后可使用合盘",
+    "descriptions": {
+      "auto": "自动为你的问题选择合适的解读方式",
+      "chat": "与 Astra 自由对话，无需抽牌",
+      "tarot": "抽取塔罗牌，获得指引解读",
+      "horoscope": "根据你的出生星盘与行运解读",
+      "synastry": "对比两人星盘，看彼此契合度",
+      "oracle": "更深层的心灵指引"
+    }
   },
   "About": {
     "whatIs": "什么是",

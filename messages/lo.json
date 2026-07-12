@@ -616,7 +616,15 @@
     "composerSettingsAriaLabel": "ການຕັ້ງຄ່າການອ່ານ",
     "composerSettingsPanelTitle": "ການຕັ້ງຄ່າ",
     "composerSettingsSectionPreferences": "ຄ່າທີ່ນິຍົມ",
-    "composerSettingsSectionActions": "ການດຳເນີນການ"
+    "composerSettingsSectionActions": "ການດຳເນີນການ",
+    "descriptions": {
+      "auto": "ເລືອກວິທີອ່ານທີ່ເໝາະກັບຄຳຖາມໃຫ້ອັດຕະໂນມັດ",
+      "chat": "ລົມກັບແອສຕຣາໄດ້ອິດສະຫຼະ ບໍ່ຕ້ອງເປີດໄພ່",
+      "tarot": "ເປີດໄພ່ທາໂຣເພື່ອຮັບຄຳທຳນາຍ",
+      "horoscope": "ອ່ານດວງຈາກຜັງດາວກຳເນີດ ແລະ ດາວຈອນ",
+      "synastry": "ທຽບດວງສອງຄົນເພື່ອເບິ່ງຄວາມເຂົ້າກັນ",
+      "oracle": "ຄຳຊີ້ນຳທາງຈິດວິນຍານເຊິງເລິກ"
+    }
   },
   "OracleReading": {
     "messageReceived": "ຂໍ້ຄວາມທີ່ໄດ້ຮັບ",

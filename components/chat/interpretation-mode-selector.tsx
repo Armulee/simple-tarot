@@ -139,7 +139,7 @@ export default function InterpretationModeSelector({
             <PopoverContent
                 align='center'
                 side='top'
-                className='w-48 rounded-xl border-white/10 bg-[#0A0F26] p-2'
+                className='w-64 rounded-xl border-white/10 bg-[#0A0F26] p-2'
             >
                 <div className='space-y-1'>
                     {(
@@ -189,11 +189,13 @@ export default function InterpretationModeSelector({
                                         <Icon className='size-4 shrink-0' />
                                         {t(mode)}
                                     </span>
-                                    {lockedReason ? (
-                                        <span className='pl-6 text-[11px] leading-tight text-white/45'>
-                                            {lockedReason}
-                                        </span>
-                                    ) : null}
+                                    {/* One sub-line per mode: what it does —
+                                        or, when locked, why it's unavailable
+                                        (the more actionable info). */}
+                                    <span className='pl-6 text-[11px] leading-tight text-white/45'>
+                                        {lockedReason ??
+                                            t(`descriptions.${mode}`)}
+                                    </span>
                                 </button>
                             )
                         },

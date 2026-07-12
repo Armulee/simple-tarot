@@ -476,7 +476,17 @@
     "composerSettingsPanelTitle": "Pengaturan",
     "composerSettingsSectionPreferences": "Preferensi",
     "composerSettingsSectionActions": "Tindakan",
-    "oracle": "Spiritual"
+    "oracle": "Spiritual",
+    "synastry": "Sinastri",
+    "synastryPaidOnly": "Upgrade untuk menggunakan Sinastri",
+    "descriptions": {
+      "auto": "Memilih gaya pembacaan yang pas untuk pertanyaanmu",
+      "chat": "Mengobrol bebas dengan Astra tanpa menarik kartu",
+      "tarot": "Tarik kartu tarot untuk pembacaan",
+      "horoscope": "Membaca peta kelahiran dan transit planetmu",
+      "synastry": "Membandingkan dua peta kelahiran untuk kecocokan",
+      "oracle": "Bimbingan spiritual yang lebih dalam"
+    }
   },
   "About": {
     "whatIs": "Apa itu",

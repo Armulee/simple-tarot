@@ -476,7 +476,17 @@
     "composerSettingsPanelTitle": "設定",
     "composerSettingsSectionPreferences": "環境設定",
     "composerSettingsSectionActions": "アクション",
-    "oracle": "Spiritual"
+    "oracle": "Spiritual",
+    "synastry": "相性占い",
+    "synastryPaidOnly": "アップグレードで相性占いが使えます",
+    "descriptions": {
+      "auto": "質問に合った占い方を自動で選びます",
+      "chat": "カードを引かずにアストラと自由に話せます",
+      "tarot": "タロットカードを引いてリーディング",
+      "horoscope": "出生図と現在の星の動きから読み解きます",
+      "synastry": "二人の出生図を比べて相性を見ます",
+      "oracle": "より深いスピリチュアルな導き"
+    }
   },
   "About": {
     "whatIs": "とは",

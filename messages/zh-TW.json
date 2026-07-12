@@ -476,7 +476,17 @@
     "composerSettingsPanelTitle": "設定",
     "composerSettingsSectionPreferences": "偏好設定",
     "composerSettingsSectionActions": "動作",
-    "oracle": "Spiritual"
+    "oracle": "Spiritual",
+    "synastry": "合盤",
+    "synastryPaidOnly": "升級後可使用合盤",
+    "descriptions": {
+      "auto": "自動為你的問題選擇合適的解讀方式",
+      "chat": "與 Astra 自由對話，無需抽牌",
+      "tarot": "抽取塔羅牌，獲得指引解讀",
+      "horoscope": "根據你的出生星盤與行運解讀",
+      "synastry": "對比兩人星盤，看彼此契合度",
+      "oracle": "更深層的心靈指引"
+    }
   },
   "About": {
     "whatIs": "什麼是",
