@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { SensitiveDomainAdviceBadge } from "@/components/chat/sensitive-domain-advice-badge"
 import { CardImage } from "@/components/card-image"
+import { RitualCandle } from "@/components/ritual/ritual-candles"
 import ShareSection from "@/components/tarot/interpretation/share"
 import { InterpretationHeaderBar } from "@/components/chat/interpretation-header-bar"
 import type { ChatMessage } from "@/components/chat/types"
@@ -400,6 +401,13 @@ export function TarotAssistantInterpretation({
                         <span className='absolute right-[16%] bottom-[10%] h-1 w-1 rounded-full bg-amber-200/70 shadow-[0_0_6px_rgba(252,211,77,0.5)]' />
                         <span className='absolute left-[6%] top-[42%] h-0.5 w-0.5 rounded-full bg-white/60' />
                         <span className='absolute right-[8%] top-[36%] h-0.5 w-0.5 rounded-full bg-white/50' />
+                        {/* Ritual candles flanking the revealed spread
+                            (Part 3.3 ambiance: gold-on-dark, slow flame). */}
+                        <RitualCandle
+                            tall
+                            className='absolute left-[4%] top-[52%] hidden sm:block opacity-80'
+                        />
+                        <RitualCandle className='absolute right-[4%] top-[58%] hidden sm:block opacity-70' />
                     </div>
 
                     {isMultiCard ? (
@@ -461,7 +469,7 @@ export function TarotAssistantInterpretation({
                                         <div
                                             className={`w-32 sm:w-40 rounded-xl overflow-hidden transition-shadow duration-300 ${
                                                 isActive
-                                                    ? "ring-1 ring-[#a78bfa]/55 shadow-[0_30px_70px_-18px_rgba(167,139,250,0.55),0_0_28px_-6px_rgba(56,189,248,0.25),0_18px_40px_-12px_rgba(0,0,0,0.55)]"
+                                                    ? "ring-1 ring-amber-200/50 card-rim-gold"
                                                     : "ring-1 ring-white/10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]"
                                             }`}
                                         >
@@ -477,7 +485,7 @@ export function TarotAssistantInterpretation({
                             })}
                         </div>
                     ) : (
-                        <div className='w-fit rounded-2xl overflow-hidden ring-1 ring-[#a78bfa]/40 shadow-[0_30px_70px_-18px_rgba(167,139,250,0.5),0_0_28px_-6px_rgba(56,189,248,0.25),0_24px_60px_-18px_rgba(0,0,0,0.6)]'>
+                        <div className='w-fit rounded-2xl overflow-hidden ring-1 ring-amber-200/45 card-rim-gold'>
                             <CardImage
                                 card={activeCard}
                                 size='lg'
@@ -542,7 +550,7 @@ export function TarotAssistantInterpretation({
                                             }
                                             className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
                                                 isActive
-                                                    ? "w-6 bg-gradient-to-r from-[#a78bfa] via-indigo-300 to-[#a78bfa] shadow-[0_0_10px_rgba(167,139,250,0.75)]"
+                                                    ? "w-6 bg-gradient-to-r from-amber-300 via-yellow-100 to-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.7)]"
                                                     : "w-1.5 bg-white/30 hover:bg-white/55 hover:shadow-[0_0_6px_rgba(255,255,255,0.35)]"
                                             }`}
                                         />
