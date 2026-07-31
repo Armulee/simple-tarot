@@ -5830,15 +5830,18 @@ export default function ChatSession({
                     trimmed,
                 )
 
-                // General/chat answers go through /api/chat/question for a
-                // structured "inner energy reflection" rendered by
-                // InnerEnergyHero. Oracle answers go through /api/chat/oracle
-                // for a premium-feel symbolic oracle card rendered by
-                // OracleHero. Horoscope "why" follow-ups stream a
-                // data-grounded explanation paragraph from
-                // /api/horoscope/explain. Bridge replies (draw / horoscope)
-                // and support acknowledgments keep the lightweight text
-                // stream from /api/chat/respond.
+                // Oracle answers go through /api/chat/oracle for a
+                // premium-feel symbolic oracle card rendered by OracleHero.
+                // Horoscope "why" follow-ups stream a data-grounded
+                // explanation paragraph from /api/horoscope/explain. Plain
+                // conversation (greetings, venting) streams a gentle text
+                // reply. Everything else — knowledge questions ("what is a
+                // trine?"), bridge replies (draw / horoscope) and support
+                // acknowledgments — keeps the lightweight text stream from
+                // /api/chat/respond, which actually answers the question.
+                // (The old "inner energy reflection" hero via
+                // /api/chat/question was the catch-all here; it produced a
+                // mystical block that never answered what was asked.)
                 const useHoroscopeExplain =
                     nextDecision.type === "chat" &&
                     Boolean(nextDecision.horoscopeExplain) &&
@@ -5853,12 +5856,6 @@ export default function ChatSession({
                     !supportBlock &&
                     !useHoroscopeExplain &&
                     !useTarotExplain
-                const useGeneralReplyStream =
-                    nextDecision.type === "chat" &&
-                    !supportBlock &&
-                    !useHoroscopeExplain &&
-                    !useTarotExplain &&
-                    !useTalkReply
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -5954,13 +5951,6 @@ export default function ChatSession({
                     consultingLoadingIdRef.current = null
                 } else if (useTalkReply) {
                     startTalkReplyStream({
-                        question: trimmed,
-                        assistantLoadingId,
-                        isFollowUp: nextDecision.isFollowUp,
-                        historyOverride: history,
-                    })
-                } else if (useGeneralReplyStream) {
-                    startGeneralReplyStream({
                         question: trimmed,
                         assistantLoadingId,
                         isFollowUp: nextDecision.isFollowUp,
@@ -7008,12 +6998,6 @@ export default function ChatSession({
                     !supportBlock &&
                     !useHoroscopeExplain &&
                     !useTarotExplain
-                const useGeneralReplyStream =
-                    nextDecision.type === "chat" &&
-                    !supportBlock &&
-                    !useHoroscopeExplain &&
-                    !useTarotExplain &&
-                    !useTalkReply
                 const useOracleReplyStream =
                     nextDecision.type === "oracle" && !supportBlock
 
@@ -7109,13 +7093,6 @@ export default function ChatSession({
                     consultingLoadingIdRef.current = null
                 } else if (useTalkReply) {
                     startTalkReplyStream({
-                        question: trimmed,
-                        assistantLoadingId,
-                        isFollowUp: nextDecision.isFollowUp,
-                        historyOverride: history,
-                    })
-                } else if (useGeneralReplyStream) {
-                    startGeneralReplyStream({
                         question: trimmed,
                         assistantLoadingId,
                         isFollowUp: nextDecision.isFollowUp,
