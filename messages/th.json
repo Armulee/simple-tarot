@@ -1039,7 +1039,7 @@
   "QuestionInput": {
     "label": "คำถามของคุณ",
     "removeAttachment": "ลบไฟล์แนบ",
-    "placeholder": "หลับตา ตั้งจิตให้นิ่ง แล้วถามสิ่งที่ค้างคาใจ…",
+    "placeholder": "ถามอะไรก็ได้เกี่ยวกับชะตาของคุณ…",
     "followUpSuggestionLabel": "คำถามต่อยอดที่แนะนำ",
     "dismissFollowUpStrip": "ปิดคำแนะและทางลัดด้านล่าง",
     "avatarMode": "แม่หมอ",

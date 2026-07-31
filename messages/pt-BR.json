@@ -750,7 +750,7 @@
   },
   "QuestionInput": {
     "label": "Sua pergunta",
-    "placeholder": "Feche os olhos, acalme a mente e pergunte o que pesa no seu coração…",
+    "placeholder": "Pergunte o que quiser sobre o seu destino…",
     "followUpSuggestionLabel": "Acompanhamentos sugeridos",
     "dismissFollowUpStrip": "Dispensar sugestões e atalhos do compositor"
   },

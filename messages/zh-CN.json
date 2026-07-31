@@ -750,7 +750,7 @@
   },
   "QuestionInput": {
     "label": "你的问题",
-    "placeholder": "闭上眼睛，让心静下来，问出你心中挂念的事…",
+    "placeholder": "关于你的命运，问什么都可以…",
     "followUpSuggestionLabel": "建议的追问",
     "dismissFollowUpStrip": "关闭建议与输入框快捷方式"
   },

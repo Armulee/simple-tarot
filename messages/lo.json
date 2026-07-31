@@ -905,7 +905,7 @@
   "QuestionInput": {
     "label": "ຄຳຖາມຂອງທ່ານ",
     "removeAttachment": "ລຶບໄຟລ໌ແນບ",
-    "placeholder": "ຫຼັບຕາ ເຮັດໃຈໃຫ້ສະຫງົບ ແລ້ວຖາມສິ່ງທີ່ຄ້າງຄາໃຈ…",
+    "placeholder": "ຖາມຫຍັງກໍໄດ້ກ່ຽວກັບຊະຕາຂອງທ່ານ…",
     "followUpSuggestionLabel": "ຄຳແນະນຳຕໍ່ຄຳຖາມ",
     "dismissFollowUpStrip": "ປິດຄຳແນະນຳແລະທາງລັດໃນຊ່ອງຂຽນ",
     "avatarMode": "ແມ່ໝໍ",
