@@ -192,7 +192,6 @@ export type ReplyStrategy =
     | "timeline"
     | "technical"
     | "rejected"
-    | "general"
 
 const CALENDAR_INTENT_VALUES = [
     "resignation",
@@ -222,7 +221,6 @@ export const questionClassificationSchema = z.object({
         "timeline",
         "technical",
         "rejected",
-        "general",
     ]),
     questionTopic: z.object({
         topic: z.enum(QUESTION_TOPIC_VALUES),

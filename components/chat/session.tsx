@@ -1733,10 +1733,10 @@ export default function ChatSession({
                         // `{ dailyVerdict: null }` for non-single-day
                         // questions, so we don't need to gate here.
                         // When extract has classified the question, only
-                        // call /verdict for the three flavors that produce
-                        // a hero (daily/timing/natal). "timeline" and
-                        // "general" never render a verdict, so skip the
-                        // network round-trip entirely.
+                        // call /verdict for the flavors that produce a hero
+                        // (daily/timing/natal/technical). "timeline" never
+                        // renders a verdict, so skip the network round-trip
+                        // entirely.
                         const verdictWouldRender =
                             replyStrategy == null ||
                             replyStrategy === "daily" ||
@@ -4077,10 +4077,9 @@ export default function ChatSession({
                 setIsInterpreting(false)
             }
 
-            // Strategy router: /question is only invoked for the "general"
-            // fallback. Daily / timing / natal each go through the verdict
-            // path; timeline streams /timeline + /chart-data and skips the
-            // long-form interpretation entirely.
+            // Strategy router: timeline streams /timeline + /chart-data and
+            // skips the long-form interpretation entirely; every other
+            // strategy goes through the verdict path.
             if (strategy === "timeline") {
                 const ok = await tryCompleteTimelineFirst(
                     loadingId,
@@ -4091,35 +4090,17 @@ export default function ChatSession({
                 return
             }
 
-            if (
-                strategy === "daily" ||
-                strategy === "timing" ||
-                strategy === "natal" ||
-                strategy === "technical"
-            ) {
-                const ok = await tryCompleteHoroscopeVerdictFirst(
-                    loadingId,
-                    prefetchBody,
-                )
-                if (!ok) surfaceError()
-                finishHandled()
-                return
-            }
-
-            // General / unknown classification: the question doesn't fit a
-            // specific astrology lens (daily / timing / natal / technical /
-            // timeline). Instead of streaming the long-form horoscope answer
-            // (which renders as a bare key-message block), fall back to the
-            // general "inner energy reflection" hero — still grounded in the
-            // user's birth chart, transit chart, and live aspects via
-            // /api/chat/question. We reuse the existing loading message,
-            // converting it from a horoscope reading into a general reply.
-            horoscopeTargetMessageIdRef.current = null
-            setIsInterpreting(false)
-            startGeneralReplyStream({
-                question: questionText,
-                assistantLoadingId: loadingId,
-            })
+            // Everything else resolves through the verdict path: daily /
+            // timing / natal / technical, plus an absent classification from
+            // legacy callers (the verdict route classifies server-side).
+            // "natal" is the classifier's catch-all now that the "general"
+            // strategy — which fell back to the inner-energy reflection hero
+            // and never produced a verdict — has been removed.
+            const ok = await tryCompleteHoroscopeVerdictFirst(
+                loadingId,
+                prefetchBody,
+            )
+            if (!ok) surfaceError()
             finishHandled()
         },
         [
@@ -4127,7 +4108,6 @@ export default function ChatSession({
             ensureBirthTimeDefaults,
             horoscopeSystem,
             locale,
-            startGeneralReplyStream,
             tHoroscope,
             tryCompleteHoroscopeVerdictFirst,
             tryCompleteTimelineFirst,

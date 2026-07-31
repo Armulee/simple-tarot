@@ -175,7 +175,9 @@ export async function POST(req: Request) {
         const classification: QuestionClassification = body.classification
             ? hydrateRelevantPlanets(body.classification)
             : {
-                  replyStrategy: "general",
+                  // No classification from extract → read from the asker's
+                  // own chart (replaces the old "general" catch-all).
+                  replyStrategy: "natal",
                   questionTopic: (() => {
                       const t = classifyQuestionTopic(body.question)
                       return {

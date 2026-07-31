@@ -287,7 +287,7 @@ export function buildCalendarDayOriginContext(
 // ---------------------------------------------------------------------------
 
 export type OriginContextStrategyOverride = {
-    replyStrategy: "daily" | "natal"
+    replyStrategy: "daily"
     questionRange: {
         startDateIso: string
         endDateIso: string
@@ -301,7 +301,7 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 /**
  * Deterministic strategy override for the composer's context strip. The
  * extract LLM classifies from the message text alone, so a question with no
- * time anchor ("how will my career be?") resolves to natal/general even when
+ * time anchor ("how will my career be?") resolves to natal even when
  * the user attached a calendar day. The attachment IS the missing anchor:
  *
  * - calendar-day context + no date in the question → daily verdict anchored
@@ -313,8 +313,8 @@ const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
  *   full would also re-anchor — attaching a different day while spelling
  *   out today's date is a contradiction we resolve in the attachment's
  *   favor.)
- * - birth-chart context + no anchor → natal strategy (answer from the user's
- *   natal placements immediately).
+ * (A birth-chart context needs no override: an anchor-less question already
+ * classifies as "natal", the classifier's catch-all.)
  *
  * Absolute dates/windows written in the question win otherwise, and
  * planet-focused (technical) / "when will…" (timing) questions keep their
@@ -360,9 +360,7 @@ export function resolveOriginContextStrategyOverride({
 
         if (
             !questionRange &&
-            (replyStrategy === "natal" ||
-                replyStrategy === "general" ||
-                replyStrategy === "daily")
+            (replyStrategy === "natal" || replyStrategy === "daily")
         ) {
             return dailyOnAttachedDay
         }
@@ -381,14 +379,9 @@ export function resolveOriginContextStrategyOverride({
         return null
     }
 
-    if (
-        originContext.kind === "birth-chart" &&
-        !questionRange &&
-        replyStrategy === "general"
-    ) {
-        return { replyStrategy: "natal", questionRange: null }
-    }
-
+    // No birth-chart branch: an anchor-less question already classifies as
+    // "natal" (it is the classifier's catch-all), so there is nothing left to
+    // override for an attached birth chart.
     return null
 }
 

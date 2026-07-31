@@ -155,7 +155,10 @@ function pickReplyStrategy(
         source: questionRange.source,
     })
     if (natalMode) return "natal"
-    if (!singleDay) return "general"
+    // Multi-day window with no classification: that IS a timeline question.
+    // (Same downstream behaviour as the old "general" — no hero verdict —
+    // but named for what it actually is.)
+    if (!singleDay) return "timeline"
     if (detectPredictiveIntent(body.question)) return "timeline"
     return "daily"
 }
@@ -168,7 +171,9 @@ function resolveClassification(
     }
     const topic = classifyQuestionTopic(body.question)
     return {
-        replyStrategy: "general",
+        // Unclassified → read from the asker's own chart (the old "general"
+        // catch-all returned an empty verdict instead).
+        replyStrategy: "natal",
         questionTopic: { topic: topic.topic, relevantPlanets: [...topic.relevantPlanets] },
         predictiveIntent: detectPredictiveIntent(body.question),
         naturalNatalReference: false,
@@ -799,8 +804,8 @@ export async function POST(req: Request) {
         const strategy = pickReplyStrategy(body, questionRange)
 
         // This route serves three verdict flavors (daily / natal / timing).
-        // For "timeline" or "general" strategies the long-form interpretation
-        // and/or the prediction timeline carry the answer, so we short-circuit.
+        // For the "timeline" strategy the long-form interpretation and/or the
+        // prediction timeline carry the answer, so we short-circuit.
         if (strategy === "timing") {
             return await handleTimingVerdict(body, classification, questionRange)
         }

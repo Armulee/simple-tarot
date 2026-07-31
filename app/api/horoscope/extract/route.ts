@@ -39,7 +39,6 @@ const LLM_STRATEGY_VALUES = [
     "natal",
     "timeline",
     "technical",
-    "general",
 ] as const
 
 const CALENDAR_INTENT_VALUES = [
@@ -162,7 +161,9 @@ const requestSchema = z.object({
 })
 
 const FALLBACK_CLASSIFICATION: z.infer<typeof classificationSchema> = {
-    replyStrategy: "general",
+    // No usable classification → answer from the asker's own chart rather
+    // than returning an empty verdict (the old "general" catch-all).
+    replyStrategy: "natal",
     questionTopic: "general",
     predictiveIntent: false,
     naturalNatalReference: false,
@@ -253,9 +254,7 @@ type OriginContextPayload = z.infer<typeof requestSchema>["originContext"]
  * Applies the context-strip strategy override (see
  * resolveOriginContextStrategyOverride): an attached calendar day anchors
  * anchor-less questions — and relative "today" phrasings the LLM resolved to
- * the wall-clock today — to a daily verdict for the attached date; an
- * attached birth chart routes anchor-less general questions to the natal
- * strategy.
+ * the wall-clock today — to a daily verdict for the attached date.
  */
 function applyOriginContextOverride(
     extracted: ExtractedPayload,
@@ -364,10 +363,9 @@ Pick ONE strategy. Definitions are MUTUALLY EXCLUSIVE — for daily vs timeline 
 - "timing"    → the user is asking FOR a date or range as the ANSWER, AND the subject is the ASKER's outcome (not a planet's movement). Triggers: "when will I…", "เมื่อไหร่ฉัน…", "วันไหนดี…", "ฤกษ์…", "by when", "how soon", "best day to…". If the "when" question is about a planet rather than the asker, choose technical instead.
 - "timeline"  → MULTI-DAY range (2 or more days) anchored in the question. Whenever the question covers more than one day AND has any predictive / "what will it be" phrasing, choose timeline — regardless of word order, regardless of whether the user said "รายวัน". Phrasings that count as predictive include: "what will happen", "how will it go", "what's it like", "จะเป็นยังไง", "จะเป็นยังไงบ้าง", "จะเปนยังไงบ้าง", "อะไรจะเกิด", "เป็นยังไงบ้าง", "ดวงเป็นยังไง". Multi-day windows: explicit date ranges ("19-25 พค", "March to May"), week / month / quarter / year windows, "within N days", "for the next N days/weeks/months/years", etc. Two semantically equivalent multi-day predictive questions must always classify the same way no matter where the pronoun sits.
 - "daily"     → SINGLE-DAY anchor (exactly one calendar day). Use only when the resolved range is one day total: a specific date, "today / tonight / วันนี้", "tomorrow / พรุ่งนี้", "yesterday / เมื่อวาน", or a single named day. Never use daily for a date RANGE or a calendar window that spans more than one day.
-- "natal"     → NO time anchor, NO planet as focal topic; asker asks about themself or their chart in a general way. Triggers: "which career fits me", "what is my purpose", "ดวงของฉันเป็นยังไง" without a date, "am I lucky in love", "ราศีของฉัน", "ลัคนาของฉัน", birth-chart suitability. If the focal topic is a specific PLANET (with or without "me"), prefer technical instead so the answer can teach about that planet.
-- "general"   → small talk, clarification, or anything that doesn't fit the five above.
+- "natal"     → NO time anchor, NO planet as focal topic; asker asks about themself or their chart in a general way. Triggers: "which career fits me", "what is my purpose", "ดวงของฉันเป็นยังไง" without a date, "am I lucky in love", "ราศีของฉัน", "ลัคนาของฉัน", birth-chart suitability. If the focal topic is a specific PLANET (with or without "me"), prefer technical instead so the answer can teach about that planet. natal is ALSO the catch-all: small talk, a clarification, or anything that does not clearly fit the four above still resolves to natal — read it from the asker's own chart rather than refusing.
 
-Priority order when multiple could fit: technical → timing → timeline → daily → natal → general. Technical wins whenever the question's FOCAL TOPIC is a planet, regardless of whether the framing is "when does X happen" or "how does X affect me". Timing comes after technical because the user is asking for a date about themself, not for content. Timeline beats daily whenever the range spans more than one day.
+Priority order when multiple could fit: technical → timing → timeline → daily → natal. Technical wins whenever the question's FOCAL TOPIC is a planet, regardless of whether the framing is "when does X happen" or "how does X affect me". Timing comes after technical because the user is asking for a date about themself, not for content. Timeline beats daily whenever the range spans more than one day. natal is last and always available — never leave a question unclassified.
 
 =============================
 What counts as a "time anchor" in the question
@@ -380,7 +378,7 @@ Any of these put the question into the daily/timing/timeline bucket and out of n
 - Duration phrases: "within/in/for/next N days|weeks|months|years", "ในอีก/ภายใน/อีก N วัน/สัปดาห์/เดือน/ปี".
 
 =============================
-DECISION 2b — questionRange (set for daily/timing/timeline, null for natal/general)
+DECISION 2b — questionRange (set for daily/timing/timeline, null for natal/technical)
 =============================
 Resolve the date(s) the question is bound to. Today is ${currentDateIso} (UTC).
 
@@ -399,7 +397,7 @@ Resolve the date(s) the question is bound to. Today is ${currentDateIso} (UTC).
 - Single-day question with an explicit "by the hour / hourly / รายชั่วโมง / ໂມງໃດ" cue: keep duration = 1 but granularity = "hourly".
 - Multi-day window with a "by the hour" cue: still daily.
 
-Set questionRange = null when replyStrategy is "natal", "technical", or "general" — those aren't anchored to the asker's calendar window. For daily/timing/timeline you MUST return a concrete questionRange.
+Set questionRange = null when replyStrategy is "natal" or "technical" — those aren't anchored to the asker's calendar window. For daily/timing/timeline you MUST return a concrete questionRange.
 
 If the user wrote a Buddhist Era year (e.g. 2568), convert to Gregorian (2025) before returning.
 ${

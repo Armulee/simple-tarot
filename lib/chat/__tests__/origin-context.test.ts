@@ -27,14 +27,14 @@ test("calendar-day context anchors an anchor-less question to a daily verdict on
     assert.deepEqual(override, dailyOn("2026-06-09"))
 })
 
-test("calendar-day context also anchors a 'general' fallback classification", () => {
+test("calendar-day context anchors a daily question that carries no range", () => {
     const override = resolveOriginContextStrategyOverride({
         originContext: { kind: "calendar-day", isoDate: "2026-06-09" },
-        replyStrategy: "general",
+        replyStrategy: "daily",
         questionRange: null,
         currentDateIso: TODAY,
     })
-    assert.equal(override?.replyStrategy, "daily")
+    assert.deepEqual(override, dailyOn("2026-06-09"))
 })
 
 test("relative 'today' phrasing re-anchors onto the attached day", () => {
@@ -101,16 +101,16 @@ test("calendar-day context with an invalid date is ignored", () => {
     assert.equal(override, null)
 })
 
-test("birth-chart context routes an anchor-less general question to the natal strategy", () => {
-    const override = resolveOriginContextStrategyOverride({
-        originContext: { kind: "birth-chart" },
-        replyStrategy: "general",
-        questionRange: null,
-        currentDateIso: TODAY,
-    })
-    assert.ok(override)
-    assert.equal(override.replyStrategy, "natal")
-    assert.equal(override.questionRange, null)
+test("birth-chart context never overrides — anchor-less questions already classify as natal", () => {
+    assert.equal(
+        resolveOriginContextStrategyOverride({
+            originContext: { kind: "birth-chart" },
+            replyStrategy: "timeline",
+            questionRange: null,
+            currentDateIso: TODAY,
+        }),
+        null,
+    )
 })
 
 test("birth-chart context leaves natal and anchored questions untouched", () => {
