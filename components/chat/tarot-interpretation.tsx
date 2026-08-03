@@ -469,7 +469,7 @@ export function TarotAssistantInterpretation({
                                         <div
                                             className={`w-32 sm:w-40 rounded-xl overflow-hidden transition-shadow duration-300 ${
                                                 isActive
-                                                    ? "ring-1 ring-amber-200/50 card-rim-gold"
+                                                    ? "ring-1 ring-[#a78bfa]/55 shadow-[0_30px_70px_-18px_rgba(167,139,250,0.55),0_0_28px_-6px_rgba(56,189,248,0.25),0_18px_40px_-12px_rgba(0,0,0,0.55)]"
                                                     : "ring-1 ring-white/10 shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]"
                                             }`}
                                         >
@@ -485,7 +485,7 @@ export function TarotAssistantInterpretation({
                             })}
                         </div>
                     ) : (
-                        <div className='w-fit rounded-2xl overflow-hidden ring-1 ring-amber-200/45 card-rim-gold'>
+                        <div className='w-fit rounded-2xl overflow-hidden ring-1 ring-[#a78bfa]/40 shadow-[0_30px_70px_-18px_rgba(167,139,250,0.5),0_0_28px_-6px_rgba(56,189,248,0.25),0_24px_60px_-18px_rgba(0,0,0,0.6)]'>
                             <CardImage
                                 card={activeCard}
                                 size='lg'
@@ -550,7 +550,7 @@ export function TarotAssistantInterpretation({
                                             }
                                             className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
                                                 isActive
-                                                    ? "w-6 bg-gradient-to-r from-amber-300 via-yellow-100 to-amber-300 shadow-[0_0_10px_rgba(252,211,77,0.7)]"
+                                                    ? "w-6 bg-gradient-to-r from-[#a78bfa] via-indigo-300 to-[#a78bfa] shadow-[0_0_10px_rgba(167,139,250,0.75)]"
                                                     : "w-1.5 bg-white/30 hover:bg-white/55 hover:shadow-[0_0_6px_rgba(255,255,255,0.35)]"
                                             }`}
                                         />

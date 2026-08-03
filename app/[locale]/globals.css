@@ -2186,39 +2186,13 @@
   height: 34px;
 }
 
-/* Soft gold rim-light for revealed tarot cards: a fine warm ring plus a
-   slow breathing outer glow. Deliberately quiet — light on dark, no pulse
-   spikes. */
-@keyframes ritual-rim-breathe {
-  0%, 100% {
-    box-shadow:
-      0 0 0 1px rgba(253, 230, 170, 0.5),
-      0 0 18px -4px rgba(251, 191, 36, 0.3),
-      0 30px 70px -18px rgba(0, 0, 0, 0.6);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px rgba(253, 230, 170, 0.65),
-      0 0 30px -4px rgba(251, 191, 36, 0.45),
-      0 30px 70px -18px rgba(0, 0, 0, 0.6);
-  }
-}
-
-.card-rim-gold {
-  animation: ritual-rim-breathe 6s ease-in-out infinite;
-}
+/* NOTE: the gold card rim-light was removed — the revealed tarot cards keep
+   their original purple/indigo aura. Only the candles remain from the ritual
+   ambiance layer. */
 
 @media (prefers-reduced-motion: reduce) {
   .ritual-flame,
-  .ritual-candle-halo,
-  .card-rim-gold {
+  .ritual-candle-halo {
     animation: none !important;
-  }
-  /* Static but still lit: keep a fixed soft rim for reduced-motion users. */
-  .card-rim-gold {
-    box-shadow:
-      0 0 0 1px rgba(253, 230, 170, 0.55),
-      0 0 22px -4px rgba(251, 191, 36, 0.35),
-      0 30px 70px -18px rgba(0, 0, 0, 0.6);
   }
 }
