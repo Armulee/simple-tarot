@@ -1,13 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useTranslations, useLocale } from "next-intl"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useProfile } from "@/contexts/profile-context"
-import { useAstraIdentity } from "@/lib/astra/use-astra-identity"
-import { CelestialIcon } from "@/components/star-consent"
+import { LoopingTypewriterText } from "@/components/home/looping-typewriter-text"
+import { ConsultingBadge } from "@/components/consulting-badge"
 import { CookiesBanner } from "@/components/cookies-banner"
 import NormalFooter from "@/components/footer/normal-footer"
 import { loadBirthFromStorage } from "@/lib/birth-storage"
@@ -20,10 +19,12 @@ import {
 /**
  * Landing page.
  *
- * This page exists for first-time visitors, SEO, and ads only. It says who the
- * visitor is about to talk to and offers exactly one way in — no composer, no
- * feature chips, no question for the visitor to invent. Anyone whose birth date
- * we already know is redirected into the reading room before first paint.
+ * Kept as the original hero, minus the question composer: a visitor who does
+ * not know what to ask should not be met by an empty text box. The single
+ * "get started" button hands them over to the reading instead.
+ *
+ * The page exists for first-time visitors, SEO, and ads only — anyone whose
+ * birth date we already know is redirected into their reading before paint.
  */
 
 /** Query params that mean "stay on the landing page" (referral / post-sign-in replays). */
@@ -35,15 +36,18 @@ export default function Home() {
     const router = useRouter()
     const { user, loading: authLoading } = useAuth()
     const { profile, loading: profileLoading } = useProfile()
-    const astra = useAstraIdentity()
 
-    // "landing" is the SSR default so crawlers always receive the real page;
-    // returning visitors flip to "opening" in a layout effect, before paint.
-    const [phase, setPhase] = useState<"landing" | "opening">("landing")
+    const [isOpening, setIsOpening] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [showLearnMore, setShowLearnMore] = useState(false)
     const [hasStoredBirth, setHasStoredBirth] = useState(false)
     const [autoEnterBlocked, setAutoEnterBlocked] = useState(false)
-    const enteringRef = useRef(false)
+    const openingRef = useRef(false)
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => setShowLearnMore(true), 3000)
+        return () => window.clearTimeout(timer)
+    }, [])
 
     useLayoutEffect(() => {
         const params = new URLSearchParams(window.location.search)
@@ -52,23 +56,21 @@ export default function Home() {
             return
         }
         const birth = loadBirthFromStorage()
-        const known =
-            birth?.year != null && birth?.month != null && birth?.day != null
-        if (known) {
+        if (birth?.year != null && birth?.month != null && birth?.day != null) {
             setHasStoredBirth(true)
-            setPhase("opening")
+            setIsOpening(true)
         }
     }, [])
 
     /**
      * Opens the reading room. Returning visitors resume their latest thread;
-     * a first reading always starts a fresh one.
+     * pressing the button always starts a fresh one.
      */
     const enterReading = useCallback(
         async ({ resumeLatest }: { resumeLatest: boolean }) => {
-            if (enteringRef.current) return
-            enteringRef.current = true
-            setPhase("opening")
+            if (openingRef.current) return
+            openingRef.current = true
+            setIsOpening(true)
             setError(null)
             try {
                 let sessionId: string | null = null
@@ -88,20 +90,20 @@ export default function Home() {
                 }
                 router.replace(`/${locale}/${sessionId}`)
             } catch {
-                enteringRef.current = false
-                setPhase("landing")
+                openingRef.current = false
+                setIsOpening(false)
                 setError(tHome("openReadingError"))
             }
         },
         [locale, router, tHome, user?.id],
     )
 
-    // Returning visitor: we already know their birth date, so there is nothing
-    // to ask on the landing page — go straight to the reading.
+    // Returning visitor: their birth date is already on file, so there is
+    // nothing for this page to ask — go straight to the reading.
     const hasProfileBirth = Boolean(profile?.birth_date)
     const stillResolvingProfile = authLoading || (Boolean(user) && profileLoading)
     useEffect(() => {
-        if (autoEnterBlocked || enteringRef.current) return
+        if (autoEnterBlocked || openingRef.current) return
         if (!hasStoredBirth && !hasProfileBirth) return
         if (!hasStoredBirth && stillResolvingProfile) return
         void enterReading({ resumeLatest: true })
@@ -113,63 +115,74 @@ export default function Home() {
         stillResolvingProfile,
     ])
 
-    if (phase === "opening") {
-        return (
-            <div className='flex h-full w-full flex-col items-center justify-center gap-3 px-6 text-center'>
-                <Loader2 className='h-5 w-5 animate-spin text-primary' />
-                <p className='text-sm text-white/70'>
-                    {tHome("openingReading", {
-                        honorific: astra.honorific,
-                        name: astra.name,
-                        fullName: astra.fullName,
-                    })}
-                </p>
-            </div>
-        )
-    }
+    const { heroPhrases, splitAtPerPhrase } = useMemo(() => {
+        const firstPhrase = `${tHome("hero.line1")} ${tHome("hero.line2")}`
+        const rawWhite = tHome.raw("hero.rotatingPhrasesWhite")
+        const rawGradient = tHome.raw("hero.rotatingPhrasesGradient")
+        const white = Array.isArray(rawWhite)
+            ? rawWhite.filter((p): p is string => typeof p === "string")
+            : []
+        const gradient = Array.isArray(rawGradient)
+            ? rawGradient.filter((p): p is string => typeof p === "string")
+            : []
+        const rotating = white.map((w, i) => w + (gradient[i] ?? ""))
+        const splitAt = white.map((w) => w.length)
+        return {
+            heroPhrases: [firstPhrase, ...rotating],
+            splitAtPerPhrase: [tHome("hero.line1").length, ...splitAt],
+        }
+    }, [tHome])
 
     return (
         <div className='relative flex h-full w-full flex-col'>
-            <div className='flex flex-1 flex-col items-center justify-center px-6 text-center'>
-                <div className='flex flex-col items-center gap-5'>
-                    <span
-                        className='flex h-20 w-20 items-center justify-center rounded-full border border-[rgba(200,180,140,0.35)] bg-white/5 shadow-[0_0_45px_-12px_rgba(200,180,140,0.55)]'
-                        aria-hidden
-                    >
-                        <CelestialIcon />
-                    </span>
-
-                    <div className='space-y-1'>
-                        <p className='font-playfair text-2xl text-[#e8e0d0] sm:text-3xl'>
-                            {astra.fullName}
-                        </p>
-                        <p className='text-[11px] uppercase tracking-[0.28em] text-white/50'>
-                            {astra.role}
-                        </p>
+            <div className='flex flex-1 items-center justify-center px-6 text-center'>
+                {isOpening ? (
+                    <ConsultingBadge />
+                ) : (
+                    <div className='space-y-4'>
+                        <h1 className='font-playfair font-bold text-4xl sm:text-5xl md:text-6xl text-white'>
+                            <LoopingTypewriterText
+                                phrases={heroPhrases}
+                                speed={50}
+                                holdDuration={3000}
+                                fadeDuration={500}
+                                splitAtPerPhrase={splitAtPerPhrase}
+                                className='font-playfair text-transparent bg-gradient-to-r from-primary via-accent to-primary bg-clip-text'
+                            />
+                        </h1>
+                        <div className='mx-auto flex w-[300px] max-w-full flex-col items-center justify-center gap-2'>
+                            <button
+                                type='button'
+                                onClick={() =>
+                                    void enterReading({ resumeLatest: false })
+                                }
+                                className='w-full rounded-full bg-gradient-to-r from-primary via-accent to-primary px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-opacity hover:opacity-90'
+                            >
+                                {tHome("getStarted")}
+                            </button>
+                            {showLearnMore && (
+                                <button
+                                    type='button'
+                                    className='mx-auto animate-fade-swap text-xs sm:text-sm uppercase tracking-widest text-white/70 hover:text-white transition-colors'
+                                    onClick={() => {
+                                        window.location.href = "/about"
+                                    }}
+                                >
+                                    <span className='flex items-center gap-4'>
+                                        <span className='h-px w-10 bg-white/30' />
+                                        {tHome("learnMore")}
+                                        <span className='h-px w-10 bg-white/30' />
+                                    </span>
+                                </button>
+                            )}
+                            {error && (
+                                <p className='animate-fade-in text-xs text-red-400'>
+                                    {error}
+                                </p>
+                            )}
+                        </div>
                     </div>
-
-                    <h1 className='max-w-[18ch] font-playfair text-3xl font-bold leading-snug text-white sm:text-4xl md:text-5xl'>
-                        {tHome("hero.headline")}
-                    </h1>
-
-                    <button
-                        type='button'
-                        onClick={() => void enterReading({ resumeLatest: false })}
-                        className='mt-2 w-[300px] max-w-full rounded-full bg-gradient-to-r from-primary via-accent to-primary px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-opacity hover:opacity-90'
-                    >
-                        {tHome("openReading", {
-                            honorific: astra.honorific,
-                            name: astra.name,
-                            fullName: astra.fullName,
-                        })}
-                    </button>
-
-                    {error && (
-                        <p className='animate-fade-in text-xs text-red-400'>
-                            {error}
-                        </p>
-                    )}
-                </div>
+                )}
             </div>
 
             <div className='shrink-0'>
