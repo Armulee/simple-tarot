@@ -104,6 +104,7 @@ export default function QuestionInput({
     composerFollowUps,
     actionTrigger,
     statusStrip,
+    quickReplies,
     disclaimerText,
     showDisclaimer = true,
     error,
@@ -153,6 +154,12 @@ export default function QuestionInput({
      * follow-up suggestion strip / action trigger.
      */
     statusStrip?: React.ReactNode
+    /**
+     * Tap-answers offered by the fortune teller. They sit directly above the
+     * composer — never in place of it — and outrank the other chrome rows
+     * because they are the turn the visitor is being asked to take.
+     */
+    quickReplies?: React.ReactNode
     disclaimerText?: string
     showDisclaimer?: boolean
     error?: React.ReactNode
@@ -220,7 +227,8 @@ export default function QuestionInput({
         actionTrigger != null ||
         composerFollowUps != null ||
         composerSettings != null ||
-        statusStrip != null
+        statusStrip != null ||
+        quickReplies != null
 
     // The toggle navigates instantly:
     //  - "avatar": go to /avatar, remembering the originating chat session
@@ -667,7 +675,7 @@ export default function QuestionInput({
                     <div
                         className={`flex flex-col transition-[max-width] duration-500 ease-in-out ${inputWrapperClassName}`}
                     >
-                        {statusStrip ?? followUpRow ?? actionTrigger}
+                        {quickReplies ?? statusStrip ?? followUpRow ?? actionTrigger}
                         {composed}
                     </div>
                     {showDisclaimer && disclaimerText && (

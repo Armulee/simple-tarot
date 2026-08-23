@@ -11,7 +11,29 @@
     "name": "阿斯特拉",
     "honorific": "命理師",
     "fullName": "命理師阿斯特拉",
-    "role": "泰式占星命理師"
+    "role": "泰式占星命理師",
+    "opening": {
+      "greeting": "我是{fullName}。你不必先想好要問什麼。",
+      "greetingSecond": "我先為你開盤，然後我們一件一件說。",
+      "askBirth": "先把生日告訴我，我就能看出你現在站在哪裡。",
+      "returning": "有新的事？說吧。\n對了——上回你問的{topic}，回頭我會問你結果。",
+      "topicWork": "工作",
+      "topicPeople": "某個人",
+      "topicBoth": "兩者都是"
+    },
+    "intake": {
+      "askYear": "出生年",
+      "askMonth": "月份",
+      "askDay": "日期",
+      "askTimeKnown": "知道出生時間嗎？知道的話，我連上升宮也一起看。",
+      "timeKnownYes": "知道",
+      "timeKnownNo": "不知道",
+      "timeUnknown": "我不知道出生時間",
+      "askHour": "時",
+      "askMinute": "分",
+      "ack": "好了，稍等。",
+      "tooYoung": "我不為十三歲以下的人看命。\n長大一些再來找我。"
+    }
   },
   "Beta": {
     "notice": "我們正處於 Beta 測試階段！你可能會遇到一些小錯誤，部分功能也仍在開發中。"
@@ -441,7 +463,6 @@
       "reversedMark": "（逆位）",
       "pickedTeaser": "你選了 {name}{reversedLabel}。請在上方登入以查看你的星座運勢。"
     },
-    "getStartedPrompt": "Read my fortune for me",
     "thinkingActive": "Thinking",
     "thinkingComplete": "Consultation Complete",
     "thinkingCompleteTimed": "Deep consult for {seconds} sec",

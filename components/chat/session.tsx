@@ -153,6 +153,8 @@ import {
     type PromptRedactionType,
 } from "@/lib/privacy/prompt-redaction"
 
+import { useAstraOpening } from "@/components/chat/astra-opening"
+
 export type { ChatDecision } from "@/components/chat/types"
 
 function normalizeAspectInsights(
@@ -7689,10 +7691,29 @@ export default function ChatSession({
             (message.variant === "box" || message.variant === "horoscope") &&
             !message.isLoading,
     )
-    const shouldShowHero = !hasMessages
+
+    // The fortune teller opens the room herself. A room that waits for the
+    // visitor to think of a question is what made this feel like a chatbot.
+    const astraOpening = useAstraOpening({
+        sessionId,
+        locale,
+        messages,
+        setMessages,
+        onSendUserMessage: (text: string) => {
+            void handleSubmit(text)
+        },
+        ready: !authLoading && settingsLoaded,
+    })
+
+    const shouldShowHero = !hasMessages && !astraOpening.active
     const shouldShowPrompts =
-        showPrompt && !hasMessages && !consulting && prompts.length > 0
-    const shouldShowLearnMore = showLearnMore && !hasMessages && !consulting
+        showPrompt &&
+        !hasMessages &&
+        !consulting &&
+        !astraOpening.active &&
+        prompts.length > 0
+    const shouldShowLearnMore =
+        showLearnMore && !hasMessages && !consulting && !astraOpening.active
 
     const disclaimerText = tHome("disclaimer")
     const isInputFixed = true
@@ -8152,6 +8173,7 @@ export default function ChatSession({
                 onStop={handleStopStreaming}
                 isLoading={isChatLoading}
                 centered
+                quickReplies={astraOpening.quickReplyNode}
                 statusStrip={
                     readingImageExport ? (
                         <div className='w-full space-y-2 animate-fade-up'>
@@ -8394,6 +8416,7 @@ export default function ChatSession({
                 onEditInterpretationModeChange={setInterpretationMode}
                 isChatLoading={isChatLoading}
                 consulting={consulting}
+                astraTyping={astraOpening.typing}
                 isInterpreting={isInterpreting}
                 positionMeanings={POSITION_MEANINGS}
                 hasInterpretation={hasInterpretation}

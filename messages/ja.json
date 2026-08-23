@@ -11,7 +11,29 @@
     "name": "アストラ",
     "honorific": "占い師",
     "fullName": "占い師アストラ",
-    "role": "タイ占星術の占い師"
+    "role": "タイ占星術の占い師",
+    "opening": {
+      "greeting": "{fullName}です。質問を用意してこなくて大丈夫。",
+      "greetingSecond": "まず占ってから、ひとつずつ話しましょう。",
+      "askBirth": "まず生年月日を教えて。今どこに立っているか見えるから。",
+      "returning": "新しい話？どうぞ。\nああ、前に聞いた{topic}のこと。結果はあとで聞かせて。",
+      "topicWork": "仕事のこと",
+      "topicPeople": "人のこと",
+      "topicBoth": "どちらも"
+    },
+    "intake": {
+      "askYear": "生まれた年",
+      "askMonth": "月",
+      "askDay": "日",
+      "askTimeKnown": "生まれた時間はわかる？わかるなら上昇宮も見ます。",
+      "timeKnownYes": "わかる",
+      "timeKnownNo": "わからない",
+      "timeUnknown": "生まれた時間はわからない",
+      "askHour": "時",
+      "askMinute": "分",
+      "ack": "わかった。少し待って。",
+      "tooYoung": "十三歳未満の人は占いません。\nもう少し大きくなってから来て。"
+    }
   },
   "Beta": {
     "notice": "現在ベータ版です。不具合が発生する場合があり、一部の機能はまだ開発中です。"
@@ -441,7 +463,6 @@
       "reversedMark": "（逆位置）",
       "pickedTeaser": "{name}{reversedLabel}を選びました。あなたのホロスコープを見るには、上からサインインしてください。"
     },
-    "getStartedPrompt": "Read my fortune for me",
     "thinkingActive": "Thinking",
     "thinkingComplete": "Consultation Complete",
     "thinkingCompleteTimed": "Deep consult for {seconds} sec",

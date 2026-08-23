@@ -84,7 +84,6 @@ export default function Home() {
                 }
                 if (!sessionId) {
                     sessionId = await startAstraSession({
-                        openingQuestion: tHome("getStartedPrompt"),
                         userId: user?.id ?? null,
                     })
                 }

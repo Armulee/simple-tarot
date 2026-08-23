@@ -11,7 +11,29 @@
     "name": "Astra",
     "honorific": "Madame",
     "fullName": "Madame Astra",
-    "role": "Thai astrology reader"
+    "role": "Thai astrology reader",
+    "opening": {
+      "greeting": "I am {fullName}. You do not need to arrive with a question.",
+      "greetingSecond": "I will open your chart first, then we take it one thing at a time.",
+      "askBirth": "Tell me your birth date first, and I will see where you are standing.",
+      "returning": "Something new? Go ahead.\nAh — {topic}, the one you asked me last time. I will come back to you for the result.",
+      "topicWork": "Work",
+      "topicPeople": "Someone",
+      "topicBoth": "Both"
+    },
+    "intake": {
+      "askYear": "Birth year",
+      "askMonth": "Month",
+      "askDay": "Day",
+      "askTimeKnown": "Do you know your birth time? If you do, I can read your ascendant too.",
+      "timeKnownYes": "I know it",
+      "timeKnownNo": "I don't",
+      "timeUnknown": "I don't know my birth time",
+      "askHour": "Hour",
+      "askMinute": "Minute",
+      "ack": "Got it. One moment.",
+      "tooYoung": "I do not read for anyone under thirteen.\nCome back to me when you are older."
+    }
   },
   "Beta": {
     "notice": "We're in beta! You may encounter bugs and some features are still in development."
@@ -502,7 +524,6 @@
       "cta": "Start your astrology reading"
     },
     "getStarted": "Get Started",
-    "getStartedPrompt": "Read my fortune for me",
     "tourInstruction": "Type your question you want to ask your fate in here:",
     "tourExamples": "e.g. \"What is the message I need to hear today?\" or \"How can I find clarity in my career?\"",
     "learnMore": "Learn More",

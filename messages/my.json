@@ -11,7 +11,29 @@
     "name": "အက်စ်ထရာ",
     "honorific": "ဆရာမ",
     "fullName": "ဆရာမ အက်စ်ထရာ",
-    "role": "ထိုင်းဗေဒင်ဆရာမ"
+    "role": "ထိုင်းဗေဒင်ဆရာမ",
+    "opening": {
+      "greeting": "ကျွန်မ {fullName} ပါ။ မေးခွန်း ကြိုပြင်လာစရာ မလိုပါဘူး။",
+      "greetingSecond": "ဗေဒင်ကို အရင်ဖွင့်လိုက်မယ်၊ ပြီးမှ တစ်ခုချင်း ပြောကြမယ်။",
+      "askBirth": "မွေးနေ့ကို အရင်ပြောပါ။ ဘယ်နေရာမှာ ရပ်နေလဲ ကျွန်မ မြင်ရမယ်။",
+      "returning": "အသစ်လား၊ ပြောပါ။\nအေး — အရင်တစ်ခါ မေးခဲ့တဲ့ {topic} ကိစ္စ။ ရလဒ်ကို ပြန်မေးမယ်။",
+      "topicWork": "အလုပ်ကိစ္စ",
+      "topicPeople": "လူကိစ္စ",
+      "topicBoth": "နှစ်ခုလုံး"
+    },
+    "intake": {
+      "askYear": "မွေးသက္ကရာဇ်",
+      "askMonth": "လ",
+      "askDay": "ရက်",
+      "askTimeKnown": "မွေးချိန် သိလား။ သိရင် လဂ်နာပါ ဖတ်ပေးမယ်။",
+      "timeKnownYes": "သိတယ်",
+      "timeKnownNo": "မသိဘူး",
+      "timeUnknown": "မွေးချိန် မသိပါ",
+      "askHour": "နာရီ",
+      "askMinute": "မိနစ်",
+      "ack": "ရပြီ။ ခဏစောင့်ပါ။",
+      "tooYoung": "အသက် တစ်ဆယ့်သုံးနှစ် မပြည့်သေးသူကို ကျွန်မ မဖတ်ပေးပါ။\nကြီးလာမှ ပြန်လာခဲ့ပါ။"
+    }
   },
   "Beta": {
     "notice": "ကျွန်ုပ်တို့ဟာ စမ်းသပ်ကာလ (beta) မှာ ရှိနေပါတယ်! အမှားအယွင်းအချို့ ကြုံတွေ့နိုင်ပြီး အင်္ဂါရပ်အချို့ကိုလည်း ဖန်တီးနေဆဲ ဖြစ်ပါသည်။"
@@ -441,7 +463,6 @@
       "reversedMark": " (ပြောင်းပြန်)",
       "pickedTeaser": "သင် {name}{reversedLabel} ကို ရွေးချယ်ခဲ့သည်။ သင့်ဟောစတမ်းအတွက် အပေါ်တွင် အကောင့်ဝင်ပါ။"
     },
-    "getStartedPrompt": "Read my fortune for me",
     "thinkingActive": "Thinking",
     "thinkingComplete": "Consultation Complete",
     "thinkingCompleteTimed": "Deep consult for {seconds} sec",

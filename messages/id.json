@@ -11,7 +11,29 @@
     "name": "Astra",
     "honorific": "Nyonya",
     "fullName": "Nyonya Astra",
-    "role": "Peramal astrologi Thailand"
+    "role": "Peramal astrologi Thailand",
+    "opening": {
+      "greeting": "Aku {fullName}. Kamu tidak perlu datang dengan pertanyaan.",
+      "greetingSecond": "Aku buka dulu nasibmu, lalu kita bahas satu per satu.",
+      "askBirth": "Beri tahu tanggal lahirmu dulu, biar aku lihat kamu sedang berdiri di mana.",
+      "returning": "Ada hal baru? Katakan.\nOh — soal {topic} yang kamu tanyakan waktu itu. Nanti aku tanya hasilnya.",
+      "topicWork": "Soal kerja",
+      "topicPeople": "Soal seseorang",
+      "topicBoth": "Dua-duanya"
+    },
+    "intake": {
+      "askYear": "Tahun lahir",
+      "askMonth": "Bulan",
+      "askDay": "Tanggal",
+      "askTimeKnown": "Kamu tahu jam lahirmu? Kalau tahu, aku bisa baca ascendant-mu juga.",
+      "timeKnownYes": "Aku tahu",
+      "timeKnownNo": "Tidak tahu",
+      "timeUnknown": "Aku tidak tahu jam lahirku",
+      "askHour": "Jam",
+      "askMinute": "Menit",
+      "ack": "Sudah. Tunggu sebentar.",
+      "tooYoung": "Aku tidak membaca untuk yang belum tiga belas tahun.\nDatang lagi kalau sudah lebih besar."
+    }
   },
   "Beta": {
     "notice": "Kami masih dalam tahap beta! Kamu mungkin menemukan bug dan beberapa fitur masih dalam pengembangan."
@@ -441,7 +463,6 @@
       "reversedMark": " (terbalik)",
       "pickedTeaser": "Kamu memilih {name}{reversedLabel}. Masuk di atas untuk horoskopmu."
     },
-    "getStartedPrompt": "Read my fortune for me",
     "thinkingActive": "Thinking",
     "thinkingComplete": "Consultation Complete",
     "thinkingCompleteTimed": "Deep consult for {seconds} sec",

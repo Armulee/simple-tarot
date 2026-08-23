@@ -11,6 +11,7 @@ import { readAndVerifyDid } from "@/lib/server/did"
 type ChatSessionData = {
     id: string
     question: string
+    topic: string | null
     messages: unknown
     decision: unknown
     origin_context: unknown
@@ -37,7 +38,7 @@ async function getChatSession(id: string) {
     const { data } = await supabase
         .from("chat_sessions")
         .select(
-            "id, question, messages, decision, origin_context, owner_user_id, did, show_insufficient_stars, show_card_draw",
+            "id, question, topic, messages, decision, origin_context, owner_user_id, did, show_insufficient_stars, show_card_draw",
         )
         .eq("id", id)
         .maybeSingle()
@@ -59,9 +60,13 @@ export async function generateMetadata({
         }
     }
 
-    const question = getCleanQuestionText(data.question || "Chat Session")
+    // A room opens before anything is asked, so fall back to the thread's own
+    // name — and only then to a generic label.
+    const question = getCleanQuestionText(
+        data.question?.trim() || data.topic?.trim() || "Reading",
+    )
     const title = `"${question}" - AskingFate`
-    const description = `Discover the cosmic insights from this AI-powered chat about "${question}".`
+    const description = `Discover the cosmic insights from this chat about "${question}".`
 
     return {
         title,

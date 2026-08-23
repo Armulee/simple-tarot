@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nanoid } from "nanoid"
-import { generateText } from "ai"
 import { readAndVerifyDid } from "@/lib/server/did"
 import {
     sanitizeMessagesForPersistence,
@@ -8,8 +7,7 @@ import {
 } from "@/lib/privacy/prompt-redaction"
 import { supabaseAdmin } from "@/lib/supabase"
 import { normalizeOriginContext } from "@/lib/chat/origin-context"
-
-const MODEL = "deepseek/deepseek-v3.2"
+import { threadTitleFromQuestion } from "@/lib/chat/thread-title"
 
 function isAbortError(error: unknown) {
     return (
@@ -24,47 +22,6 @@ function throwIfAborted(signal: AbortSignal) {
         error.name = "AbortError"
         throw error
     }
-}
-
-function cleanTopic(raw: string): string {
-    return raw
-        .replace(/^["'“”‘’]+/, "")
-        .replace(/["'“”‘’]+$/, "")
-        .replace(/[.。!?！？:：;；]+$/g, "")
-        .replace(/\s+/g, " ")
-        .trim()
-}
-
-async function generateTopicFromQuestion(
-    question: string,
-    abortSignal?: AbortSignal,
-): Promise<string> {
-    const system = `You create a descriptive session topic from the user's first message.
-
-Rules:
-- Output ONLY the topic phrase. No quotes. No markdown. No punctuation at the end.
-- Length: 3–12 words (or equivalent length in non-spaced languages like Thai).
-- Be descriptive enough that the user can distinguish this session from others.
-- Match the user's language.
-- Be specific and calm (not clickbait).
-- The user message may contain privacy placeholders such as [Person], [Email], [Phone], [Handle], or [Address]. Never repeat them literally. Refer to them naturally (for example, "the person on your mind", "someone close", "their contact details").
-`
-
-    const prompt = `User's first message:
-${question}
-
-Return a clear, descriptive session topic now.`
-
-    const result = await generateText({
-        model: MODEL,
-        temperature: 0.2,
-        system,
-        prompt,
-        abortSignal,
-    })
-
-    const topic = cleanTopic(result.text ?? "")
-    return topic || cleanTopic(question)
 }
 
 export async function POST(req: NextRequest) {
@@ -107,19 +64,11 @@ export async function POST(req: NextRequest) {
             typeof body?.decision === "object" ? body.decision : null
         const originContext = normalizeOriginContext(body?.originContext)
 
-        if (!question || messages.length === 0) {
-            return NextResponse.json(
-                { error: "MISSING_FIELDS" },
-                { status: 400 },
-            )
-        }
-
-        let topic = question
-        try {
-            topic = await generateTopicFromQuestion(question, req.signal)
-        } catch {
-            topic = cleanTopic(question)
-        }
+        // An empty session is the normal case now: the room opens with the
+        // fortune teller speaking, so there is no question to record yet. It
+        // gets its title from the first thing the person asks (see the PATCH
+        // handler).
+        const topic = question ? threadTitleFromQuestion(question) : null
         throwIfAborted(req.signal)
 
         const sessionId = requestedId || nanoid(12)

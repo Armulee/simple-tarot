@@ -24,7 +24,6 @@ import {
 
 export function Navbar({ locale }: { locale: string }) {
     const t = useTranslations("Navbar")
-    const tHome = useTranslations("Home")
     const l = useTranslations("Languages")
     const [open, setOpen] = useState(false)
     const router = useRouter()
@@ -53,7 +52,6 @@ export function Navbar({ locale }: { locale: string }) {
         setStartingSession(true)
         try {
             const id = await startAstraSession({
-                openingQuestion: tHome("getStartedPrompt"),
                 userId: user?.id ?? null,
             })
             router.push(`/${id}`)

@@ -65,6 +65,76 @@ export async function GET(request: NextRequest) {
     }
 }
 
+/**
+ * Partial update of the birth details only.
+ *
+ * PUT rewrites the whole profile, which is wrong for the conversational birth
+ * intake — she asks for a birth date, not for the person's name and bio. This
+ * touches the birth columns and nothing else.
+ */
+export async function PATCH(request: NextRequest) {
+    try {
+        const authHeader = request.headers.get("authorization")
+        if (!authHeader?.startsWith("Bearer ")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+        const token = authHeader.split(" ")[1]
+        const {
+            data: { user },
+            error: authError,
+        } = await supabaseAdmin!.auth.getUser(token)
+        if (authError || !user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+
+        const body = await request.json()
+        const { birthDate, birthTime, birthPlace } = body ?? {}
+
+        if (birthDate) {
+            const age = calculateAge(String(birthDate))
+            if (age === null) {
+                return NextResponse.json(
+                    { error: "invalid_birth_date" },
+                    { status: 400 },
+                )
+            }
+            if (age < MIN_AGE_YEARS) {
+                return NextResponse.json({ error: "under_13" }, { status: 400 })
+            }
+        }
+
+        const update: Record<string, unknown> = {
+            id: user.id,
+            updated_at: new Date().toISOString(),
+        }
+        if (birthDate !== undefined) update.birth_date = birthDate || null
+        if (birthTime !== undefined) update.birth_time = birthTime || null
+        if (birthPlace !== undefined) update.birth_place = birthPlace || null
+
+        const { data: profile, error } = await supabaseAdmin!
+            .from("profiles")
+            .upsert(update, { onConflict: "id" })
+            .select()
+            .single()
+
+        if (error) {
+            console.error("Profile birth update error:", error)
+            return NextResponse.json(
+                { error: "Failed to update profile" },
+                { status: 500 },
+            )
+        }
+
+        return NextResponse.json({ profile })
+    } catch (error) {
+        console.error("Profile birth update error:", error)
+        return NextResponse.json(
+            { error: "Internal server error" },
+            { status: 500 },
+        )
+    }
+}
+
 export async function PUT(request: NextRequest) {
     try {
         const authHeader = request.headers.get("authorization")

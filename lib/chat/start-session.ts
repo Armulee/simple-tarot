@@ -5,15 +5,16 @@
  * (new thread) button — go through here so the room-opening contract lives in
  * a single file.
  *
- * NOTE (Step 2): the room currently has to be seeded with an opening user
- * message because `components/chat/session.tsx` only starts a turn when the
- * session already holds exactly one user message. Once the fortune teller
- * greets first, `openingQuestion` goes away and the session is created empty.
+ * The room is created EMPTY: the fortune teller speaks first once it loads, so
+ * there is no seeded question and nothing for the visitor to compose.
  */
 
 export type StartAstraSessionArgs = {
-    /** Seed message that opens the reading. */
-    openingQuestion: string
+    /**
+     * Optional seed message. Left unset for a normal reading; used only when a
+     * caller already has the person's question in hand.
+     */
+    openingQuestion?: string
     /** Supabase user id when signed in; anonymous sessions bind to the DID cookie. */
     userId?: string | null
     signal?: AbortSignal
@@ -30,7 +31,7 @@ export async function startAstraSession({
         headers: { "Content-Type": "application/json" },
         signal,
         body: JSON.stringify({
-            question: openingQuestion,
+            question: openingQuestion ?? "",
             user_id: userId ?? null,
         }),
     })

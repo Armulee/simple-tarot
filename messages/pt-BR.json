@@ -11,7 +11,29 @@
     "name": "Astra",
     "honorific": "Madame",
     "fullName": "Madame Astra",
-    "role": "Astróloga tailandesa"
+    "role": "Astróloga tailandesa",
+    "opening": {
+      "greeting": "Sou {fullName}. Você não precisa chegar com uma pergunta.",
+      "greetingSecond": "Primeiro eu abro o seu mapa, depois falamos um assunto de cada vez.",
+      "askBirth": "Me diga sua data de nascimento primeiro, e eu vejo onde você está.",
+      "returning": "Coisa nova? Pode falar.\nAh — {topic}, o que você me perguntou da última vez. Volto para saber o resultado.",
+      "topicWork": "Trabalho",
+      "topicPeople": "Alguém",
+      "topicBoth": "Os dois"
+    },
+    "intake": {
+      "askYear": "Ano de nascimento",
+      "askMonth": "Mês",
+      "askDay": "Dia",
+      "askTimeKnown": "Sabe a sua hora de nascimento? Se souber, leio o seu ascendente também.",
+      "timeKnownYes": "Eu sei",
+      "timeKnownNo": "Não sei",
+      "timeUnknown": "Não sei minha hora de nascimento",
+      "askHour": "Hora",
+      "askMinute": "Minuto",
+      "ack": "Pronto. Um instante.",
+      "tooYoung": "Não faço leitura para menores de treze anos.\nVolte quando for mais velho."
+    }
   },
   "Beta": {
     "notice": "Estamos em fase beta! Você pode encontrar erros e alguns recursos ainda estão em desenvolvimento."
@@ -441,7 +463,6 @@
       "reversedMark": " (invertida)",
       "pickedTeaser": "Você escolheu {name}{reversedLabel}. Entre acima para ver seu horóscopo."
     },
-    "getStartedPrompt": "Read my fortune for me",
     "thinkingActive": "Thinking",
     "thinkingComplete": "Consultation Complete",
     "thinkingCompleteTimed": "Deep consult for {seconds} sec",

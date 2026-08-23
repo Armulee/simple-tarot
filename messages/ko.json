@@ -11,7 +11,29 @@
     "name": "아스트라",
     "honorific": "점성가",
     "fullName": "점성가 아스트라",
-    "role": "태국 점성술사"
+    "role": "태국 점성술사",
+    "opening": {
+      "greeting": "저는 {fullName}이에요. 질문을 준비해 오지 않아도 돼요.",
+      "greetingSecond": "먼저 운세를 열고, 하나씩 이야기해요.",
+      "askBirth": "생년월일부터 알려줘요. 지금 어디에 서 있는지 보일 거예요.",
+      "returning": "새로운 일이에요? 말해요.\n아 — 지난번에 물었던 {topic}. 결과는 제가 다시 물을게요.",
+      "topicWork": "일 문제",
+      "topicPeople": "사람 문제",
+      "topicBoth": "둘 다"
+    },
+    "intake": {
+      "askYear": "태어난 해",
+      "askMonth": "월",
+      "askDay": "일",
+      "askTimeKnown": "태어난 시간을 알아요? 알면 상승궁까지 봐 줄게요.",
+      "timeKnownYes": "알아요",
+      "timeKnownNo": "몰라요",
+      "timeUnknown": "태어난 시간은 몰라요",
+      "askHour": "시",
+      "askMinute": "분",
+      "ack": "됐어요. 잠깐만요.",
+      "tooYoung": "열세 살 미만은 봐 주지 않아요.\n조금 더 자란 뒤에 다시 와요."
+    }
   },
   "Beta": {
     "notice": "지금은 베타 기간이에요! 일부 버그가 있을 수 있고, 몇몇 기능은 아직 개발 중이랍니다."
@@ -441,7 +463,6 @@
       "reversedMark": " (역방향)",
       "pickedTeaser": "{name}{reversedLabel}을(를) 고르셨어요. 위에서 로그인하면 운세를 볼 수 있어요."
     },
-    "getStartedPrompt": "Read my fortune for me",
     "thinkingActive": "Thinking",
     "thinkingComplete": "Consultation Complete",
     "thinkingCompleteTimed": "Deep consult for {seconds} sec",

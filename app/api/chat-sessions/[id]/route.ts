@@ -4,6 +4,7 @@ import {
     sanitizePromptForPersistence,
 } from "@/lib/privacy/prompt-redaction"
 import { normalizeOriginContext } from "@/lib/chat/origin-context"
+import { threadTitleFromQuestion } from "@/lib/chat/thread-title"
 import { supabase, supabaseAdmin } from "@/lib/supabase"
 import { readAndVerifyDid } from "@/lib/server/did"
 import {
@@ -75,6 +76,23 @@ export async function PATCH(
         }
         if (typeof body?.topic === "string") {
             update.topic = body.topic
+        }
+
+        // Rooms now open before anything is asked, so the thread gets its name
+        // from the first real question — the person's own words, not a summary.
+        if (
+            update.topic === undefined &&
+            typeof update.question === "string" &&
+            update.question.trim()
+        ) {
+            const { data: existing } = await supabaseAdmin
+                .from("chat_sessions")
+                .select("topic")
+                .eq("id", id)
+                .maybeSingle()
+            if (!existing?.topic) {
+                update.topic = threadTitleFromQuestion(update.question)
+            }
         }
         if (Array.isArray(body?.messages)) {
             update.messages = sanitizeMessagesForPersistence(body.messages)

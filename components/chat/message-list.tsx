@@ -257,6 +257,11 @@ type MessageListProps = {
     onEditInterpretationModeChange: (mode: InterpretationMode) => void
     isChatLoading: boolean
     consulting: boolean
+    /**
+     * True only while the fortune teller is composing her next bubble. It is a
+     * transient pause, never a standing "typing…" status.
+     */
+    astraTyping?: boolean
     isInterpreting: boolean
     positionMeanings: Record<string, string[]>
     hasInterpretation: boolean
@@ -373,6 +378,7 @@ export default function MessageList({
     setEditingDraft,
     isChatLoading,
     consulting,
+    astraTyping = false,
     isInterpreting,
     positionMeanings,
     hasInterpretation,
@@ -526,7 +532,7 @@ export default function MessageList({
         onComposerScrollDownChange,
     ])
 
-    if (!hasMessages) return null
+    if (!hasMessages && !astraTyping) return null
 
     return (
         <div className='flex-1 min-h-0 relative flex flex-col'>
@@ -1419,6 +1425,20 @@ export default function MessageList({
                             </div>
                         )
                     })}
+                    {astraTyping && (
+                        <div className='flex flex-col items-start gap-4 animate-fade-in'>
+                            <div className='flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3'>
+                                {[0, 150, 300].map((delayMs) => (
+                                    <span
+                                        key={delayMs}
+                                        className='h-1.5 w-1.5 rounded-full bg-white/60 animate-bounce'
+                                        style={{ animationDelay: `${delayMs}ms` }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {(consulting || isHoroscopeIntakeActive) &&
                         messages.length > 0 &&
                         !messages.some(

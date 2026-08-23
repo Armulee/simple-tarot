@@ -134,6 +134,16 @@ export type ChatMessage = {
     role: "user" | "assistant"
     text: string
     /**
+     * Set on the bubbles of the fortune teller's opening turn. Lets the room
+     * pick the tap-answers back up after a reload instead of leaving the
+     * visitor staring at a question with no way to answer it.
+     */
+    astraStage?: "ask_birth" | "cold_read"
+    /** What the opening read was computed from (proof sheet, anti-reroll seed). */
+    astraBasis?: import("@/lib/astra/opening-contract").AstraReadingBasis
+    /** Tapped answer to one of her intake questions — not a question of theirs. */
+    astraIntakeAnswer?: boolean
+    /**
      * Files/images attached to a user message. Image previews render above
      * the bubble; the serialized content (data URLs / extracted text) is
      * forwarded to the AI so it can read them.
