@@ -7,6 +7,12 @@
     "newReading": "新しい鑑定",
     "signIn": "サインイン"
   },
+  "Astra": {
+    "name": "アストラ",
+    "honorific": "占い師",
+    "fullName": "占い師アストラ",
+    "role": "タイ占星術の占い師"
+  },
   "Beta": {
     "notice": "現在ベータ版です。不具合が発生する場合があり、一部の機能はまだ開発中です。"
   },
@@ -304,6 +310,7 @@
   },
   "Home": {
     "hero": {
+      "headline": "何を聞けばいいか分からなくて大丈夫。運命は私が読みます",
       "line1": "なんでも聞いてください",
       "line2": "あなたの運命について",
       "rotatingPhrasesWhite": [
@@ -337,7 +344,10 @@
         "導き。"
       ]
     },
-    "description": "あなただけのAI占い師",
+    "openReading": "{fullName}に占ってもらう",
+    "openingReading": "{fullName}が占いを始めています…",
+    "openReadingError": "今は占いを開けませんでした。もう一度お試しください。",
+    "craftLine": "タイ占星術 · ラグナ（上昇宮） · タクサ · 年運星",
     "prompts": [
       "元恋人は戻ってくる？",
       "彼はまだ私のことを考えている？",

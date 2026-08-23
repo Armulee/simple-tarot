@@ -7,6 +7,12 @@
     "newReading": "Bacaan Baru",
     "signIn": "Masuk"
   },
+  "Astra": {
+    "name": "Astra",
+    "honorific": "Nyonya",
+    "fullName": "Nyonya Astra",
+    "role": "Peramal astrologi Thailand"
+  },
   "Beta": {
     "notice": "Kami masih dalam tahap beta! Kamu mungkin menemukan bug dan beberapa fitur masih dalam pengembangan."
   },
@@ -304,6 +310,7 @@
   },
   "Home": {
     "hero": {
+      "headline": "Aku yang membaca nasibmu — kamu tak perlu tahu harus bertanya apa",
       "line1": "Tanyakan apa saja",
       "line2": "tentang takdirmu",
       "rotatingPhrasesWhite": [
@@ -337,7 +344,10 @@
         "Bintang."
       ]
     },
-    "description": "Peramal AI yang dipersonalisasi untukmu",
+    "openReading": "Minta {fullName} membuka nasibmu",
+    "openingReading": "{fullName} sedang membuka nasibmu…",
+    "openReadingError": "Pembacaan tidak dapat dibuka sekarang. Coba lagi.",
+    "craftLine": "Astrologi Thailand · Lagna · Thaksa · Dasa bintang penguasa",
     "prompts": [
       "Apakah mantanku akan kembali?",
       "Apakah dia masih memikirkanku?",

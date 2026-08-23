@@ -7,6 +7,12 @@
     "newReading": "Nova Leitura",
     "signIn": "Entrar"
   },
+  "Astra": {
+    "name": "Astra",
+    "honorific": "Madame",
+    "fullName": "Madame Astra",
+    "role": "Astróloga tailandesa"
+  },
   "Beta": {
     "notice": "Estamos em fase beta! Você pode encontrar erros e alguns recursos ainda estão em desenvolvimento."
   },
@@ -304,6 +310,7 @@
   },
   "Home": {
     "hero": {
+      "headline": "Eu leio o seu destino — você não precisa saber o que perguntar",
       "line1": "Pergunte-me qualquer coisa",
       "line2": "sobre o seu destino",
       "rotatingPhrasesWhite": [
@@ -337,7 +344,10 @@
         "Estrelas."
       ]
     },
-    "description": "Seu cartomante de IA personalizado",
+    "openReading": "Deixe {fullName} abrir o seu mapa",
+    "openingReading": "{fullName} está abrindo o seu mapa…",
+    "openReadingError": "Não foi possível abrir sua leitura. Tente novamente.",
+    "craftLine": "Astrologia tailandesa · Lagna · Thaksa · Dasa do astro regente",
     "prompts": [
       "Meu ex vai voltar?",
       "Ele ainda pensa em mim?",

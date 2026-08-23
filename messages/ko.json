@@ -7,6 +7,12 @@
     "newReading": "새 리딩",
     "signIn": "로그인"
   },
+  "Astra": {
+    "name": "아스트라",
+    "honorific": "점성가",
+    "fullName": "점성가 아스트라",
+    "role": "태국 점성술사"
+  },
   "Beta": {
     "notice": "지금은 베타 기간이에요! 일부 버그가 있을 수 있고, 몇몇 기능은 아직 개발 중이랍니다."
   },
@@ -304,6 +310,7 @@
   },
   "Home": {
     "hero": {
+      "headline": "무엇을 물어야 할지 몰라도 괜찮아요. 운명은 제가 봐 드릴게요",
       "line1": "무엇이든 물어보세요",
       "line2": "당신의 운명에 대해",
       "rotatingPhrasesWhite": [
@@ -337,7 +344,10 @@
         "안내."
       ]
     },
-    "description": "당신만을 위한 AI 운세 상담사",
+    "openReading": "{fullName}에게 운세 열기",
+    "openingReading": "{fullName}이(가) 운세를 여는 중…",
+    "openReadingError": "지금은 운세를 열 수 없어요. 다시 시도해 주세요.",
+    "craftLine": "태국 점성술 · 라그나(상승궁) · 탁사 · 대운성",
     "prompts": [
       "헤어진 그 사람이 돌아올까요?",
       "그 사람은 아직도 저를 생각할까요?",

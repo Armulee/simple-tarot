@@ -7,6 +7,12 @@
     "newReading": "New Reading",
     "signIn": "Sign In"
   },
+  "Astra": {
+    "name": "Astra",
+    "honorific": "Madame",
+    "fullName": "Madame Astra",
+    "role": "Thai astrology reader"
+  },
   "Beta": {
     "notice": "We're in beta! You may encounter bugs and some features are still in development."
   },
@@ -442,6 +448,7 @@
   },
   "Home": {
     "hero": {
+      "headline": "I read your fate — you don't need to know what to ask",
       "line1": "Ask me anything",
       "line2": "about your destiny",
       "rotatingPhrasesWhite": [
@@ -475,7 +482,10 @@
         "Guidance."
       ]
     },
-    "description": "Your personalized AI fortune teller",
+    "openReading": "Let {fullName} open your chart",
+    "openingReading": "{fullName} is opening your chart…",
+    "openReadingError": "Your reading couldn't be opened. Please try again.",
+    "craftLine": "Thai astrology · Lagna · Thaksa · ruling-star Dasa",
     "prompts": [
       "Will my ex come back?",
       "Does he still think about me?",

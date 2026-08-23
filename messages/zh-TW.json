@@ -7,6 +7,12 @@
     "newReading": "開始新占卜",
     "signIn": "登入"
   },
+  "Astra": {
+    "name": "阿斯特拉",
+    "honorific": "命理師",
+    "fullName": "命理師阿斯特拉",
+    "role": "泰式占星命理師"
+  },
   "Beta": {
     "notice": "我們正處於 Beta 測試階段！你可能會遇到一些小錯誤，部分功能也仍在開發中。"
   },
@@ -304,6 +310,7 @@
   },
   "Home": {
     "hero": {
+      "headline": "我為你看命，你不必想好要問什麼",
       "line1": "問我任何事",
       "line2": "關於你的命運",
       "rotatingPhrasesWhite": [
@@ -337,7 +344,10 @@
         "指引。"
       ]
     },
-    "description": "你專屬的 AI 占卜師",
+    "openReading": "請{fullName}為你開盤",
+    "openingReading": "{fullName}正在為你開盤…",
+    "openReadingError": "現在無法開啟占卜，請再試一次。",
+    "craftLine": "泰式占星 · 上升宮（Lagna） · 八曜（Thaksa） · 值年星",
     "prompts": [
       "我的前任會回來嗎？",
       "他還會想起我嗎？",

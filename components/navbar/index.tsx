@@ -7,12 +7,13 @@ import { usePathname, useRouter } from "@/i18n/navigation"
 import { routing } from "@/i18n/routing"
 import { Button } from "@/components/ui/button"
 import { useEffect, useMemo, useState } from "react"
-import { Menu, LogIn, Check, Plus } from "lucide-react"
+import { Menu, LogIn, Check, Plus, Loader2 } from "lucide-react"
 import { SidebarSheet } from "./sidebar-sheet"
 import { StarPill } from "./star-pill"
 import { UserProfile } from "@/components/user-profile"
 // Avatar imports removed (unused)
 import { useAuth } from "@/hooks/use-auth"
+import { startAstraSession } from "@/lib/chat/start-session"
 import { supabase } from "@/lib/supabase"
 import {
     DropdownMenu,
@@ -23,6 +24,7 @@ import {
 
 export function Navbar({ locale }: { locale: string }) {
     const t = useTranslations("Navbar")
+    const tHome = useTranslations("Home")
     const l = useTranslations("Languages")
     const [open, setOpen] = useState(false)
     const router = useRouter()
@@ -41,6 +43,24 @@ export function Navbar({ locale }: { locale: string }) {
     // The avatar page shows a full-bleed character behind the navbar, so the
     // bar is transparent there (no card background / border / blur).
     const isAvatarPage = pathname === "/avatar" || pathname.startsWith("/avatar/")
+
+    // "+" opens a brand-new thread directly. It used to link back to "/", but
+    // the landing page now redirects returning visitors straight into their
+    // latest thread — which would have made the button a no-op.
+    const [startingSession, setStartingSession] = useState(false)
+    const startNewReading = async () => {
+        if (startingSession) return
+        setStartingSession(true)
+        try {
+            const id = await startAstraSession({
+                openingQuestion: tHome("getStartedPrompt"),
+                userId: user?.id ?? null,
+            })
+            router.push(`/${id}`)
+        } catch {
+            setStartingSession(false)
+        }
+    }
 
     const [sessionTopic, setSessionTopic] = useState<string>("")
     const [isEditingTopic, setIsEditingTopic] = useState(false)
@@ -253,18 +273,23 @@ export function Navbar({ locale }: { locale: string }) {
                         </div>
 
                         {isChatSessionPage && (
-                            <Link href='/' aria-label='New reading'>
-                                <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='text-white hover:bg-white/10 border border-white/10 bg-white/5'
-                                >
+                            <Button
+                                variant='ghost'
+                                size='sm'
+                                aria-label={t("newReading")}
+                                disabled={startingSession}
+                                onClick={startNewReading}
+                                className='text-white hover:bg-white/10 border border-white/10 bg-white/5'
+                            >
+                                {startingSession ? (
+                                    <Loader2 className='h-4 w-4 animate-spin sm:mr-2 mr-0' />
+                                ) : (
                                     <Plus className='h-4 w-4 sm:mr-2 mr-0' />
-                                    <span className='hidden sm:inline'>
-                                        {t("newReading")}
-                                    </span>
-                                </Button>
-                            </Link>
+                                )}
+                                <span className='hidden sm:inline'>
+                                    {t("newReading")}
+                                </span>
+                            </Button>
                         )}
 
                         {/* Language Dropdown */}
