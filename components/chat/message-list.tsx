@@ -563,10 +563,18 @@ export default function MessageList({
                 ref={scrollRootRef}
                 className='min-h-0 flex-1 overflow-y-auto px-4 pt-6'
             >
-                <div className='mx-auto max-w-3xl space-y-2.5 text-left'>
+                <div className='mx-auto flex max-w-3xl flex-col gap-1.5 text-left'>
                     {messages.map((message, messageIndex) => {
                         const displayText = getDisplayText(message)
                         const displayQuestion = getDisplayQuestion(message)
+                        // A run is consecutive bubbles from one speaker. Only
+                        // the last of a run carries the pointed corner, and
+                        // only a run gets breathing room after it — so three
+                        // quick bubbles from her read as one breath.
+                        const nextMessage = messages[messageIndex + 1]
+                        const isRunEnd =
+                            !nextMessage || nextMessage.role !== message.role
+                        const runEndSpacing = isRunEnd ? "mb-3" : ""
 
                         // --- User message: user's question with edit/regenerate actions ---
                         if (message.role === "user") {
@@ -624,7 +632,7 @@ export default function MessageList({
                                 <div
                                     key={message.id}
                                     id={`msg-${message.id}`}
-                                    className='flex flex-col items-end gap-2'
+                                    className={`flex flex-col items-end gap-1.5 ${runEndSpacing}`}
                                 >
                                     {message.originContextSnapshot?.kind ===
                                         "calendar-day" ||
@@ -709,7 +717,11 @@ export default function MessageList({
                                         items={userMenuItems}
                                         disabled={isEditing}
                                     >
-                                    <div className='max-w-[82%] rounded-[18px] rounded-br-md bg-[#6C5CE7] px-4 py-3 text-white shadow-[0_6px_18px_-12px_rgba(108,92,231,0.85)]'>
+                                    <div
+                                        className={`max-w-[82%] rounded-[18px] bg-[#6C5CE7] px-4 py-3 text-white shadow-[0_6px_18px_-12px_rgba(108,92,231,0.85)] ${
+                                            isRunEnd ? "rounded-br-md" : ""
+                                        }`}
+                                    >
                                         {isEditing ? (
                                             <CharacterMentionProvider
                                                 value={editingDraft}
@@ -998,7 +1010,7 @@ export default function MessageList({
                                           }
                                         : undefined
                                 }
-                                className='flex flex-col items-start gap-4'
+                                className={`flex flex-col items-start gap-4 ${runEndSpacing}`}
                             >
                                 {message.horoscopeForOtherPerson && (
                                     <div className='w-full md:max-w-[85%]'>
@@ -1339,7 +1351,13 @@ export default function MessageList({
                                                 <MessageContextMenu
                                                     items={assistantMenuItems}
                                                 >
-                                                    <div className='w-fit max-w-full rounded-[18px] rounded-bl-md border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 text-white/90 leading-relaxed whitespace-pre-wrap shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
+                                                    <div
+                                                        className={`w-fit max-w-full animate-fade-in rounded-[18px] border border-indigo-300/25 bg-indigo-400/[0.10] px-4 py-3 leading-relaxed whitespace-pre-wrap text-white/90 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)] ${
+                                                            isRunEnd
+                                                                ? "rounded-bl-md"
+                                                                : ""
+                                                        }`}
+                                                    >
                                                         <PrivacyHighlightedText
                                                             text={
                                                                 message.text ||
