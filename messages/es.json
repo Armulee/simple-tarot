@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "Contexto adjunto: {label}"
+    },
+    "messageMenu": {
+      "copy": "Copiar texto",
+      "regenerate": "Preguntar de nuevo",
+      "edit": "Editar",
+      "like": "Me gusta",
+      "dislike": "No me gusta",
+      "report": "Reportar",
+      "share": "Compartir"
     }
   },
   "StarConsent": {

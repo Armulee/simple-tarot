@@ -54,6 +54,10 @@ import type { HoroscopeBirthData } from "@/types/horoscope"
 import { PLANET_IMAGE_KEYS } from "@/lib/astrology/planet-images"
 import type { ChatMessage, SourceAspectEvent } from "./types"
 import { LoadingDotsText } from "./loading-dots-text"
+import {
+    MessageContextMenu,
+    type MessageMenuItem,
+} from "@/components/chat/message-context-menu"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import {
@@ -424,9 +428,28 @@ export default function MessageList({
     onComposerScrollDownChange,
 }: MessageListProps) {
     const t = useTranslations("Home")
+    const tMenu = useTranslations("Chat.messageMenu")
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
     const tSynastry = useTranslations("Synastry")
+    /** Shared by the copy action on both sides of the conversation. */
+    const copyMessageText = useCallback(
+        async (text: string) => {
+            if (!text) return
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text)
+                    toast.success(t("copyPromptSuccess"))
+                } else {
+                    toast.error(t("copyPromptUnavailable"))
+                }
+            } catch {
+                toast.error(t("copyPromptFailed"))
+            }
+        },
+        [t],
+    )
+
     const consultingBase = t("consulting")
     const thinkingLabels = useMemo(
         () => ({
@@ -548,6 +571,38 @@ export default function MessageList({
                         // --- User message: user's question with edit/regenerate actions ---
                         if (message.role === "user") {
                             const isEditing = editingMessageId === message.id
+                            const userMenuItems: MessageMenuItem[] = [
+                                {
+                                    id: "copy",
+                                    label: tMenu("copy"),
+                                    icon: Copy,
+                                    disabled:
+                                        consulting ||
+                                        isInterpreting ||
+                                        !displayText?.trim(),
+                                    onSelect: () => {
+                                        void copyMessageText(
+                                            displayText?.trim() ?? "",
+                                        )
+                                    },
+                                },
+                                {
+                                    id: "regenerate",
+                                    label: tMenu("regenerate"),
+                                    icon: RotateCw,
+                                    disabled: consulting || isInterpreting,
+                                    onSelect: () =>
+                                        onRegenerateAt(messageIndex),
+                                },
+                                {
+                                    id: "edit",
+                                    label: tMenu("edit"),
+                                    icon: Pencil,
+                                    disabled: consulting || isInterpreting,
+                                    onSelect: () =>
+                                        onStartEditAt(messageIndex),
+                                },
+                            ]
 
                             if (message.isSanitizing && !isEditing) {
                                 return (
@@ -650,6 +705,10 @@ export default function MessageList({
                                     {(isEditing ||
                                         (typeof displayText === "string" &&
                                             displayText.trim() !== "")) && (
+                                    <MessageContextMenu
+                                        items={userMenuItems}
+                                        disabled={isEditing}
+                                    >
                                     <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                         {isEditing ? (
                                             <CharacterMentionProvider
@@ -846,91 +905,86 @@ export default function MessageList({
                                             />
                                         )}
                                     </div>
+                                    </MessageContextMenu>
                                     )}
                                     {message.privacyRedacted ? (
                                         <PrivacyRedactedNoticeHover />
                                     ) : null}
-                                    <div className='flex items-center gap-2 text-[11px] text-white/60'>
-                                        <button
-                                            type='button'
-                                            className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40'
-                                            onClick={async () => {
-                                                const text =
-                                                    displayText?.trim() ?? ""
-                                                if (!text) return
-                                                try {
-                                                    if (
-                                                        navigator.clipboard &&
-                                                        window.isSecureContext
-                                                    ) {
-                                                        await navigator.clipboard.writeText(
-                                                            text,
-                                                        )
-                                                        toast.success(
-                                                            t(
-                                                                "copyPromptSuccess",
-                                                            ),
-                                                        )
-                                                    } else {
-                                                        toast.error(
-                                                            t(
-                                                                "copyPromptUnavailable",
-                                                            ),
-                                                        )
-                                                    }
-                                                } catch {
-                                                    toast.error(
-                                                        t("copyPromptFailed"),
-                                                    )
-                                                }
-                                            }}
-                                            disabled={
-                                                consulting ||
-                                                isInterpreting ||
-                                                isEditing ||
-                                                !displayText?.trim()
-                                            }
-                                            aria-label={t("copyPrompt")}
-                                            title={t("copyPrompt")}
-                                        >
-                                            <Copy className='w-3 h-3' />
-                                        </button>
-                                        <button
-                                            type='button'
-                                            className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors disabled:opacity-40'
-                                            onClick={() =>
-                                                onRegenerateAt(messageIndex)
-                                            }
-                                            disabled={
-                                                consulting ||
-                                                isInterpreting ||
-                                                isEditing
-                                            }
-                                            aria-label='Regenerate'
-                                            title='Regenerate'
-                                        >
-                                            <RotateCw className='w-3 h-3' />
-                                        </button>
-                                        <button
-                                            type='button'
-                                            className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors'
-                                            onClick={() =>
-                                                onStartEditAt(messageIndex)
-                                            }
-                                            disabled={
-                                                consulting || isInterpreting
-                                            }
-                                            aria-label='Edit'
-                                            title='Edit'
-                                        >
-                                            <Pencil className='w-3 h-3' />
-                                        </button>
-                                    </div>
                                 </div>
                             )
                         }
 
                         // --- Assistant message: cards, interpretation, actions ---
+                        // Her replies carry the same actions the icon row used
+                        // to hold; they now live behind a long press.
+                        const assistantActionsAvailable =
+                            !isChatLoading &&
+                            message.variant === "plain" &&
+                            !hasInterpretation &&
+                            !message.horoscopeAuthGate
+                        const assistantMenuItems: MessageMenuItem[] =
+                            assistantActionsAvailable
+                                ? [
+                                      {
+                                          id: "copy",
+                                          label: tMenu("copy"),
+                                          icon: Copy,
+                                          disabled: !message.text?.trim(),
+                                          onSelect: () => {
+                                              void copyMessageText(
+                                                  unmask(message.text).trim(),
+                                              )
+                                          },
+                                      },
+                                      {
+                                          id: "like",
+                                          label: tMenu("like"),
+                                          icon: ThumbsUp,
+                                          active:
+                                              assistantReactions[message.id] ===
+                                              "like",
+                                          onSelect: () =>
+                                              onToggleReaction(
+                                                  message.id,
+                                                  "like",
+                                              ),
+                                      },
+                                      {
+                                          id: "dislike",
+                                          label: tMenu("dislike"),
+                                          icon: ThumbsDown,
+                                          active:
+                                              assistantReactions[message.id] ===
+                                              "dislike",
+                                          onSelect: () =>
+                                              onToggleReaction(
+                                                  message.id,
+                                                  "dislike",
+                                              ),
+                                      },
+                                      {
+                                          id: "report",
+                                          label: tMenu("report"),
+                                          icon: Flag,
+                                          onSelect: () =>
+                                              onReport(
+                                                  message.id,
+                                                  unmask(message.text),
+                                              ),
+                                      },
+                                      {
+                                          id: "share",
+                                          label: tMenu("share"),
+                                          icon: Share2,
+                                          onSelect: () =>
+                                              onShare(
+                                                  message.id,
+                                                  unmask(message.text),
+                                              ),
+                                      },
+                                  ]
+                                : []
+
                         return (
                             <div
                                 key={message.id}
@@ -1266,7 +1320,7 @@ export default function MessageList({
                                                 />
                                             </div>
                                         )}
-                                        <div className='w-full md:max-w-[85%] text-white/90 leading-relaxed whitespace-pre-wrap space-y-3'>
+                                        <div className='w-full md:max-w-[85%] space-y-3'>
                                             {(message.isLoading ||
                                                 message.reasoningText) && (
                                                 <DynamicThinking
@@ -1282,11 +1336,22 @@ export default function MessageList({
                                                 />
                                             )}
                                             {message.text?.trim() ? (
-                                                <PrivacyHighlightedText
-                                                    text={message.text || ""}
-                                                    aliases={privacyAliases}
-                                                    supportMarkdown
-                                                />
+                                                <MessageContextMenu
+                                                    items={assistantMenuItems}
+                                                >
+                                                    <div className='w-fit max-w-full rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 text-white/90 leading-relaxed whitespace-pre-wrap shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
+                                                        <PrivacyHighlightedText
+                                                            text={
+                                                                message.text ||
+                                                                ""
+                                                            }
+                                                            aliases={
+                                                                privacyAliases
+                                                            }
+                                                            supportMarkdown
+                                                        />
+                                                    </div>
+                                                </MessageContextMenu>
                                             ) : null}
                                         </div>
                                         {!message.isLoading &&
@@ -1333,101 +1398,19 @@ export default function MessageList({
                                             {t("streamStopped")}
                                         </div>
                                     )}
-                                {/* Assistant actions: like/dislike/report/share (plain only) */}
-                                {message.role === "assistant" && (
-                                        <div className='flex items-center gap-2 text-[11px] text-white/60'>
-                                            {!isChatLoading &&
-                                                message.variant === "plain" &&
-                                                !hasInterpretation &&
-                                                !message.horoscopeAuthGate && (
-                                                    <>
-                                                        <button
-                                                            type='button'
-                                                            className={`flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors ${
-                                                                assistantReactions[
-                                                                    message.id
-                                                                ] === "like"
-                                                                    ? "text-white"
-                                                                    : ""
-                                                            }`}
-                                                            onClick={() =>
-                                                                onToggleReaction(
-                                                                    message.id,
-                                                                    "like",
-                                                                )
-                                                            }
-                                                            aria-label='Like'
-                                                            title='Like'
-                                                        >
-                                                            <ThumbsUp className='w-3 h-3' />
-                                                        </button>
-                                                        <button
-                                                            type='button'
-                                                            className={`flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors ${
-                                                                assistantReactions[
-                                                                    message.id
-                                                                ] === "dislike"
-                                                                    ? "text-white"
-                                                                    : ""
-                                                            }`}
-                                                            onClick={() =>
-                                                                onToggleReaction(
-                                                                    message.id,
-                                                                    "dislike",
-                                                                )
-                                                            }
-                                                            aria-label='Dislike'
-                                                            title='Dislike'
-                                                        >
-                                                            <ThumbsDown className='w-3 h-3' />
-                                                        </button>
-                                                        <button
-                                                            type='button'
-                                                            className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors'
-                                                            onClick={() =>
-                                                                onReport(
-                                                                    message.id,
-                                                                    unmask(
-                                                                        message.text,
-                                                                    ),
-                                                                )
-                                                            }
-                                                            aria-label='Report'
-                                                            title='Report'
-                                                        >
-                                                            <Flag className='w-3 h-3' />
-                                                        </button>
-                                                        <button
-                                                            type='button'
-                                                            className='flex items-center justify-center h-6 w-6 rounded-full hover:text-white hover:bg-white/10 transition-colors'
-                                                            onClick={() =>
-                                                                onShare(
-                                                                    message.id,
-                                                                    unmask(
-                                                                        message.text,
-                                                                    ),
-                                                                )
-                                                            }
-                                                            aria-label='Share'
-                                                            title='Share'
-                                                        >
-                                                            <Share2 className='w-3 h-3' />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            {messageNotices[message.id] && (
-                                                <span className='text-white/40'>
-                                                    {messageNotices[message.id]}
-                                                </span>
-                                            )}
-                                        </div>
+                                {/* Per-message actions moved to a long press on the bubble. */}
+                                {message.role === "assistant" &&
+                                    messageNotices[message.id] && (
+                                        <span className='text-[11px] text-white/40'>
+                                            {messageNotices[message.id]}
+                                        </span>
                                     )}
                             </div>
                         )
                     })}
                     {astraTyping && (
                         <div className='flex flex-col items-start gap-4 animate-fade-in'>
-                            <div className='flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3'>
+                            <div className='flex items-center gap-1.5 rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
                                 {[0, 150, 300].map((delayMs) => (
                                     <span
                                         key={delayMs}

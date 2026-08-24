@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "ບໍລິບົດທີ່ແນບ: {label}"
+    },
+    "messageMenu": {
+      "copy": "ສຳເນົາຂໍ້ຄວາມ",
+      "regenerate": "ຖາມໃໝ່",
+      "edit": "ແກ້ໄຂ",
+      "like": "ມັກ",
+      "dislike": "ບໍ່ມັກ",
+      "report": "ລາຍງານ",
+      "share": "ແບ່ງປັນ"
     }
   },
   "StarConsent": {

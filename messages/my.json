@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "နောက်ခံအချက်အလက် ပူးတွဲထားသည်- {label}"
+    },
+    "messageMenu": {
+      "copy": "စာသား ကူးယူ",
+      "regenerate": "ထပ်မေး",
+      "edit": "ပြင်ဆင်",
+      "like": "ကြိုက်",
+      "dislike": "မကြိုက်",
+      "report": "တိုင်ကြား",
+      "share": "မျှဝေ"
     }
   },
   "StarConsent": {

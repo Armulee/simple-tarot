@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "已附加情境：{label}"
+    },
+    "messageMenu": {
+      "copy": "复制文字",
+      "regenerate": "重新提问",
+      "edit": "编辑",
+      "like": "喜欢",
+      "dislike": "不喜欢",
+      "report": "举报",
+      "share": "分享"
     }
   },
   "StarConsent": {

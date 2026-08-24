@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "Konteks terlampir: {label}"
+    },
+    "messageMenu": {
+      "copy": "Salin teks",
+      "regenerate": "Tanya lagi",
+      "edit": "Ubah",
+      "like": "Suka",
+      "dislike": "Tidak suka",
+      "report": "Laporkan",
+      "share": "Bagikan"
     }
   },
   "StarConsent": {

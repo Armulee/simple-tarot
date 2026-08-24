@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "コンテキストが添付されました：{label}"
+    },
+    "messageMenu": {
+      "copy": "テキストをコピー",
+      "regenerate": "聞き直す",
+      "edit": "編集",
+      "like": "よい",
+      "dislike": "よくない",
+      "report": "報告",
+      "share": "共有"
     }
   },
   "StarConsent": {

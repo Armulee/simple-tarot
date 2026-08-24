@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "Context attached: {label}"
+    },
+    "messageMenu": {
+      "copy": "Copy text",
+      "regenerate": "Ask again",
+      "edit": "Edit",
+      "like": "Like",
+      "dislike": "Dislike",
+      "report": "Report",
+      "share": "Share"
     }
   },
   "StarConsent": {

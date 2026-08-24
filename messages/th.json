@@ -47,6 +47,15 @@
   "Chat": {
     "originContext": {
       "attached": "แนบบริบท: {label}"
+    },
+    "messageMenu": {
+      "copy": "คัดลอกข้อความ",
+      "regenerate": "ถามใหม่",
+      "edit": "แก้ไข",
+      "like": "ชอบ",
+      "dislike": "ไม่ชอบ",
+      "report": "รายงาน",
+      "share": "แชร์"
     }
   },
   "StarConsent": {
