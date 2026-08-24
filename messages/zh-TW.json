@@ -22,15 +22,16 @@
       "topicBoth": "兩者都是"
     },
     "intake": {
-      "askYear": "出生年",
-      "askMonth": "月份",
-      "askDay": "日期",
+      "pickDate": "選擇出生日期",
       "askTimeKnown": "知道出生時間嗎？知道的話，我連上升宮也一起看。",
-      "timeKnownYes": "知道",
+      "pickTime": "選擇出生時間",
       "timeKnownNo": "不知道",
       "timeUnknown": "我不知道出生時間",
-      "askHour": "時",
-      "askMinute": "分",
+      "hour": "時",
+      "minute": "分",
+      "confirm": "確定",
+      "notUnderstoodDate": "我沒看出是哪一天。\n用上面的按鈕，或按 1999/5/12 這樣輸入。",
+      "notUnderstoodTime": "我沒看出是幾點。\n用上面的按鈕，或按 07:20 這樣輸入。",
       "ack": "好了，稍等。",
       "tooYoung": "我不為十三歲以下的人看命。\n長大一些再來找我。"
     }

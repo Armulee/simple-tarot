@@ -22,15 +22,16 @@
       "topicBoth": "Dua-duanya"
     },
     "intake": {
-      "askYear": "Tahun lahir",
-      "askMonth": "Bulan",
-      "askDay": "Tanggal",
+      "pickDate": "Pilih tanggal lahir",
       "askTimeKnown": "Kamu tahu jam lahirmu? Kalau tahu, aku bisa baca ascendant-mu juga.",
-      "timeKnownYes": "Aku tahu",
+      "pickTime": "Pilih jam lahir",
       "timeKnownNo": "Tidak tahu",
       "timeUnknown": "Aku tidak tahu jam lahirku",
-      "askHour": "Jam",
-      "askMinute": "Menit",
+      "hour": "Jam",
+      "minute": "Menit",
+      "confirm": "Selesai",
+      "notUnderstoodDate": "Aku belum menangkap tanggalnya.\nPakai tombol di atas, atau ketik seperti 12/5/1999.",
+      "notUnderstoodTime": "Aku belum menangkap jamnya.\nPakai tombol di atas, atau ketik seperti 07:20.",
       "ack": "Sudah. Tunggu sebentar.",
       "tooYoung": "Aku tidak membaca untuk yang belum tiga belas tahun.\nDatang lagi kalau sudah lebih besar."
     }

@@ -3,9 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { followUpChipClass } from "@/components/question-input"
+import {
+    BirthDatePickerButton,
+    BirthTimePickerButton,
+} from "@/components/chat/astra-birth-picker"
 import { useAstraIdentity } from "@/lib/astra/use-astra-identity"
 import { threadTitleFromQuestion } from "@/lib/chat/thread-title"
 import { ageInYears } from "@/lib/astra/thai-astrology"
+import {
+    parseBirthDate,
+    parseBirthTime,
+    saysUnknown,
+    type ParsedBirthDate,
+    type ParsedBirthTime,
+} from "@/lib/astra/parse-birth-input"
 import { saveBirthToStorage } from "@/lib/birth-storage"
 import { supabase } from "@/lib/supabase"
 import type {
@@ -19,31 +30,15 @@ import type { ChatMessage } from "@/components/chat/types"
  * The opening turn, played out in the chat.
  *
  * She speaks first and keeps speaking in short bubbles, with a pause before
- * each one. When she needs the birth date she asks for it in conversation and
- * the answers are tapped, not typed — the chips sit ABOVE the composer, which
- * stays usable the whole time.
+ * each one. She asks for the birth date in conversation: a date picker and
+ * then a time picker, both as buttons in the strip ABOVE the composer — and
+ * the composer stays open, so the same answers can simply be typed.
  *
  * Everything she says here is server-composed (`/api/astra/opening`) from
- * hand-written lines; this file only decides the pacing and collects taps.
+ * hand-written lines; this file only decides the pacing and collects answers.
  */
 
-type IntakeStep =
-    | "decade"
-    | "year"
-    | "month"
-    | "day"
-    | "time-known"
-    | "hour"
-    | "minute"
-
-type IntakeState = {
-    step: IntakeStep
-    decade?: number
-    year?: number
-    month?: number
-    day?: number
-    hour?: number
-}
+type IntakeStep = "date" | "time"
 
 export type UseAstraOpeningArgs = {
     sessionId: string | null
@@ -56,8 +51,6 @@ export type UseAstraOpeningArgs = {
     ready: boolean
 }
 
-const CURRENT_YEAR = new Date().getFullYear()
-const OLDEST_DECADE = 1930
 /** The product is not read for children; the age gate applies here too. */
 const MIN_AGE_YEARS = 13
 
@@ -76,13 +69,18 @@ export function useAstraOpening({
     const t = useTranslations("Astra")
     const identity = useAstraIdentity()
     const [typing, setTyping] = useState(false)
-    const [stage, setStage] = useState<"idle" | "ask_birth" | "cold_read" | "done">(
-        "idle",
-    )
-    const [intake, setIntake] = useState<IntakeState | null>(null)
+    const [stage, setStage] = useState<
+        "idle" | "ask_birth" | "cold_read" | "done"
+    >("idle")
+    const [intakeStep, setIntakeStep] = useState<IntakeStep | null>(null)
+    // The step is live the moment she moves on, so a fast typer's answer is
+    // never handed to the reading flow; the button only appears once the
+    // question it answers is actually on screen.
+    const [pickerVisible, setPickerVisible] = useState(false)
     const [quickReplies, setQuickReplies] = useState<AstraQuickReply[]>([])
     const startedRef = useRef(false)
     const basisRef = useRef<AstraReadingBasis | null>(null)
+    const pendingDateRef = useRef<ParsedBirthDate | null>(null)
 
     const hasAssistantMessage = messages.some((m) => m.role === "assistant")
 
@@ -138,10 +136,12 @@ export function useAstraOpening({
             basisRef.current = payload.basis
             setStage(payload.stage)
             if (payload.stage === "ask_birth") {
-                setIntake({ step: "decade" })
+                setIntakeStep("date")
+                setPickerVisible(true)
                 setQuickReplies([])
             } else {
-                setIntake(null)
+                setIntakeStep(null)
+                setPickerVisible(false)
                 setQuickReplies(payload.quickReplies)
             }
         },
@@ -180,8 +180,8 @@ export function useAstraOpening({
         sessionId,
     ])
 
-    // Reload mid-intake: the bubbles are already persisted, so pick the chips
-    // back up from the stage stamped on her last message.
+    // Reload mid-intake: the bubbles are already persisted, so pick the
+    // pickers back up from the stage stamped on her last message.
     useEffect(() => {
         if (startedRef.current || !ready) return
         if (!hasAssistantMessage) return
@@ -193,11 +193,15 @@ export function useAstraOpening({
         const answeredSince = messages
             .slice(lastStageIndex + 1)
             .some((m) => m.role === "user")
-        // Partial taps are not persisted, so an interrupted intake restarts at
-        // the date — she asks once more rather than leaving dead chips.
-        if (messages[lastStageIndex].astraStage === "ask_birth" && !answeredSince) {
+        // A half-finished intake is not persisted, so it restarts at the date —
+        // she asks once more rather than leaving a dead button.
+        if (
+            messages[lastStageIndex].astraStage === "ask_birth" &&
+            !answeredSince
+        ) {
             setStage("ask_birth")
-            setIntake({ step: "decade" })
+            setIntakeStep("date")
+            setPickerVisible(true)
         }
     }, [hasAssistantMessage, messages, ready])
 
@@ -233,16 +237,8 @@ export function useAstraOpening({
         }).catch(() => {})
     }, [messages, sessionId])
 
-    const formatYear = useCallback(
-        (year: number) =>
-            new Intl.DateTimeFormat(locale, { year: "numeric" }).format(
-                new Date(Date.UTC(year, 0, 1)),
-            ),
-        [locale],
-    )
-
     const formatBirthDate = useCallback(
-        (year: number, month: number, day: number) =>
+        ({ year, month, day }: ParsedBirthDate) =>
             new Intl.DateTimeFormat(locale, {
                 year: "numeric",
                 month: "long",
@@ -250,13 +246,6 @@ export function useAstraOpening({
             }).format(new Date(Date.UTC(year, month - 1, day))),
         [locale],
     )
-
-    const monthNames = useMemo(() => {
-        const format = new Intl.DateTimeFormat(locale, { month: "short" })
-        return Array.from({ length: 12 }, (_, index) =>
-            format.format(new Date(Date.UTC(2024, index, 1))),
-        )
-    }, [locale])
 
     /**
      * Writes the birth details everywhere they are read from, so no other part
@@ -286,7 +275,12 @@ export function useAstraOpening({
                 year: birth.year,
                 hour,
                 minute: birth.timeKnown ? birth.minute : null,
-                timeHint: hour == null ? "unknown" : hour >= 6 && hour < 18 ? "day" : "night",
+                timeHint:
+                    hour == null
+                        ? "unknown"
+                        : hour >= 6 && hour < 18
+                          ? "day"
+                          : "night",
                 timezone,
                 lat: null,
                 lng: null,
@@ -318,14 +312,13 @@ export function useAstraOpening({
     )
 
     const finishIntake = useCallback(
-        async (state: Required<Pick<IntakeState, "year" | "month" | "day">> & {
-            hour: number | null
-            minute: number | null
-            timeKnown: boolean
-        }) => {
-            setIntake(null)
+        async (time: ParsedBirthTime | null) => {
+            const date = pendingDateRef.current
+            if (!date) return
+            setIntakeStep(null)
+            setPickerVisible(false)
 
-            if (ageInYears(state) < MIN_AGE_YEARS) {
+            if (ageInYears(date) < MIN_AGE_YEARS) {
                 appendAssistantBubble(
                     `astra-too-young-${Date.now()}`,
                     t("intake.tooYoung"),
@@ -336,7 +329,12 @@ export function useAstraOpening({
 
             setTyping(true)
             try {
-                await saveBirth(state)
+                await saveBirth({
+                    ...date,
+                    hour: time?.hour ?? null,
+                    minute: time?.minute ?? null,
+                    timeKnown: time != null,
+                })
                 appendAssistantBubble(
                     `astra-ack-${Date.now()}`,
                     t("intake.ack"),
@@ -352,174 +350,99 @@ export function useAstraOpening({
         [appendAssistantBubble, fetchOpening, playPayload, saveBirth, t],
     )
 
-    /** One tap on one chip; advances the conversation by exactly one answer. */
-    const handleIntakeChoice = useCallback(
-        (value: number | "known" | "unknown") => {
-            setIntake((current) => {
-                if (!current) return current
-                switch (current.step) {
-                    case "decade":
-                        return { ...current, decade: value as number, step: "year" }
-                    case "year":
-                        return { ...current, year: value as number, step: "month" }
-                    case "month":
-                        return { ...current, month: value as number, step: "day" }
-                    case "day": {
-                        const day = value as number
-                        const { year, month } = current
-                        if (year == null || month == null) return current
-                        appendUserBubble(formatBirthDate(year, month, day))
-                        void (async () => {
-                            setTyping(true)
-                            await delay(700)
-                            setTyping(false)
-                            appendAssistantBubble(
-                                `astra-ask-time-${Date.now()}`,
-                                t("intake.askTimeKnown"),
-                                { astraStage: "ask_birth" },
-                            )
-                        })()
-                        return { ...current, day, step: "time-known" }
-                    }
-                    case "time-known": {
-                        if (value === "unknown") {
-                            appendUserBubble(t("intake.timeUnknown"))
-                            void finishIntake({
-                                year: current.year!,
-                                month: current.month!,
-                                day: current.day!,
-                                hour: null,
-                                minute: null,
-                                timeKnown: false,
-                            })
-                            return null
-                        }
-                        return { ...current, step: "hour" }
-                    }
-                    case "hour":
-                        return { ...current, hour: value as number, step: "minute" }
-                    case "minute": {
-                        const minute = value as number
-                        const hour = current.hour ?? 0
-                        appendUserBubble(
-                            `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
-                        )
-                        void finishIntake({
-                            year: current.year!,
-                            month: current.month!,
-                            day: current.day!,
-                            hour,
-                            minute,
-                            timeKnown: true,
-                        })
-                        return null
-                    }
-                    default:
-                        return current
-                }
-            })
+    /** Date in hand — she asks about the time next. */
+    const acceptDate = useCallback(
+        (date: ParsedBirthDate, echo = true) => {
+            pendingDateRef.current = date
+            if (echo) appendUserBubble(formatBirthDate(date))
+            setIntakeStep("time")
+            setPickerVisible(false)
+            void (async () => {
+                setTyping(true)
+                await delay(700)
+                setTyping(false)
+                appendAssistantBubble(
+                    `astra-ask-time-${Date.now()}`,
+                    t("intake.askTimeKnown"),
+                    { astraStage: "ask_birth" },
+                )
+                setPickerVisible(true)
+            })()
         },
-        [
-            appendAssistantBubble,
-            appendUserBubble,
-            finishIntake,
-            formatBirthDate,
-            t,
-        ],
+        [appendAssistantBubble, appendUserBubble, formatBirthDate, t],
     )
 
-    const intakeChips = useMemo(() => {
-        if (!intake) return null
-        switch (intake.step) {
-            case "decade": {
-                const start = Math.floor(CURRENT_YEAR / 10) * 10
-                const decades: number[] = []
-                for (let year = start; year >= OLDEST_DECADE; year -= 10) {
-                    decades.push(year)
-                }
-                return {
-                    label: t("intake.askYear"),
-                    options: decades.map((decade) => ({
-                        key: `d-${decade}`,
-                        label: `${formatYear(decade)}s`,
-                        value: decade,
-                    })),
-                }
-            }
-            case "year": {
-                const decade = intake.decade ?? CURRENT_YEAR
-                const years = Array.from({ length: 10 }, (_, i) => decade + i).filter(
-                    (year) => year <= CURRENT_YEAR,
+    const acceptTime = useCallback(
+        (time: ParsedBirthTime | null, echo = true) => {
+            if (echo) {
+                appendUserBubble(
+                    time
+                        ? `${String(time.hour).padStart(2, "0")}:${String(
+                              time.minute,
+                          ).padStart(2, "0")}`
+                        : t("intake.timeUnknown"),
                 )
-                return {
-                    label: t("intake.askYear"),
-                    options: years.map((year) => ({
-                        key: `y-${year}`,
-                        label: formatYear(year),
-                        value: year,
-                    })),
-                }
             }
-            case "month":
-                return {
-                    label: t("intake.askMonth"),
-                    options: monthNames.map((name, index) => ({
-                        key: `m-${index}`,
-                        label: name,
-                        value: index + 1,
-                    })),
-                }
-            case "day": {
-                const days = new Date(
-                    Date.UTC(intake.year ?? 2000, intake.month ?? 1, 0),
-                ).getUTCDate()
-                return {
-                    label: t("intake.askDay"),
-                    options: Array.from({ length: days }, (_, i) => ({
-                        key: `day-${i + 1}`,
-                        label: String(i + 1),
-                        value: i + 1,
-                    })),
-                }
+            void finishIntake(time)
+        },
+        [appendUserBubble, finishIntake, t],
+    )
+
+    const sayNotUnderstood = useCallback(
+        (step: IntakeStep) => {
+            void (async () => {
+                setTyping(true)
+                await delay(600)
+                setTyping(false)
+                appendAssistantBubble(
+                    `astra-retry-${Date.now()}`,
+                    t(
+                        step === "date"
+                            ? "intake.notUnderstoodDate"
+                            : "intake.notUnderstoodTime",
+                    ),
+                    { astraStage: "ask_birth" },
+                )
+            })()
+        },
+        [appendAssistantBubble, t],
+    )
+
+    /**
+     * Anything typed while she is collecting birth details belongs to her
+     * question, not to the reading flow. Returns true when it was consumed.
+     */
+    const handleTypedInput = useCallback(
+        (raw: string): boolean => {
+            const text = raw.trim()
+            if (!text || !intakeStep) return false
+
+            if (intakeStep === "date") {
+                const date = parseBirthDate(text)
+                appendUserBubble(text)
+                if (date) acceptDate(date, false)
+                else sayNotUnderstood("date")
+                return true
             }
-            case "time-known":
-                return {
-                    label: "",
-                    options: [
-                        {
-                            key: "known",
-                            label: t("intake.timeKnownYes"),
-                            value: "known" as const,
-                        },
-                        {
-                            key: "unknown",
-                            label: t("intake.timeKnownNo"),
-                            value: "unknown" as const,
-                        },
-                    ],
-                }
-            case "hour":
-                return {
-                    label: t("intake.askHour"),
-                    options: Array.from({ length: 24 }, (_, hour) => ({
-                        key: `h-${hour}`,
-                        label: `${String(hour).padStart(2, "0")}:00`,
-                        value: hour,
-                    })),
-                }
-            case "minute":
-                return {
-                    label: t("intake.askMinute"),
-                    options: [0, 15, 30, 45].map((minute) => ({
-                        key: `min-${minute}`,
-                        label: `:${String(minute).padStart(2, "0")}`,
-                        value: minute,
-                    })),
-                }
-            default:
-                return null
-        }
-    }, [formatYear, intake, monthNames, t])
+
+            appendUserBubble(text)
+            if (saysUnknown(text)) {
+                acceptTime(null, false)
+                return true
+            }
+            const time = parseBirthTime(text)
+            if (time) acceptTime(time, false)
+            else sayNotUnderstood("time")
+            return true
+        },
+        [
+            acceptDate,
+            acceptTime,
+            appendUserBubble,
+            intakeStep,
+            sayNotUnderstood,
+        ],
+    )
 
     const handleQuickReply = useCallback(
         (reply: AstraQuickReply) => {
@@ -531,85 +454,92 @@ export function useAstraOpening({
     )
 
     const node = useMemo(() => {
-        if (intakeChips) {
+        if (intakeStep === "date" && pickerVisible) {
             return (
-                <AstraChipRow
-                    label={intakeChips.label}
-                    speaker={identity.fullName}
-                    options={intakeChips.options.map((option) => ({
-                        key: option.key,
-                        label: option.label,
-                        onSelect: () => handleIntakeChoice(option.value),
-                    }))}
-                />
+                <AstraAnswerStrip speaker={identity.fullName}>
+                    <BirthDatePickerButton
+                        label={t("intake.pickDate")}
+                        onPick={(date) => acceptDate(date)}
+                    />
+                </AstraAnswerStrip>
+            )
+        }
+        if (intakeStep === "time" && pickerVisible) {
+            return (
+                <AstraAnswerStrip speaker={identity.fullName}>
+                    <BirthTimePickerButton
+                        label={t("intake.pickTime")}
+                        hourLabel={t("intake.hour")}
+                        minuteLabel={t("intake.minute")}
+                        confirmLabel={t("intake.confirm")}
+                        onPick={(time) => acceptTime(time)}
+                    />
+                    <button
+                        type='button'
+                        onClick={() => acceptTime(null)}
+                        className={followUpChipClass}
+                    >
+                        {t("intake.timeKnownNo")}
+                    </button>
+                </AstraAnswerStrip>
             )
         }
         if (quickReplies.length > 0) {
             return (
-                <AstraChipRow
-                    label=''
-                    speaker={identity.fullName}
-                    options={quickReplies.map((reply) => ({
-                        key: reply.id,
-                        label: reply.label,
-                        onSelect: () => handleQuickReply(reply),
-                    }))}
-                />
+                <AstraAnswerStrip speaker={identity.fullName}>
+                    {quickReplies.map((reply) => (
+                        <button
+                            key={reply.id}
+                            type='button'
+                            onClick={() => handleQuickReply(reply)}
+                            className={followUpChipClass}
+                        >
+                            {reply.label}
+                        </button>
+                    ))}
+                </AstraAnswerStrip>
             )
         }
         return null
     }, [
-        handleIntakeChoice,
+        acceptDate,
+        acceptTime,
         handleQuickReply,
         identity.fullName,
-        intakeChips,
+        intakeStep,
+        pickerVisible,
         quickReplies,
+        t,
     ])
 
     return {
         /** True while she is composing a bubble. Never a standing status. */
         typing,
-        /** Chips to render directly above the composer, or null. */
+        /** Buttons to render directly above the composer, or null. */
         quickReplyNode: node,
+        /** Consumes a typed answer to her intake question. */
+        handleTypedInput,
         /** True while she owns the turn, so the page hides its idle hero. */
         active: stage !== "idle" && stage !== "done",
-        /** True once she has started, so the old first-message bootstrap stands down. */
+        /** True once she has started, so the first-message bootstrap stands down. */
         started: startedRef.current,
     }
 }
 
-function AstraChipRow({
-    label,
+function AstraAnswerStrip({
     speaker,
-    options,
+    children,
 }: {
-    label: string
     speaker: string
-    options: { key: string; label: string; onSelect: () => void }[]
+    children: React.ReactNode
 }) {
     return (
-        <div className='w-full space-y-2'>
-            {label ? (
-                <p className='text-[11px] uppercase tracking-[0.18em] text-white/50'>
-                    {label}
-                </p>
-            ) : null}
-            <div
-                className='flex flex-wrap gap-2 max-h-32 overflow-y-auto'
-                role='group'
-                aria-label={speaker}
-            >
-                {options.map((option) => (
-                    <button
-                        key={option.key}
-                        type='button'
-                        onClick={option.onSelect}
-                        className={followUpChipClass}
-                    >
-                        {option.label}
-                    </button>
-                ))}
-            </div>
+        <div
+            className='flex w-full flex-wrap gap-2'
+            role='group'
+            aria-label={speaker}
+        >
+            {children}
         </div>
     )
 }

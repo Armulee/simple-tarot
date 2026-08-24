@@ -22,15 +22,16 @@
       "topicBoth": "Os dois"
     },
     "intake": {
-      "askYear": "Ano de nascimento",
-      "askMonth": "Mês",
-      "askDay": "Dia",
+      "pickDate": "Escolher data de nascimento",
       "askTimeKnown": "Sabe a sua hora de nascimento? Se souber, leio o seu ascendente também.",
-      "timeKnownYes": "Eu sei",
+      "pickTime": "Escolher hora de nascimento",
       "timeKnownNo": "Não sei",
       "timeUnknown": "Não sei minha hora de nascimento",
-      "askHour": "Hora",
-      "askMinute": "Minuto",
+      "hour": "Hora",
+      "minute": "Minuto",
+      "confirm": "Pronto",
+      "notUnderstoodDate": "Não peguei qual é a data.\nUse o botão acima, ou digite assim: 12/5/1999.",
+      "notUnderstoodTime": "Não peguei a hora.\nUse o botão acima, ou digite assim: 07:20.",
       "ack": "Pronto. Um instante.",
       "tooYoung": "Não faço leitura para menores de treze anos.\nVolte quando for mais velho."
     }

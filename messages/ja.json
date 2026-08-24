@@ -22,15 +22,16 @@
       "topicBoth": "どちらも"
     },
     "intake": {
-      "askYear": "生まれた年",
-      "askMonth": "月",
-      "askDay": "日",
+      "pickDate": "生年月日を選ぶ",
       "askTimeKnown": "生まれた時間はわかる？わかるなら上昇宮も見ます。",
-      "timeKnownYes": "わかる",
+      "pickTime": "生まれた時間を選ぶ",
       "timeKnownNo": "わからない",
       "timeUnknown": "生まれた時間はわからない",
-      "askHour": "時",
-      "askMinute": "分",
+      "hour": "時",
+      "minute": "分",
+      "confirm": "決定",
+      "notUnderstoodDate": "どの日か読み取れませんでした。\n上のボタンを使うか、1999/5/12 のように入力して。",
+      "notUnderstoodTime": "時間が読み取れませんでした。\n上のボタンを使うか、07:20 のように入力して。",
       "ack": "わかった。少し待って。",
       "tooYoung": "十三歳未満の人は占いません。\nもう少し大きくなってから来て。"
     }

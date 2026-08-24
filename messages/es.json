@@ -22,15 +22,16 @@
       "topicBoth": "Las dos cosas"
     },
     "intake": {
-      "askYear": "Año de nacimiento",
-      "askMonth": "Mes",
-      "askDay": "Día",
+      "pickDate": "Elegir fecha de nacimiento",
       "askTimeKnown": "¿Sabes tu hora de nacimiento? Si la sabes, leo también tu ascendente.",
-      "timeKnownYes": "La sé",
+      "pickTime": "Elegir hora de nacimiento",
       "timeKnownNo": "No la sé",
       "timeUnknown": "No sé mi hora de nacimiento",
-      "askHour": "Hora",
-      "askMinute": "Minuto",
+      "hour": "Hora",
+      "minute": "Minuto",
+      "confirm": "Listo",
+      "notUnderstoodDate": "No entendí qué fecha es.\nUsa el botón de arriba, o escríbela así: 12/5/1999.",
+      "notUnderstoodTime": "No entendí la hora.\nUsa el botón de arriba, o escríbela así: 07:20.",
       "ack": "Listo. Un momento.",
       "tooYoung": "No leo para menores de trece años.\nVuelve cuando seas mayor."
     }

@@ -897,6 +897,9 @@ export default function ChatSession({
     const [aiLocale, setAiLocale] = useState<"en" | "th" | "lo" | null>(null)
     const { stars, spendStars, initialized: starsInitialized } = useStars()
     const [question, setQuestion] = useState("")
+    // Set by the opening controller below. While she is collecting birth
+    // details, a typed answer belongs to her question, not to the reading flow.
+    const astraTypedInputRef = useRef<((text: string) => boolean) | null>(null)
     const promptsRaw = tHome.raw("prompts")
     const prompts = Array.isArray(promptsRaw)
         ? promptsRaw.filter((p): p is string => typeof p === "string")
@@ -7520,6 +7523,13 @@ export default function ChatSession({
         value: string,
         attachments?: ChatAttachment[],
     ) => {
+        if (
+            !attachments?.length &&
+            astraTypedInputRef.current?.(value) === true
+        ) {
+            setQuestion("")
+            return
+        }
         pendingAttachmentsRef.current = attachments?.length
             ? attachments
             : null
@@ -7703,6 +7713,9 @@ export default function ChatSession({
             void handleSubmit(text)
         },
         ready: !authLoading && settingsLoaded,
+    })
+    useEffect(() => {
+        astraTypedInputRef.current = astraOpening.handleTypedInput
     })
 
     const shouldShowHero = !hasMessages && !astraOpening.active

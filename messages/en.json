@@ -22,15 +22,16 @@
       "topicBoth": "Both"
     },
     "intake": {
-      "askYear": "Birth year",
-      "askMonth": "Month",
-      "askDay": "Day",
+      "pickDate": "Pick your birth date",
       "askTimeKnown": "Do you know your birth time? If you do, I can read your ascendant too.",
-      "timeKnownYes": "I know it",
+      "pickTime": "Pick your birth time",
       "timeKnownNo": "I don't",
       "timeUnknown": "I don't know my birth time",
-      "askHour": "Hour",
-      "askMinute": "Minute",
+      "hour": "Hour",
+      "minute": "Minute",
+      "confirm": "Done",
+      "notUnderstoodDate": "I did not catch which date that is.\nUse the button above, or type it like 12/5/1999.",
+      "notUnderstoodTime": "I did not catch the time.\nUse the button above, or type it like 07:20.",
       "ack": "Got it. One moment.",
       "tooYoung": "I do not read for anyone under thirteen.\nCome back to me when you are older."
     }

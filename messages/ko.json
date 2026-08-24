@@ -22,15 +22,16 @@
       "topicBoth": "둘 다"
     },
     "intake": {
-      "askYear": "태어난 해",
-      "askMonth": "월",
-      "askDay": "일",
+      "pickDate": "생년월일 고르기",
       "askTimeKnown": "태어난 시간을 알아요? 알면 상승궁까지 봐 줄게요.",
-      "timeKnownYes": "알아요",
+      "pickTime": "태어난 시간 고르기",
       "timeKnownNo": "몰라요",
       "timeUnknown": "태어난 시간은 몰라요",
-      "askHour": "시",
-      "askMinute": "분",
+      "hour": "시",
+      "minute": "분",
+      "confirm": "확인",
+      "notUnderstoodDate": "어느 날짜인지 못 읽었어요.\n위 버튼을 쓰거나 1999/5/12 처럼 입력해요.",
+      "notUnderstoodTime": "시간을 못 읽었어요.\n위 버튼을 쓰거나 07:20 처럼 입력해요.",
       "ack": "됐어요. 잠깐만요.",
       "tooYoung": "열세 살 미만은 봐 주지 않아요.\n조금 더 자란 뒤에 다시 와요."
     }
