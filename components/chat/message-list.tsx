@@ -563,7 +563,7 @@ export default function MessageList({
                 ref={scrollRootRef}
                 className='min-h-0 flex-1 overflow-y-auto px-4 pt-6'
             >
-                <div className='mx-auto max-w-3xl space-y-6 text-left'>
+                <div className='mx-auto max-w-3xl space-y-2.5 text-left'>
                     {messages.map((message, messageIndex) => {
                         const displayText = getDisplayText(message)
                         const displayQuestion = getDisplayQuestion(message)
@@ -709,7 +709,7 @@ export default function MessageList({
                                         items={userMenuItems}
                                         disabled={isEditing}
                                     >
-                                    <div className='max-w-[80%] rounded-2xl bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 backdrop-blur-xl border border-border/60 px-4 py-3 text-white shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
+                                    <div className='max-w-[82%] rounded-[18px] rounded-br-md bg-[#6C5CE7] px-4 py-3 text-white shadow-[0_6px_18px_-12px_rgba(108,92,231,0.85)]'>
                                         {isEditing ? (
                                             <CharacterMentionProvider
                                                 value={editingDraft}
@@ -1320,7 +1320,7 @@ export default function MessageList({
                                                 />
                                             </div>
                                         )}
-                                        <div className='w-full md:max-w-[85%] space-y-3'>
+                                        <div className='w-full max-w-[82%] space-y-2.5'>
                                             {(message.isLoading ||
                                                 message.reasoningText) && (
                                                 <DynamicThinking
@@ -1339,7 +1339,7 @@ export default function MessageList({
                                                 <MessageContextMenu
                                                     items={assistantMenuItems}
                                                 >
-                                                    <div className='w-fit max-w-full rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 text-white/90 leading-relaxed whitespace-pre-wrap shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
+                                                    <div className='w-fit max-w-full rounded-[18px] rounded-bl-md border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 text-white/90 leading-relaxed whitespace-pre-wrap shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
                                                         <PrivacyHighlightedText
                                                             text={
                                                                 message.text ||
@@ -1410,7 +1410,7 @@ export default function MessageList({
                     })}
                     {astraTyping && (
                         <div className='flex flex-col items-start gap-4 animate-fade-in'>
-                            <div className='flex items-center gap-1.5 rounded-2xl border border-indigo-300/20 bg-indigo-400/[0.07] px-4 py-3 shadow-[0_8px_24px_-18px_rgba(129,140,248,0.75)]'>
+                            <div className='flex items-center gap-1.5 rounded-[18px] rounded-bl-md border border-border/60 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-cyan-500/15 px-4 py-3 backdrop-blur-xl shadow-[0_10px_30px_-10px_rgba(56,189,248,0.35)]'>
                                 {[0, 150, 300].map((delayMs) => (
                                     <span
                                         key={delayMs}
