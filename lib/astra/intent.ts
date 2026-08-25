@@ -211,9 +211,9 @@ export function classifyQuestion(rawQuestion: string): IntentResult {
     if (matchesAny(IDENTITY_PATTERNS, question)) return reading("IDENTITY")
     if (matchesAny(OUTCOME_PATTERNS, question)) return reading("OUTCOME")
 
-    // A question with a clear life area but no shape to it is still answerable
-    // as an outcome — "เรื่องงานช่วงนี้" wants to know how it lands.
-    if (topic !== "general" && question.length >= 6) return reading("OUTCOME")
+    // A named life area is answerable on its own, however short — "เรื่องงาน"
+    // and a one-word "Work" tapped from her own chips are both real answers.
+    if (topic !== "general") return reading("OUTCOME")
 
     return { kind: "unsure" }
 }

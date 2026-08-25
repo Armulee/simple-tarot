@@ -16,6 +16,11 @@ export type AstraBubble = {
 export type AstraQuickReply = {
     id: string
     label: string
+    /**
+     * What tapping this chip is an answer about. Sent straight to the reading
+     * so a one-word tap is never put back through the classifier and lost.
+     */
+    topic?: import("@/lib/astra/intent").AstraTopic
 }
 
 /** What the reading was computed from — surfaced later by the proof sheet. */

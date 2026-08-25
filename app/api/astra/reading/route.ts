@@ -7,7 +7,12 @@ import { resolveAstraSubject } from "@/lib/server/astra-subject"
 import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
 import { buildAstraSystemPrompt } from "@/lib/prompts/astra"
 import { ASTRA_MESSAGES_NAMESPACE } from "@/lib/astra/identity"
-import { classifyQuestion, type AstraIntent } from "@/lib/astra/intent"
+import {
+    ASTRA_TOPICS,
+    classifyQuestion,
+    type AstraIntent,
+    type AstraTopic,
+} from "@/lib/astra/intent"
 import { seedHash } from "@/lib/astra/cold-read"
 import {
     typingMsForText,
@@ -45,6 +50,13 @@ const requestSchema = z.object({
     locale: z.string().min(2).max(10).default("en"),
     /** Viewer's UTC offset in hours, so the watch and the date are theirs. */
     timezone: z.number().min(-12).max(14).optional(),
+    /**
+     * The life area a tapped chip already stands for. A one-word answer to her
+     * own question carries no grammar to classify, so the chip says what it is.
+     */
+    topicHint: z.enum(ASTRA_TOPICS).optional(),
+    /** What she had just said, so a reply of "Work" is read as the answer it is. */
+    context: z.string().max(600).optional(),
 })
 
 const replySchema = z.object({
@@ -259,12 +271,30 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
         return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 })
     }
-    const { question, sessionId, locale, timezone } = parsed.data
+    const { question, sessionId, locale, timezone, topicHint, context } =
+        parsed.data
 
-    const routed = classifyQuestion(question)
-    if (routed.kind === "tarot" || routed.kind === "passthrough") {
+    const classified = classifyQuestion(question)
+    if (classified.kind === "tarot" || classified.kind === "passthrough") {
         return NextResponse.json({ kind: "tarot" } satisfies AstraReadingResponse)
     }
+
+    // A tapped chip answers the question she just asked: it is never unclear,
+    // and its own topic beats whatever a single word looks like to a regex.
+    const routed =
+        classified.kind === "unsure"
+            ? topicHint
+                ? {
+                      kind: "reading" as const,
+                      intent: "OUTCOME" as AstraIntent,
+                      topic: topicHint as AstraTopic,
+                      guardrail: null,
+                  }
+                : classified
+            : {
+                  ...classified,
+                  topic: topicHint ?? classified.topic,
+              }
 
     const t = await getTranslations({
         locale,
@@ -364,7 +394,13 @@ export async function POST(req: NextRequest) {
             model: MODEL,
             schema: replySchema,
             system,
-            prompt: `Their question:\n${question}\n\nAnswer it now, from the computed values only.`,
+            prompt: [
+                context ? `You had just said:\n${context}` : null,
+                `Their question:\n${question}`,
+                "Answer it now, from the computed values only.",
+            ]
+                .filter(Boolean)
+                .join("\n\n"),
             temperature: 0.5,
         })
         reply = result.object

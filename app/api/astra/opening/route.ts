@@ -295,9 +295,9 @@ export async function POST(req: NextRequest) {
     }
 
     const quickReplies: AstraQuickReply[] = [
-        { id: "work", label: t("opening.topicWork") },
-        { id: "people", label: t("opening.topicPeople") },
-        { id: "both", label: t("opening.topicBoth") },
+        { id: "work", label: t("opening.topicWork"), topic: "career" },
+        { id: "people", label: t("opening.topicPeople"), topic: "love" },
+        { id: "both", label: t("opening.topicBoth"), topic: "general" },
     ]
 
     const basis: AstraReadingBasis = {

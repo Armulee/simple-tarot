@@ -93,3 +93,12 @@ test("questions about the product are left to the flows that answer them", () =>
     assert.equal(intentOf("How much is the subscription?"), "passthrough")
     assert.equal(intentOf("I want a refund"), "passthrough")
 })
+
+test("a one-word answer to her own question still routes", () => {
+    // She asks "what is heaviest right now?" and offers Work / Someone / Both.
+    assert.equal(intentOf("Work"), "OUTCOME")
+    assert.equal(intentOf("งาน"), "OUTCOME")
+    assert.equal(detectTopic("Work"), "career")
+    // "Both" carries no life area of its own — the chip's own topic covers it.
+    assert.equal(intentOf("Both"), "unsure")
+})

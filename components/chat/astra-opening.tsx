@@ -17,7 +17,7 @@ import {
     type ParsedBirthDate,
     type ParsedBirthTime,
 } from "@/lib/astra/parse-birth-input"
-import { classifyQuestion } from "@/lib/astra/intent"
+import { classifyQuestion, type AstraTopic } from "@/lib/astra/intent"
 import type { AstraReadingResponse } from "@/lib/astra/reading-contract"
 import { saveBirthToStorage } from "@/lib/birth-storage"
 import { supabase } from "@/lib/supabase"
@@ -86,6 +86,13 @@ export function useAstraOpening({
     const pendingDateRef = useRef<ParsedBirthDate | null>(null)
 
     const hasAssistantMessage = messages.some((m) => m.role === "assistant")
+
+    // What she last said, read at call time: a reply of "Work" only makes
+    // sense next to the question it answers.
+    const messagesRef = useRef(messages)
+    useEffect(() => {
+        messagesRef.current = messages
+    }, [messages])
 
     const appendAssistantBubble = useCallback(
         (id: string, text: string, extra?: Partial<ChatMessage>) => {
@@ -454,7 +461,10 @@ export function useAstraOpening({
      * only then does she speak. Failures say so instead of inventing a chart.
      */
     const runReading = useCallback(
-        async (question: string) => {
+        async (question: string, topicHint?: AstraTopic) => {
+            const lastSpoken = [...messagesRef.current]
+                .reverse()
+                .find((m) => m.role === "assistant" && m.text?.trim())?.text
             appendPlainUserBubble(question)
             setQuickReplies([])
             setStage("done")
@@ -468,6 +478,8 @@ export function useAstraOpening({
                         sessionId,
                         locale,
                         timezone: -new Date().getTimezoneOffset() / 60,
+                        topicHint,
+                        context: lastSpoken?.slice(0, 600),
                     }),
                 })
                 setTyping(false)
@@ -617,9 +629,15 @@ export function useAstraOpening({
             }
             setQuickReplies([])
             setStage("done")
+            // The chip already says which life area it stands for, so it goes
+            // straight to the reading rather than back through the classifier.
+            if (reply.topic) {
+                void runReading(reply.label, reply.topic)
+                return
+            }
             onSendUserMessage(reply.label)
         },
-        [onSendUserMessage, recordFollowUp],
+        [onSendUserMessage, recordFollowUp, runReading],
     )
 
     const node = useMemo(() => {
