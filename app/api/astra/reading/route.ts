@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { generateObject } from "ai"
+import { generateObject, generateText } from "ai"
 import { getTranslations } from "next-intl/server"
 import { supabaseAdmin } from "@/lib/supabase"
 import { resolveAstraSubject } from "@/lib/server/astra-subject"
@@ -15,6 +15,7 @@ import {
     type AstraTopic,
 } from "@/lib/astra/intent"
 import { seedHash } from "@/lib/astra/cold-read"
+import { textToBubbles, tidyBubbles } from "@/lib/astra/bubbles"
 import {
     typingMsForText,
     type AstraBubble,
@@ -64,29 +65,28 @@ const requestSchema = z.object({
     context: z.string().max(600).optional(),
 })
 
+/**
+ * Deliberately loose. Length limits on generated prose belong in the prompt,
+ * not in the schema: a schema that rejects a 241-character bubble throws the
+ * whole reading away over a sentence, and no other route here does that.
+ * Shaping happens in `tidyBubbles` after the model has spoken.
+ */
 const replySchema = z.object({
     bubbles: z
-        .array(z.string().min(1).max(240))
-        .min(2)
-        .max(4)
+        .array(z.string())
         .describe(
-            "What she says, split into short bubbles of 1-3 lines each, in order.",
+            "What she says, split into short bubbles of 1-3 lines each, in order. Two to four of them.",
         ),
     verdict: z
         .string()
-        .min(2)
-        .max(160)
         .describe(
             "The direction she committed to, in one plain line. Internal record, not shown.",
         ),
     dueInDays: z
         .number()
-        .int()
-        .min(1)
-        .max(180)
         .nullable()
         .describe(
-            "How many days until the outcome should be visible, or null when the answer is not a forecast.",
+            "Whole days until the outcome should be visible, or null when the answer is not a forecast.",
         ),
 })
 
@@ -393,32 +393,74 @@ export async function POST(req: NextRequest) {
         language,
     })
 
+    const prompt = [
+        context ? `You had just said:\n${context}` : null,
+        `Their question:\n${question}`,
+        "Answer it now, from the computed values only.",
+    ]
+        .filter(Boolean)
+        .join("\n\n")
+
     let reply: z.infer<typeof replySchema>
     try {
         const result = await generateObject({
             model: MODEL,
             schema: replySchema,
             system,
-            prompt: [
-                context ? `You had just said:\n${context}` : null,
-                `Their question:\n${question}`,
-                "Answer it now, from the computed values only.",
-            ]
-                .filter(Boolean)
-                .join("\n\n"),
+            prompt,
             temperature: 0.5,
             // Reasoning off: a thinker in front of structured output is the
             // difference between four seconds and forty.
             providerOptions: deepseekThinking(false),
         })
         reply = result.object
-    } catch (error) {
-        console.error("[astra] reading generation failed", {
+    } catch (structuredError) {
+        console.error("[astra] structured reading failed", {
             intent,
             topic,
-            error: error instanceof Error ? error.message : String(error),
+            message:
+                structuredError instanceof Error
+                    ? structuredError.message
+                    : String(structuredError),
+            // NoObjectGeneratedError carries what the model actually said.
+            text: (structuredError as { text?: string })?.text,
+            cause: String((structuredError as { cause?: unknown })?.cause ?? ""),
         })
-        return NextResponse.json({ error: "READING_FAILED" }, { status: 502 })
+
+        // Losing the JSON envelope is not a reason to lose the reading: ask
+        // again in plain text and cut it into bubbles ourselves.
+        try {
+            const spoken = await generateText({
+                model: MODEL,
+                system,
+                prompt: `${prompt}\n\nWrite it as two to four short paragraphs separated by blank lines. Plain text only — no JSON, no bullet points, no headings.`,
+                temperature: 0.5,
+                providerOptions: deepseekThinking(false),
+            })
+            const bubbles = textToBubbles(spoken.text ?? "")
+            if (bubbles.length === 0) throw new Error("EMPTY_REPLY")
+            reply = { bubbles, verdict: bubbles[0], dueInDays: null }
+        } catch (plainError) {
+            const reason =
+                plainError instanceof Error
+                    ? plainError.message
+                    : String(plainError)
+            console.error("[astra] plain-text reading failed too", { reason })
+            // The reason rides along so a failure is diagnosable from the
+            // network tab instead of only from the platform logs.
+            return NextResponse.json(
+                { error: "READING_FAILED", reason },
+                { status: 502 },
+            )
+        }
+    }
+
+    const spokenBubbles = tidyBubbles(reply.bubbles)
+    if (spokenBubbles.length === 0) {
+        return NextResponse.json(
+            { error: "READING_FAILED", reason: "EMPTY_BUBBLES" },
+            { status: 502 },
+        )
     }
 
     const source: AstraReadingSource = {
@@ -442,7 +484,10 @@ export async function POST(req: NextRequest) {
         const dueFromWindow = timingWindow
             ? timingWindow.endIso.slice(0, 10)
             : null
-        const days = reply.dueInDays ?? 14
+        const days = Math.min(
+            180,
+            Math.max(1, Math.round(reply.dueInDays ?? 14)),
+        )
         dueDateIso =
             dueFromWindow ??
             new Date(now.getTime() + days * 24 * 60 * 60 * 1000)
@@ -462,7 +507,7 @@ export async function POST(req: NextRequest) {
                 guardrail,
                 question,
                 verdict: reply.verdict,
-                bubbles: reply.bubbles,
+                bubbles: spokenBubbles,
                 basis: source,
                 due_date: dueDateIso,
             })
@@ -474,7 +519,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
         kind: "reading",
-        bubbles: toBubbles(reply.bubbles, answerId),
+        bubbles: toBubbles(spokenBubbles, answerId),
         source,
         guardrail,
         prediction: dueDateIso ? { dueDateIso } : null,

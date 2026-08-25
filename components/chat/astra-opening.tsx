@@ -487,7 +487,16 @@ export function useAstraOpening({
                     }),
                 })
                 setTyping(false)
-                if (!response.ok) throw new Error("READING_FAILED")
+                if (!response.ok) {
+                    // Surface the server's reason in the console: a failed
+                    // reading is otherwise indistinguishable from any other.
+                    const detail = await response.json().catch(() => null)
+                    console.error("[astra] reading request failed", {
+                        status: response.status,
+                        detail,
+                    })
+                    throw new Error("READING_FAILED")
+                }
                 const payload = (await response.json()) as AstraReadingResponse
 
                 if (payload.kind === "needs_birth") {
