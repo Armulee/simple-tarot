@@ -102,3 +102,11 @@ test("a one-word answer to her own question still routes", () => {
     // "Both" carries no life area of its own — the chip's own topic covers it.
     assert.equal(intentOf("Both"), "unsure")
 })
+
+test("the blank-cheque fortune question is a reading, not a shrug", () => {
+    assert.equal(intentOf("What will my future be?"), "OUTCOME")
+    assert.equal(intentOf("อนาคตฉันจะเป็นยังไง"), "OUTCOME")
+    assert.equal(intentOf("ดูดวงให้หน่อย"), "OUTCOME")
+    assert.equal(intentOf("tell me my fortune"), "OUTCOME")
+    assert.equal(intentOf("what does my destiny hold"), "OUTCOME")
+})

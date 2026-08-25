@@ -70,6 +70,10 @@ export function useAstraOpening({
 }: UseAstraOpeningArgs) {
     const t = useTranslations("Astra")
     const identity = useAstraIdentity()
+    // A room that starts empty is hers to open, from the very first paint —
+    // otherwise the idle typewriter hero flashes while she is still fetching
+    // her opening line, and the page looks like two screens fighting.
+    const [sheOwnsTheRoom] = useState(() => messages.length === 0)
     const [typing, setTyping] = useState(false)
     const [stage, setStage] = useState<
         "idle" | "ask_birth" | "cold_read" | "follow_up" | "done"
@@ -711,7 +715,8 @@ export function useAstraOpening({
         /** Consumes a typed answer to her intake question. */
         handleTypedInput,
         /** True while she owns the turn, so the page hides its idle hero. */
-        active: stage !== "idle" && stage !== "done",
+        active:
+            sheOwnsTheRoom || (stage !== "idle" && stage !== "done"),
         /** True once she has started, so the first-message bootstrap stands down. */
         started: startedRef.current,
     }

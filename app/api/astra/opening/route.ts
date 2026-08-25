@@ -30,6 +30,9 @@ import { ASTRA_MESSAGES_NAMESPACE } from "@/lib/astra/identity"
  * `cold_read_lines` — nothing here is improvised by a model.
  */
 
+// A cold start loads the ephemeris wasm before anything else happens.
+export const maxDuration = 60
+
 /** Fallback birthplace when the person never told us: Bangkok. */
 const DEFAULT_LAT = 13.7563
 const DEFAULT_LNG = 100.5018

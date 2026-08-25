@@ -89,6 +89,10 @@ const IDENTITY_PATTERNS = [
 ]
 
 const OUTCOME_PATTERNS = [
+    // The blank cheque of fortune questions: "what will my future be",
+    // "อนาคตจะเป็นยังไง", "ดวงชะตาฉันเป็นไง" — a general reading of where
+    // things are heading, asked now.
+    /อนาคต|ชะตา|ดวง(?:ของ)?(?:ฉัน|ผม|หนู|เรา|กู)|ดูดวง|เปิดดวง|\b(?:my|the|our) future\b|\bfortune\b|\bwhat lies ahead\b|\bread (?:me|my)\b|\bdestiny\b/i,
     /จะ(?:เป็น|ออกมา|ลงเอย)(?:ยังไง|อย่างไร|ไง|แบบไหน)/,
     /จะ(?:ได้|สำเร็จ|รอด|ผ่าน|กลับมา|ติด|ผ่านไหม)/,
     /(?:ควร|น่า)(?:จะ)?(?:ทำ|ไป|ลาออก|ย้าย|บอก|ทัก|ลงทุน|ซื้อ|ขาย)(?:.{0,12})?(?:ไหม|มั้ย|ดีไหม|หรือเปล่า)/,

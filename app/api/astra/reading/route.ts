@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server"
 import { supabaseAdmin } from "@/lib/supabase"
 import { resolveAstraSubject } from "@/lib/server/astra-subject"
 import { resolveResponseLanguage } from "@/lib/i18n/ai-language"
+import { deepseekThinking } from "@/lib/chat/model-options"
 import { buildAstraSystemPrompt } from "@/lib/prompts/astra"
 import { ASTRA_MESSAGES_NAMESPACE } from "@/lib/astra/identity"
 import {
@@ -41,6 +42,10 @@ import {
  * Asking the same thing twice in a day is not a re-roll: the answer is stored
  * under a seed of (person + question + date) and replayed verbatim.
  */
+
+// This route blocks on an ephemeris pass plus a model call; the platform
+// default function timeout is shorter than that on a cold start.
+export const maxDuration = 60
 
 const MODEL = "deepseek/deepseek-v4-pro"
 
@@ -402,9 +407,17 @@ export async function POST(req: NextRequest) {
                 .filter(Boolean)
                 .join("\n\n"),
             temperature: 0.5,
+            // Reasoning off: a thinker in front of structured output is the
+            // difference between four seconds and forty.
+            providerOptions: deepseekThinking(false),
         })
         reply = result.object
-    } catch {
+    } catch (error) {
+        console.error("[astra] reading generation failed", {
+            intent,
+            topic,
+            error: error instanceof Error ? error.message : String(error),
+        })
         return NextResponse.json({ error: "READING_FAILED" }, { status: 502 })
     }
 
@@ -436,21 +449,27 @@ export async function POST(req: NextRequest) {
                 .toISOString()
                 .slice(0, 10)
 
-        await supabaseAdmin.from("astra_predictions").insert({
-            subject_type: subject.type,
-            subject_id: subject.id,
-            session_id: sessionId ?? null,
-            seed,
-            answer_id: answerId,
-            intent,
-            topic,
-            guardrail,
-            question,
-            verdict: reply.verdict,
-            bubbles: reply.bubbles,
-            basis: source,
-            due_date: dueDateIso,
-        })
+        const { error: insertError } = await supabaseAdmin
+            .from("astra_predictions")
+            .insert({
+                subject_type: subject.type,
+                subject_id: subject.id,
+                session_id: sessionId ?? null,
+                seed,
+                answer_id: answerId,
+                intent,
+                topic,
+                guardrail,
+                question,
+                verdict: reply.verdict,
+                bubbles: reply.bubbles,
+                basis: source,
+                due_date: dueDateIso,
+            })
+        if (insertError) {
+            // The reading still goes out; only the written record was lost.
+            console.error("[astra] prediction insert failed", insertError.message)
+        }
     }
 
     return NextResponse.json({
