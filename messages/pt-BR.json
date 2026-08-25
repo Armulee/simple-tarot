@@ -19,7 +19,8 @@
       "returning": "Coisa nova? Pode falar.\nAh — {topic}, o que você me perguntou da última vez. Volto para saber o resultado.",
       "topicWork": "Trabalho",
       "topicPeople": "Alguém",
-      "topicBoth": "Os dois"
+      "topicBoth": "Os dois",
+      "coldReadFallback": "Seu mapa está aberto.\nMe diga em poucas palavras o que está pesando, e eu vou destrinchando."
     },
     "intake": {
       "pickDate": "Escolher data de nascimento",
@@ -36,7 +37,8 @@
       "notUnderstoodDate": "Não peguei qual é a data.\nUse o botão acima, ou digite assim: 12/5/1999.",
       "notUnderstoodTime": "Não peguei a hora.\nUse o botão acima, ou digite assim: 07:20.",
       "ack": "Pronto. Um instante.",
-      "tooYoung": "Não faço leitura para menores de treze anos.\nVolte quando for mais velho."
+      "tooYoung": "Não faço leitura para menores de treze anos.\nVolte quando for mais velho.",
+      "saveFailed": "Sua data de nascimento não foi salva. Me diga de novo."
     },
     "reading": {
       "askBack": "Não peguei sobre o que você está perguntando.\nDiga curto: trabalho, uma pessoa ou dinheiro?",

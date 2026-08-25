@@ -187,17 +187,25 @@ export function useAstraOpening({
             try {
                 await playPayload(await fetchOpening())
             } catch {
+                // An empty room with nothing said is the worst failure this
+                // page has; say something rather than nothing.
                 setTyping(false)
+                appendAssistantBubble(
+                    `astra-open-failed-${Date.now()}`,
+                    t("reading.failed"),
+                )
                 setStage("done")
             }
         })()
     }, [
+        appendAssistantBubble,
         fetchOpening,
         hasAssistantMessage,
         messages.length,
         playPayload,
         ready,
         sessionId,
+        t,
     ])
 
     // Reload mid-intake: the bubbles are already persisted, so pick the
@@ -282,11 +290,19 @@ export function useAstraOpening({
             timeKnown: boolean
         }) => {
             const timezone = -new Date().getTimezoneOffset() / 60
-            await fetch("/api/astra/profile", {
+            // Her memory is the one write that must land: everything after
+            // this reads the birth date back from it, so a silent failure
+            // here is what sends the intake round in a circle.
+            const saved = await fetch("/api/astra/profile", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ birth: { ...birth, timezone } }),
             })
+            const savedBody = await saved.json().catch(() => null)
+            if (!saved.ok || savedBody?.hasBirth !== true) {
+                console.error("[astra] birth details were not stored", savedBody)
+                throw new Error("BIRTH_NOT_SAVED")
+            }
 
             const hour = birth.timeKnown ? birth.hour : null
             saveBirthToStorage({
@@ -362,7 +378,18 @@ export function useAstraOpening({
                 )
                 await playPayload(await fetchOpening())
             } catch {
-                setStage("done")
+                // Say what happened and offer the picker again, instead of
+                // quietly re-asking as if they had never answered.
+                setTyping(false)
+                appendAssistantBubble(
+                    `astra-save-failed-${Date.now()}`,
+                    t("intake.saveFailed"),
+                    { astraStage: "ask_birth" },
+                )
+                pendingDateRef.current = null
+                setIntakeStep("date")
+                setPickerVisible(true)
+                setStage("ask_birth")
             } finally {
                 setTyping(false)
             }

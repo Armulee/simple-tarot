@@ -19,7 +19,8 @@
       "returning": "Ada hal baru? Katakan.\nOh — soal {topic} yang kamu tanyakan waktu itu. Nanti aku tanya hasilnya.",
       "topicWork": "Soal kerja",
       "topicPeople": "Soal seseorang",
-      "topicBoth": "Dua-duanya"
+      "topicBoth": "Dua-duanya",
+      "coldReadFallback": "Petamu sudah terbuka.\nKatakan singkat apa yang sedang mengganjal, nanti kuurai satu per satu."
     },
     "intake": {
       "pickDate": "Pilih tanggal lahir",
@@ -36,7 +37,8 @@
       "notUnderstoodDate": "Aku belum menangkap tanggalnya.\nPakai tombol di atas, atau ketik seperti 12/5/1999.",
       "notUnderstoodTime": "Aku belum menangkap jamnya.\nPakai tombol di atas, atau ketik seperti 07:20.",
       "ack": "Sudah. Tunggu sebentar.",
-      "tooYoung": "Aku tidak membaca untuk yang belum tiga belas tahun.\nDatang lagi kalau sudah lebih besar."
+      "tooYoung": "Aku tidak membaca untuk yang belum tiga belas tahun.\nDatang lagi kalau sudah lebih besar.",
+      "saveFailed": "Tanggal lahirmu tidak tersimpan. Beri tahu aku lagi."
     },
     "reading": {
       "askBack": "Aku belum menangkap kamu bertanya soal apa.\nSingkat saja: kerja, seseorang, atau uang?",

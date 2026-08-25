@@ -59,6 +59,16 @@ function bubble(id: string, text: string): AstraBubble {
     return { id, text, typingMs: typingMsForText(text) }
 }
 
+/**
+ * Bubble ids are deduped on the client so a double render cannot double-speak.
+ * That makes fixed ids dangerous for a turn she may need to repeat — asking
+ * for the birth date a second time would be swallowed — so each turn gets its
+ * own nonce.
+ */
+function turnId(): string {
+    return Date.now().toString(36)
+}
+
 /** Sidereal placements for the cold-read key. Never throws — the read degrades. */
 async function computeChart(row: ProfileRow) {
     const timeKnown = Boolean(row.birth_time_known)
@@ -213,11 +223,16 @@ export async function POST(req: NextRequest) {
         profile?.birth_day != null
 
     if (!hasBirth) {
+        const turn = turnId()
         if (!isNewThread) {
-            bubbles.push(bubble("astra-hello", t("opening.greeting", { fullName })))
-            bubbles.push(bubble("astra-hello-2", t("opening.greetingSecond")))
+            bubbles.push(
+                bubble(`astra-hello-${turn}`, t("opening.greeting", { fullName })),
+            )
+            bubbles.push(
+                bubble(`astra-hello-2-${turn}`, t("opening.greetingSecond")),
+            )
         }
-        bubbles.push(bubble("astra-ask-birth", t("opening.askBirth")))
+        bubbles.push(bubble(`astra-ask-birth-${turn}`, t("opening.askBirth")))
         const payload: AstraOpeningPayload = {
             stage: "ask_birth",
             bubbles,
@@ -255,6 +270,25 @@ export async function POST(req: NextRequest) {
         },
         seed,
     )
+
+    if (lines.length === 0) {
+        // The library is empty or nothing matched this chart. She still
+        // speaks — silence with three topic chips under it is the one thing
+        // this whole turn exists to prevent.
+        console.warn("[astra] no cold-read lines matched", {
+            locale,
+            rows: rows.length,
+            key: {
+                lagnaSign: chart.lagnaSign,
+                missingElement: chart.missing,
+                ageStar: ruling.star,
+            },
+        })
+        const turn = Date.now().toString(36)
+        bubbles.push(
+            bubble(`astra-cold-fallback-${turn}`, t("opening.coldReadFallback")),
+        )
+    }
 
     for (const line of lines) {
         bubbles.push(bubble(`astra-cold-${line.slot}-${line.id}`, line.text))

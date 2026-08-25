@@ -147,7 +147,22 @@ export async function PUT(req: NextRequest) {
         .maybeSingle()
 
     if (error) {
+        console.error("[astra] profile write failed", error.message)
         return NextResponse.json({ error: error.message }, { status: 400 })
     }
-    return NextResponse.json(toProfileResponse(data as ProfileRow | null))
+
+    // Some upserts come back without the row. The caller trusts `hasBirth` to
+    // decide whether the intake is done, so read it back rather than guess.
+    let row = data as ProfileRow | null
+    if (!row) {
+        const { data: reread } = await supabaseAdmin
+            .from("astra_user_profiles")
+            .select(SELECT_COLUMNS)
+            .eq("subject_type", subject.type)
+            .eq("subject_id", subject.id)
+            .maybeSingle()
+        row = reread as ProfileRow | null
+    }
+
+    return NextResponse.json(toProfileResponse(row))
 }

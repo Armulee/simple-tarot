@@ -19,7 +19,8 @@
       "returning": "有新的事？說吧。\n對了——上回你問的{topic}，回頭我會問你結果。",
       "topicWork": "工作",
       "topicPeople": "某個人",
-      "topicBoth": "兩者都是"
+      "topicBoth": "兩者都是",
+      "coldReadFallback": "你的盤我已經開好了。\n簡單說說現在壓著你的是什麼，我一層層看給你。"
     },
     "intake": {
       "pickDate": "選擇出生日期",
@@ -36,7 +37,8 @@
       "notUnderstoodDate": "我沒看出是哪一天。\n用上面的按鈕，或按 1999/5/12 這樣輸入。",
       "notUnderstoodTime": "我沒看出是幾點。\n用上面的按鈕，或按 07:20 這樣輸入。",
       "ack": "好了，稍等。",
-      "tooYoung": "我不為十三歲以下的人看命。\n長大一些再來找我。"
+      "tooYoung": "我不為十三歲以下的人看命。\n長大一些再來找我。",
+      "saveFailed": "你的生日沒有存上，再告訴我一次。"
     },
     "reading": {
       "askBack": "我沒聽出你在問什麼。\n簡單說一句：工作、某個人，還是錢？",

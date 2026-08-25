@@ -19,7 +19,8 @@
       "returning": "Something new? Go ahead.\nAh — {topic}, the one you asked me last time. I will come back to you for the result.",
       "topicWork": "Work",
       "topicPeople": "Someone",
-      "topicBoth": "Both"
+      "topicBoth": "Both",
+      "coldReadFallback": "Your chart is open.\nTell me the short version of what is sitting with you, and I will take it apart."
     },
     "intake": {
       "pickDate": "Pick your birth date",
@@ -36,7 +37,8 @@
       "notUnderstoodDate": "I did not catch which date that is.\nUse the button above, or type it like 12/5/1999.",
       "notUnderstoodTime": "I did not catch the time.\nUse the button above, or type it like 07:20.",
       "ack": "Got it. One moment.",
-      "tooYoung": "I do not read for anyone under thirteen.\nCome back to me when you are older."
+      "tooYoung": "I do not read for anyone under thirteen.\nCome back to me when you are older.",
+      "saveFailed": "Your birth date did not save. Tell me again."
     },
     "reading": {
       "askBack": "I did not catch what you are asking about.\nSay it short: work, a person, or money?",

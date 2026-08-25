@@ -19,7 +19,8 @@
       "returning": "¿Algo nuevo? Cuéntame.\nAh — {topic}, lo que me preguntaste la vez pasada. Volveré a preguntarte cómo salió.",
       "topicWork": "Trabajo",
       "topicPeople": "Alguien",
-      "topicBoth": "Las dos cosas"
+      "topicBoth": "Las dos cosas",
+      "coldReadFallback": "Tu carta ya está abierta.\nDime en corto qué te pesa ahora y lo voy desarmando."
     },
     "intake": {
       "pickDate": "Elegir fecha de nacimiento",
@@ -36,7 +37,8 @@
       "notUnderstoodDate": "No entendí qué fecha es.\nUsa el botón de arriba, o escríbela así: 12/5/1999.",
       "notUnderstoodTime": "No entendí la hora.\nUsa el botón de arriba, o escríbela así: 07:20.",
       "ack": "Listo. Un momento.",
-      "tooYoung": "No leo para menores de trece años.\nVuelve cuando seas mayor."
+      "tooYoung": "No leo para menores de trece años.\nVuelve cuando seas mayor.",
+      "saveFailed": "Tu fecha de nacimiento no se guardó. Dímela otra vez."
     },
     "reading": {
       "askBack": "No entendí sobre qué preguntas.\nDilo corto: ¿trabajo, una persona o dinero?",
