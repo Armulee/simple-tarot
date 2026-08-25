@@ -459,6 +459,7 @@ export function useAstraOpening({
                 <AstraAnswerStrip speaker={identity.fullName}>
                     <BirthDatePickerButton
                         label={t("intake.pickDate")}
+                        confirmLabel={t("intake.confirm")}
                         onPick={(date) => acceptDate(date)}
                     />
                 </AstraAnswerStrip>
