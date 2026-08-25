@@ -1,9 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useLocale } from "next-intl"
 import { CalendarDays, Clock } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
 import {
     Popover,
     PopoverContent,
@@ -15,203 +14,69 @@ import { cn } from "@/lib/utils"
 /**
  * The two pickers she offers while collecting birth details.
  *
- * They are buttons in the strip directly above the composer — the composer
- * itself stays open, so anyone who would rather type "12/5/2542" can. The
- * time picker runs to the minute: an ascendant moves a degree every four
- * minutes, so "about seven" is not good enough.
+ * Both are wheels, because both answers are far from today: a calendar grid
+ * makes you page through three hundred months to reach a birth year, and a
+ * five-minute time step is useless for an ascendant that moves a degree every
+ * four minutes. Day / month / year and hour / minute all spin the same way,
+ * and the composer stays open for anyone who would rather type "12/5/2542".
  */
 
 const EARLIEST_BIRTH_YEAR = 1930
-/** Opened on a year people are actually born in, not on this month. */
-const DEFAULT_VIEW_YEAR = 1995
+/** Where the year wheel opens when nothing is chosen yet. */
+const DEFAULT_YEAR = 1995
+
 const PANEL_BG = "#13121f"
+const ITEM_HEIGHT = 38
+const VISIBLE_ITEMS = 5
 
 const panelClass =
-    "w-auto border-white/10 bg-[#13121f]/95 p-0 text-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl"
+    "w-auto rounded-2xl border-white/10 bg-[#13121f]/95 p-0 text-white shadow-[0_24px_60px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl"
 
 const confirmButtonClass =
-    "w-full rounded-xl bg-[#6C5CE7] px-3 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+    "w-full rounded-xl bg-[#6C5CE7] px-3 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
 
-function PanelFooter({ children }: { children: React.ReactNode }) {
-    return (
-        <div className='border-t border-white/10 p-3'>{children}</div>
-    )
-}
-
-export function BirthDatePickerButton({
-    label,
-    confirmLabel,
-    onPick,
-}: {
-    label: string
-    confirmLabel: string
-    onPick: (date: { year: number; month: number; day: number }) => void
-}) {
-    const locale = useLocale()
-    const [open, setOpen] = useState(false)
-    const [draft, setDraft] = useState<Date | undefined>()
-    const today = new Date()
-
-    const readout = draft
-        ? new Intl.DateTimeFormat(locale, {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-          }).format(draft)
-        : null
-
-    return (
-        <Popover
-            open={open}
-            onOpenChange={(next) => {
-                setOpen(next)
-                if (!next) setDraft(undefined)
-            }}
-        >
-            <PopoverTrigger className={cn(followUpChipClass, "gap-1.5")}>
-                <CalendarDays className='size-3.5 shrink-0' aria-hidden />
-                {label}
-            </PopoverTrigger>
-            <PopoverContent side='top' align='start' className={panelClass}>
-                <Calendar
-                    mode='single'
-                    selected={draft}
-                    onSelect={setDraft}
-                    captionLayout='dropdown'
-                    startMonth={new Date(EARLIEST_BIRTH_YEAR, 0)}
-                    endMonth={today}
-                    defaultMonth={draft ?? new Date(DEFAULT_VIEW_YEAR, 0)}
-                    disabled={(date) => date > today}
-                    className='bg-transparent p-3 [--cell-size:2.15rem]'
-                    // Thai reads years in the Buddhist era, so the dropdowns
-                    // must agree with the readout below and with the bubble
-                    // she echoes back — all three go through Intl.
-                    formatters={{
-                        formatMonthDropdown: (date) =>
-                            new Intl.DateTimeFormat(locale, {
-                                month: "short",
-                            }).format(date),
-                        formatYearDropdown: (date) =>
-                            new Intl.DateTimeFormat(locale, {
-                                year: "numeric",
-                            }).format(date),
-                        formatWeekdayName: (date) =>
-                            new Intl.DateTimeFormat(locale, {
-                                weekday: "narrow",
-                            }).format(date),
-                        formatCaption: (date) =>
-                            new Intl.DateTimeFormat(locale, {
-                                month: "long",
-                                year: "numeric",
-                            }).format(date),
-                    }}
-                    classNames={{
-                        month_caption:
-                            "flex h-(--cell-size) w-full items-center justify-center px-(--cell-size)",
-                        dropdown_root:
-                            "relative rounded-lg border border-white/10 bg-white/[0.04] px-1 shadow-none",
-                        caption_label:
-                            "flex h-8 select-none items-center gap-1 rounded-md pl-2 pr-1 text-sm font-medium text-white [&>svg]:size-3.5 [&>svg]:text-white/50",
-                        button_previous:
-                            "size-(--cell-size) rounded-lg p-0 text-white/70 hover:bg-white/10 hover:text-white aria-disabled:opacity-40",
-                        button_next:
-                            "size-(--cell-size) rounded-lg p-0 text-white/70 hover:bg-white/10 hover:text-white aria-disabled:opacity-40",
-                        weekday:
-                            "flex-1 select-none text-[0.7rem] font-normal uppercase tracking-[0.12em] text-white/35",
-                        today: "rounded-lg ring-1 ring-inset ring-white/20 data-[selected=true]:ring-0",
-                        outside: "text-white/20",
-                        disabled: "text-white/15 opacity-100",
-                    }}
-                    components={{
-                        DayButton: ({ className, day, modifiers, ...props }) => (
-                            <button
-                                {...props}
-                                data-day={day.date.toLocaleDateString()}
-                                className={cn(
-                                    "flex aspect-square w-full items-center justify-center rounded-lg text-sm tabular-nums text-white/80 transition-colors",
-                                    "hover:bg-white/10 hover:text-white",
-                                    modifiers.selected &&
-                                        "bg-[#6C5CE7] font-semibold text-white hover:bg-[#6C5CE7]",
-                                    modifiers.disabled &&
-                                        "text-white/15 hover:bg-transparent",
-                                    className,
-                                )}
-                            />
-                        ),
-                    }}
-                />
-                <PanelFooter>
-                    <p className='mb-2 text-center text-[13px] text-white/70'>
-                        {readout ?? "—"}
-                    </p>
-                    <button
-                        type='button'
-                        disabled={!draft}
-                        onClick={() => {
-                            if (!draft) return
-                            setOpen(false)
-                            onPick({
-                                year: draft.getFullYear(),
-                                month: draft.getMonth() + 1,
-                                day: draft.getDate(),
-                            })
-                            setDraft(undefined)
-                        }}
-                        className={confirmButtonClass}
-                    >
-                        {confirmLabel}
-                    </button>
-                </PanelFooter>
-            </PopoverContent>
-        </Popover>
-    )
-}
-
-const ITEM_HEIGHT = 36
-const VISIBLE_ITEMS = 5
-const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
-const MINUTES = Array.from({ length: 60 }, (_, minute) => minute)
+type WheelOption = { value: number; label: string }
 
 /**
- * One scroll wheel. The value follows whatever settles in the centre band,
- * and tapping a number scrolls it there.
+ * One column. The value follows whatever settles in the centre band, and
+ * tapping a row scrolls it there.
  */
 function Wheel({
     label,
-    values,
+    options,
     value,
     onChange,
+    width,
 }: {
     label: string
-    values: number[]
+    options: WheelOption[]
     value: number
     onChange: (value: number) => void
+    width: string
 }) {
     const scrollerRef = useRef<HTMLDivElement>(null)
     const settleRef = useRef<number | undefined>(undefined)
 
-    const scrollToIndex = useCallback(
-        (index: number, smooth: boolean) => {
-            const el = scrollerRef.current
-            if (!el) return
-            el.scrollTo({
-                top: index * ITEM_HEIGHT,
-                behavior: smooth ? "smooth" : "auto",
-            })
-        },
-        [],
-    )
+    const scrollToIndex = useCallback((index: number, smooth: boolean) => {
+        scrollerRef.current?.scrollTo({
+            top: index * ITEM_HEIGHT,
+            behavior: smooth ? "smooth" : "auto",
+        })
+    }, [])
 
-    // Follow the value when it changes from outside (opening, typing, reset).
+    // Follow the value when it changes from outside: opening, or a day being
+    // clamped because the month it sat in is shorter.
     useEffect(() => {
         const el = scrollerRef.current
         if (!el) return
-        const index = values.indexOf(value)
+        const index = options.findIndex((option) => option.value === value)
         if (index < 0) return
         if (Math.abs(el.scrollTop - index * ITEM_HEIGHT) > 2) {
             scrollToIndex(index, false)
         }
-    }, [scrollToIndex, value, values])
+    }, [options, scrollToIndex, value])
+
+    useEffect(() => () => window.clearTimeout(settleRef.current), [])
 
     const handleScroll = () => {
         const el = scrollerRef.current
@@ -219,20 +84,18 @@ function Wheel({
         window.clearTimeout(settleRef.current)
         settleRef.current = window.setTimeout(() => {
             const index = Math.round(el.scrollTop / ITEM_HEIGHT)
-            const next = values[Math.min(values.length - 1, Math.max(0, index))]
-            if (next !== undefined && next !== value) onChange(next)
+            const next = options[Math.min(options.length - 1, Math.max(0, index))]
+            if (next && next.value !== value) onChange(next.value)
         }, 80)
     }
 
-    useEffect(() => () => window.clearTimeout(settleRef.current), [])
-
     return (
-        <div className='flex flex-col items-center gap-1.5'>
+        <div className={cn("flex flex-col items-center gap-2", width)}>
             <p className='text-[10px] uppercase tracking-[0.18em] text-white/40'>
                 {label}
             </p>
             <div
-                className='relative w-[68px]'
+                className='relative w-full'
                 style={{ height: ITEM_HEIGHT * VISIBLE_ITEMS }}
             >
                 <div
@@ -240,26 +103,31 @@ function Wheel({
                     onScroll={handleScroll}
                     className='scrollbar-hide h-full snap-y snap-mandatory overflow-y-auto overscroll-contain'
                 >
-                    <div style={{ height: ITEM_HEIGHT * 2 }} />
-                    {values.map((option) => (
-                        <button
-                            key={option}
-                            type='button'
-                            style={{ height: ITEM_HEIGHT }}
-                            onClick={() =>
-                                scrollToIndex(values.indexOf(option), true)
-                            }
-                            className={cn(
-                                "flex w-full snap-center items-center justify-center text-[17px] tabular-nums transition-colors",
-                                option === value
-                                    ? "font-semibold text-white"
-                                    : "text-white/35",
-                            )}
-                        >
-                            {String(option).padStart(2, "0")}
-                        </button>
-                    ))}
-                    <div style={{ height: ITEM_HEIGHT * 2 }} />
+                <div style={{ height: ITEM_HEIGHT * 2 }} />
+                {options.map((option) => (
+                    <button
+                        key={option.value}
+                        type='button'
+                        style={{ height: ITEM_HEIGHT }}
+                        onClick={() =>
+                            scrollToIndex(
+                                options.findIndex(
+                                    (item) => item.value === option.value,
+                                ),
+                                true,
+                            )
+                        }
+                        className={cn(
+                            "flex w-full snap-center items-center justify-center px-1 text-center text-[16px] tabular-nums transition-colors",
+                            option.value === value
+                                ? "font-semibold text-white"
+                                : "text-white/35",
+                        )}
+                    >
+                        {option.label}
+                    </button>
+                ))}
+                <div style={{ height: ITEM_HEIGHT * 2 }} />
                 </div>
 
                 {/* Centre band and edge fades: the wheel's whole legibility. */}
@@ -289,6 +157,160 @@ function Wheel({
     )
 }
 
+/** The row the wheels sit in. */
+function WheelRow({ children }: { children: React.ReactNode }) {
+    return (
+        <div className='flex justify-center gap-2 px-4 pb-1 pt-3'>
+            {children}
+        </div>
+    )
+}
+
+function PanelReadout({ children }: { children: React.ReactNode }) {
+    return (
+        <p className='px-4 pt-4 text-center font-playfair text-[22px] leading-tight tracking-wide text-white'>
+            {children}
+        </p>
+    )
+}
+
+function PanelFooter({ children }: { children: React.ReactNode }) {
+    return <div className='border-t border-white/10 p-3'>{children}</div>
+}
+
+function daysInMonth(year: number, month: number): number {
+    return new Date(Date.UTC(year, month, 0)).getUTCDate()
+}
+
+export function BirthDatePickerButton({
+    label,
+    confirmLabel,
+    dayLabel,
+    monthLabel,
+    yearLabel,
+    onPick,
+}: {
+    label: string
+    confirmLabel: string
+    dayLabel: string
+    monthLabel: string
+    yearLabel: string
+    onPick: (date: { year: number; month: number; day: number }) => void
+}) {
+    const locale = useLocale()
+    const [open, setOpen] = useState(false)
+    const [year, setYear] = useState(DEFAULT_YEAR)
+    const [month, setMonth] = useState(1)
+    const [day, setDay] = useState(1)
+
+    const thisYear = new Date().getFullYear()
+
+    const yearOptions = useMemo(() => {
+        const format = new Intl.DateTimeFormat(locale, { year: "numeric" })
+        const years: WheelOption[] = []
+        for (let value = thisYear; value >= EARLIEST_BIRTH_YEAR; value -= 1) {
+            years.push({
+                value,
+                label: format.format(new Date(value, 0, 1)),
+            })
+        }
+        return years
+    }, [locale, thisYear])
+
+    const monthOptions = useMemo(() => {
+        const format = new Intl.DateTimeFormat(locale, { month: "short" })
+        return Array.from({ length: 12 }, (_, index) => ({
+            value: index + 1,
+            label: format.format(new Date(2024, index, 1)),
+        }))
+    }, [locale])
+
+    const dayOptions = useMemo(
+        () =>
+            Array.from({ length: daysInMonth(year, month) }, (_, index) => ({
+                value: index + 1,
+                label: String(index + 1),
+            })),
+        [month, year],
+    )
+
+    // February loses days when the year or month moves under a late day.
+    useEffect(() => {
+        const max = daysInMonth(year, month)
+        if (day > max) setDay(max)
+    }, [day, month, year])
+
+    const readout = new Intl.DateTimeFormat(locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    }).format(new Date(year, month - 1, day))
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger className={cn(followUpChipClass, "gap-1.5")}>
+                <CalendarDays className='size-3.5 shrink-0' aria-hidden />
+                {label}
+            </PopoverTrigger>
+            <PopoverContent
+                side='top'
+                align='start'
+                collisionPadding={12}
+                className={panelClass}
+            >
+                <PanelReadout>{readout}</PanelReadout>
+                <WheelRow>
+                    <Wheel
+                        label={dayLabel}
+                        options={dayOptions}
+                        value={day}
+                        onChange={setDay}
+                        width='w-14'
+                    />
+                    <Wheel
+                        label={monthLabel}
+                        options={monthOptions}
+                        value={month}
+                        onChange={setMonth}
+                        width='w-20'
+                    />
+                    <Wheel
+                        label={yearLabel}
+                        options={yearOptions}
+                        value={year}
+                        onChange={setYear}
+                        width='w-20'
+                    />
+                </WheelRow>
+                <PanelFooter>
+                    <button
+                        type='button'
+                        onClick={() => {
+                            setOpen(false)
+                            onPick({ year, month, day })
+                        }}
+                        className={confirmButtonClass}
+                    >
+                        {confirmLabel}
+                    </button>
+                </PanelFooter>
+            </PopoverContent>
+        </Popover>
+    )
+}
+
+const HOUR_OPTIONS: WheelOption[] = Array.from({ length: 24 }, (_, hour) => ({
+    value: hour,
+    label: String(hour).padStart(2, "0"),
+}))
+const MINUTE_OPTIONS: WheelOption[] = Array.from(
+    { length: 60 },
+    (_, minute) => ({
+        value: minute,
+        label: String(minute).padStart(2, "0"),
+    }),
+)
+
 export function BirthTimePickerButton({
     label,
     hourLabel,
@@ -312,28 +334,35 @@ export function BirthTimePickerButton({
                 <Clock className='size-3.5 shrink-0' aria-hidden />
                 {label}
             </PopoverTrigger>
-            <PopoverContent side='top' align='start' className={panelClass}>
-                <p className='pt-4 text-center font-playfair text-3xl tabular-nums tracking-wide text-white'>
+            <PopoverContent
+                side='top'
+                align='start'
+                collisionPadding={12}
+                className={panelClass}
+            >
+                <PanelReadout>
                     {String(hour).padStart(2, "0")}
                     <span className='mx-0.5 text-white/40'>:</span>
                     {String(minute).padStart(2, "0")}
-                </p>
-                <div className='flex items-start justify-center gap-4 px-4 pb-3 pt-2'>
+                </PanelReadout>
+                <WheelRow>
                     <Wheel
                         label={hourLabel}
-                        values={HOURS}
+                        options={HOUR_OPTIONS}
                         value={hour}
                         onChange={setHour}
+                        width='w-16'
                     />
                     <Wheel
                         label={minuteLabel}
-                        values={MINUTES}
+                        options={MINUTE_OPTIONS}
                         value={minute}
                         onChange={setMinute}
+                        width='w-16'
                     />
-                </div>
-                {/* Round minutes are one tap; the wheel still holds all 60. */}
-                <div className='flex justify-center gap-1.5 px-4 pb-3'>
+                </WheelRow>
+                {/* Round minutes are one tap; the wheel still holds all sixty. */}
+                <div className='flex justify-center gap-1.5 px-4 pb-3 pt-1'>
                     {[0, 15, 30, 45].map((option) => (
                         <button
                             key={option}

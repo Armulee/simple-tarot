@@ -23,6 +23,9 @@
     },
     "intake": {
       "pickDate": "生年月日を選ぶ",
+      "day": "日",
+      "month": "月",
+      "year": "年",
       "askTimeKnown": "生まれた時間はわかる？わかるなら上昇宮も見ます。",
       "pickTime": "生まれた時間を選ぶ",
       "timeKnownNo": "わからない",

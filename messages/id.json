@@ -23,6 +23,9 @@
     },
     "intake": {
       "pickDate": "Pilih tanggal lahir",
+      "day": "Tgl",
+      "month": "Bulan",
+      "year": "Tahun",
       "askTimeKnown": "Kamu tahu jam lahirmu? Kalau tahu, aku bisa baca ascendant-mu juga.",
       "pickTime": "Pilih jam lahir",
       "timeKnownNo": "Tidak tahu",

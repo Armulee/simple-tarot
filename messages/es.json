@@ -23,6 +23,9 @@
     },
     "intake": {
       "pickDate": "Elegir fecha de nacimiento",
+      "day": "Día",
+      "month": "Mes",
+      "year": "Año",
       "askTimeKnown": "¿Sabes tu hora de nacimiento? Si la sabes, leo también tu ascendente.",
       "pickTime": "Elegir hora de nacimiento",
       "timeKnownNo": "No la sé",

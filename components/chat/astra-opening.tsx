@@ -460,6 +460,9 @@ export function useAstraOpening({
                     <BirthDatePickerButton
                         label={t("intake.pickDate")}
                         confirmLabel={t("intake.confirm")}
+                        dayLabel={t("intake.day")}
+                        monthLabel={t("intake.month")}
+                        yearLabel={t("intake.year")}
                         onPick={(date) => acceptDate(date)}
                     />
                 </AstraAnswerStrip>

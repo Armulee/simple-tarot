@@ -23,6 +23,9 @@
     },
     "intake": {
       "pickDate": "选择出生日期",
+      "day": "日",
+      "month": "月",
+      "year": "年",
       "askTimeKnown": "知道出生时间吗？知道的话，我连上升宫也一起看。",
       "pickTime": "选择出生时间",
       "timeKnownNo": "不知道",

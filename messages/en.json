@@ -23,6 +23,9 @@
     },
     "intake": {
       "pickDate": "Pick your birth date",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year",
       "askTimeKnown": "Do you know your birth time? If you do, I can read your ascendant too.",
       "pickTime": "Pick your birth time",
       "timeKnownNo": "I don't",

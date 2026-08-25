@@ -23,6 +23,9 @@
     },
     "intake": {
       "pickDate": "생년월일 고르기",
+      "day": "일",
+      "month": "월",
+      "year": "년",
       "askTimeKnown": "태어난 시간을 알아요? 알면 상승궁까지 봐 줄게요.",
       "pickTime": "태어난 시간 고르기",
       "timeKnownNo": "몰라요",
