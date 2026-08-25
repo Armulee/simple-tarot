@@ -37,7 +37,7 @@ export type AstraReadingBasis = {
     system: "vedic_sidereal"
 }
 
-export type AstraOpeningStage = "ask_birth" | "cold_read"
+export type AstraOpeningStage = "ask_birth" | "cold_read" | "follow_up"
 
 export type AstraOpeningPayload = {
     stage: AstraOpeningStage
@@ -45,6 +45,11 @@ export type AstraOpeningPayload = {
     /** Tap answers offered above the composer once she stops speaking. */
     quickReplies: AstraQuickReply[]
     basis: AstraReadingBasis | null
+    /**
+     * Set when she is opening by asking how an earlier forecast turned out.
+     * The tap answers record the outcome instead of sending a message.
+     */
+    followUpPredictionId: string | null
 }
 
 /**

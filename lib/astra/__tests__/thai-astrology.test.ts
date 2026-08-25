@@ -4,8 +4,12 @@ import {
     THAKSA_CYCLE_YEARS,
     ageInYears,
     birthDayStar,
+    kalakiniStar,
     missingElement,
+    nakshatraIndex,
+    ruekOfNakshatra,
     rulingAgeStar,
+    watchAtTime,
     weekdayIndex,
 } from "../thai-astrology.ts"
 
@@ -68,4 +72,60 @@ test("the thinnest element is the one that is missing", () => {
     // Evenly spread placements leave nothing to point at.
     assert.equal(missingElement(["Aries", "Taurus", "Gemini", "Cancer"]), null)
     assert.equal(missingElement([]), null)
+})
+
+test("กาลกิณี is the eighth star of the round", () => {
+    // Sun-born: Sun, Moon, Mars, Mercury, Saturn, Jupiter, Rahu, Venus.
+    assert.equal(kalakiniStar("sun"), "venus")
+    assert.equal(kalakiniStar("moon"), "sun")
+})
+
+test("the day's watches open on the weekday's own star", () => {
+    // 1995-03-14 was a Tuesday, so Mars rules it.
+    const morning = watchAtTime({
+        year: 1995,
+        month: 3,
+        day: 14,
+        hour: 6,
+        minute: 30,
+    })
+    assert.equal(morning.star, "mars")
+    assert.equal(morning.index, 1)
+    assert.equal(morning.isNight, false)
+
+    // Two watches on: Mars → Mercury → Saturn.
+    const later = watchAtTime({
+        year: 1995,
+        month: 3,
+        day: 14,
+        hour: 9,
+        minute: 15,
+    })
+    assert.equal(later.index, 3)
+    assert.equal(later.star, "saturn")
+})
+
+test("after midnight still belongs to the night before", () => {
+    const afterMidnight = watchAtTime({
+        year: 1995,
+        month: 3,
+        day: 15,
+        hour: 1,
+        minute: 0,
+    })
+    assert.equal(afterMidnight.isNight, true)
+    // Reckoned under Tuesday, not Wednesday.
+    assert.equal(afterMidnight.dayStar, "mars")
+    // The night's fifth watch runs 00:00–01:30.
+    assert.equal(afterMidnight.index, 5)
+})
+
+test("the mansions cycle through nine ฤกษ์", () => {
+    assert.equal(nakshatraIndex(0), 0)
+    assert.equal(nakshatraIndex(13.4), 1)
+    assert.equal(nakshatraIndex(359.9), 26)
+    assert.equal(ruekOfNakshatra(0), "thalitho")
+    assert.equal(ruekOfNakshatra(6), "phetchakhat")
+    assert.equal(ruekOfNakshatra(9), "thalitho")
+    assert.equal(ruekOfNakshatra(26), "samano")
 })

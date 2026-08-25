@@ -17,6 +17,8 @@ import {
     type ParsedBirthDate,
     type ParsedBirthTime,
 } from "@/lib/astra/parse-birth-input"
+import { classifyQuestion } from "@/lib/astra/intent"
+import type { AstraReadingResponse } from "@/lib/astra/reading-contract"
 import { saveBirthToStorage } from "@/lib/birth-storage"
 import { supabase } from "@/lib/supabase"
 import type {
@@ -70,8 +72,9 @@ export function useAstraOpening({
     const identity = useAstraIdentity()
     const [typing, setTyping] = useState(false)
     const [stage, setStage] = useState<
-        "idle" | "ask_birth" | "cold_read" | "done"
+        "idle" | "ask_birth" | "cold_read" | "follow_up" | "done"
     >("idle")
+    const followUpRef = useRef<string | null>(null)
     const [intakeStep, setIntakeStep] = useState<IntakeStep | null>(null)
     // The step is live the moment she moves on, so a fast typer's answer is
     // never handed to the reading flow; the button only appears once the
@@ -120,20 +123,37 @@ export function useAstraOpening({
         [setMessages],
     )
 
-    /** Plays a server-composed turn: pause, bubble, pause, bubble. */
-    const playPayload = useCallback(
-        async (payload: AstraOpeningPayload) => {
-            for (const b of payload.bubbles) {
+    /** Pause, bubble, pause, bubble — the pacing of someone speaking. */
+    const playBubbles = useCallback(
+        async (
+            bubbles: { id: string; text: string; typingMs: number }[],
+            lastExtra?: Partial<ChatMessage>,
+            stamp?: Partial<ChatMessage>,
+        ) => {
+            for (let index = 0; index < bubbles.length; index += 1) {
+                const b = bubbles[index]
                 setTyping(true)
                 await delay(b.typingMs)
                 setTyping(false)
                 appendAssistantBubble(b.id, b.text, {
-                    astraStage: payload.stage,
-                    ...(payload.basis ? { astraBasis: payload.basis } : {}),
+                    ...stamp,
+                    ...(index === bubbles.length - 1 ? lastExtra : {}),
                 })
                 await delay(220)
             }
+        },
+        [appendAssistantBubble],
+    )
+
+    /** Plays a server-composed turn: pause, bubble, pause, bubble. */
+    const playPayload = useCallback(
+        async (payload: AstraOpeningPayload) => {
+            await playBubbles(payload.bubbles, undefined, {
+                astraStage: payload.stage,
+                ...(payload.basis ? { astraBasis: payload.basis } : {}),
+            })
             basisRef.current = payload.basis
+            followUpRef.current = payload.followUpPredictionId
             setStage(payload.stage)
             if (payload.stage === "ask_birth") {
                 setIntakeStep("date")
@@ -145,7 +165,7 @@ export function useAstraOpening({
                 setQuickReplies(payload.quickReplies)
             }
         },
-        [appendAssistantBubble],
+        [playBubbles],
     )
 
     const fetchOpening = useCallback(async () => {
@@ -388,6 +408,110 @@ export function useAstraOpening({
         [appendUserBubble, finishIntake, t],
     )
 
+    const appendPlainUserBubble = useCallback(
+        (text: string) => {
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: `user-${Date.now()}`,
+                    role: "user",
+                    text,
+                } as ChatMessage,
+            ])
+        },
+        [setMessages],
+    )
+
+    /**
+     * A routed reading: the question picks the craft, the craft computes, and
+     * only then does she speak. Failures say so instead of inventing a chart.
+     */
+    const runReading = useCallback(
+        async (question: string) => {
+            appendPlainUserBubble(question)
+            setQuickReplies([])
+            setStage("done")
+            try {
+                setTyping(true)
+                const response = await fetch("/api/astra/reading", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question,
+                        sessionId,
+                        locale,
+                        timezone: -new Date().getTimezoneOffset() / 60,
+                    }),
+                })
+                setTyping(false)
+                if (!response.ok) throw new Error("READING_FAILED")
+                const payload = (await response.json()) as AstraReadingResponse
+
+                if (payload.kind === "needs_birth") {
+                    await playPayload(await fetchOpening())
+                    return
+                }
+                if (payload.kind === "unsure") {
+                    await playBubbles(payload.bubbles)
+                    return
+                }
+                if (payload.kind === "tarot") return
+                await playBubbles(payload.bubbles, {
+                    astraSource: payload.source,
+                    ...(payload.prediction
+                        ? { astraPrediction: payload.prediction }
+                        : {}),
+                })
+            } catch {
+                setTyping(false)
+                appendAssistantBubble(
+                    `astra-reading-failed-${Date.now()}`,
+                    t("reading.failed"),
+                )
+            }
+        },
+        [
+            appendAssistantBubble,
+            appendPlainUserBubble,
+            fetchOpening,
+            locale,
+            playBubbles,
+            playPayload,
+            sessionId,
+            t,
+        ],
+    )
+
+    /** Records how an earlier forecast actually turned out. */
+    const recordFollowUp = useCallback(
+        async (outcome: "hit" | "miss" | "unclear", label: string) => {
+            const predictionId = followUpRef.current
+            followUpRef.current = null
+            setQuickReplies([])
+            appendPlainUserBubble(label)
+            if (predictionId) {
+                await fetch("/api/astra/prediction", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: predictionId, outcome }),
+                }).catch(() => {})
+            }
+            await playBubbles([
+                {
+                    id: `astra-followup-ack-${Date.now()}`,
+                    text: t(
+                        outcome === "miss"
+                            ? "followUp.thanksMiss"
+                            : "followUp.thanks",
+                    ),
+                    typingMs: 700,
+                },
+            ])
+            await playPayload(await fetchOpening())
+        },
+        [appendPlainUserBubble, fetchOpening, playBubbles, playPayload, t],
+    )
+
     const sayNotUnderstood = useCallback(
         (step: IntakeStep) => {
             void (async () => {
@@ -415,7 +539,17 @@ export function useAstraOpening({
     const handleTypedInput = useCallback(
         (raw: string): boolean => {
             const text = raw.trim()
-            if (!text || !intakeStep) return false
+            if (!text) return false
+
+            if (!intakeStep) {
+                // A tarot draw and anything about the product itself belong
+                // to the flows that already handle them; everything else about
+                // this person's life, she answers.
+                const routed = classifyQuestion(text).kind
+                if (routed === "tarot" || routed === "passthrough") return false
+                void runReading(text)
+                return true
+            }
 
             if (intakeStep === "date") {
                 const date = parseBirthDate(text)
@@ -440,17 +574,25 @@ export function useAstraOpening({
             acceptTime,
             appendUserBubble,
             intakeStep,
+            runReading,
             sayNotUnderstood,
         ],
     )
 
     const handleQuickReply = useCallback(
         (reply: AstraQuickReply) => {
+            if (followUpRef.current) {
+                void recordFollowUp(
+                    reply.id as "hit" | "miss" | "unclear",
+                    reply.label,
+                )
+                return
+            }
             setQuickReplies([])
             setStage("done")
             onSendUserMessage(reply.label)
         },
-        [onSendUserMessage],
+        [onSendUserMessage, recordFollowUp],
     )
 
     const node = useMemo(() => {

@@ -37,6 +37,25 @@
       "notUnderstoodTime": "시간을 못 읽었어요.\n위 버튼을 쓰거나 07:20 처럼 입력해요.",
       "ack": "됐어요. 잠깐만요.",
       "tooYoung": "열세 살 미만은 봐 주지 않아요.\n조금 더 자란 뒤에 다시 와요."
+    },
+    "reading": {
+      "askBack": "무엇을 묻는지 못 알아들었어요.\n짧게 말해요 — 일, 사람, 돈?",
+      "sourceLabel": {
+        "IDENTITY": "출생 차트",
+        "TIMING": "운행과 출생 차트",
+        "OUTCOME": "질문 시각의 차트",
+        "AUSPICIOUS_DATE": "택일"
+      },
+      "failed": "지금은 봐 줄 수 없어요. 다시 물어봐요.",
+      "noted": "적어 뒀어요 · {date}에 결과를 물을게요"
+    },
+    "followUp": {
+      "ask": "지난번에 물은 건 “{question}”\n제가 {verdict}라고 했어요\n어떻게 됐어요?",
+      "hit": "맞았어요",
+      "miss": "아니에요",
+      "unclear": "아직 몰라요",
+      "thanks": "좋아요. 적어 뒀어요.",
+      "thanksMiss": "적어 뒀어요. 다음엔 더 자세히 볼게요."
     }
   },
   "Beta": {

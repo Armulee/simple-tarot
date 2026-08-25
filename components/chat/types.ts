@@ -138,9 +138,13 @@ export type ChatMessage = {
      * pick the tap-answers back up after a reload instead of leaving the
      * visitor staring at a question with no way to answer it.
      */
-    astraStage?: "ask_birth" | "cold_read"
+    astraStage?: import("@/lib/astra/opening-contract").AstraOpeningStage
     /** What the opening read was computed from (proof sheet, anti-reroll seed). */
     astraBasis?: import("@/lib/astra/opening-contract").AstraReadingBasis
+    /** Which craft answered this turn, and the values it computed. */
+    astraSource?: import("@/lib/astra/reading-contract").AstraReadingSource
+    /** A forecast she wrote down, with the day she will come back and ask. */
+    astraPrediction?: import("@/lib/astra/reading-contract").AstraPredictionNote
     /** Tapped answer to one of her intake questions — not a question of theirs. */
     astraIntakeAnswer?: boolean
     /**

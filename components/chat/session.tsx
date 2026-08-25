@@ -7523,13 +7523,6 @@ export default function ChatSession({
         value: string,
         attachments?: ChatAttachment[],
     ) => {
-        if (
-            !attachments?.length &&
-            astraTypedInputRef.current?.(value) === true
-        ) {
-            setQuestion("")
-            return
-        }
         pendingAttachmentsRef.current = attachments?.length
             ? attachments
             : null
@@ -7550,6 +7543,18 @@ export default function ChatSession({
                 setQuestion("")
                 return
             }
+        }
+
+        // Hers to answer, unless a draw or the birth intake is mid-flow, or
+        // the message carries attachments for the reading pipeline to read.
+        if (
+            !attachments?.length &&
+            !showCardDraw &&
+            !isHoroscopeIntakeActive &&
+            astraTypedInputRef.current?.(value) === true
+        ) {
+            setQuestion("")
+            return
         }
         const trimmed = value.trim()
         const hasAttachments = Boolean(attachments?.length)

@@ -58,7 +58,7 @@ import {
     MessageContextMenu,
     type MessageMenuItem,
 } from "@/components/chat/message-context-menu"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 import {
     ChevronDown,
@@ -69,6 +69,7 @@ import {
     Loader2,
     MoveHorizontal,
     Pencil,
+    PencilLine,
     RotateCw,
     CornerDownRight,
     Send,
@@ -429,6 +430,8 @@ export default function MessageList({
 }: MessageListProps) {
     const t = useTranslations("Home")
     const tMenu = useTranslations("Chat.messageMenu")
+    const tAstra = useTranslations("Astra")
+    const locale = useLocale()
     const tPanel = useTranslations("PlanetaryPanel")
     const tHoroscope = useTranslations("HoroscopeChat")
     const tSynastry = useTranslations("Synastry")
@@ -1370,6 +1373,31 @@ export default function MessageList({
                                                         />
                                                     </div>
                                                 </MessageContextMenu>
+                                            ) : null}
+                                            {/* A forecast she stands behind,
+                                                with the day she comes back. */}
+                                            {message.astraPrediction ? (
+                                                <span className='inline-flex w-fit items-center gap-1.5 rounded-lg border border-amber-300/30 bg-amber-400/10 px-2.5 py-1 text-[11px] text-amber-100/90'>
+                                                    <PencilLine
+                                                        className='size-3 shrink-0'
+                                                        aria-hidden
+                                                    />
+                                                    {tAstra("reading.noted", {
+                                                        date: new Intl.DateTimeFormat(
+                                                            locale,
+                                                            {
+                                                                day: "numeric",
+                                                                month: "short",
+                                                            },
+                                                        ).format(
+                                                            new Date(
+                                                                message
+                                                                    .astraPrediction
+                                                                    .dueDateIso,
+                                                            ),
+                                                        ),
+                                                    })}
+                                                </span>
                                             ) : null}
                                         </div>
                                         {!message.isLoading &&

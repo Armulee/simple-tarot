@@ -173,3 +173,151 @@ export function missingElement(signs: readonly string[]): ChartElement | null {
     if (lowest === highest) return null
     return CHART_ELEMENTS.find((e) => counts[e] === lowest) ?? null
 }
+
+/**
+ * กาลกิณี — the star that sits eighth in the ทักษา round from the birth-day
+ * star, counting the day star itself as first. Its weekday is the one to keep
+ * away from when choosing an auspicious date.
+ */
+export function kalakiniStar(dayStar: ThaiStar): ThaiStar {
+    const start = THAKSA_ORDER.indexOf(dayStar)
+    return THAKSA_ORDER[(start + 7) % THAKSA_ORDER.length]
+}
+
+/** Weekday (0 = Sunday) ruled by each star; Rahu rules no weekday of its own. */
+export function weekdayOfStar(star: ThaiStar): number | null {
+    const index = WEEKDAY_STARS.indexOf(star)
+    return index === -1 ? null : index
+}
+
+/** The 27 lunar mansions. A nakshatra spans 13°20' of the sidereal zodiac. */
+export const NAKSHATRA_ARC = 360 / 27
+
+export function nakshatraIndex(siderealLongitude: number): number {
+    const normalized = ((siderealLongitude % 360) + 360) % 360
+    return Math.floor(normalized / NAKSHATRA_ARC)
+}
+
+/**
+ * The nine ฤกษ์ groups, in the order the mansions cycle through them. Each
+ * mansion belongs to the group at `index % 9`, and the group is what a Thai
+ * almanac reads when it calls a day fit — or unfit — for a particular kind of
+ * undertaking.
+ */
+export const RUEK_GROUPS = [
+    "thalitho",
+    "mahattano",
+    "choro",
+    "phumipalo",
+    "thesatri",
+    "thewi",
+    "phetchakhat",
+    "racha",
+    "samano",
+] as const
+
+export type RuekGroup = (typeof RUEK_GROUPS)[number]
+
+export function ruekOfNakshatra(index: number): RuekGroup {
+    return RUEK_GROUPS[((index % 9) + 9) % 9]
+}
+
+/** What each ฤกษ์ is traditionally read as good for. */
+export const RUEK_SUITABILITY: Record<
+    RuekGroup,
+    { good: readonly string[]; avoid: readonly string[] }
+> = {
+    // ทลิทโท — the beggar's ฤกษ์: asking, and work that starts from nothing.
+    thalitho: { good: ["asking", "study", "service"], avoid: ["wedding", "opening"] },
+    // มหัทธโน — the wealthy: trade, opening, anything that should hold money.
+    mahattano: { good: ["business", "opening", "money", "wedding"], avoid: [] },
+    // โจโร — the thief: seizing and contending, never for what must last.
+    choro: { good: ["negotiation", "competition"], avoid: ["wedding", "opening", "contract"] },
+    // ภูมิปาโล — the land-keeper: building, settling, contracts.
+    phumipalo: { good: ["building", "moving", "contract", "wedding"], avoid: [] },
+    // เทศาตรี — the traveller: movement, travel, publishing.
+    thesatri: { good: ["travel", "launch", "meeting"], avoid: ["wedding"] },
+    // เทวี — the lady: beauty, courtship, anything asking to be liked.
+    thewi: { good: ["wedding", "launch", "meeting", "money"], avoid: [] },
+    // เพชฌฆาต — the executioner: for cutting things off, and nothing else.
+    phetchakhat: { good: [], avoid: ["wedding", "opening", "contract", "travel", "launch"] },
+    // ราชา — the king: authority, ceremony, facing power.
+    racha: { good: ["opening", "ceremony", "authority", "contract"], avoid: [] },
+    // สมโณ — the ascetic: quiet, merit, retreat.
+    samano: { good: ["merit", "study", "rest"], avoid: ["opening", "business"] },
+}
+
+/**
+ * ยามอัฐกาล — the eight watches.
+ *
+ * Daylight (06:00–18:00) and night (18:00–06:00) are each cut into eight
+ * watches of ninety minutes, and each watch is ruled by a star in the ทักษา
+ * order. The daytime round opens on the star of the weekday itself; the night
+ * round opens six places on from it. A watch after midnight still belongs to
+ * the night of the day before, the way the Thai day is reckoned.
+ *
+ * CONVENTION: the night offset below is the one place in the code where a
+ * choice between almanac traditions is made. If a working astrologer says the
+ * night round opens elsewhere, this constant is the only thing to change.
+ */
+const NIGHT_WATCH_OFFSET = 5
+
+const WATCH_MINUTES = 90
+const WATCHES_PER_HALF = 8
+
+export type Watch = {
+    /** 1–8 within its half of the day. */
+    index: number
+    star: ThaiStar
+    isNight: boolean
+    /** Star of the weekday this watch is reckoned under. */
+    dayStar: ThaiStar
+}
+
+export function watchAtTime(at: {
+    year: number
+    month: number
+    day: number
+    hour: number
+    minute: number
+}): Watch {
+    const isDaylight = at.hour >= 6 && at.hour < 18
+    const minutesOfDay = at.hour * 60 + at.minute
+
+    // Before dawn belongs to the night of the previous day.
+    const reckoned =
+        isDaylight || at.hour >= 18
+            ? { year: at.year, month: at.month, day: at.day }
+            : (() => {
+                  const previous = new Date(
+                      Date.UTC(at.year, at.month - 1, at.day - 1),
+                  )
+                  return {
+                      year: previous.getUTCFullYear(),
+                      month: previous.getUTCMonth() + 1,
+                      day: previous.getUTCDate(),
+                  }
+              })()
+
+    const dayStar = birthDayStar(reckoned)
+    const startIndex = THAKSA_ORDER.indexOf(dayStar)
+
+    const elapsed = isDaylight
+        ? minutesOfDay - 6 * 60
+        : at.hour >= 18
+          ? minutesOfDay - 18 * 60
+          : minutesOfDay + 6 * 60
+
+    const offset = Math.min(
+        WATCHES_PER_HALF - 1,
+        Math.max(0, Math.floor(elapsed / WATCH_MINUTES)),
+    )
+    const roundStart = isDaylight ? startIndex : startIndex + NIGHT_WATCH_OFFSET
+
+    return {
+        index: offset + 1,
+        star: THAKSA_ORDER[(roundStart + offset) % THAKSA_ORDER.length],
+        isNight: !isDaylight,
+        dayStar,
+    }
+}

@@ -37,6 +37,25 @@
       "notUnderstoodTime": "No entendí la hora.\nUsa el botón de arriba, o escríbela así: 07:20.",
       "ack": "Listo. Un momento.",
       "tooYoung": "No leo para menores de trece años.\nVuelve cuando seas mayor."
+    },
+    "reading": {
+      "askBack": "No entendí sobre qué preguntas.\nDilo corto: ¿trabajo, una persona o dinero?",
+      "sourceLabel": {
+        "IDENTITY": "carta natal",
+        "TIMING": "tránsitos sobre la carta natal",
+        "OUTCOME": "carta del momento de la pregunta",
+        "AUSPICIOUS_DATE": "día propicio"
+      },
+      "failed": "Ahora no puedo leerlo. Pregúntame otra vez.",
+      "noted": "Anotado · te pregunto el {date}"
+    },
+    "followUp": {
+      "ask": "La vez pasada preguntaste: «{question}»\nTe dije {verdict}\n¿Cómo salió?",
+      "hit": "Pasó",
+      "miss": "No pasó",
+      "unclear": "Aún no se ve",
+      "thanks": "Bien. Queda anotado.",
+      "thanksMiss": "Anotado. La próxima miro más de cerca."
     }
   },
   "Beta": {

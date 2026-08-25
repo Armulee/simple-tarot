@@ -37,6 +37,25 @@
       "notUnderstoodTime": "我沒看出是幾點。\n用上面的按鈕，或按 07:20 這樣輸入。",
       "ack": "好了，稍等。",
       "tooYoung": "我不為十三歲以下的人看命。\n長大一些再來找我。"
+    },
+    "reading": {
+      "askBack": "我沒聽出你在問什麼。\n簡單說一句：工作、某個人，還是錢？",
+      "sourceLabel": {
+        "IDENTITY": "出生盤",
+        "TIMING": "行運對本命",
+        "OUTCOME": "問事盤",
+        "AUSPICIOUS_DATE": "擇日"
+      },
+      "failed": "現在我看不了，再問我一次。",
+      "noted": "已記下 · {date} 我會問結果"
+    },
+    "followUp": {
+      "ask": "上次你問：「{question}」\n我說了 {verdict}\n後來怎麼樣？",
+      "hit": "應驗了",
+      "miss": "沒有",
+      "unclear": "還看不出來",
+      "thanks": "好，我記下了。",
+      "thanksMiss": "記下了，下次我看得更細。"
     }
   },
   "Beta": {

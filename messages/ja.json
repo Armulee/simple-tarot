@@ -37,6 +37,25 @@
       "notUnderstoodTime": "時間が読み取れませんでした。\n上のボタンを使うか、07:20 のように入力して。",
       "ack": "わかった。少し待って。",
       "tooYoung": "十三歳未満の人は占いません。\nもう少し大きくなってから来て。"
+    },
+    "reading": {
+      "askBack": "何について聞いているのか読み取れませんでした。\n短くどうぞ — 仕事、人、お金？",
+      "sourceLabel": {
+        "IDENTITY": "出生図",
+        "TIMING": "経過と出生図",
+        "OUTCOME": "問いの時の図",
+        "AUSPICIOUS_DATE": "吉日"
+      },
+      "failed": "今は見られません。もう一度聞いて。",
+      "noted": "書き留めた · {date}に結果を聞きます"
+    },
+    "followUp": {
+      "ask": "前に聞いたのは「{question}」\n私は {verdict} と言った\nどうなった？",
+      "hit": "当たった",
+      "miss": "外れた",
+      "unclear": "まだわからない",
+      "thanks": "よし、書き留めた。",
+      "thanksMiss": "書き留めた。次はもっと細かく見る。"
     }
   },
   "Beta": {

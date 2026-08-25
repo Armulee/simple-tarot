@@ -148,6 +148,51 @@ export async function POST(req: NextRequest) {
 
     const bubbles: AstraBubble[] = []
 
+    // A forecast that came due outranks everything else she might open with:
+    // she said something would show by now, so she asks how it went.
+    if (subject && supabaseAdmin) {
+        const today = new Date().toISOString().slice(0, 10)
+        const { data: due } = await supabaseAdmin
+            .from("astra_predictions")
+            .select("id, question, verdict, due_date")
+            .eq("subject_type", subject.type)
+            .eq("subject_id", subject.id)
+            .is("outcome", null)
+            .is("asked_result_at", null)
+            .lte("due_date", today)
+            .order("due_date", { ascending: true })
+            .limit(1)
+
+        const prediction = due?.[0]
+        if (prediction) {
+            await supabaseAdmin
+                .from("astra_predictions")
+                .update({ asked_result_at: new Date().toISOString() })
+                .eq("id", prediction.id)
+
+            const payload: AstraOpeningPayload = {
+                stage: "follow_up",
+                bubbles: [
+                    bubble(
+                        `astra-followup-${prediction.id}`,
+                        t("followUp.ask", {
+                            question: String(prediction.question).slice(0, 120),
+                            verdict: String(prediction.verdict),
+                        }),
+                    ),
+                ],
+                quickReplies: [
+                    { id: "hit", label: t("followUp.hit") },
+                    { id: "miss", label: t("followUp.miss") },
+                    { id: "unclear", label: t("followUp.unclear") },
+                ],
+                basis: null,
+                followUpPredictionId: String(prediction.id),
+            }
+            return NextResponse.json(payload)
+        }
+    }
+
     // A new thread opens by picking up the last one — she does not make people
     // re-tell a story she already heard.
     const isNewThread = Boolean(
@@ -178,6 +223,7 @@ export async function POST(req: NextRequest) {
             bubbles,
             quickReplies: [],
             basis: null,
+            followUpPredictionId: null,
         }
         return NextResponse.json(payload)
     }
@@ -242,6 +288,7 @@ export async function POST(req: NextRequest) {
         bubbles,
         quickReplies,
         basis,
+        followUpPredictionId: null,
     }
     return NextResponse.json(payload)
 }

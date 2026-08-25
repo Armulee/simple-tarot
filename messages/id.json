@@ -37,6 +37,25 @@
       "notUnderstoodTime": "Aku belum menangkap jamnya.\nPakai tombol di atas, atau ketik seperti 07:20.",
       "ack": "Sudah. Tunggu sebentar.",
       "tooYoung": "Aku tidak membaca untuk yang belum tiga belas tahun.\nDatang lagi kalau sudah lebih besar."
+    },
+    "reading": {
+      "askBack": "Aku belum menangkap kamu bertanya soal apa.\nSingkat saja: kerja, seseorang, atau uang?",
+      "sourceLabel": {
+        "IDENTITY": "peta kelahiran",
+        "TIMING": "transit atas peta kelahiran",
+        "OUTCOME": "peta saat ditanya",
+        "AUSPICIOUS_DATE": "hari baik"
+      },
+      "failed": "Sekarang aku tidak bisa membacanya. Tanya lagi.",
+      "noted": "Sudah dicatat · aku tanya hasilnya {date}"
+    },
+    "followUp": {
+      "ask": "Waktu itu kamu bertanya: “{question}”\nAku bilang {verdict}\nBagaimana hasilnya?",
+      "hit": "Terjadi",
+      "miss": "Tidak",
+      "unclear": "Belum kelihatan",
+      "thanks": "Bagus. Sudah kucatat.",
+      "thanksMiss": "Sudah kucatat. Lain kali kulihat lebih teliti."
     }
   },
   "Beta": {

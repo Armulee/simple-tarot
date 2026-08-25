@@ -37,6 +37,25 @@
       "notUnderstoodTime": "I did not catch the time.\nUse the button above, or type it like 07:20.",
       "ack": "Got it. One moment.",
       "tooYoung": "I do not read for anyone under thirteen.\nCome back to me when you are older."
+    },
+    "reading": {
+      "askBack": "I did not catch what you are asking about.\nSay it short: work, a person, or money?",
+      "sourceLabel": {
+        "IDENTITY": "birth chart",
+        "TIMING": "transits against the birth chart",
+        "OUTCOME": "chart of the moment asked",
+        "AUSPICIOUS_DATE": "almanac"
+      },
+      "failed": "I cannot read this right now. Ask me again.",
+      "noted": "Written down · I will ask on {date}"
+    },
+    "followUp": {
+      "ask": "Last time you asked: “{question}”\nI said {verdict}\nHow did it go?",
+      "hit": "It happened",
+      "miss": "It did not",
+      "unclear": "Too early to tell",
+      "thanks": "Good. I have written it down.",
+      "thanksMiss": "Written down. I will look closer next time."
     }
   },
   "Beta": {
