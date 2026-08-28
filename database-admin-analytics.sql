@@ -26,8 +26,10 @@
 -- PARTIAL DAY: today (Bangkok) is excluded from every metric/trend; the effective
 --              end day is min(range_end_day, today-1).
 --
--- All functions take (range_start timestamptz, range_end timestamptz) and return
--- jsonb. Idempotent: safe to run multiple times.
+-- All functions take (range_start timestamptz, range_end timestamptz) plus an
+-- optional p_exclude_owners text[] (owner_user_ids whose sessions are test data
+-- and must not count — see admin_analytics_sessions_filtered) and return jsonb.
+-- Idempotent: safe to run multiple times.
 -- =============================================================================
 
 -- Canonical, de-duplicated per-session view used by every function below.
@@ -59,11 +61,43 @@ FROM chat_sessions s;
 
 
 -- ---------------------------------------------------------------------------
+-- Test-data exclusion.
+-- Readings made by the QA/test account are real rows but not real usage, so the
+-- admin API passes that account's id (env var TEST_OWNER_ID) as
+-- p_exclude_owners and every function below reads sessions through this filter.
+-- NULL / empty array = exclude nothing, which is the default.
+-- Anonymous sessions (owner_user_id IS NULL) are always kept.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION admin_analytics_sessions_filtered(
+    p_exclude_owners text[] DEFAULT NULL
+) RETURNS SETOF admin_analytics_sessions
+LANGUAGE sql STABLE SET search_path = public AS $$
+    SELECT *
+      FROM admin_analytics_sessions s
+     WHERE p_exclude_owners IS NULL
+        OR cardinality(p_exclude_owners) = 0
+        OR COALESCE(NULLIF(s.owner_user_id, ''), '') <> ALL (p_exclude_owners)
+$$;
+
+-- The functions below gained a p_exclude_owners parameter; drop the earlier
+-- signatures so re-running this file cannot leave an ambiguous overload behind.
+DROP FUNCTION IF EXISTS admin_analytics_returning(timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS admin_analytics_active(timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS admin_analytics_reading(timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS admin_analytics_engagement(timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS admin_analytics_retention(timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS admin_analytics_conversion(timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS admin_analytics_heatmap(timestamptz, timestamptz);
+DROP FUNCTION IF EXISTS admin_analytics_totals();
+
+
+-- ---------------------------------------------------------------------------
 -- 1) Returning users
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION admin_analytics_returning(
     p_start timestamptz,
-    p_end   timestamptz
+    p_end   timestamptz,
+    p_exclude_owners text[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -74,7 +108,7 @@ DECLARE
 BEGIN
     WITH active AS (
         SELECT actor_key, day_local
-        FROM admin_analytics_sessions
+        FROM admin_analytics_sessions_filtered(p_exclude_owners)
         WHERE day_local BETWEEN v_start AND v_end
         GROUP BY actor_key, day_local
     ),
@@ -94,7 +128,7 @@ BEGIN
         FROM per_actor
     ),
     lifetime AS (
-        SELECT actor_key, count(*) AS n FROM admin_analytics_sessions GROUP BY actor_key
+        SELECT actor_key, count(*) AS n FROM admin_analytics_sessions_filtered(p_exclude_owners) GROUP BY actor_key
     ),
     rep AS (
         SELECT count(*) FILTER (WHERE n > 1)::numeric / NULLIF(count(*), 0) AS repeat_rate
@@ -103,9 +137,9 @@ BEGIN
     trend AS (
         SELECT g.d::date AS day,
             (SELECT count(DISTINCT a.actor_key)
-               FROM admin_analytics_sessions a
+               FROM admin_analytics_sessions_filtered(p_exclude_owners) a
               WHERE a.day_local = g.d::date
-                AND EXISTS (SELECT 1 FROM admin_analytics_sessions b
+                AND EXISTS (SELECT 1 FROM admin_analytics_sessions_filtered(p_exclude_owners) b
                              WHERE b.actor_key = a.actor_key
                                AND b.day_local < g.d::date)) AS value
         FROM generate_series(v_start::timestamp, v_end::timestamp, interval '1 day') g(d)
@@ -126,7 +160,8 @@ END $$;
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION admin_analytics_active(
     p_start timestamptz,
-    p_end   timestamptz
+    p_end   timestamptz,
+    p_exclude_owners text[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -140,19 +175,19 @@ DECLARE
     result  jsonb;
 BEGIN
     SELECT count(DISTINCT actor_key) INTO v_dau
-      FROM admin_analytics_sessions WHERE day_local = v_end;
+      FROM admin_analytics_sessions_filtered(p_exclude_owners) WHERE day_local = v_end;
 
     SELECT count(DISTINCT actor_key) INTO v_wau
-      FROM admin_analytics_sessions WHERE day_local BETWEEN v_end - 6 AND v_end;
+      FROM admin_analytics_sessions_filtered(p_exclude_owners) WHERE day_local BETWEEN v_end - 6 AND v_end;
 
     SELECT count(DISTINCT actor_key) INTO v_mau
-      FROM admin_analytics_sessions WHERE day_local BETWEEN v_end - 29 AND v_end;
+      FROM admin_analytics_sessions_filtered(p_exclude_owners) WHERE day_local BETWEEN v_end - 29 AND v_end;
 
     -- average daily active across the trailing 30-day window (missing days = 0)
     SELECT COALESCE(sum(dau), 0) / 30.0 INTO v_avg_daily
       FROM (
         SELECT day_local, count(DISTINCT actor_key) AS dau
-        FROM admin_analytics_sessions
+        FROM admin_analytics_sessions_filtered(p_exclude_owners)
         WHERE day_local BETWEEN v_end - 29 AND v_end
         GROUP BY day_local
       ) d;
@@ -166,7 +201,7 @@ BEGIN
             SELECT jsonb_agg(jsonb_build_object('date', day, 'value', value) ORDER BY day)
             FROM (
                 SELECT g.d::date AS day,
-                    (SELECT count(DISTINCT a.actor_key) FROM admin_analytics_sessions a
+                    (SELECT count(DISTINCT a.actor_key) FROM admin_analytics_sessions_filtered(p_exclude_owners) a
                       WHERE a.day_local = g.d::date) AS value
                 FROM generate_series(v_start::timestamp, v_end::timestamp, interval '1 day') g(d)
             ) t
@@ -181,7 +216,8 @@ END $$;
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION admin_analytics_reading(
     p_start timestamptz,
-    p_end   timestamptz
+    p_end   timestamptz,
+    p_exclude_owners text[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -192,7 +228,7 @@ DECLARE
 BEGIN
     WITH in_range AS (
         SELECT actor_key, reading_count
-        FROM admin_analytics_sessions
+        FROM admin_analytics_sessions_filtered(p_exclude_owners)
         WHERE day_local BETWEEN v_start AND v_end
     ),
     per_actor AS (
@@ -213,7 +249,7 @@ BEGIN
             SELECT jsonb_agg(jsonb_build_object('date', day, 'value', value) ORDER BY day)
             FROM (
                 SELECT g.d::date AS day,
-                    (SELECT COALESCE(sum(reading_count), 0) FROM admin_analytics_sessions a
+                    (SELECT COALESCE(sum(reading_count), 0) FROM admin_analytics_sessions_filtered(p_exclude_owners) a
                       WHERE a.day_local = g.d::date) AS value
                 FROM generate_series(v_start::timestamp, v_end::timestamp, interval '1 day') g(d)
             ) t
@@ -228,7 +264,8 @@ END $$;
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION admin_analytics_engagement(
     p_start timestamptz,
-    p_end   timestamptz
+    p_end   timestamptz,
+    p_exclude_owners text[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -238,7 +275,7 @@ DECLARE
     result  jsonb;
 BEGIN
     WITH in_range AS (
-        SELECT * FROM admin_analytics_sessions
+        SELECT * FROM admin_analytics_sessions_filtered(p_exclude_owners)
         WHERE day_local BETWEEN v_start AND v_end
     )
     SELECT jsonb_build_object(
@@ -251,7 +288,7 @@ BEGIN
             SELECT jsonb_agg(jsonb_build_object('date', day, 'value', value) ORDER BY day)
             FROM (
                 SELECT g.d::date AS day,
-                    (SELECT count(*) FROM admin_analytics_sessions a
+                    (SELECT count(*) FROM admin_analytics_sessions_filtered(p_exclude_owners) a
                       WHERE a.day_local = g.d::date) AS value
                 FROM generate_series(v_start::timestamp, v_end::timestamp, interval '1 day') g(d)
             ) t
@@ -266,7 +303,8 @@ END $$;
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION admin_analytics_retention(
     p_start timestamptz,
-    p_end   timestamptz
+    p_end   timestamptz,
+    p_exclude_owners text[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -279,10 +317,10 @@ BEGIN
     -- lifetime first-session day per actor, and the set of distinct active days
     first_seen AS (
         SELECT actor_key, min(day_local) AS f
-        FROM admin_analytics_sessions GROUP BY actor_key
+        FROM admin_analytics_sessions_filtered(p_exclude_owners) GROUP BY actor_key
     ),
     days AS (
-        SELECT DISTINCT actor_key, day_local FROM admin_analytics_sessions
+        SELECT DISTINCT actor_key, day_local FROM admin_analytics_sessions_filtered(p_exclude_owners)
     ),
     curve AS (
         SELECT n,
@@ -313,7 +351,7 @@ BEGIN
     ),
     actor_week AS (
         SELECT DISTINCT actor_key, date_trunc('week', day_local::timestamp)::date AS active_week
-        FROM admin_analytics_sessions
+        FROM admin_analytics_sessions_filtered(p_exclude_owners)
     ),
     grid AS (
         SELECT cs.cohort_week,
@@ -360,7 +398,8 @@ END $$;
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION admin_analytics_conversion(
     p_start timestamptz,
-    p_end   timestamptz
+    p_end   timestamptz,
+    p_exclude_owners text[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -374,19 +413,19 @@ DECLARE
     result jsonb;
 BEGIN
     SELECT count(DISTINCT actor_key) INTO v_started
-      FROM admin_analytics_sessions WHERE day_local BETWEEN v_start AND v_end;
+      FROM admin_analytics_sessions_filtered(p_exclude_owners) WHERE day_local BETWEEN v_start AND v_end;
 
     SELECT count(DISTINCT actor_key) INTO v_completed
-      FROM admin_analytics_sessions WHERE day_local BETWEEN v_start AND v_end AND completed;
+      FROM admin_analytics_sessions_filtered(p_exclude_owners) WHERE day_local BETWEEN v_start AND v_end AND completed;
 
     -- registered = of the actors above, those who are logged-in users
     SELECT count(DISTINCT owner_user_id) INTO v_registered
-      FROM admin_analytics_sessions
+      FROM admin_analytics_sessions_filtered(p_exclude_owners)
      WHERE day_local BETWEEN v_start AND v_end AND owner_user_id IS NOT NULL;
 
     -- subscribed = those registered actors that have any subscription row
     SELECT count(DISTINCT s.owner_user_id) INTO v_subscribed
-      FROM admin_analytics_sessions s
+      FROM admin_analytics_sessions_filtered(p_exclude_owners) s
       JOIN billing_subscriptions bs ON bs.user_id::text = s.owner_user_id
      WHERE s.day_local BETWEEN v_start AND v_end AND s.owner_user_id IS NOT NULL;
 
@@ -458,7 +497,8 @@ END $$;
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION admin_analytics_heatmap(
     p_start timestamptz,
-    p_end   timestamptz
+    p_end   timestamptz,
+    p_exclude_owners text[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -469,7 +509,7 @@ DECLARE
 BEGIN
     WITH in_range AS (
         SELECT dow_local, hour_local
-        FROM admin_analytics_sessions
+        FROM admin_analytics_sessions_filtered(p_exclude_owners)
         WHERE day_local BETWEEN v_start AND v_end
     ),
     by_day AS ( -- dow 1=Mon .. 7=Sun
@@ -495,8 +535,9 @@ END $$;
 -- ---------------------------------------------------------------------------
 -- 9) All-time totals (no range) for the top "Data" summary cards.
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION admin_analytics_totals()
-RETURNS jsonb
+CREATE OR REPLACE FUNCTION admin_analytics_totals(
+    p_exclude_owners text[] DEFAULT NULL
+) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
     v_rev_available boolean;
@@ -507,14 +548,14 @@ BEGIN
 
     WITH day_dist AS (
         SELECT actor_key, count(DISTINCT day_local) AS days
-        FROM admin_analytics_sessions GROUP BY actor_key
+        FROM admin_analytics_sessions_filtered(p_exclude_owners) GROUP BY actor_key
     )
     SELECT jsonb_build_object(
         'totalUsers',     (SELECT count(*) FROM stars),
         'returningUsers', (SELECT count(*) FROM day_dist WHERE days >= 2),
-        'totalReadings',  COALESCE((SELECT sum(reading_count) FROM admin_analytics_sessions), 0),
-        'totalSessions',  (SELECT count(*) FROM admin_analytics_sessions),
-        'totalMessages',  COALESCE((SELECT sum(message_count) FROM admin_analytics_sessions), 0),
+        'totalReadings',  COALESCE((SELECT sum(reading_count) FROM admin_analytics_sessions_filtered(p_exclude_owners)), 0),
+        'totalSessions',  (SELECT count(*) FROM admin_analytics_sessions_filtered(p_exclude_owners)),
+        'totalMessages',  COALESCE((SELECT sum(message_count) FROM admin_analytics_sessions_filtered(p_exclude_owners)), 0),
         'subscribers',    (SELECT count(*) FROM billing_subscriptions WHERE status IN ('active','trialing')),
         'revenueAvailable', v_rev_available,
         'revenueUsd',     COALESCE((SELECT sum(amount_cents) FROM billing_transactions WHERE status='succeeded'), 0) / 100.0
@@ -526,12 +567,13 @@ END $$;
 -- ---------------------------------------------------------------------------
 -- Permissions: callable by the service role (admin API uses the service key).
 -- ---------------------------------------------------------------------------
-GRANT EXECUTE ON FUNCTION admin_analytics_returning(timestamptz, timestamptz)  TO service_role;
-GRANT EXECUTE ON FUNCTION admin_analytics_active(timestamptz, timestamptz)      TO service_role;
-GRANT EXECUTE ON FUNCTION admin_analytics_reading(timestamptz, timestamptz)     TO service_role;
-GRANT EXECUTE ON FUNCTION admin_analytics_engagement(timestamptz, timestamptz)  TO service_role;
-GRANT EXECUTE ON FUNCTION admin_analytics_retention(timestamptz, timestamptz)   TO service_role;
-GRANT EXECUTE ON FUNCTION admin_analytics_conversion(timestamptz, timestamptz)  TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_sessions_filtered(text[])            TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_returning(timestamptz, timestamptz, text[])  TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_active(timestamptz, timestamptz, text[])      TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_reading(timestamptz, timestamptz, text[])     TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_engagement(timestamptz, timestamptz, text[])  TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_retention(timestamptz, timestamptz, text[])   TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_conversion(timestamptz, timestamptz, text[])  TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_context(timestamptz, timestamptz, timestamptz, timestamptz) TO service_role;
-GRANT EXECUTE ON FUNCTION admin_analytics_heatmap(timestamptz, timestamptz)    TO service_role;
-GRANT EXECUTE ON FUNCTION admin_analytics_totals()                             TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_heatmap(timestamptz, timestamptz, text[])    TO service_role;
+GRANT EXECUTE ON FUNCTION admin_analytics_totals(text[])                       TO service_role;

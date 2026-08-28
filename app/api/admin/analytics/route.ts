@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import { supabaseAdmin } from "@/lib/supabase"
+import { testOwnerIds } from "@/lib/admin/test-owner"
 import type {
     ActiveAnalytics,
     AdminAnalyticsResponse,
@@ -37,7 +38,7 @@ function addDays(date: string, days: number): string {
 async function rpc<T>(
     admin: AdminClient,
     fn: string,
-    args: Record<string, string>,
+    args: Record<string, string | string[]>,
 ): Promise<T> {
     const { data, error } = await admin.rpc(fn, args)
     if (error) throw new Error(`${fn}: ${error.message}`)
@@ -78,10 +79,22 @@ export async function GET(request: NextRequest) {
     // Trailing 14 days (for the week-over-week momentum metric).
     const wowStart = addDays(todayBkk, -14)
 
-    const cur = { p_start: bound(from, false), p_end: bound(to, true) }
+    // Test-account readings are excluded from every session-derived metric.
+    // Only sent when TEST_OWNER_ID is set, so the RPCs still resolve on a
+    // database that predates the p_exclude_owners parameter.
+    const excludeOwners = testOwnerIds()
+    const exclude: Record<string, string[]> =
+        excludeOwners.length > 0 ? { p_exclude_owners: excludeOwners } : {}
+
+    const cur = {
+        p_start: bound(from, false),
+        p_end: bound(to, true),
+        ...exclude,
+    }
     const prev = {
         p_start: bound(prevStart, false),
         p_end: bound(prevEnd, true),
+        ...exclude,
     }
 
     try {
@@ -110,8 +123,10 @@ export async function GET(request: NextRequest) {
             rpc<RetentionAnalytics>(admin, "admin_analytics_retention", cur),
             rpc<ConversionAnalytics>(admin, "admin_analytics_conversion", cur),
             rpc<HeatmapAnalytics>(admin, "admin_analytics_heatmap", cur),
+            // context() reads stars/billing, not sessions — no exclusion arg.
             rpc<AnalyticsContext>(admin, "admin_analytics_context", {
-                ...cur,
+                p_start: bound(from, false),
+                p_end: bound(to, true),
                 p_prev_start: bound(prevStart, false),
                 p_prev_end: bound(prevEnd, true),
             }),
@@ -123,6 +138,7 @@ export async function GET(request: NextRequest) {
             rpc<ReadingAnalytics>(admin, "admin_analytics_reading", {
                 p_start: bound(wowStart, false),
                 p_end: bound(todayBkk, true),
+                ...exclude,
             }),
         ])
 

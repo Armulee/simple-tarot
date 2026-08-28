@@ -80,3 +80,21 @@ Signed-in users get cross-device unmasking of redacted PII (e.g. `[Person_0]` re
     ```
 
 If `PRIVACY_ENCRYPTION_MASTER_KEY` is missing, `/api/privacy-aliases` returns 500 and the client silently keeps its existing sessionStorage-only behavior — no crash, no plaintext fallback. Rotating the master key invalidates every existing ciphertext, so reserve the `key_version` column on `privacy_aliases` for any future rotation work.
+
+### 3. Keep test readings out of the admin dashboard
+
+Readings made by the QA/test account are real `chat_sessions` rows, so they inflate every admin number. Set `TEST_OWNER_ID` to that account's user id (the value stored in `chat_sessions.owner_user_id`) and the admin API drops its readings everywhere: the interpretations list, the metric cards, the activity chart, and every analytics RPC.
+
+```env
+TEST_OWNER_ID=<test-account-user-id>
+```
+
+Comma-separate the value to exclude more than one account. Anonymous readings are never filtered, and leaving the variable unset (the default) excludes nothing.
+
+Apply the analytics schema so the RPCs accept the exclusion argument (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database-admin-analytics.sql
+```
+
+The exclusion is only sent to the RPCs when `TEST_OWNER_ID` is set, so a database that still has the older two-argument functions keeps working until the file above is applied.

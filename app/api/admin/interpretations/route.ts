@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readPaging, requireAdmin } from "@/lib/admin-auth"
 import { pendingDeletionMap } from "@/lib/admin/delete-requests"
+import { excludeTestOwner } from "@/lib/admin/test-owner"
 
 export const dynamic = "force-dynamic"
 
@@ -91,23 +92,29 @@ export async function GET(request: NextRequest) {
                 (p) => p.id as string,
             )
             const [byQuestion, byTopic, byOwner] = await Promise.all([
-                admin
-                    .from("chat_sessions")
-                    .select(COLS)
-                    .ilike("question", like)
+                excludeTestOwner(
+                    admin
+                        .from("chat_sessions")
+                        .select(COLS)
+                        .ilike("question", like),
+                )
                     .order("created_at", { ascending: false })
                     .limit(SEARCH_CAP),
-                admin
-                    .from("chat_sessions")
-                    .select(COLS)
-                    .ilike("topic", like)
+                excludeTestOwner(
+                    admin
+                        .from("chat_sessions")
+                        .select(COLS)
+                        .ilike("topic", like),
+                )
                     .order("created_at", { ascending: false })
                     .limit(SEARCH_CAP),
                 ownerIdsByName.length > 0
-                    ? admin
-                          .from("chat_sessions")
-                          .select(COLS)
-                          .in("owner_user_id", ownerIdsByName)
+                    ? excludeTestOwner(
+                          admin
+                              .from("chat_sessions")
+                              .select(COLS)
+                              .in("owner_user_id", ownerIdsByName),
+                      )
                           .order("created_at", { ascending: false })
                           .limit(SEARCH_CAP)
                     : Promise.resolve({ data: [] as SessionRow[] }),
@@ -126,9 +133,9 @@ export async function GET(request: NextRequest) {
             total = merged.length
             rows = merged.slice(offset, offset + limit)
         } else {
-            const { data, count, error } = await admin
-                .from("chat_sessions")
-                .select(COLS, { count: "exact" })
+            const { data, count, error } = await excludeTestOwner(
+                admin.from("chat_sessions").select(COLS, { count: "exact" }),
+            )
                 .order("created_at", { ascending: false })
                 .range(offset, offset + limit - 1)
             if (error) throw error

@@ -7,6 +7,7 @@ import {
     type AdminActivityResponse,
     type MetricKey,
 } from "@/lib/admin/activity-metrics"
+import { excludeTestOwner } from "@/lib/admin/test-owner"
 
 type AdminClient = NonNullable<typeof supabaseAdmin>
 
@@ -96,15 +97,19 @@ async function fetchRows(
     columns: string,
     fromISO: string,
     toISO: string,
+    { skipTestOwner = false } = {},
 ): Promise<Row[]> {
     const out: Row[] = []
     for (let page = 0; page < MAX_PAGES; page++) {
         const offset = page * PAGE
-        const { data, error } = await admin
+        const base = admin
             .from(table)
             .select(columns)
             .gte("created_at", fromISO)
             .lt("created_at", toISO)
+        const { data, error } = await (skipTestOwner
+            ? excludeTestOwner(base)
+            : base)
             .order("created_at", { ascending: true })
             .range(offset, offset + PAGE - 1)
         if (error) throw error
@@ -147,7 +152,9 @@ export async function GET(request: NextRequest) {
     try {
         const [stars, sessions, subs] = await Promise.all([
             fetchRows(admin, "stars", "created_at, user_id", fromISO, toISO),
-            fetchRows(admin, "chat_sessions", "created_at", fromISO, toISO),
+            fetchRows(admin, "chat_sessions", "created_at", fromISO, toISO, {
+                skipTestOwner: true,
+            }),
             fetchRows(
                 admin,
                 "billing_subscriptions",

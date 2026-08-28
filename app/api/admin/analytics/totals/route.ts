@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import type { AnalyticsTotals } from "@/lib/admin/analytics-shared"
+import { testOwnerIds } from "@/lib/admin/test-owner"
 
 export const dynamic = "force-dynamic"
 
@@ -11,7 +12,15 @@ export async function GET(request: NextRequest) {
     const { admin } = auth
 
     try {
-        const { data, error } = await admin.rpc("admin_analytics_totals")
+        // Test-account readings never count; the arg is omitted entirely when
+        // TEST_OWNER_ID is unset so older databases keep resolving the RPC.
+        const excludeOwners = testOwnerIds()
+        const { data, error } = await admin.rpc(
+            "admin_analytics_totals",
+            excludeOwners.length > 0
+                ? { p_exclude_owners: excludeOwners }
+                : undefined,
+        )
         if (error) throw new Error(error.message)
         return NextResponse.json(data as AnalyticsTotals, { status: 200 })
     } catch (error) {
