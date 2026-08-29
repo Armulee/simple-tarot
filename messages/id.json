@@ -19,6 +19,7 @@
       "returning": "Ada hal baru? Katakan.\nOh — soal {topic} yang kamu tanyakan waktu itu. Nanti aku tanya hasilnya.",
       "topicWork": "Soal kerja",
       "topicPeople": "Soal seseorang",
+      "topicMoney": "Soal uang",
       "topicBoth": "Dua-duanya",
       "coldReadFallback": "Petamu sudah terbuka.\nKatakan singkat apa yang sedang mengganjal, nanti kuurai satu per satu."
     },

@@ -19,6 +19,7 @@
       "returning": "新しい話？どうぞ。\nああ、前に聞いた{topic}のこと。結果はあとで聞かせて。",
       "topicWork": "仕事のこと",
       "topicPeople": "人のこと",
+      "topicMoney": "お金のこと",
       "topicBoth": "どちらも",
       "coldReadFallback": "あなたの図は開きました。\n今ひっかかっていることを短く教えて。一つずつ見ていく。"
     },

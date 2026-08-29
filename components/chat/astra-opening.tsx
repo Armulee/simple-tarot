@@ -505,6 +505,7 @@ export function useAstraOpening({
                 }
                 if (payload.kind === "unsure") {
                     await playBubbles(payload.bubbles)
+                    setQuickReplies(payload.quickReplies)
                     return
                 }
                 if (payload.kind === "tarot") return

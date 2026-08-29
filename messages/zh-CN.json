@@ -19,6 +19,7 @@
       "returning": "有新的事？说吧。\n对了——上回你问的{topic}，回头我会问你结果。",
       "topicWork": "工作",
       "topicPeople": "某个人",
+      "topicMoney": "钱",
       "topicBoth": "两者都是",
       "coldReadFallback": "你的盘我已经开好了。\n简单说说现在压着你的是什么，我一层层看给你。"
     },

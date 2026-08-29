@@ -1,5 +1,8 @@
 import type { AstraGuardrail, AstraIntent, AstraTopic } from "@/lib/astra/intent"
-import type { AstraBubble } from "@/lib/astra/opening-contract"
+import type {
+    AstraBubble,
+    AstraQuickReply,
+} from "@/lib/astra/opening-contract"
 
 /**
  * What a routed reading looks like on the wire.
@@ -38,7 +41,14 @@ export type AstraReadingResponse =
       }
     /** An explicit tarot request: the existing draw flow answers it. */
     | { kind: "tarot" }
-    /** Too vague to route — she asks one question back instead of guessing. */
-    | { kind: "unsure"; bubbles: AstraBubble[] }
+    /**
+     * Nothing in the message to read. She asks one question back — and offers
+     * the answers as chips, so the ask-back is never a dead end.
+     */
+    | {
+          kind: "unsure"
+          bubbles: AstraBubble[]
+          quickReplies: AstraQuickReply[]
+      }
     /** No birth details yet, so the intake has to run first. */
     | { kind: "needs_birth" }

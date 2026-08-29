@@ -311,6 +311,11 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             kind: "unsure",
             bubbles: toBubbles([text], "ask-back"),
+            quickReplies: [
+                { id: "work", label: t("opening.topicWork"), topic: "career" },
+                { id: "people", label: t("opening.topicPeople"), topic: "love" },
+                { id: "money", label: t("opening.topicMoney"), topic: "money" },
+            ],
         } satisfies AstraReadingResponse)
     }
 

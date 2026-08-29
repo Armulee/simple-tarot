@@ -99,8 +99,8 @@ test("a one-word answer to her own question still routes", () => {
     assert.equal(intentOf("Work"), "OUTCOME")
     assert.equal(intentOf("งาน"), "OUTCOME")
     assert.equal(detectTopic("Work"), "career")
-    // "Both" carries no life area of its own — the chip's own topic covers it.
-    assert.equal(intentOf("Both"), "unsure")
+    // "Both" names no life area, and is still taken as a question to answer.
+    assert.equal(intentOf("Both"), "OUTCOME")
 })
 
 test("the blank-cheque fortune question is a reading, not a shrug", () => {
@@ -109,4 +109,32 @@ test("the blank-cheque fortune question is a reading, not a shrug", () => {
     assert.equal(intentOf("ดูดวงให้หน่อย"), "OUTCOME")
     assert.equal(intentOf("tell me my fortune"), "OUTCOME")
     assert.equal(intentOf("what does my destiny hold"), "OUTCOME")
+})
+
+test("a question she has no pattern for is still a question", () => {
+    // The patterns pick WHICH craft answers. They are not a list of the only
+    // sentences she is allowed to hear.
+    assert.equal(
+        intentOf("Tomorrow I will go to the tech event, what would happen?"),
+        "OUTCOME",
+    )
+    assert.equal(intentOf("I have an interview tomorrow"), "OUTCOME")
+    assert.equal(intentOf("my landlord is raising the rent"), "OUTCOME")
+    assert.equal(intentOf("she stopped replying"), "OUTCOME")
+    assert.equal(intentOf("พรุ่งนี้ไปสัมภาษณ์งาน"), "OUTCOME")
+    assert.equal(intentOf("แม่ไม่คุยกับหนูมาสามวันแล้ว"), "OUTCOME")
+})
+
+test("an event or an interview is work, so the reading goes to that house", () => {
+    assert.equal(detectTopic("Tomorrow I go to the tech event"), "career")
+    assert.equal(detectTopic("I have an interview tomorrow"), "career")
+    assert.equal(detectTopic("พรุ่งนี้มีประชุมใหญ่"), "career")
+})
+
+test("only filler makes her ask back", () => {
+    for (const filler of ["ok", "okay", "hmm", "อืม", "555", "hi", "สวัสดี", "?", "ครับ", "thanks"]) {
+        assert.equal(intentOf(filler), "unsure", filler)
+    }
+    // Anything with something in it is taken, however oddly it is put.
+    assert.equal(intentOf("idk about this whole thing"), "OUTCOME")
 })

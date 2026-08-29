@@ -7,9 +7,10 @@
  * turns out belongs to the chart of the moment it was asked; which day to act
  * belongs to the almanac.
  *
- * The classifier is deliberately rule-based and refuses rather than guesses:
- * an `unsure` result means she asks one question back instead of answering the
- * wrong question confidently.
+ * The patterns below decide WHICH craft takes a question. They are not a list
+ * of the questions she is allowed to hear: anything they do not name falls to
+ * the chart of the moment, which is what ยามถาม is for. Only a message with
+ * nothing in it — a greeting, an acknowledgement, a laugh — makes her ask back.
  */
 
 export const ASTRA_INTENTS = [
@@ -99,7 +100,9 @@ const OUTCOME_PATTERNS = [
     /(?:ไหม|มั้ย|หรือเปล่า|รึเปล่า)\s*$/,
     /เขา(?:คิด|รู้สึก|รัก|สนใจ)(?:ยังไง|อย่างไร|ไหม|มั้ย)?/,
     /ถ้า.{0,40}(?:จะ|แล้ว)/,
-    /\bshould i\b|\bwill (?:i|he|she|they|it|we)\b|\bwhat happens if\b|\bwhat if i\b|\bis it worth\b|\bdoes (?:he|she|they)\b/i,
+    /จะเกิดอะไร|มีอะไรเกิด|อะไรจะเกิด/,
+    /\bshould i\b|\bwill (?:i|he|she|they|it|we)\b|\bwhat if i\b|\bis it worth\b|\bdoes (?:he|she|they)\b/i,
+    /\bwhat (?:will|would|is going to|'s going to|are going to|could|might|should)\b|\bwhat happens\b|\bhow (?:will|would|does) it go\b|\bwhat to expect\b/i,
 ]
 
 const TAROT_PATTERNS = [
@@ -116,7 +119,7 @@ const PASSTHROUGH_PATTERNS = [
 const TOPIC_PATTERNS: [AstraTopic, RegExp][] = [
     [
         "career",
-        /งาน|อาชีพ|ลาออก|เปลี่ยนงาน|เลื่อนตำแหน่ง|หัวหน้า|เจ้านาย|บริษัท|ธุรกิจ|ค้าขาย|ลูกค้า|โปรเจกต์|เปิดตัว|ปล่อย(?:เวอร์ชัน|ของ)|\bjob\b|\bwork\b|career|resign|promotion|business|boss|launch|client/i,
+        /งาน|อาชีพ|ลาออก|เปลี่ยนงาน|เลื่อนตำแหน่ง|หัวหน้า|เจ้านาย|บริษัท|ธุรกิจ|ค้าขาย|ลูกค้า|โปรเจกต์|เปิดตัว|ปล่อย(?:เวอร์ชัน|ของ)|สัมภาษณ์|ประชุม|อีเวนต์|ดีล|พรีเซ้นต์|\bjob\b|\bwork\b|career|resign|promotion|business|boss|launch|client|interview|meeting|event|conference|pitch|deal\b|deadline|project/i,
     ],
     [
         "love",
@@ -171,6 +174,22 @@ function matchesAny(patterns: RegExp[], text: string): boolean {
     return patterns.some((pattern) => pattern.test(text))
 }
 
+/**
+ * Filler: a greeting, an acknowledgement, a laugh. There is nothing in it to
+ * read, so she asks back. This is the ONLY road to "unsure" — anything with
+ * something in it is a question she takes.
+ */
+const FILLER_PATTERNS = [
+    /^(?:ok(?:ay)?|k+|yep|yeah|yes|no|sure|thanks?|thank you|hi|hey|hello|cool|nice|lol+|hm+|hmm+|uh+|\?+|\.+)$/i,
+    /^(?:อืม+|เออ+|ครับ|คร้าบ|ค่ะ|คะ|จ้า|จ้าา|555+|ๆ+|ใช่|ไม่|โอเค|ok?ครับ|สวัสดี|หวัดดี|ขอบคุณ|ขอบใจ)$/,
+]
+
+function isContentless(question: string): boolean {
+    const bare = question.replace(/[\s.,!?…ๆฯ"'“”‘’()[\]]+/g, "")
+    if (bare.length < 3) return true
+    return FILLER_PATTERNS.some((pattern) => pattern.test(question.trim()))
+}
+
 export function detectTopic(question: string): AstraTopic {
     for (const [topic, pattern] of TOPIC_PATTERNS) {
         if (pattern.test(question)) return topic
@@ -212,12 +231,16 @@ export function classifyQuestion(rawQuestion: string): IntentResult {
         return reading("AUSPICIOUS_DATE")
     }
     if (matchesAny(TIMING_PATTERNS, question)) return reading("TIMING")
-    if (matchesAny(IDENTITY_PATTERNS, question)) return reading("IDENTITY")
+    // A forward-looking phrasing wins over a chart noun: "ดวงฉันจะเป็นยังไงต่อ"
+    // asks where things are heading, not what kind of person they are.
     if (matchesAny(OUTCOME_PATTERNS, question)) return reading("OUTCOME")
+    if (matchesAny(IDENTITY_PATTERNS, question)) return reading("IDENTITY")
 
-    // A named life area is answerable on its own, however short — "เรื่องงาน"
-    // and a one-word "Work" tapped from her own chips are both real answers.
-    if (topic !== "general") return reading("OUTCOME")
-
-    return { kind: "unsure" }
+    // Everything else she answers from the chart of the moment it was asked,
+    // which is what ยามถาม is for. The patterns above only decide WHICH craft
+    // takes the question; they are not a list of questions she is allowed to
+    // hear. A fortune teller who says "I did not catch that" to "tomorrow I
+    // go to the tech event, what would happen?" is not a fortune teller.
+    if (isContentless(question)) return { kind: "unsure" }
+    return reading("OUTCOME")
 }

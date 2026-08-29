@@ -19,6 +19,7 @@
       "returning": "Coisa nova? Pode falar.\nAh — {topic}, o que você me perguntou da última vez. Volto para saber o resultado.",
       "topicWork": "Trabalho",
       "topicPeople": "Alguém",
+      "topicMoney": "Dinheiro",
       "topicBoth": "Os dois",
       "coldReadFallback": "Seu mapa está aberto.\nMe diga em poucas palavras o que está pesando, e eu vou destrinchando."
     },

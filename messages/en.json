@@ -19,6 +19,7 @@
       "returning": "Something new? Go ahead.\nAh — {topic}, the one you asked me last time. I will come back to you for the result.",
       "topicWork": "Work",
       "topicPeople": "Someone",
+      "topicMoney": "Money",
       "topicBoth": "Both",
       "coldReadFallback": "Your chart is open.\nTell me the short version of what is sitting with you, and I will take it apart."
     },

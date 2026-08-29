@@ -19,6 +19,7 @@
       "returning": "¿Algo nuevo? Cuéntame.\nAh — {topic}, lo que me preguntaste la vez pasada. Volveré a preguntarte cómo salió.",
       "topicWork": "Trabajo",
       "topicPeople": "Alguien",
+      "topicMoney": "Dinero",
       "topicBoth": "Las dos cosas",
       "coldReadFallback": "Tu carta ya está abierta.\nDime en corto qué te pesa ahora y lo voy desarmando."
     },
