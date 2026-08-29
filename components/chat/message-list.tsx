@@ -26,6 +26,7 @@ import HoroscopeCalendarTool from "@/components/chat/horoscope/calendar-tool"
 import OracleHero from "@/components/chat/oracle/oracle-hero"
 import SynastryReading from "@/components/chat/synastry-reading"
 import { UserMessageText } from "@/components/chat/user-message-text"
+import { AstraProofLink } from "@/components/chat/astra-proof-sheet"
 import type { Character } from "@/types/character"
 import OtherPersonReadingBadge from "@/components/chat/other-person-reading-badge"
 import {
@@ -1373,6 +1374,14 @@ export default function MessageList({
                                                         />
                                                     </div>
                                                 </MessageContextMenu>
+                                            ) : null}
+                                            {/* Quiet enough to ignore, there
+                                                for anyone who wants to check
+                                                the numbers behind the words. */}
+                                            {message.astraSource ? (
+                                                <AstraProofLink
+                                                    source={message.astraSource}
+                                                />
                                             ) : null}
                                             {/* A forecast she stands behind,
                                                 with the day she comes back. */}

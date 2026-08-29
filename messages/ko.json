@@ -59,6 +59,77 @@
       "unclear": "아직 몰라요",
       "thanks": "좋아요. 적어 뒀어요.",
       "thanksMiss": "적어 뒀어요. 다음엔 더 자세히 볼게요."
+    },
+    "proof": {
+      "link": "근거 보기",
+      "title": "이 풀이가 무엇에서 나왔는지",
+      "note": "위의 숫자는 모두 제가 한마디 하기 전에 실제 행성 위치에서 계산된 것입니다. 저는 그것을 읽을 뿐, 지어내지 않습니다.",
+      "noReroll": "같은 날 같은 것을 다시 물으면 글자 하나까지 같은 답이 나옵니다. 다시 뽑지 않습니다.",
+      "answerId": "답변 ID",
+      "seed": "답변 키",
+      "computedAt": "계산 시각",
+      "close": "닫기",
+      "row": {
+        "lagna": "상승궁",
+        "sun": "태양",
+        "moon": "달",
+        "dayStar": "태어난 요일의 별",
+        "ageStar": "현재 나이를 다스리는 별",
+        "missingElement": "가장 옅은 원소",
+        "ayanamsa": "아야남사",
+        "askedAt": "질문 시각",
+        "watch": "질문의 시각대",
+        "lagnaAsked": "질문 시점의 상승궁",
+        "house": "질문의 하우스",
+        "houseLord": "그 하우스의 주인별",
+        "contacts": "주인별에 맺힌 각",
+        "significator": "이 일의 표시성",
+        "transit": "다가오는 트랜싯",
+        "window": "기간",
+        "peak": "최근접",
+        "searched": "앞으로 탐색한 범위 (일)",
+        "purpose": "길일을 찾는 일",
+        "kalakini": "칼라키니 별",
+        "day": "길일",
+        "days": "길일"
+      },
+      "term": {
+        "noBirthTime": "출생 시각 미제공",
+        "evenlySpread": "없음 — 고르게 분포",
+        "day": "낮 시각대",
+        "night": "밤 시각대",
+        "retrograde": "역행",
+        "noContacts": "3° 이내 없음",
+        "noWindow": "찾지 못함",
+        "noDays": "찾지 못함",
+        "purpose": {
+          "opening": "개업",
+          "wedding": "결혼",
+          "money": "금전",
+          "rest": "휴식",
+          "travel": "여행",
+          "study": "학업",
+          "moving": "이사",
+          "meeting": "만남"
+        }
+      },
+      "ruek": {
+        "thalitho": "탈리토",
+        "mahattano": "마핫타노",
+        "choro": "초로",
+        "phumipalo": "푸미팔로",
+        "thesatri": "테사트리",
+        "thewi": "테위",
+        "phetchakhat": "펫차캇",
+        "racha": "라차",
+        "samano": "사마노"
+      },
+      "element": {
+        "fire": "불",
+        "earth": "흙",
+        "air": "바람",
+        "water": "물"
+      }
     }
   },
   "Beta": {

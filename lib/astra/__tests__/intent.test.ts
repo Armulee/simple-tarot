@@ -138,3 +138,61 @@ test("only filler makes her ask back", () => {
     // Anything with something in it is taken, however oddly it is put.
     assert.equal(intentOf("idk about this whole thing"), "OUTCOME")
 })
+
+test("Thai has no word boundaries, so a short pattern must not swallow a word", () => {
+    // ยา (medicine) sits inside อยาก (want), ยาก (hard) and พยาบาล (nurse);
+    // reading any of those as a health question changes what she is allowed
+    // to say. Each line below was a real misfire.
+    assert.equal(detectGuardrail("อยากย้ายไปอยู่ญี่ปุ่น"), null)
+    assert.equal(detectGuardrail("งานยากจัง ทำไม่ไหวแล้ว"), null)
+    assert.equal(detectGuardrail("อยากรู้ว่าเขาคิดยังไงกับเรา"), null)
+    // จะตาย is an intensifier — "starving", not a crisis.
+    assert.equal(detectGuardrail("หิวจะตายแล้ว กินอะไรดี"), null)
+    assert.equal(detectGuardrail("เหนื่อยจะตาย พรุ่งนี้ยังต้องไปทำงานอีก"), null)
+    // ท้อง is also a stomach and a sky.
+    assert.equal(detectGuardrail("ปวดท้องมาสองวันแล้ว"), null)
+    assert.equal(detectGuardrail("ท้องฟ้าวันนี้สวยจัง"), null)
+    // ศาลพระภูมิ is a spirit house, not a courtroom.
+    assert.equal(detectGuardrail("ไหว้ศาลพระภูมิแล้วดีขึ้นไหม"), null)
+})
+
+test("the guardrails still catch what they are for", () => {
+    assert.equal(detectGuardrail("ต้องกินยาไปตลอดชีวิตไหม"), "health")
+    assert.equal(detectGuardrail("ไปรักษาตัวที่โรงพยาบาลมา"), "health")
+    assert.equal(detectGuardrail("แม่ป่วยเป็นมะเร็ง จะหายไหม"), "health")
+    assert.equal(detectGuardrail("ไม่อยากอยู่แล้ว"), "life")
+    assert.equal(detectGuardrail("จะท้องปีนี้ไหม"), "pregnancy")
+})
+
+test("a topic is not stolen by a longer word that contains it", () => {
+    // รัก opens รักษา, เลิก opens เลิกงาน, หมอ opens หมอดู, แม่ opens แม่หมอ.
+    assert.equal(detectTopic("ไปรักษาตัวที่โรงพยาบาลมา"), "health")
+    assert.equal(detectTopic("เลิกงานแล้วจะไปไหนดี"), "career")
+    assert.equal(detectTopic("ขอถามหมอดูหน่อย"), "general")
+    assert.equal(detectTopic("ปวดท้องมาสองวันแล้ว"), "health")
+    assert.equal(detectTopic("อยากย้ายไปอยู่ญี่ปุ่น"), "travel")
+    assert.equal(detectTopic("เปิดร้านกาแฟจะรุ่งไหม"), "career")
+})
+
+test("she hears the same question however it is phrased", () => {
+    assert.equal(intentOf("ฉันเป็นคนยังไง"), "IDENTITY")
+    assert.equal(intentOf("ฉันเป็นคนแบบไหน"), "IDENTITY")
+    assert.equal(intentOf("ผมเป็นคนอย่างไร"), "IDENTITY")
+})
+
+test("a question with no fortune-telling word in it is still answered", () => {
+    // The merit-making end of the range: nothing here names a chart, a date
+    // or an outcome, and she must still take it rather than shrug.
+    for (const q of [
+        "ล้างส้วมในวัดแล้วได้อะไร",
+        "ทำบุญแบบไหนได้บุญมากสุด",
+        "ปล่อยปลาแล้วดวงจะดีขึ้นจริงไหม",
+        "ถวายสังฆทานแล้วได้อะไร",
+        "หมาหายไปเมื่อวาน",
+        "เพื่อนยืมเงินไปแล้วเงียบ",
+        "my landlord is raising the rent",
+        "i feel stuck",
+    ]) {
+        assert.equal(intentOf(q), "OUTCOME", q)
+    }
+})

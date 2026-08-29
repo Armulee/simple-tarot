@@ -59,6 +59,77 @@
       "unclear": "まだわからない",
       "thanks": "よし、書き留めた。",
       "thanksMiss": "書き留めた。次はもっと細かく見る。"
+    },
+    "proof": {
+      "link": "根拠を見る",
+      "title": "この占断が何から読まれたか",
+      "note": "上の数値はすべて、わたしが一言も話す前に、実際の天体位置から計算されたものです。わたしはそれを読むだけで、作り出してはいません。",
+      "noReroll": "同じ日に同じことを尋ねれば、一字一句同じ答えが返ります。振り直しはしません。",
+      "answerId": "回答ID",
+      "seed": "回答キー",
+      "computedAt": "計算日時",
+      "close": "閉じる",
+      "row": {
+        "lagna": "アセンダント",
+        "sun": "太陽",
+        "moon": "月",
+        "dayStar": "誕生曜日の星",
+        "ageStar": "現在の年齢を司る星",
+        "missingElement": "最も薄いエレメント",
+        "ayanamsa": "アヤナムシャ",
+        "askedAt": "質問時刻",
+        "watch": "質問の刻",
+        "lagnaAsked": "質問時のアセンダント",
+        "house": "質問のハウス",
+        "houseLord": "そのハウスの支配星",
+        "contacts": "支配星へのアスペクト",
+        "significator": "この件の表示星",
+        "transit": "接近中のトランジット",
+        "window": "期間",
+        "peak": "最接近",
+        "searched": "先の探索範囲（日）",
+        "purpose": "吉日を探す目的",
+        "kalakini": "カーラキニーの星",
+        "day": "吉日",
+        "days": "吉日"
+      },
+      "term": {
+        "noBirthTime": "出生時刻の申告なし",
+        "evenlySpread": "なし — 均等に分布",
+        "day": "昼の刻",
+        "night": "夜の刻",
+        "retrograde": "逆行",
+        "noContacts": "3°以内になし",
+        "noWindow": "見つかりません",
+        "noDays": "見つかりません",
+        "purpose": {
+          "opening": "開業",
+          "wedding": "結婚",
+          "money": "金銭",
+          "rest": "休養",
+          "travel": "旅行",
+          "study": "学業",
+          "moving": "引っ越し",
+          "meeting": "会合"
+        }
+      },
+      "ruek": {
+        "thalitho": "タリトー",
+        "mahattano": "マハッタノー",
+        "choro": "チョーロー",
+        "phumipalo": "プーミパーロー",
+        "thesatri": "テーサートリー",
+        "thewi": "テーウィー",
+        "phetchakhat": "ペチャカート",
+        "racha": "ラーチャー",
+        "samano": "サマノー"
+      },
+      "element": {
+        "fire": "火",
+        "earth": "地",
+        "air": "風",
+        "water": "水"
+      }
     }
   },
   "Beta": {

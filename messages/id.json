@@ -59,6 +59,77 @@
       "unclear": "Belum kelihatan",
       "thanks": "Bagus. Sudah kucatat.",
       "thanksMiss": "Sudah kucatat. Lain kali kulihat lebih teliti."
+    },
+    "proof": {
+      "link": "Lihat dasarnya",
+      "title": "Dari mana bacaan ini disusun",
+      "note": "Semua angka di atas dihitung dari posisi planet yang sebenarnya, sebelum saya mengucapkan sepatah kata pun. Saya membacanya, bukan mengarangnya.",
+      "noReroll": "Tanyakan hal yang sama hari ini dan jawabannya sama persis, kata demi kata. Saya tidak mengulang undian.",
+      "answerId": "ID jawaban",
+      "seed": "Kunci jawaban",
+      "computedAt": "Dihitung pada",
+      "close": "Tutup",
+      "row": {
+        "lagna": "Askendan",
+        "sun": "Matahari",
+        "moon": "Bulan",
+        "dayStar": "Bintang hari lahir",
+        "ageStar": "Bintang penguasa usia ini",
+        "missingElement": "Elemen paling tipis",
+        "ayanamsa": "Ayanamsa",
+        "askedAt": "Ditanya pada",
+        "watch": "Penjuru waktu pertanyaan",
+        "lagnaAsked": "Askendan saat bertanya",
+        "house": "Rumah pertanyaan",
+        "houseLord": "Penguasa rumah itu",
+        "contacts": "Aspek ke penguasa",
+        "significator": "Penanda urusan ini",
+        "transit": "Transit yang mendekat",
+        "window": "Rentang waktu",
+        "peak": "Terdekat",
+        "searched": "Dicari ke depan (hari)",
+        "purpose": "Keperluan hari baik",
+        "kalakini": "Bintang kalakini",
+        "day": "Hari baik",
+        "days": "Hari baik"
+      },
+      "term": {
+        "noBirthTime": "waktu lahir tidak diberikan",
+        "evenlySpread": "tidak ada — merata",
+        "day": "penjuru siang",
+        "night": "penjuru malam",
+        "retrograde": "retrograd",
+        "noContacts": "tidak ada dalam 3°",
+        "noWindow": "tidak ditemukan",
+        "noDays": "tidak ditemukan",
+        "purpose": {
+          "opening": "membuka usaha",
+          "wedding": "pernikahan",
+          "money": "uang",
+          "rest": "istirahat",
+          "travel": "perjalanan",
+          "study": "belajar",
+          "moving": "pindah rumah",
+          "meeting": "pertemuan"
+        }
+      },
+      "ruek": {
+        "thalitho": "Thalitho",
+        "mahattano": "Mahattano",
+        "choro": "Choro",
+        "phumipalo": "Phumipalo",
+        "thesatri": "Thesatri",
+        "thewi": "Thewi",
+        "phetchakhat": "Phetchakhat",
+        "racha": "Racha",
+        "samano": "Samano"
+      },
+      "element": {
+        "fire": "api",
+        "earth": "tanah",
+        "air": "udara",
+        "water": "air"
+      }
     }
   },
   "Beta": {

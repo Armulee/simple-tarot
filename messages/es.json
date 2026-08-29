@@ -59,6 +59,77 @@
       "unclear": "Aún no se ve",
       "thanks": "Bien. Queda anotado.",
       "thanksMiss": "Anotado. La próxima miro más de cerca."
+    },
+    "proof": {
+      "link": "Ver de dónde viene",
+      "title": "Sobre qué se construyó esta lectura",
+      "note": "Cada número de arriba se calculó a partir de posiciones planetarias reales, antes de que yo dijera una palabra. Yo los leo. No los invento.",
+      "noReroll": "Pregúntame lo mismo hoy y recibirás la misma respuesta, palabra por palabra. No vuelvo a tirar.",
+      "answerId": "Id de respuesta",
+      "seed": "Clave de respuesta",
+      "computedAt": "Calculado el",
+      "close": "Cerrar",
+      "row": {
+        "lagna": "Ascendente",
+        "sun": "Sol",
+        "moon": "Luna",
+        "dayStar": "Estrella del día de nacimiento",
+        "ageStar": "Estrella que rige esta edad",
+        "missingElement": "Elemento más escaso",
+        "ayanamsa": "Ayanamsa",
+        "askedAt": "Preguntado a las",
+        "watch": "Vigilia de la pregunta",
+        "lagnaAsked": "Ascendente al preguntar",
+        "house": "Casa de la pregunta",
+        "houseLord": "Regente de esa casa",
+        "contacts": "Aspectos al regente",
+        "significator": "Significador del asunto",
+        "transit": "Tránsito entrante",
+        "window": "Ventana",
+        "peak": "Más cercano",
+        "searched": "Buscado hacia adelante (días)",
+        "purpose": "Propósito del día propicio",
+        "kalakini": "Estrella kalakini",
+        "day": "Día propicio",
+        "days": "Días propicios"
+      },
+      "term": {
+        "noBirthTime": "sin hora de nacimiento",
+        "evenlySpread": "ninguno — repartido por igual",
+        "day": "vigilia diurna",
+        "night": "vigilia nocturna",
+        "retrograde": "retrógrado",
+        "noContacts": "ninguno dentro de 3°",
+        "noWindow": "no se encontró",
+        "noDays": "no se encontró",
+        "purpose": {
+          "opening": "abrir un negocio",
+          "wedding": "una boda",
+          "money": "dinero",
+          "rest": "descanso",
+          "travel": "viaje",
+          "study": "estudio",
+          "moving": "mudanza",
+          "meeting": "una reunión"
+        }
+      },
+      "ruek": {
+        "thalitho": "Thalitho",
+        "mahattano": "Mahattano",
+        "choro": "Choro",
+        "phumipalo": "Phumipalo",
+        "thesatri": "Thesatri",
+        "thewi": "Thewi",
+        "phetchakhat": "Phetchakhat",
+        "racha": "Racha",
+        "samano": "Samano"
+      },
+      "element": {
+        "fire": "fuego",
+        "earth": "tierra",
+        "air": "aire",
+        "water": "agua"
+      }
     }
   },
   "Beta": {

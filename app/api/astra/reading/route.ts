@@ -217,12 +217,28 @@ function describeValues(
     }
 }
 
+/**
+ * These override the craft's own task above them, and say so: the OUTCOME task
+ * demands a committed verdict in the first bubble, and on these subjects that
+ * demand is exactly what must not be met. Stated as a plain instruction it
+ * loses to the MUST above it — a real reading came back deciding a loan.
+ */
+/**
+ * On a flagged subject the craft task is replaced, not argued with.
+ *
+ * `INTENT_TASKS.OUTCOME` demands a committed verdict and closes on a signal to
+ * watch for. Leaving it in and appending "but do not decide" produced readings
+ * that decided anyway, or that dropped the referral to make room for the
+ * signal. So a flagged question gets its own shape from the start.
+ */
+const GUARDRAILED_TASK = `They asked about something you must not decide for them. You were still handed real computed values: read them for timing and for what this person is carrying, and nothing else. Your answer has exactly this shape, in this order: (1) say in the first bubble that this one is not yours to call; (2) one or two bubbles on timing and on what they are carrying, naming the reason from the craft in one short clause; (3) the LAST bubble sends them to the right professional. Do not name a verdict, an outcome, or a decision anywhere. Do not close on a signal to watch for — the referral is the close.`
+
 const GUARDRAIL_TASK: Record<string, string> = {
-    money: "This touches money they could lose. Speak about timing and about how they are carrying it, never about whether to borrow, invest, or sign — and tell them to take the numbers to someone qualified.",
-    health: "This touches health. You may speak about timing and about what they are carrying, never about diagnosis, treatment, or whether they recover — and tell them to see a doctor.",
-    legal: "This touches a legal matter. Speak about timing and pressure only, never about the outcome of a case or what to do legally — and tell them to talk to a lawyer.",
-    pregnancy: "This touches pregnancy or fertility. Speak gently about timing and feeling only, never about whether it happens — and point them to a doctor.",
-    life: "This person may be in danger. Drop the reading. Speak to them as a person, say plainly that this is beyond what the stars are for, and tell them to reach someone who can help them today — a person they trust, or an emergency line where they are.",
+    money: "OVERRIDE — this touches money they could lose. Whatever the task above asked for, do NOT decide this for them: no verdict on whether to borrow, invest, sign, or buy, and do not say a direction is right or wrong for them. Speak only about timing and about how they are carrying it. Say plainly that this one is not yours to call. Your LAST bubble must send them to someone qualified with the numbers — a financial adviser, an accountant, the bank. Ending without that line is a failed answer.",
+    health: "OVERRIDE — this touches health. Whatever the task above asked for, do NOT decide this for them: no verdict on diagnosis, treatment, or whether anyone recovers. Speak only about timing and about what they are carrying. Say plainly that this one is not yours to call. Your LAST bubble must tell them to see a doctor about it. Ending without that line is a failed answer.",
+    legal: "OVERRIDE — this touches a legal matter. Whatever the task above asked for, do NOT decide this for them: no verdict on how a case ends or what to do legally. Speak only about timing and pressure. Say plainly that this one is not yours to call. Your LAST bubble must tell them to talk to a lawyer. Ending without that line is a failed answer.",
+    pregnancy: "OVERRIDE — this touches pregnancy or fertility. Whatever the task above asked for, do NOT decide this for them: never say whether it happens. Speak gently, about timing and feeling only. Say plainly that this one is not yours to call. Your LAST bubble must point them to a doctor. Ending without that line is a failed answer.",
+    life: "OVERRIDE — this person may be in danger. Drop the reading entirely; ignore everything the task above asked for. Speak to them as a person, say plainly that this is beyond what the stars are for, and and your LAST bubble must tell them to reach someone who can help them today — a person they trust, or an emergency line where they are. Ending without that line is a failed answer.",
 }
 
 type ProfileRow = {
@@ -387,10 +403,12 @@ export async function POST(req: NextRequest) {
     const language = resolveResponseLanguage(locale, question)
     const system = buildAstraSystemPrompt({
         task: [
-            INTENT_TASKS[intent],
-            guardrail ? GUARDRAIL_TASK[guardrail] : null,
+            guardrail ? GUARDRAILED_TASK : INTENT_TASKS[intent],
             GLOSSARY,
             "Return 2-4 bubbles. Each bubble is one or two short sentences — never a paragraph.",
+            // Last, so it is the most recent thing read, and marked as
+            // outranking the craft task rather than sitting beside it.
+            guardrail ? GUARDRAIL_TASK[guardrail] : null,
         ]
             .filter(Boolean)
             .join("\n\n"),
@@ -479,7 +497,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Forecasts are written down with the day she will come back and ask.
-    const tracksOutcome = intent === "OUTCOME" || intent === "TIMING"
+    // Never on a flagged subject: she committed to nothing there by design, so
+    // there is no call to check — and opening with "how did it go?" on a
+    // cancer scare or a crisis message would be its own harm.
+    const tracksOutcome =
+        (intent === "OUTCOME" || intent === "TIMING") && !guardrail
     let dueDateIso: string | null = null
     if (tracksOutcome) {
         const timingWindow =

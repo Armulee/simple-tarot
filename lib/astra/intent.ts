@@ -82,7 +82,7 @@ const TIMING_PATTERNS = [
 ]
 
 const IDENTITY_PATTERNS = [
-    /(?:ฉัน|ผม|หนู|เรา)เป็นคน(?:แบบ|ยัง)?ไหน/,
+    /(?:ฉัน|ผม|หนู|เรา)เป็นคน(?:แบบไหน|ยังไง|ยังไงบ้าง|อย่างไร|ไง|ประมาณไหน)/,
     /ดวง(?:กำเนิด|ของ(?:ฉัน|ผม|หนู))|ลัคนา(?:ของ)?(?:ฉัน|ผม)?|พื้นดวง/,
     /(?:จุดแข็ง|จุดอ่อน|นิสัย|บุคลิก|พรสวรรค์|ถนัด)(?:.{0,10})?(?:ฉัน|ผม|หนู|ของเรา)?/,
     /เหมาะ(?:กับ|จะทำ)(?:งาน|อาชีพ)/,
@@ -119,11 +119,11 @@ const PASSTHROUGH_PATTERNS = [
 const TOPIC_PATTERNS: [AstraTopic, RegExp][] = [
     [
         "career",
-        /งาน|อาชีพ|ลาออก|เปลี่ยนงาน|เลื่อนตำแหน่ง|หัวหน้า|เจ้านาย|บริษัท|ธุรกิจ|ค้าขาย|ลูกค้า|โปรเจกต์|เปิดตัว|ปล่อย(?:เวอร์ชัน|ของ)|สัมภาษณ์|ประชุม|อีเวนต์|ดีล|พรีเซ้นต์|\bjob\b|\bwork\b|career|resign|promotion|business|boss|launch|client|interview|meeting|event|conference|pitch|deal\b|deadline|project/i,
+        /งาน|อาชีพ|ลาออก|เปลี่ยนงาน|เลื่อนตำแหน่ง|หัวหน้า|เจ้านาย|บริษัท|ธุรกิจ|ค้าขาย|ลูกค้า|โปรเจกต์|เปิดตัว|ปล่อย(?:เวอร์ชัน|ของ)|เปิดร้าน|ร้าน|เงินเดือน|สมัครงาน|สัมภาษณ์|ประชุม|อีเวนต์|ดีล|พรีเซ้นต์|\bjob\b|\bwork\b|career|resign|promotion|business|boss|launch|client|interview|meeting|event|conference|pitch|deal\b|deadline|project/i,
     ],
     [
         "love",
-        /รัก|แฟน|คนคุย|จีบ|คบ|เลิก|คืนดี|แต่งงาน|หย่า|เนื้อคู่|นอกใจ|แอบชอบ|เขาคิด|love|relationship|marriage|divorce|dating|crush|breakup|ex\b/i,
+        /รัก(?!ษา)|แฟน|คนคุย|จีบ|คบ|เลิก(?!งาน|เรียน|กัน\s*ทำ)|คืนดี|แต่งงาน|หย่า|เนื้อคู่|นอกใจ|แอบชอบ|เขาคิด|(?:กับ|ใจ|ตัว)เขา|love|relationship|marriage|divorce|dating|crush|breakup|ex\b/i,
     ],
     [
         "money",
@@ -131,11 +131,11 @@ const TOPIC_PATTERNS: [AstraTopic, RegExp][] = [
     ],
     [
         "health",
-        /สุขภาพ|ป่วย|โรค|ผ่าตัด|รักษา|หมอ|โรงพยาบาล|ยา|เครียด|ซึมเศร้า|health|sick|illness|surgery|treatment|doctor|hospital|depress|anxiety/i,
+        /สุขภาพ|ป่วย|ปวด|โรค|ผ่าตัด|รักษา|หมอ(?!ดู)|โรงพยาบาล|(?:กิน|ทาน|จ่าย|ฉีด|แพ้)ยา|เครียด|ซึมเศร้า|health|sick|illness|surgery|treatment|doctor|hospital|depress|anxiety/i,
     ],
     [
         "travel",
-        /เดินทาง|ย้าย(?:บ้าน|ประเทศ|ที่)|ต่างประเทศ|วีซ่า|เที่ยว|ย้ายงานไปต่าง|travel|move|relocat|abroad|visa|trip|flight/i,
+        /เดินทาง|ย้าย(?:บ้าน|ประเทศ|ที่|ไป|ออก|ถิ่น)|ต่างประเทศ|วีซ่า|เที่ยว|ย้ายงานไปต่าง|travel|\bmov(?:e|ing|ed)\b|relocat|abroad|visa|trip|flight/i,
     ],
     [
         "study",
@@ -143,30 +143,30 @@ const TOPIC_PATTERNS: [AstraTopic, RegExp][] = [
     ],
     [
         "family",
-        /ครอบครัว|พ่อ|แม่|ลูก|พี่|น้อง|ญาติ|บ้าน|ท้อง|ตั้งครรภ์|family|parent|mother|father|child|sibling|pregnan/i,
+        /ครอบครัว|พ่อ(?!ค้า|ครัว)|แม่(?!หมอ|น้ำ|ทัพ|ค้า|บ้าน)|ลูก(?!ค้า|น้อง|จ้าง)|พี่|น้อง|ญาติ|บ้าน|(?<!ปวด|เสีย|ผูก)ท้อง(?!ฟ้า|ถิ่น|ตลาด|ร่อง)|ตั้งครรภ์|family|parent|mother|father|child|sibling|pregnan/i,
     ],
 ]
 
 const GUARDRAIL_PATTERNS: [AstraGuardrail, RegExp][] = [
     [
         "life",
-        /ฆ่าตัวตาย|อยากตาย|ไม่อยากอยู่|ทำร้ายตัวเอง|จะตาย|เสียชีวิต|suicide|kill myself|end my life|want to die|self[- ]harm/i,
+        /ฆ่าตัวตาย|อยากตาย|ไม่อยากอยู่|ทำร้ายตัวเอง|(?<!หิว|ร้อน|หนาว|เหนื่อย|เบื่อ|ง่วง|เพลีย|รำคาญ|ขำ|เซ็ง)จะตาย|เสียชีวิต|suicide|kill myself|end my life|want to die|self[- ]harm/i,
     ],
     [
         "pregnancy",
-        /ท้อง|ตั้งครรภ์|แท้ง|มีลูก|ผสมเทียม|เด็กหลอดแก้ว|pregnan|miscarriage|fertility|ivf|conceive/i,
+        /(?<!ปวด|เสีย|ผูก)ท้อง(?!ฟ้า|ถิ่น|ตลาด|เสีย|ผูก|ร่อง)|ตั้งครรภ์|แท้ง|มีลูก|ผสมเทียม|เด็กหลอดแก้ว|pregnan|miscarriage|fertility|ivf|conceive/i,
     ],
     [
         "health",
-        /มะเร็ง|เนื้องอก|ผ่าตัด|โรค|ป่วยหนัก|เคมีบำบัด|ยา(?:รักษา)?|จะหายไหม|cancer|tumou?r|surgery|diagnos|chemo|medication|will .{0,20}recover/i,
+        /มะเร็ง|เนื้องอก|ผ่าตัด|โรค|ป่วยหนัก|เคมีบำบัด|รักษา(?:ตัว|โรค|อาการ)|โรงพยาบาล|(?:กิน|ทาน|จ่าย|ฉีด|แพ้|เลิก)ยา|ยา(?:รักษา|ปฏิชีวนะ|เคมี|เสพติด)|จะหายไหม|cancer|tumou?r|surgery|diagnos|chemo|medication|will .{0,20}recover/i,
     ],
     [
         "legal",
-        /คดี|ฟ้อง|ศาล|ทนาย|ตำรวจ|ติดคุก|สัญญา(?:ผูกมัด)?|ลิขสิทธิ์|lawsuit|court|lawyer|police|prison|sue|legal/i,
+        /คดี|ฟ้อง|ศาล(?!พระภูมิ|เจ้า|เพียงตา)|ทนาย|ตำรวจ|ติดคุก|สัญญา(?!ณ)|ลิขสิทธิ์|lawsuit|court|lawyer|police|prison|\bsue\b|legal/i,
     ],
     [
         "money",
-        /หนี้|กู้|จำนอง|ล้มละลาย|ลงทุน|หุ้น|คริปโต|ยืมเงิน|debt|loan|mortgage|bankrupt|invest|stock|crypto/i,
+        /หนี้|กู้|จำนอง|ล้มละลาย|ลงทุน|หุ้น|คริปโต|ยืมเงิน|debt|loan|mortgage|bankrupt|invest(?:ing|ed|ment|ments)?\b|stock|crypto/i,
     ],
 ]
 

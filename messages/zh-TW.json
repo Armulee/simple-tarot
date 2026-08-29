@@ -59,6 +59,77 @@
       "unclear": "還看不出來",
       "thanks": "好，我記下了。",
       "thanksMiss": "記下了，下次我看得更細。"
+    },
+    "proof": {
+      "link": "查看依據",
+      "title": "這段解讀依據什麼",
+      "note": "上面每一個數字，都是在我開口之前，由真實的行星位置算出來的。我只是讀它們，不是編它們。",
+      "noReroll": "同一天再問同一件事，你會得到一字不差的同一個答案。我不會重擲。",
+      "answerId": "答案編號",
+      "seed": "答案密鑰",
+      "computedAt": "計算時間",
+      "close": "關閉",
+      "row": {
+        "lagna": "上升",
+        "sun": "太陽",
+        "moon": "月亮",
+        "dayStar": "出生日曜星",
+        "ageStar": "主宰當前年歲之星",
+        "missingElement": "最薄的元素",
+        "ayanamsa": "歲差",
+        "askedAt": "提問時間",
+        "watch": "提問所處之更",
+        "lagnaAsked": "提問時的上升",
+        "house": "問事落宮",
+        "houseLord": "該宮主星",
+        "contacts": "與宮主的相位",
+        "significator": "此事表徵星",
+        "transit": "將至的行運",
+        "window": "時段",
+        "peak": "最緊密時",
+        "searched": "向前搜尋（天）",
+        "purpose": "擇日用途",
+        "kalakini": "劫煞之星",
+        "day": "吉日",
+        "days": "吉日"
+      },
+      "term": {
+        "noBirthTime": "未提供出生時間",
+        "evenlySpread": "無 — 分布均勻",
+        "day": "晝更",
+        "night": "夜更",
+        "retrograde": "逆行",
+        "noContacts": "3° 內無",
+        "noWindow": "未找到",
+        "noDays": "未找到",
+        "purpose": {
+          "opening": "開業",
+          "wedding": "婚禮",
+          "money": "錢財",
+          "rest": "休養",
+          "travel": "出行",
+          "study": "學業",
+          "moving": "搬家",
+          "meeting": "會面"
+        }
+      },
+      "ruek": {
+        "thalitho": "他利陀",
+        "mahattano": "摩訶陀那",
+        "choro": "焦羅",
+        "phumipalo": "浮彌波羅",
+        "thesatri": "提舍多利",
+        "thewi": "提毗",
+        "phetchakhat": "畢差伽陀",
+        "racha": "羅闍",
+        "samano": "沙門"
+      },
+      "element": {
+        "fire": "火",
+        "earth": "土",
+        "air": "風",
+        "water": "水"
+      }
     }
   },
   "Beta": {

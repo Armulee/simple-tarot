@@ -59,6 +59,77 @@
       "unclear": "Too early to tell",
       "thanks": "Good. I have written it down.",
       "thanksMiss": "Written down. I will look closer next time."
+    },
+    "proof": {
+      "link": "See where this came from",
+      "title": "What this reading was built from",
+      "note": "Every number above was computed from real planetary positions before I said a word. I read them. I do not make them up.",
+      "noReroll": "Ask me the same thing again today and you get the same answer, word for word. I do not re-roll.",
+      "answerId": "Answer id",
+      "seed": "Answer key",
+      "computedAt": "Computed at",
+      "close": "Close",
+      "row": {
+        "lagna": "Ascendant",
+        "sun": "Sun",
+        "moon": "Moon",
+        "dayStar": "Birth-day star",
+        "ageStar": "Star ruling this age",
+        "missingElement": "Thinnest element",
+        "ayanamsa": "Ayanamsa",
+        "askedAt": "Asked at",
+        "watch": "Watch of the question",
+        "lagnaAsked": "Ascendant at the question",
+        "house": "House of the question",
+        "houseLord": "Lord of that house",
+        "contacts": "Contacts to the lord",
+        "significator": "Significator",
+        "transit": "Incoming transit",
+        "window": "Window",
+        "peak": "Closest",
+        "searched": "Searched ahead (days)",
+        "purpose": "Purpose",
+        "kalakini": "Kalakini star",
+        "day": "Favourable day",
+        "days": "Favourable days"
+      },
+      "term": {
+        "noBirthTime": "no birth time given",
+        "evenlySpread": "none — evenly spread",
+        "day": "day watch",
+        "night": "night watch",
+        "retrograde": "retrograde",
+        "noContacts": "none within 3°",
+        "noWindow": "none found",
+        "noDays": "none found",
+        "purpose": {
+          "opening": "opening something",
+          "wedding": "a wedding",
+          "money": "money",
+          "rest": "rest and recovery",
+          "travel": "travel",
+          "study": "study",
+          "moving": "moving house",
+          "meeting": "a meeting"
+        }
+      },
+      "ruek": {
+        "thalitho": "Thalitho",
+        "mahattano": "Mahattano",
+        "choro": "Choro",
+        "phumipalo": "Phumipalo",
+        "thesatri": "Thesatri",
+        "thewi": "Thewi",
+        "phetchakhat": "Phetchakhat",
+        "racha": "Racha",
+        "samano": "Samano"
+      },
+      "element": {
+        "fire": "fire",
+        "earth": "earth",
+        "air": "air",
+        "water": "water"
+      }
     }
   },
   "Beta": {
