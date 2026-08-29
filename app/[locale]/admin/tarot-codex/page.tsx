@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase"
 import { Link } from "@/i18n/navigation"
 import { cardNameToSlug } from "@/lib/tarot/codex-utils"
 import { Input } from "@/components/ui/input"
-import NotFound from "@/app/not-found"
+import { notFound } from "next/navigation"
 
 export type TarotCodexRow = {
     id: number
@@ -92,9 +92,10 @@ export default function AdminTarotCodexPage() {
         return rows.filter((row) => matchesSearch(row, search))
     }, [rows, search])
 
-    if (state.status === "loading" || state.status === "notfound") {
-        return <NotFound />
-    }
+    // Render the real not-found boundary, never an admin-only lookalike — see
+    // AdminGuard. Loading returns null so the check can still settle.
+    if (state.status === "notfound") notFound()
+    if (state.status === "loading") return null
 
     if (state.status === "error") {
         return (
