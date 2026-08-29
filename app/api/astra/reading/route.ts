@@ -20,9 +20,10 @@ import {
     typingMsForText,
     type AstraBubble,
 } from "@/lib/astra/opening-contract"
-import type {
-    AstraReadingResponse,
-    AstraReadingSource,
+import {
+    ASTRA_REGISTERS,
+    type AstraReadingResponse,
+    type AstraReadingSource,
 } from "@/lib/astra/reading-contract"
 import {
     readAuspicious,
@@ -82,11 +83,16 @@ const replySchema = z.object({
         .describe(
             "The direction she committed to, in one plain line. Internal record, not shown.",
         ),
+    register: z
+        .enum(ASTRA_REGISTERS)
+        .describe(
+            "How far you went: READ if you committed, PROBE if you guessed the shape and asked for more, TALK if they were not asking about their life.",
+        ),
     dueInDays: z
         .number()
         .nullable()
         .describe(
-            "Whole days until the outcome should be visible, or null when the answer is not a forecast.",
+            "Whole days until the outcome should be visible. Null unless you were in READ and committed to something that can actually be checked later — a probe, a chat, or an answer with no forecast in it is always null.",
         ),
 })
 
@@ -121,10 +127,32 @@ const GLOSSARY = `NAMES (use the Thai name when writing Thai): ${Object.entries(
     .map(([key, thai]) => `${key}=${thai}`)
     .join(", ")}.`
 
+/**
+ * How far she is entitled to go on what she was actually told.
+ *
+ * The craft tasks below describe how to read a chart. This describes when to.
+ * Without it every message got a verdict and a date, including "I have a plan,
+ * would it work?" — which names no plan — and "don't you wanna know my plan?",
+ * which is not a question about their life at all. Committing there is not
+ * fortune telling, it is guessing with a straight face, and a date written
+ * down under every line of small talk reads as nagging rather than care.
+ */
+const REGISTER_RULES = `CHOOSE HOW FAR TO GO. Report your choice in the "register" field.
+
+READ — they told you enough that the computed values actually bear on what they asked. Only here do you commit to a direction, and only here may you give a timeframe.
+
+PROBE — they named a subject but withheld the substance of it: "I have a plan", "there is this thing", "something happened", "would it work?" with no it. You were not told what to read, so do NOT pronounce on it. Instead do what a reader does across a table: work out what the chart can already tell you about the SHAPE of it — which area of life, which direction the pull runs — offer that as a guess with the placement behind it named in one short clause, invite them to correct you, and ask for the part they left out. No verdict. No date. End on the question.
+    A plan has not happened yet, so it belongs to where the slow planets are heading. That is enough to guess the AREA it is about. It is never enough to guess whether it works.
+    Shape to aim for: "I can guess from where your stars sit — this is about reaching people, not about money. Jupiter is moving into the house that widens a circle. Correct me if I am wrong. What is the plan?"
+
+TALK — they are speaking to you rather than asking about their life: teasing you, testing you, reacting to what you just said, asking whether you want to know something. Answer as a person answers. One or two short bubbles, warm, unhurried. Ignore the computed block entirely — no placements, no verdict, no date. "Sure. Go on, tell me." is a complete answer.
+
+A verdict you were not given the material for is worth less than no verdict — it is the thing that makes a reader sound fake. When you were not told enough, PROBE. When they were not asking, TALK.`
+
 const INTENT_TASKS: Record<AstraIntent, string> = {
     IDENTITY: `They asked who they are. Read the birth chart you were handed: say what kind of person it makes them, plainly, in a way they would recognise on themselves. Name at most one placement as the reason. End by asking them something back.`,
     TIMING: `They asked when. You were handed the next real contact between a slow planet and their significator, with the window it covers. Give the window in plain dates, say what it will feel like when it arrives, and say plainly if nothing is coming inside the search window rather than inventing a date. Ask them something back.`,
-    OUTCOME: `They asked how something turns out. You were handed the chart of the moment they asked. Your answer MUST contain all three of these, in this order: (1) which way it goes, committed, in the first bubble; (2) the timeframe in which it shows; (3) one concrete signal for them to watch for, so they can tell whether it is happening. Name the reason from the craft in one short clause only.`,
+    OUTCOME: `They asked how something turns out. You were handed the chart of the moment they asked. IN READ your answer must contain all three of these, in this order: (1) which way it goes, committed, in the first bubble; (2) the timeframe in which it shows; (3) one concrete signal for them to watch for, so they can tell whether it is happening. Name the reason from the craft in one short clause only. In PROBE none of that applies — guess the shape and ask.`,
     AUSPICIOUS_DATE: `They asked which day to act. You were handed the days the almanac favours for this purpose and the weekday to avoid. Give them the best day first with its date, one alternative, and the day to keep away from. Say what each is good for in plain words, not in almanac jargon.`,
 }
 
@@ -403,6 +431,7 @@ export async function POST(req: NextRequest) {
     const language = resolveResponseLanguage(locale, question)
     const system = buildAstraSystemPrompt({
         task: [
+            REGISTER_RULES,
             guardrail ? GUARDRAILED_TASK : INTENT_TASKS[intent],
             GLOSSARY,
             "Return 2-4 bubbles. Each bubble is one or two short sentences — never a paragraph.",
@@ -462,7 +491,12 @@ export async function POST(req: NextRequest) {
             })
             const bubbles = textToBubbles(spoken.text ?? "")
             if (bubbles.length === 0) throw new Error("EMPTY_REPLY")
-            reply = { bubbles, verdict: bubbles[0], dueInDays: null }
+            reply = {
+                bubbles,
+                verdict: bubbles[0],
+                register: "PROBE",
+                dueInDays: null,
+            }
         } catch (plainError) {
             const reason =
                 plainError instanceof Error
@@ -486,8 +520,39 @@ export async function POST(req: NextRequest) {
         )
     }
 
+    // She was talking, not reading. No chart behind it, so no proof link, and
+    // nothing to write down.
+    if (reply.register === "TALK") {
+        return NextResponse.json({
+            kind: "talk",
+            bubbles: toBubbles(spokenBubbles, answerId),
+        } satisfies AstraReadingResponse)
+    }
+
+    // Forecasts are written down with the day she will come back and ask —
+    // but only the ones she actually made. Three things have to hold: she
+    // committed (READ), the craft is one that forecasts, and the subject is
+    // not one she is required to stay out of. A date under every message
+    // reads as nagging, not as care.
+    const tracksOutcome =
+        reply.register === "READ" &&
+        (intent === "OUTCOME" || intent === "TIMING") &&
+        !guardrail
+
+    const timingWindow =
+        intent === "TIMING"
+            ? (values as { window: { endIso: string } | null }).window
+            : null
+    const dueFromWindow = timingWindow ? timingWindow.endIso.slice(0, 10) : null
+    // A null `dueInDays` is the model saying there is no forecast here. It
+    // used to be replaced with a fortnight, which is how small talk ended up
+    // with a follow-up date attached.
+    const hasForecast = dueFromWindow != null || reply.dueInDays != null
+
     const source: AstraReadingSource = {
         intent,
+        register: reply.register,
+        replayable: tracksOutcome && hasForecast,
         topic,
         answerId,
         seed,
@@ -496,21 +561,8 @@ export async function POST(req: NextRequest) {
         values: values as unknown as Record<string, unknown>,
     }
 
-    // Forecasts are written down with the day she will come back and ask.
-    // Never on a flagged subject: she committed to nothing there by design, so
-    // there is no call to check — and opening with "how did it go?" on a
-    // cancer scare or a crisis message would be its own harm.
-    const tracksOutcome =
-        (intent === "OUTCOME" || intent === "TIMING") && !guardrail
     let dueDateIso: string | null = null
-    if (tracksOutcome) {
-        const timingWindow =
-            intent === "TIMING"
-                ? (values as { window: { endIso: string } | null }).window
-                : null
-        const dueFromWindow = timingWindow
-            ? timingWindow.endIso.slice(0, 10)
-            : null
+    if (tracksOutcome && hasForecast) {
         const days = Math.min(
             180,
             Math.max(1, Math.round(reply.dueInDays ?? 14)),

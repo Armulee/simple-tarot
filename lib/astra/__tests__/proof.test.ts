@@ -15,6 +15,8 @@ function sourceOf(
 ): AstraReadingSource {
     return {
         intent,
+        register: "READ",
+        replayable: true,
         topic: "career",
         answerId: "4826e726",
         seed: "device:abc|question|2026-08-29",

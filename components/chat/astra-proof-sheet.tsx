@@ -122,9 +122,14 @@ export function AstraProofSheet({
                     <p className='text-[12px] leading-relaxed text-white/50'>
                         {t("note")}
                     </p>
-                    <p className='text-[12px] leading-relaxed text-white/50'>
-                        {t("noReroll")}
-                    </p>
+                    {/* Only a committed reading is written down and replayed.
+                        A probe is a live conversation, so promising the same
+                        answer back would be a promise she does not keep. */}
+                    {source.replayable ? (
+                        <p className='text-[12px] leading-relaxed text-white/50'>
+                            {t("noReroll")}
+                        </p>
+                    ) : null}
                 </div>
 
                 {/* The identifiers, last and smallest: they are what makes the

@@ -509,6 +509,13 @@ export function useAstraOpening({
                     return
                 }
                 if (payload.kind === "tarot") return
+                // She was talking, not reading: no proof link under it and no
+                // date written down, because there is nothing to prove or
+                // check. It is just her answering.
+                if (payload.kind === "talk") {
+                    await playBubbles(payload.bubbles)
+                    return
+                }
                 await playBubbles(payload.bubbles, {
                     astraSource: payload.source,
                     ...(payload.prediction
