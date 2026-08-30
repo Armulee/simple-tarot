@@ -21,7 +21,18 @@
       "topicPeople": "人のこと",
       "topicMoney": "お金のこと",
       "topicBoth": "どちらも",
-      "coldReadFallback": "あなたの図は開きました。\n今ひっかかっていることを短く教えて。一つずつ見ていく。"
+      "coldReadFallback": "あなたの図は開きました。\n今ひっかかっていることを短く教えて。一つずつ見ていく。",
+      "returningPlain": "新しいこと？ どうぞ。",
+      "topicName": {
+        "career": "仕事",
+        "love": "あの人",
+        "money": "お金",
+        "health": "体のこと",
+        "travel": "移ること",
+        "study": "学業",
+        "family": "家族",
+        "general": "あのこと"
+      }
     },
     "intake": {
       "pickDate": "生年月日を選ぶ",

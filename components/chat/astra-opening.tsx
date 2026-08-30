@@ -8,7 +8,6 @@ import {
     BirthTimePickerButton,
 } from "@/components/chat/astra-birth-picker"
 import { useAstraIdentity } from "@/lib/astra/use-astra-identity"
-import { threadTitleFromQuestion } from "@/lib/chat/thread-title"
 import { ageInYears } from "@/lib/astra/thai-astrology"
 import {
     parseBirthDate,
@@ -55,6 +54,11 @@ export type UseAstraOpeningArgs = {
 
 /** The product is not read for children; the age gate applies here too. */
 const MIN_AGE_YEARS = 13
+
+/** How many turns back she carries. Enough for a thread, not a diary. */
+const TRANSCRIPT_TURNS = 12
+/** And a character ceiling, so a long thread cannot bloat every request. */
+const TRANSCRIPT_BUDGET = 3000
 
 function delay(ms: number) {
     return new Promise((resolve) => window.setTimeout(resolve, ms))
@@ -256,8 +260,10 @@ export function useAstraOpening({
         setStage("done")
     }, [messages, quickReplies.length])
 
-    // Remember what this thread ended up being about, so the NEXT one can open
-    // by referring back to it instead of starting from nothing.
+    // Which thread she last spoke in, so a new one knows to open by referring
+    // back. What it was ABOUT is recorded by the reading itself, as the life
+    // area it routed to — a whole typed sentence does not fit the sentence
+    // that reads it back.
     const topicSyncedRef = useRef(false)
     useEffect(() => {
         if (topicSyncedRef.current || !sessionId) return
@@ -269,10 +275,7 @@ export function useAstraOpening({
         void fetch("/api/astra/profile", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                lastTopic: threadTitleFromQuestion(firstQuestion.text),
-                lastSessionId: sessionId,
-            }),
+            body: JSON.stringify({ lastSessionId: sessionId }),
         }).catch(() => {})
     }, [messages, sessionId])
 
@@ -461,14 +464,48 @@ export function useAstraOpening({
     )
 
     /**
+     * The last stretch of the thread, oldest first, as she and they said it.
+     *
+     * Her turns arrive as several bubbles in a row; those are one thing said,
+     * so they are joined back together. Trimmed from the end, because the near
+     * past is what a follow-up is about.
+     */
+    const buildTranscript = useCallback((all: ChatMessage[]) => {
+        const turns: { role: "astra" | "them"; text: string }[] = []
+        for (const message of all) {
+            const text = message.text?.trim()
+            if (!text) continue
+            const role = message.role === "user" ? "them" : "astra"
+            const previous = turns.at(-1)
+            if (previous?.role === role) previous.text += "\n" + text
+            else turns.push({ role, text })
+        }
+        const recent = turns.slice(-TRANSCRIPT_TURNS)
+        let budget = TRANSCRIPT_BUDGET
+        const kept: typeof recent = []
+        for (let i = recent.length - 1; i >= 0; i -= 1) {
+            const turn = recent[i]
+            if (turn.text.length > budget) {
+                if (budget > 200) kept.unshift({ ...turn, text: turn.text.slice(-budget) })
+                break
+            }
+            budget -= turn.text.length
+            kept.unshift(turn)
+        }
+        return kept
+    }, [])
+
+    /**
      * A routed reading: the question picks the craft, the craft computes, and
      * only then does she speak. Failures say so instead of inventing a chart.
      */
     const runReading = useCallback(
         async (question: string, topicHint?: AstraTopic) => {
-            const lastSpoken = [...messagesRef.current]
-                .reverse()
-                .find((m) => m.role === "assistant" && m.text?.trim())?.text
+            // What she is answering into. Sending only her own last bubble
+            // meant every turn arrived as if it were the first: she repeated
+            // herself, contradicted what she had just said, and asked things
+            // the person had already answered.
+            const transcript = buildTranscript(messagesRef.current)
             appendPlainUserBubble(question)
             setQuickReplies([])
             setStage("done")
@@ -483,7 +520,7 @@ export function useAstraOpening({
                         locale,
                         timezone: -new Date().getTimezoneOffset() / 60,
                         topicHint,
-                        context: lastSpoken?.slice(0, 600),
+                        transcript,
                     }),
                 })
                 setTyping(false)
@@ -533,6 +570,7 @@ export function useAstraOpening({
         [
             appendAssistantBubble,
             appendPlainUserBubble,
+            buildTranscript,
             fetchOpening,
             locale,
             playBubbles,

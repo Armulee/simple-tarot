@@ -21,7 +21,18 @@
       "topicPeople": "Alguém",
       "topicMoney": "Dinheiro",
       "topicBoth": "Os dois",
-      "coldReadFallback": "Seu mapa está aberto.\nMe diga em poucas palavras o que está pesando, e eu vou destrinchando."
+      "coldReadFallback": "Seu mapa está aberto.\nMe diga em poucas palavras o que está pesando, e eu vou destrinchando.",
+      "returningPlain": "Algo novo? Pode falar.",
+      "topicName": {
+        "career": "o trabalho",
+        "love": "aquela pessoa",
+        "money": "o dinheiro",
+        "health": "sua saúde",
+        "travel": "a mudança",
+        "study": "seus estudos",
+        "family": "a família",
+        "general": "aquilo"
+      }
     },
     "intake": {
       "pickDate": "Escolher data de nascimento",

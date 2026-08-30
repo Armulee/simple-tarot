@@ -21,7 +21,18 @@
       "topicPeople": "Alguien",
       "topicMoney": "Dinero",
       "topicBoth": "Las dos cosas",
-      "coldReadFallback": "Tu carta ya está abierta.\nDime en corto qué te pesa ahora y lo voy desarmando."
+      "coldReadFallback": "Tu carta ya está abierta.\nDime en corto qué te pesa ahora y lo voy desarmando.",
+      "returningPlain": "¿Algo nuevo? Adelante.",
+      "topicName": {
+        "career": "el trabajo",
+        "love": "esa persona",
+        "money": "el dinero",
+        "health": "tu salud",
+        "travel": "la mudanza",
+        "study": "tus estudios",
+        "family": "la familia",
+        "general": "aquello"
+      }
     },
     "intake": {
       "pickDate": "Elegir fecha de nacimiento",

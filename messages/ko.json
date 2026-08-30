@@ -21,7 +21,18 @@
       "topicPeople": "사람 문제",
       "topicMoney": "돈 문제",
       "topicBoth": "둘 다",
-      "coldReadFallback": "차트를 열었어요.\n지금 마음에 걸리는 걸 짧게 말해요. 하나씩 풀어 볼게요."
+      "coldReadFallback": "차트를 열었어요.\n지금 마음에 걸리는 걸 짧게 말해요. 하나씩 풀어 볼게요.",
+      "returningPlain": "새로운 일? 말해봐요.",
+      "topicName": {
+        "career": "일",
+        "love": "그 사람",
+        "money": "돈",
+        "health": "건강",
+        "travel": "옮기는 일",
+        "study": "공부",
+        "family": "가족",
+        "general": "그 일"
+      }
     },
     "intake": {
       "pickDate": "생년월일 고르기",

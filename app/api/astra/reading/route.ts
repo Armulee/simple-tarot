@@ -49,7 +49,11 @@ import {
 // default function timeout is shorter than that on a cold start.
 export const maxDuration = 60
 
-const MODEL = "deepseek/deepseek-v4-pro"
+/**
+ * Her voice is as much the model as the prompt, so it is switchable without a
+ * deploy — set ASTRA_MODEL to any id the gateway serves to try another one.
+ */
+const MODEL = process.env.ASTRA_MODEL || "deepseek/deepseek-v4-pro"
 
 const requestSchema = z.object({
     question: z.string().trim().min(1).max(2000),
@@ -62,8 +66,20 @@ const requestSchema = z.object({
      * own question carries no grammar to classify, so the chip says what it is.
      */
     topicHint: z.enum(ASTRA_TOPICS).optional(),
-    /** What she had just said, so a reply of "Work" is read as the answer it is. */
-    context: z.string().max(600).optional(),
+    /**
+     * The thread so far, oldest first, so a follow-up is answered as one.
+     * A single trailing bubble was not enough: she re-asked what they had
+     * already told her and contradicted what she had already said.
+     */
+    transcript: z
+        .array(
+            z.object({
+                role: z.enum(["astra", "them"]),
+                text: z.string().max(4000),
+            }),
+        )
+        .max(24)
+        .optional(),
 })
 
 /**
@@ -137,6 +153,24 @@ const GLOSSARY = `NAMES (use the Thai name when writing Thai): ${Object.entries(
  * fortune telling, it is guessing with a straight face, and a date written
  * down under every line of small talk reads as nagging rather than care.
  */
+/**
+ * How she sounds, and how much of it there is.
+ *
+ * Four bubbles of placements on every turn is what made her read like a
+ * machine reciting a chart: the answer to what was asked arrived third, every
+ * reply named a planet whether or not it earned one, and a follow-up repeated
+ * the whole apparatus instead of just answering.
+ */
+const VOICE = `HOW TO SPEAK.
+
+Answer the question that was actually asked, in the first bubble, in plain words. Everything else is optional.
+
+One to three bubbles. One is often the right number, especially for a follow-up. Each bubble is one or two short sentences. If you can say it in six words, say it in six words.
+
+Name a placement only when it is carrying the answer, and never more than one in a reply. If you already gave the reason a turn ago, do not give it again — they heard you. A follow-up almost never needs a placement at all.
+
+Talk the way a reader talks across a table: direct, warm, a little dry. Not a report. No headings, no lists, no "furthermore". Do not restate their question back to them before answering it.`
+
 const REGISTER_RULES = `CHOOSE HOW FAR TO GO. Report your choice in the "register" field.
 
 READ — they told you enough that the computed values actually bear on what they asked. Only here do you commit to a direction, and only here may you give a timeframe.
@@ -148,6 +182,22 @@ PROBE — they named a subject but withheld the substance of it: "I have a plan"
 TALK — they are speaking to you rather than asking about their life: teasing you, testing you, reacting to what you just said, asking whether you want to know something. Answer as a person answers. One or two short bubbles, warm, unhurried. Ignore the computed block entirely — no placements, no verdict, no date. "Sure. Go on, tell me." is a complete answer.
 
 A verdict you were not given the material for is worth less than no verdict — it is the thing that makes a reader sound fake. When you were not told enough, PROBE. When they were not asking, TALK.`
+
+/**
+ * The rules that make a thread a thread. Without the first one she answered
+ * every turn as if it were the first thing said to her; without the second she
+ * told the same person the money came from inside their circle, then from
+ * outside it, then from inside again, two turns apart.
+ */
+const CONTINUITY = `YOU ARE MID-CONVERSATION.
+
+Read the thread above before you answer. Do not ask for anything they have already told you, and do not re-introduce something you already said.
+
+What you have already said stands. If what the chart now suggests would contradict it, you have two honest moves and no third: say plainly that you are correcting yourself and why, or find the reading that fits both. Quietly reversing yourself is the one thing that makes a reader worthless.
+
+When they push back on something you said — "but you said X" — go back and look at what you actually said. If they are right and you were wrong, say so in one line. If they misread you, say what you meant, briefly, without repeating the whole reading.
+
+A short follow-up ("from who?", "really?", "you think so?") is about the thing you were just discussing. Answer that. Do not start a new reading.`
 
 const INTENT_TASKS: Record<AstraIntent, string> = {
     IDENTITY: `They asked who they are. Read the birth chart you were handed: say what kind of person it makes them, plainly, in a way they would recognise on themselves. Name at most one placement as the reason. End by asking them something back.`,
@@ -307,9 +357,18 @@ function normalizeQuestion(question: string): string {
         .trim()
 }
 
+/**
+ * Bubble ids are unique per response, not per answer.
+ *
+ * The chat drops a bubble whose id is already on screen, which is what keeps a
+ * replayed turn from doubling. Keying them on the answer id alone meant that
+ * asking the same thing twice in a day — a replay, by design — rendered
+ * nothing at all: she simply went silent on the second ask.
+ */
 function toBubbles(texts: string[], answerId: string): AstraBubble[] {
+    const turn = crypto.randomUUID().slice(0, 8)
     return texts.map((text, index) => ({
-        id: `astra-${answerId}-${index}`,
+        id: `astra-${answerId}-${turn}-${index}`,
         text,
         typingMs: typingMsForText(text),
     }))
@@ -320,7 +379,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
         return NextResponse.json({ error: "INVALID_BODY" }, { status: 400 })
     }
-    const { question, sessionId, locale, timezone, topicHint, context } =
+    const { question, sessionId, locale, timezone, topicHint, transcript } =
         parsed.data
 
     const classified = classifyQuestion(question)
@@ -431,10 +490,11 @@ export async function POST(req: NextRequest) {
     const language = resolveResponseLanguage(locale, question)
     const system = buildAstraSystemPrompt({
         task: [
+            CONTINUITY,
             REGISTER_RULES,
             guardrail ? GUARDRAILED_TASK : INTENT_TASKS[intent],
             GLOSSARY,
-            "Return 2-4 bubbles. Each bubble is one or two short sentences — never a paragraph.",
+            VOICE,
             // Last, so it is the most recent thing read, and marked as
             // outranking the craft task rather than sitting beside it.
             guardrail ? GUARDRAIL_TASK[guardrail] : null,
@@ -445,10 +505,16 @@ export async function POST(req: NextRequest) {
         language,
     })
 
+    const thread = (transcript ?? [])
+        .map((turn) => `${turn.role === "astra" ? "YOU" : "THEM"}: ${turn.text}`)
+        .join("\n")
+
     const prompt = [
-        context ? `You had just said:\n${context}` : null,
-        `Their question:\n${question}`,
-        "Answer it now, from the computed values only.",
+        thread ? `The conversation so far:\n${thread}` : null,
+        `THEM, now:\n${question}`,
+        thread
+            ? "Answer this, from the computed values, as the next thing you say in that conversation."
+            : "Answer it now, from the computed values only.",
     ]
         .filter(Boolean)
         .join("\n\n")
@@ -560,6 +626,18 @@ export async function POST(req: NextRequest) {
         label: t(`reading.sourceLabel.${intent}`),
         values: values as unknown as Record<string, unknown>,
     }
+
+    // What this thread is about, so the next one can open by referring back
+    // to it. The life area, not the sentence they typed: the greeting reads
+    // "Ah — work, the one you asked me last time", and a raw question dropped
+    // into that slot produced "Ah — I got a plan right now. But I don't would
+    // it work, the one you asked me last time."
+    void supabaseAdmin
+        .from("astra_user_profiles")
+        .update({ last_topic: topic })
+        .eq("subject_type", subject.type)
+        .eq("subject_id", subject.id)
+        .then(undefined, () => {})
 
     let dueDateIso: string | null = null
     if (tracksOutcome && hasForecast) {

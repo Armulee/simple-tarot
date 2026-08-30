@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { ASTRA_TOPICS, type AstraTopic } from "@/lib/astra/intent"
 import { z } from "zod"
 import { getTranslations } from "next-intl/server"
 import { supabaseAdmin } from "@/lib/supabase"
@@ -208,14 +209,26 @@ export async function POST(req: NextRequest) {
 
     // A new thread opens by picking up the last one — she does not make people
     // re-tell a story she already heard.
+    // `last_topic` is a life area written by the reading route, so it reads
+    // back inside a sentence. Anything else is from before that was true, and
+    // "general" names nothing worth naming — both open plainly instead.
+    const lastTopic = profile?.last_topic
+    const namedTopic =
+        lastTopic && lastTopic !== "general" && ASTRA_TOPICS.includes(lastTopic as AstraTopic)
+            ? (lastTopic as AstraTopic)
+            : null
     const isNewThread = Boolean(
-        profile?.last_topic && profile.last_session_id !== sessionId,
+        profile?.last_session_id && profile.last_session_id !== sessionId,
     )
     if (isNewThread) {
         bubbles.push(
             bubble(
                 "astra-callback",
-                t("opening.returning", { topic: profile!.last_topic! }),
+                namedTopic
+                    ? t("opening.returning", {
+                          topic: t(`opening.topicName.${namedTopic}`),
+                      })
+                    : t("opening.returningPlain"),
             ),
         )
     }

@@ -21,7 +21,18 @@
       "topicPeople": "Soal seseorang",
       "topicMoney": "Soal uang",
       "topicBoth": "Dua-duanya",
-      "coldReadFallback": "Petamu sudah terbuka.\nKatakan singkat apa yang sedang mengganjal, nanti kuurai satu per satu."
+      "coldReadFallback": "Petamu sudah terbuka.\nKatakan singkat apa yang sedang mengganjal, nanti kuurai satu per satu.",
+      "returningPlain": "Ada yang baru? Silakan.",
+      "topicName": {
+        "career": "pekerjaan",
+        "love": "orang itu",
+        "money": "uang",
+        "health": "kesehatanmu",
+        "travel": "kepindahan itu",
+        "study": "kuliahmu",
+        "family": "keluarga",
+        "general": "hal itu"
+      }
     },
     "intake": {
       "pickDate": "Pilih tanggal lahir",

@@ -21,7 +21,18 @@
       "topicPeople": "Someone",
       "topicMoney": "Money",
       "topicBoth": "Both",
-      "coldReadFallback": "Your chart is open.\nTell me the short version of what is sitting with you, and I will take it apart."
+      "coldReadFallback": "Your chart is open.\nTell me the short version of what is sitting with you, and I will take it apart.",
+      "returningPlain": "Something new? Go ahead.",
+      "topicName": {
+        "career": "work",
+        "love": "someone",
+        "money": "money",
+        "health": "your health",
+        "travel": "the move",
+        "study": "your studies",
+        "family": "family",
+        "general": "that"
+      }
     },
     "intake": {
       "pickDate": "Pick your birth date",

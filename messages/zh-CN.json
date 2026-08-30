@@ -21,7 +21,18 @@
       "topicPeople": "某个人",
       "topicMoney": "钱",
       "topicBoth": "两者都是",
-      "coldReadFallback": "你的盘我已经开好了。\n简单说说现在压着你的是什么，我一层层看给你。"
+      "coldReadFallback": "你的盘我已经开好了。\n简单说说现在压着你的是什么，我一层层看给你。",
+      "returningPlain": "有新事？说吧。",
+      "topicName": {
+        "career": "工作",
+        "love": "那个人",
+        "money": "钱",
+        "health": "身体",
+        "travel": "搬迁",
+        "study": "学业",
+        "family": "家里",
+        "general": "那件事"
+      }
     },
     "intake": {
       "pickDate": "选择出生日期",
