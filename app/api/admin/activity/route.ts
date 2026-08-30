@@ -7,7 +7,10 @@ import {
     type AdminActivityResponse,
     type MetricKey,
 } from "@/lib/admin/activity-metrics"
-import { excludeTestOwner } from "@/lib/admin/test-owner"
+import {
+    excludeOwners,
+    excludedOwnerIds,
+} from "@/lib/admin/excluded-owners"
 
 type AdminClient = NonNullable<typeof supabaseAdmin>
 
@@ -97,7 +100,8 @@ async function fetchRows(
     columns: string,
     fromISO: string,
     toISO: string,
-    { skipTestOwner = false } = {},
+    /** Owner ids to leave out — only meaningful for chat_sessions. */
+    excludeOwnerIds: string[] = [],
 ): Promise<Row[]> {
     const out: Row[] = []
     for (let page = 0; page < MAX_PAGES; page++) {
@@ -107,9 +111,7 @@ async function fetchRows(
             .select(columns)
             .gte("created_at", fromISO)
             .lt("created_at", toISO)
-        const { data, error } = await (skipTestOwner
-            ? excludeTestOwner(base)
-            : base)
+        const { data, error } = await excludeOwners(base, excludeOwnerIds)
             .order("created_at", { ascending: true })
             .range(offset, offset + PAGE - 1)
         if (error) throw error
@@ -150,11 +152,18 @@ export async function GET(request: NextRequest) {
     const granularity = pickGranularity(spanDays)
 
     try {
+        // Admins' own readings are test data; they don't count as activity.
+        const exclude = await excludedOwnerIds(admin)
         const [stars, sessions, subs] = await Promise.all([
             fetchRows(admin, "stars", "created_at, user_id", fromISO, toISO),
-            fetchRows(admin, "chat_sessions", "created_at", fromISO, toISO, {
-                skipTestOwner: true,
-            }),
+            fetchRows(
+                admin,
+                "chat_sessions",
+                "created_at",
+                fromISO,
+                toISO,
+                exclude,
+            ),
             fetchRows(
                 admin,
                 "billing_subscriptions",

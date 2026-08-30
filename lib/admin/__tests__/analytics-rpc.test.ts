@@ -7,7 +7,7 @@ import {
     analyticsRpc,
 } from "../analytics-rpc.ts"
 
-const TEST_OWNER = ["owner-1"]
+const ADMIN_IDS = ["admin-1"]
 
 type Call = { fn: string; args: unknown }
 type Reply = { data: unknown; error: unknown }
@@ -34,20 +34,20 @@ const fnNotFound = {
 
 const ok = (data: unknown): Reply => ({ data, error: null })
 
-test("sends p_exclude_owners when test owners are configured", async () => {
+test("sends p_exclude_owners when there are admin accounts", async () => {
     const { client, calls } = stubClient([ok({ totalUsers: 7 })])
     const data = await analyticsRpc(
         client,
         "admin_analytics_totals",
         {},
-        TEST_OWNER,
+        ADMIN_IDS,
     )
     assert.deepEqual(data, { totalUsers: 7 })
     assert.equal(calls.length, 1)
-    assert.deepEqual(calls[0].args, { p_exclude_owners: TEST_OWNER })
+    assert.deepEqual(calls[0].args, { p_exclude_owners: ADMIN_IDS })
 })
 
-test("omits the argument entirely when there are no test owners", async () => {
+test("omits the argument entirely when there are no admin accounts", async () => {
     const { client, calls } = stubClient([ok({ totalUsers: 7 })])
     await analyticsRpc(client, "admin_analytics_totals", { p_start: "x" })
     assert.deepEqual(calls[0].args, { p_start: "x" })
@@ -62,7 +62,7 @@ test("retries without the exclusion when the database predates it", async () => 
         client,
         "admin_analytics_totals",
         { p_start: "x" },
-        TEST_OWNER,
+        ADMIN_IDS,
     )
     // The dashboard still renders, against the un-migrated signature.
     assert.deepEqual(data, { totalUsers: 7 })
@@ -120,7 +120,7 @@ test("a failure after the retry still reports the reason", async () => {
         client,
         "admin_analytics_totals",
         {},
-        TEST_OWNER,
+        ADMIN_IDS,
     ).catch((e) => e)
     assert.equal(calls.length, 2)
     assert.match(analyticsErrorBody(err).detail, /still missing/)

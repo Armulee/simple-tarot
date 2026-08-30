@@ -5,7 +5,7 @@
  * hand — so the database can legitimately be a step behind the deployed code.
  * Two things follow from that, and this module owns both:
  *
- *  1. p_exclude_owners (the TEST_OWNER_ID filter) only exists once that file has
+ *  1. p_exclude_owners (the admin-account filter) only exists once that file has
  *     been re-applied. If the database predates it, the call is retried without
  *     the argument rather than failing the whole dashboard.
  *  2. When a call fails for real, the reason travels to the client. A generic
@@ -84,22 +84,21 @@ type Args = Record<string, string | string[]>
 /**
  * Call one analytics RPC.
  *
- * `excludeOwners` are the TEST_OWNER_ID values (from testOwnerIds()); pass none
- * for a function that takes no p_exclude_owners — admin_analytics_context reads
- * stars/billing rather than sessions.
+ * `excludeOwnerIds` are the ids to leave out (from excludedOwnerIds()); pass
+ * none for a function that takes no p_exclude_owners — admin_analytics_context
+ * reads stars/billing rather than sessions.
  */
 export async function analyticsRpc<T>(
     admin: SupabaseClient,
     fn: string,
     args: Args = {},
-    excludeOwners: string[] = [],
+    excludeOwnerIds: string[] = [],
 ): Promise<T> {
-    const exclude = excludeOwners
-    const hasExclusion = exclude.length > 0
+    const hasExclusion = excludeOwnerIds.length > 0
 
     let { data, error } = await admin.rpc(
         fn,
-        hasExclusion ? { ...args, p_exclude_owners: exclude } : args,
+        hasExclusion ? { ...args, p_exclude_owners: excludeOwnerIds } : args,
     )
 
     // The database hasn't been migrated for the exclusion argument yet. Losing
@@ -108,7 +107,7 @@ export async function analyticsRpc<T>(
     if (error?.code === FN_NOT_FOUND && hasExclusion) {
         console.warn(
             `[admin/analytics] ${fn} has no p_exclude_owners argument; ` +
-                `retrying without the TEST_OWNER_ID filter. ${MIGRATION_HINT}`,
+                `retrying without the admin-account filter. ${MIGRATION_HINT}`,
         )
         ;({ data, error } = await admin.rpc(fn, args))
     }

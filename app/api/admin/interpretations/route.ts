@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { readPaging, requireAdmin } from "@/lib/admin-auth"
 import { pendingDeletionMap } from "@/lib/admin/delete-requests"
-import { excludeTestOwner } from "@/lib/admin/test-owner"
+import {
+    excludeOwners,
+    excludedOwnerIds,
+} from "@/lib/admin/excluded-owners"
 
 export const dynamic = "force-dynamic"
 
@@ -75,6 +78,8 @@ export async function GET(request: NextRequest) {
     const q = (request.nextUrl.searchParams.get("q") ?? "").trim()
 
     try {
+        // Admins' own readings are test data; they never show up in this list.
+        const exclude = await excludedOwnerIds(admin)
         let rows: SessionRow[] = []
         let total = 0
 
@@ -92,28 +97,31 @@ export async function GET(request: NextRequest) {
                 (p) => p.id as string,
             )
             const [byQuestion, byTopic, byOwner] = await Promise.all([
-                excludeTestOwner(
+                excludeOwners(
                     admin
                         .from("chat_sessions")
                         .select(COLS)
                         .ilike("question", like),
+                    exclude,
                 )
                     .order("created_at", { ascending: false })
                     .limit(SEARCH_CAP),
-                excludeTestOwner(
+                excludeOwners(
                     admin
                         .from("chat_sessions")
                         .select(COLS)
                         .ilike("topic", like),
+                    exclude,
                 )
                     .order("created_at", { ascending: false })
                     .limit(SEARCH_CAP),
                 ownerIdsByName.length > 0
-                    ? excludeTestOwner(
+                    ? excludeOwners(
                           admin
                               .from("chat_sessions")
                               .select(COLS)
                               .in("owner_user_id", ownerIdsByName),
+                          exclude,
                       )
                           .order("created_at", { ascending: false })
                           .limit(SEARCH_CAP)
@@ -133,8 +141,9 @@ export async function GET(request: NextRequest) {
             total = merged.length
             rows = merged.slice(offset, offset + limit)
         } else {
-            const { data, count, error } = await excludeTestOwner(
+            const { data, count, error } = await excludeOwners(
                 admin.from("chat_sessions").select(COLS, { count: "exact" }),
+                exclude,
             )
                 .order("created_at", { ascending: false })
                 .range(offset, offset + limit - 1)

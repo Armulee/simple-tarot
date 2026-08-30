@@ -53,12 +53,17 @@ FROM (
 GROUP BY label
 ORDER BY label;
 
--- ---- (C) Test-account exclusion --------------------------------------------
--- Swap 'TEST_OWNER_ID_VALUE' for the id the app passes via its TEST_OWNER_ID
--- env var. The two columns should differ by exactly that account's readings.
+-- ---- (C) Admin-account exclusion -------------------------------------------
+-- The app leaves out every user id in `admins` (admins are the ones testing).
+-- These columns should differ by exactly the readings those accounts made.
+-- With an empty `admins` table array_agg is NULL, which excludes nothing.
 SELECT admin_analytics_reading(now() - interval '30 days', now())->>'total'
            AS readings_all,
-       admin_analytics_reading(now() - interval '30 days', now(), ARRAY['TEST_OWNER_ID_VALUE'])->>'total'
-           AS readings_excluding_test,
-       (SELECT count(*) FROM chat_sessions WHERE owner_user_id = 'TEST_OWNER_ID_VALUE')
-           AS test_account_sessions;
+       admin_analytics_reading(
+           now() - interval '30 days',
+           now(),
+           (SELECT array_agg(user_id::text) FROM admins)
+       )->>'total' AS readings_excluding_admins,
+       (SELECT count(*) FROM chat_sessions
+         WHERE owner_user_id IN (SELECT user_id::text FROM admins))
+           AS admin_sessions;

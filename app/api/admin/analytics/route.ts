@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import { analyticsErrorBody, analyticsRpc } from "@/lib/admin/analytics-rpc"
-import { testOwnerIds } from "@/lib/admin/test-owner"
+import { excludedOwnerIds } from "@/lib/admin/excluded-owners"
 import type {
     ActiveAnalytics,
     AdminAnalyticsResponse,
@@ -68,9 +68,9 @@ export async function GET(request: NextRequest) {
     // Trailing 14 days (for the week-over-week momentum metric).
     const wowStart = addDays(todayBkk, -14)
 
-    // Test-account readings don't count. analyticsRpc() drops the argument again
+    // Admins' own readings don't count. analyticsRpc() drops the argument again
     // if the database hasn't been migrated for it yet.
-    const exclude = testOwnerIds()
+    const exclude = await excludedOwnerIds(admin)
     const rpc = <T,>(fn: string, args: Record<string, string>) =>
         analyticsRpc<T>(admin, fn, args, exclude)
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import type { AnalyticsTotals } from "@/lib/admin/analytics-shared"
 import { analyticsErrorBody, analyticsRpc } from "@/lib/admin/analytics-rpc"
-import { testOwnerIds } from "@/lib/admin/test-owner"
+import { excludedOwnerIds } from "@/lib/admin/excluded-owners"
 
 export const dynamic = "force-dynamic"
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
             admin,
             "admin_analytics_totals",
             {},
-            testOwnerIds(),
+            await excludedOwnerIds(admin),
         )
         return NextResponse.json(data, { status: 200 })
     } catch (error) {

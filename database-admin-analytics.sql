@@ -62,9 +62,10 @@ FROM chat_sessions s;
 
 -- ---------------------------------------------------------------------------
 -- Test-data exclusion.
--- Readings made by the QA/test account are real rows but not real usage, so the
--- admin API passes that account's id (env var TEST_OWNER_ID) as
--- p_exclude_owners and every function below reads sessions through this filter.
+-- Readings made by admins are real rows but not real usage: admins are the
+-- people testing the product. The admin API passes their user ids — every row
+-- of the `admins` table — as p_exclude_owners, and every function below reads
+-- sessions through this filter.
 -- NULL / empty array = exclude nothing, which is the default.
 -- Anonymous sessions (owner_user_id IS NULL) are always kept.
 -- ---------------------------------------------------------------------------

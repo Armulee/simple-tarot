@@ -81,15 +81,11 @@ Signed-in users get cross-device unmasking of redacted PII (e.g. `[Person_0]` re
 
 If `PRIVACY_ENCRYPTION_MASTER_KEY` is missing, `/api/privacy-aliases` returns 500 and the client silently keeps its existing sessionStorage-only behavior — no crash, no plaintext fallback. Rotating the master key invalidates every existing ciphertext, so reserve the `key_version` column on `privacy_aliases` for any future rotation work.
 
-### 3. Keep test readings out of the admin dashboard
+### 3. Admins' own readings stay out of the admin dashboard
 
-Readings made by the QA/test account are real `chat_sessions` rows, so they inflate every admin number. Set `TEST_OWNER_ID` to that account's user id (the value stored in `chat_sessions.owner_user_id`) and the admin API drops its readings everywhere: the interpretations list, the metric cards, the activity chart, and every analytics RPC.
+Admins are the people testing the product, so their readings are real `chat_sessions` rows that would inflate every admin number. The admin API leaves out every user id in the `admins` table — the same list `requireAdmin()` authorises against — across the interpretations list, the metric cards, the activity chart, and every analytics RPC.
 
-```env
-TEST_OWNER_ID=<test-account-user-id>
-```
-
-Comma-separate the value to exclude more than one account. Anonymous readings are never filtered, and leaving the variable unset (the default) excludes nothing.
+There is nothing to configure: adding a row to `admins` both grants dashboard access and takes that person's readings out of the numbers. Anonymous readings are never filtered, and an empty `admins` table excludes nothing.
 
 Apply the analytics schema so the RPCs accept the exclusion argument (idempotent):
 
@@ -97,7 +93,7 @@ Apply the analytics schema so the RPCs accept the exclusion argument (idempotent
 psql "$DATABASE_URL" -f database-admin-analytics.sql
 ```
 
-The exclusion is only sent to the RPCs when `TEST_OWNER_ID` is set, and a call that a database rejects for not knowing the argument is retried without it — so an un-migrated database keeps working (un-filtered, with a warning in the server log) until the file above is applied.
+A call that a database rejects for not knowing the argument is retried without it, so an un-migrated database keeps working (un-filtered, with a warning in the server log) until the file above is applied.
 
 ### 4. If the admin dashboard says "Failed to load metrics."
 
