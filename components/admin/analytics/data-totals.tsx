@@ -94,10 +94,13 @@ export function DataTotals({
     totals,
     loading,
     error,
+    errorDetail,
 }: {
     totals: AnalyticsTotals | null
     loading: boolean
     error: boolean
+    /** Technical reason from the API, shown under the generic message. */
+    errorDetail?: string | null
 }) {
     const t = useTranslations("Admin")
 
@@ -110,8 +113,13 @@ export function DataTotals({
             </div>
 
             {error ? (
-                <div className="rounded-2xl border border-rose-400/20 bg-rose-400/5 px-4 py-8 text-center text-sm text-rose-200/80">
-                    {t("metricsError")}
+                <div className="space-y-2 rounded-2xl border border-rose-400/20 bg-rose-400/5 px-4 py-8 text-center text-sm text-rose-200/80">
+                    <p>{t("metricsError")}</p>
+                    {errorDetail ? (
+                        <p className="mx-auto max-w-2xl break-words font-mono text-xs text-rose-200/50">
+                            {errorDetail}
+                        </p>
+                    ) : null}
                 </div>
             ) : loading && !totals ? (
                 <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-6">

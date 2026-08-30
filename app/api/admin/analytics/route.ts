@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
-import { supabaseAdmin } from "@/lib/supabase"
+import { analyticsErrorBody, analyticsRpc } from "@/lib/admin/analytics-rpc"
 import { testOwnerIds } from "@/lib/admin/test-owner"
 import type {
     ActiveAnalytics,
@@ -19,7 +19,6 @@ import type {
 
 export const dynamic = "force-dynamic"
 
-type AdminClient = NonNullable<typeof supabaseAdmin>
 const DAY_MS = 24 * 60 * 60 * 1000
 
 /** Bangkok-anchored ISO bound for a YYYY-MM-DD date. */
@@ -33,16 +32,6 @@ function addDays(date: string, days: number): string {
     // format back to YYYY-MM-DD in Bangkok
     const local = new Date(n.getTime() + 7 * 60 * 60 * 1000)
     return local.toISOString().slice(0, 10)
-}
-
-async function rpc<T>(
-    admin: AdminClient,
-    fn: string,
-    args: Record<string, string | string[]>,
-): Promise<T> {
-    const { data, error } = await admin.rpc(fn, args)
-    if (error) throw new Error(`${fn}: ${error.message}`)
-    return data as T
 }
 
 function changePct(value: number, prev: number | null): number | null {
@@ -79,22 +68,16 @@ export async function GET(request: NextRequest) {
     // Trailing 14 days (for the week-over-week momentum metric).
     const wowStart = addDays(todayBkk, -14)
 
-    // Test-account readings are excluded from every session-derived metric.
-    // Only sent when TEST_OWNER_ID is set, so the RPCs still resolve on a
-    // database that predates the p_exclude_owners parameter.
-    const excludeOwners = testOwnerIds()
-    const exclude: Record<string, string[]> =
-        excludeOwners.length > 0 ? { p_exclude_owners: excludeOwners } : {}
+    // Test-account readings don't count. analyticsRpc() drops the argument again
+    // if the database hasn't been migrated for it yet.
+    const exclude = testOwnerIds()
+    const rpc = <T,>(fn: string, args: Record<string, string>) =>
+        analyticsRpc<T>(admin, fn, args, exclude)
 
-    const cur = {
-        p_start: bound(from, false),
-        p_end: bound(to, true),
-        ...exclude,
-    }
+    const cur = { p_start: bound(from, false), p_end: bound(to, true) }
     const prev = {
         p_start: bound(prevStart, false),
         p_end: bound(prevEnd, true),
-        ...exclude,
     }
 
     try {
@@ -116,29 +99,28 @@ export async function GET(request: NextRequest) {
             // trailing-14d readings for WoW
             wowReading,
         ] = await Promise.all([
-            rpc<ReturningAnalytics>(admin, "admin_analytics_returning", cur),
-            rpc<ActiveAnalytics>(admin, "admin_analytics_active", cur),
-            rpc<ReadingAnalytics>(admin, "admin_analytics_reading", cur),
-            rpc<EngagementAnalytics>(admin, "admin_analytics_engagement", cur),
-            rpc<RetentionAnalytics>(admin, "admin_analytics_retention", cur),
-            rpc<ConversionAnalytics>(admin, "admin_analytics_conversion", cur),
-            rpc<HeatmapAnalytics>(admin, "admin_analytics_heatmap", cur),
+            rpc<ReturningAnalytics>("admin_analytics_returning", cur),
+            rpc<ActiveAnalytics>("admin_analytics_active", cur),
+            rpc<ReadingAnalytics>("admin_analytics_reading", cur),
+            rpc<EngagementAnalytics>("admin_analytics_engagement", cur),
+            rpc<RetentionAnalytics>("admin_analytics_retention", cur),
+            rpc<ConversionAnalytics>("admin_analytics_conversion", cur),
+            rpc<HeatmapAnalytics>("admin_analytics_heatmap", cur),
             // context() reads stars/billing, not sessions — no exclusion arg.
-            rpc<AnalyticsContext>(admin, "admin_analytics_context", {
+            analyticsRpc<AnalyticsContext>(admin, "admin_analytics_context", {
                 p_start: bound(from, false),
                 p_end: bound(to, true),
                 p_prev_start: bound(prevStart, false),
                 p_prev_end: bound(prevEnd, true),
             }),
-            rpc<ReturningAnalytics>(admin, "admin_analytics_returning", prev),
-            rpc<ActiveAnalytics>(admin, "admin_analytics_active", prev),
-            rpc<ReadingAnalytics>(admin, "admin_analytics_reading", prev),
-            rpc<RetentionAnalytics>(admin, "admin_analytics_retention", prev),
-            rpc<ConversionAnalytics>(admin, "admin_analytics_conversion", prev),
-            rpc<ReadingAnalytics>(admin, "admin_analytics_reading", {
+            rpc<ReturningAnalytics>("admin_analytics_returning", prev),
+            rpc<ActiveAnalytics>("admin_analytics_active", prev),
+            rpc<ReadingAnalytics>("admin_analytics_reading", prev),
+            rpc<RetentionAnalytics>("admin_analytics_retention", prev),
+            rpc<ConversionAnalytics>("admin_analytics_conversion", prev),
+            rpc<ReadingAnalytics>("admin_analytics_reading", {
                 p_start: bound(wowStart, false),
                 p_end: bound(todayBkk, true),
-                ...exclude,
             }),
         ])
 
@@ -213,6 +195,6 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(payload, { status: 200 })
     } catch (error) {
         console.error("[admin/analytics] failed", error)
-        return NextResponse.json({ error: "FAILED_TO_LOAD" }, { status: 500 })
+        return NextResponse.json(analyticsErrorBody(error), { status: 500 })
     }
 }

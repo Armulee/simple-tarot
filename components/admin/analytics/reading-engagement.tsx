@@ -23,10 +23,12 @@ export function ReadingSection({
     reading,
     loading,
     error,
+    errorDetail,
 }: {
     reading: ReadingAnalytics | undefined
     loading: boolean
     error: boolean
+    errorDetail?: string | null
 }) {
     const t = useTranslations("Admin")
     const stats: StatTile[] = reading
@@ -74,6 +76,7 @@ export function ReadingSection({
             trendColor={READING_COLOR}
             loading={loading}
             error={error}
+            errorDetail={errorDetail}
             empty={!reading || (reading.total === 0 && reading.trend.length === 0)}
         >
             {hasDist ? (
@@ -93,10 +96,12 @@ export function EngagementSection({
     engagement,
     loading,
     error,
+    errorDetail,
 }: {
     engagement: EngagementAnalytics | undefined
     loading: boolean
     error: boolean
+    errorDetail?: string | null
 }) {
     const t = useTranslations("Admin")
     const tiles = engagement
@@ -128,6 +133,7 @@ export function EngagementSection({
             icon={<MessagesSquare className="h-4 w-4" />}
             loading={loading}
             error={error}
+            errorDetail={errorDetail}
             empty={!engagement || engagement.totalSessions === 0}
         >
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

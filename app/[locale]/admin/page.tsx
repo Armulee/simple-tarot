@@ -134,6 +134,7 @@ export default function AdminDashboardPage() {
                     totals={totals.data}
                     loading={totals.loading}
                     error={totals.error}
+                    errorDetail={totals.detail}
                 />
 
                 {/* Time-range filter — everything below responds to it. */}
@@ -185,36 +186,43 @@ export default function AdminDashboardPage() {
                     retention={analytics.data?.retention}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
+                    errorDetail={analytics.detail}
                 />
                 <ActiveUsersSection
                     active={analytics.data?.active}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
+                    errorDetail={analytics.detail}
                 />
                 <ReturningUsersSection
                     returning={analytics.data?.returning}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
+                    errorDetail={analytics.detail}
                 />
                 <ReadingSection
                     reading={analytics.data?.reading}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
+                    errorDetail={analytics.detail}
                 />
                 <ConversionSection
                     conversion={analytics.data?.conversion}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
+                    errorDetail={analytics.detail}
                 />
                 <EngagementSection
                     engagement={analytics.data?.engagement}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
+                    errorDetail={analytics.detail}
                 />
                 <HeatmapSection
                     heatmap={analytics.data?.heatmap}
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
+                    errorDetail={analytics.detail}
                 />
                 <CategoriesSection />
             </div>

@@ -97,4 +97,23 @@ Apply the analytics schema so the RPCs accept the exclusion argument (idempotent
 psql "$DATABASE_URL" -f database-admin-analytics.sql
 ```
 
-The exclusion is only sent to the RPCs when `TEST_OWNER_ID` is set, so a database that still has the older two-argument functions keeps working until the file above is applied.
+The exclusion is only sent to the RPCs when `TEST_OWNER_ID` is set, and a call that a database rejects for not knowing the argument is retried without it — so an un-migrated database keeps working (un-filtered, with a warning in the server log) until the file above is applied.
+
+### 4. If the admin dashboard says "Failed to load metrics."
+
+Every section fed by the analytics RPCs (Data totals, cohort retention, active users, returning users, reading behaviour) reads through `database-admin-analytics.sql`. The charts directly under the Data cards query tables instead, so **a page where those charts render but every analytics section fails means the RPCs are missing from the database, not that the site is broken.**
+
+The red box prints the reason underneath the generic message — a `PGRST202` there means the function isn't in the schema cache, and the fix is to apply the file:
+
+```bash
+psql "$DATABASE_URL" -f database-admin-analytics.sql
+```
+
+To see what the database actually has:
+
+```sql
+select p.oid::regprocedure
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname = 'public' and p.proname like 'admin_analytics%'
+ order by 1;
+```

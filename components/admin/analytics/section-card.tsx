@@ -15,6 +15,7 @@ export function AnalyticsSection({
     icon,
     loading,
     error,
+    errorDetail,
     empty,
     emptyHint,
     children,
@@ -24,6 +25,8 @@ export function AnalyticsSection({
     icon: ReactNode
     loading: boolean
     error: boolean
+    /** Technical reason from the API, shown under the generic message. */
+    errorDetail?: string | null
     empty: boolean
     emptyHint?: string
     children: ReactNode
@@ -44,8 +47,13 @@ export function AnalyticsSection({
             </div>
 
             {error ? (
-                <div className="rounded-2xl border border-rose-400/20 bg-rose-400/5 px-4 py-8 text-center text-sm text-rose-200/80">
-                    {t("metricsError")}
+                <div className="space-y-2 rounded-2xl border border-rose-400/20 bg-rose-400/5 px-4 py-8 text-center text-sm text-rose-200/80">
+                    <p>{t("metricsError")}</p>
+                    {errorDetail ? (
+                        <p className="mx-auto max-w-2xl break-words font-mono text-xs text-rose-200/50">
+                            {errorDetail}
+                        </p>
+                    ) : null}
                 </div>
             ) : loading ? (
                 <div className="flex h-40 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.02] text-white/40">

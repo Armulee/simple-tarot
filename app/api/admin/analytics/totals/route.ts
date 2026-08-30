@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/admin-auth"
 import type { AnalyticsTotals } from "@/lib/admin/analytics-shared"
+import { analyticsErrorBody, analyticsRpc } from "@/lib/admin/analytics-rpc"
 import { testOwnerIds } from "@/lib/admin/test-owner"
 
 export const dynamic = "force-dynamic"
@@ -12,19 +13,15 @@ export async function GET(request: NextRequest) {
     const { admin } = auth
 
     try {
-        // Test-account readings never count; the arg is omitted entirely when
-        // TEST_OWNER_ID is unset so older databases keep resolving the RPC.
-        const excludeOwners = testOwnerIds()
-        const { data, error } = await admin.rpc(
+        const data = await analyticsRpc<AnalyticsTotals>(
+            admin,
             "admin_analytics_totals",
-            excludeOwners.length > 0
-                ? { p_exclude_owners: excludeOwners }
-                : undefined,
+            {},
+            testOwnerIds(),
         )
-        if (error) throw new Error(error.message)
-        return NextResponse.json(data as AnalyticsTotals, { status: 200 })
+        return NextResponse.json(data, { status: 200 })
     } catch (error) {
         console.error("[admin/analytics/totals] failed", error)
-        return NextResponse.json({ error: "FAILED_TO_LOAD" }, { status: 500 })
+        return NextResponse.json(analyticsErrorBody(error), { status: 500 })
     }
 }

@@ -19,10 +19,12 @@ export function ActiveUsersSection({
     active,
     loading,
     error,
+    errorDetail,
 }: {
     active: ActiveAnalytics | undefined
     loading: boolean
     error: boolean
+    errorDetail?: string | null
 }) {
     const t = useTranslations("Admin")
     const stats: StatTile[] = active
@@ -49,6 +51,7 @@ export function ActiveUsersSection({
             trendColor={ACTIVE_COLOR}
             loading={loading}
             error={error}
+            errorDetail={errorDetail}
             empty={!active || (active.mau === 0 && active.trend.length === 0)}
         />
     )
@@ -58,10 +61,12 @@ export function ReturningUsersSection({
     returning,
     loading,
     error,
+    errorDetail,
 }: {
     returning: ReturningAnalytics | undefined
     loading: boolean
     error: boolean
+    errorDetail?: string | null
 }) {
     const t = useTranslations("Admin")
     const stats: StatTile[] = returning
@@ -97,6 +102,7 @@ export function ReturningUsersSection({
             trendColor={RETURNING_COLOR}
             loading={loading}
             error={error}
+            errorDetail={errorDetail}
             empty={
                 !returning ||
                 (returning.returningUsers === 0 &&
