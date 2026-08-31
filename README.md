@@ -122,7 +122,7 @@ Age, location and gender, all **self-reported** — nothing is inferred from beh
 | Field | Source | Covers |
 |---|---|---|
 | Age | `profiles.birth_date`, else the birth date on a `birth_charts` row | signed-in users **and guests** — birth charts don't need an account |
-| Location | `birth_charts.country`, else the last comma-part of `profiles.birth_place` | signed-in users and guests |
+| Location | `birth_charts.country` (a country picker), else `profiles.birth_place` | signed-in users and guests |
 | Gender | `profiles.gender` | signed-in users only — nobody else is asked |
 
 Apply the schema (idempotent):
@@ -134,6 +134,8 @@ psql "$DATABASE_URL" -f database-admin-demographics.sql
 Two things the section is careful about, and any change to it should stay careful about:
 
 - **Every breakdown shows the population it was measured against** ("Known for 41 / 2,073 · 2%"), because a bucket chart with no denominator reads as if the whole userbase answered. Gender quotes signed-in users, not everyone.
-- **A person is counted once.** Identity is `COALESCE(owner_user_id, did)`, the same actor model as the rest of the admin analytics, so a signed-in user's birth charts merge into their profile rather than counting twice. Profile values win over birth-chart values.
+- **A person is counted once.** Identity is `COALESCE(owner_user_id, did)`, the same actor model as the rest of the admin analytics, so a signed-in user's birth charts merge into their profile rather than counting twice. The profile wins for birth date; the birth chart wins for country (see below).
+
+`birth_place` is a free-text box, so it usually holds a city — "Bangkok", "ไทย", "Bangkok, Thailand". Every candidate is therefore resolved against `admin_countries` (generated from the `country-state-city` package the app already ships) plus a small alias list, and anything that isn't a country counts as unknown rather than being shown as one. The structured `birth_charts.country` wins over the free-text value.
 
 Admins are excluded here as everywhere else. `birth_charts` stores day/month/year as loose integers, so impossible dates (31 February) exist in real data — `admin_safe_date()` turns those into "unknown" rather than letting one bad row abort the report.

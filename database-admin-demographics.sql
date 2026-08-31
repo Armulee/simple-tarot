@@ -7,9 +7,10 @@
 --   * Age      : profiles.birth_date for signed-in users, else the birth date on
 --                a birth_charts row — which anonymous visitors have too, so age
 --                coverage reaches well past the profiles table.
---   * Location : birth_charts.country, else the last comma-part of
---                profiles.birth_place (stored free-text as "State, Country" or
---                just "Country").
+--   * Location : birth_charts.country (chosen from a country picker), else
+--                profiles.birth_place, which is free text and usually a city —
+--                so every candidate is resolved against a real country list and
+--                dropped when it isn't one. A province is never a country here.
 --   * Gender   : profiles.gender only. Signed-in users are the only ones ever
 --                asked, so this is reported against signed-in users, not actors.
 --
@@ -25,6 +26,331 @@
 --
 -- Idempotent: safe to run multiple times.
 -- =============================================================================
+
+-- ---------------------------------------------------------------------------
+-- Country reference, so a place name can be *checked* rather than assumed.
+--
+-- profiles.birth_place is a free-text box: people type "Bangkok", "Bangkok,
+-- Thailand", "TH", "กรุงเทพ". Taking the last comma-part on faith turns a
+-- province into a "country", which is exactly the bug this guards against —
+-- a string that is not a country resolves to NULL and counts as unknown.
+--
+-- Generated from the `country-state-city` package the app already ships
+-- (Country.getAllCountries(), 250 entries), so the admin list and the pickers
+-- users choose from stay the same set.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS admin_countries (
+    name text PRIMARY KEY,
+    iso2 text NOT NULL
+);
+
+INSERT INTO admin_countries (name, iso2) VALUES
+    ('Afghanistan', 'AF'),
+    ('Aland Islands', 'AX'),
+    ('Albania', 'AL'),
+    ('Algeria', 'DZ'),
+    ('American Samoa', 'AS'),
+    ('Andorra', 'AD'),
+    ('Angola', 'AO'),
+    ('Anguilla', 'AI'),
+    ('Antarctica', 'AQ'),
+    ('Antigua And Barbuda', 'AG'),
+    ('Argentina', 'AR'),
+    ('Armenia', 'AM'),
+    ('Aruba', 'AW'),
+    ('Australia', 'AU'),
+    ('Austria', 'AT'),
+    ('Azerbaijan', 'AZ'),
+    ('The Bahamas', 'BS'),
+    ('Bahrain', 'BH'),
+    ('Bangladesh', 'BD'),
+    ('Barbados', 'BB'),
+    ('Belarus', 'BY'),
+    ('Belgium', 'BE'),
+    ('Belize', 'BZ'),
+    ('Benin', 'BJ'),
+    ('Bermuda', 'BM'),
+    ('Bhutan', 'BT'),
+    ('Bolivia', 'BO'),
+    ('Bosnia and Herzegovina', 'BA'),
+    ('Botswana', 'BW'),
+    ('Bouvet Island', 'BV'),
+    ('Brazil', 'BR'),
+    ('British Indian Ocean Territory', 'IO'),
+    ('Brunei', 'BN'),
+    ('Bulgaria', 'BG'),
+    ('Burkina Faso', 'BF'),
+    ('Burundi', 'BI'),
+    ('Cambodia', 'KH'),
+    ('Cameroon', 'CM'),
+    ('Canada', 'CA'),
+    ('Cape Verde', 'CV'),
+    ('Cayman Islands', 'KY'),
+    ('Central African Republic', 'CF'),
+    ('Chad', 'TD'),
+    ('Chile', 'CL'),
+    ('China', 'CN'),
+    ('Christmas Island', 'CX'),
+    ('Cocos (Keeling) Islands', 'CC'),
+    ('Colombia', 'CO'),
+    ('Comoros', 'KM'),
+    ('Congo', 'CG'),
+    ('Democratic Republic of the Congo', 'CD'),
+    ('Cook Islands', 'CK'),
+    ('Costa Rica', 'CR'),
+    ('Cote D''Ivoire (Ivory Coast)', 'CI'),
+    ('Croatia', 'HR'),
+    ('Cuba', 'CU'),
+    ('Cyprus', 'CY'),
+    ('Czech Republic', 'CZ'),
+    ('Denmark', 'DK'),
+    ('Djibouti', 'DJ'),
+    ('Dominica', 'DM'),
+    ('Dominican Republic', 'DO'),
+    ('East Timor', 'TL'),
+    ('Ecuador', 'EC'),
+    ('Egypt', 'EG'),
+    ('El Salvador', 'SV'),
+    ('Equatorial Guinea', 'GQ'),
+    ('Eritrea', 'ER'),
+    ('Estonia', 'EE'),
+    ('Ethiopia', 'ET'),
+    ('Falkland Islands', 'FK'),
+    ('Faroe Islands', 'FO'),
+    ('Fiji Islands', 'FJ'),
+    ('Finland', 'FI'),
+    ('France', 'FR'),
+    ('French Guiana', 'GF'),
+    ('French Polynesia', 'PF'),
+    ('French Southern Territories', 'TF'),
+    ('Gabon', 'GA'),
+    ('The Gambia', 'GM'),
+    ('Georgia', 'GE'),
+    ('Germany', 'DE'),
+    ('Ghana', 'GH'),
+    ('Gibraltar', 'GI'),
+    ('Greece', 'GR'),
+    ('Greenland', 'GL'),
+    ('Grenada', 'GD'),
+    ('Guadeloupe', 'GP'),
+    ('Guam', 'GU'),
+    ('Guatemala', 'GT'),
+    ('Guernsey and Alderney', 'GG'),
+    ('Guinea', 'GN'),
+    ('Guinea-Bissau', 'GW'),
+    ('Guyana', 'GY'),
+    ('Haiti', 'HT'),
+    ('Heard Island and McDonald Islands', 'HM'),
+    ('Honduras', 'HN'),
+    ('Hong Kong S.A.R.', 'HK'),
+    ('Hungary', 'HU'),
+    ('Iceland', 'IS'),
+    ('India', 'IN'),
+    ('Indonesia', 'ID'),
+    ('Iran', 'IR'),
+    ('Iraq', 'IQ'),
+    ('Ireland', 'IE'),
+    ('Israel', 'IL'),
+    ('Italy', 'IT'),
+    ('Jamaica', 'JM'),
+    ('Japan', 'JP'),
+    ('Jersey', 'JE'),
+    ('Jordan', 'JO'),
+    ('Kazakhstan', 'KZ'),
+    ('Kenya', 'KE'),
+    ('Kiribati', 'KI'),
+    ('North Korea', 'KP'),
+    ('South Korea', 'KR'),
+    ('Kuwait', 'KW'),
+    ('Kyrgyzstan', 'KG'),
+    ('Laos', 'LA'),
+    ('Latvia', 'LV'),
+    ('Lebanon', 'LB'),
+    ('Lesotho', 'LS'),
+    ('Liberia', 'LR'),
+    ('Libya', 'LY'),
+    ('Liechtenstein', 'LI'),
+    ('Lithuania', 'LT'),
+    ('Luxembourg', 'LU'),
+    ('Macau S.A.R.', 'MO'),
+    ('Macedonia', 'MK'),
+    ('Madagascar', 'MG'),
+    ('Malawi', 'MW'),
+    ('Malaysia', 'MY'),
+    ('Maldives', 'MV'),
+    ('Mali', 'ML'),
+    ('Malta', 'MT'),
+    ('Man (Isle of)', 'IM'),
+    ('Marshall Islands', 'MH'),
+    ('Martinique', 'MQ'),
+    ('Mauritania', 'MR'),
+    ('Mauritius', 'MU'),
+    ('Mayotte', 'YT'),
+    ('Mexico', 'MX'),
+    ('Micronesia', 'FM'),
+    ('Moldova', 'MD'),
+    ('Monaco', 'MC'),
+    ('Mongolia', 'MN'),
+    ('Montenegro', 'ME'),
+    ('Montserrat', 'MS'),
+    ('Morocco', 'MA'),
+    ('Mozambique', 'MZ'),
+    ('Myanmar', 'MM'),
+    ('Namibia', 'NA'),
+    ('Nauru', 'NR'),
+    ('Nepal', 'NP'),
+    ('Bonaire, Sint Eustatius and Saba', 'BQ'),
+    ('Netherlands', 'NL'),
+    ('New Caledonia', 'NC'),
+    ('New Zealand', 'NZ'),
+    ('Nicaragua', 'NI'),
+    ('Niger', 'NE'),
+    ('Nigeria', 'NG'),
+    ('Niue', 'NU'),
+    ('Norfolk Island', 'NF'),
+    ('Northern Mariana Islands', 'MP'),
+    ('Norway', 'NO'),
+    ('Oman', 'OM'),
+    ('Pakistan', 'PK'),
+    ('Palau', 'PW'),
+    ('Palestinian Territory Occupied', 'PS'),
+    ('Panama', 'PA'),
+    ('Papua new Guinea', 'PG'),
+    ('Paraguay', 'PY'),
+    ('Peru', 'PE'),
+    ('Philippines', 'PH'),
+    ('Pitcairn Island', 'PN'),
+    ('Poland', 'PL'),
+    ('Portugal', 'PT'),
+    ('Puerto Rico', 'PR'),
+    ('Qatar', 'QA'),
+    ('Reunion', 'RE'),
+    ('Romania', 'RO'),
+    ('Russia', 'RU'),
+    ('Rwanda', 'RW'),
+    ('Saint Helena', 'SH'),
+    ('Saint Kitts And Nevis', 'KN'),
+    ('Saint Lucia', 'LC'),
+    ('Saint Pierre and Miquelon', 'PM'),
+    ('Saint Vincent And The Grenadines', 'VC'),
+    ('Saint-Barthelemy', 'BL'),
+    ('Saint-Martin (French part)', 'MF'),
+    ('Samoa', 'WS'),
+    ('San Marino', 'SM'),
+    ('Sao Tome and Principe', 'ST'),
+    ('Saudi Arabia', 'SA'),
+    ('Senegal', 'SN'),
+    ('Serbia', 'RS'),
+    ('Seychelles', 'SC'),
+    ('Sierra Leone', 'SL'),
+    ('Singapore', 'SG'),
+    ('Slovakia', 'SK'),
+    ('Slovenia', 'SI'),
+    ('Solomon Islands', 'SB'),
+    ('Somalia', 'SO'),
+    ('South Africa', 'ZA'),
+    ('South Georgia', 'GS'),
+    ('South Sudan', 'SS'),
+    ('Spain', 'ES'),
+    ('Sri Lanka', 'LK'),
+    ('Sudan', 'SD'),
+    ('Suriname', 'SR'),
+    ('Svalbard And Jan Mayen Islands', 'SJ'),
+    ('Swaziland', 'SZ'),
+    ('Sweden', 'SE'),
+    ('Switzerland', 'CH'),
+    ('Syria', 'SY'),
+    ('Taiwan', 'TW'),
+    ('Tajikistan', 'TJ'),
+    ('Tanzania', 'TZ'),
+    ('Thailand', 'TH'),
+    ('Togo', 'TG'),
+    ('Tokelau', 'TK'),
+    ('Tonga', 'TO'),
+    ('Trinidad And Tobago', 'TT'),
+    ('Tunisia', 'TN'),
+    ('Turkey', 'TR'),
+    ('Turkmenistan', 'TM'),
+    ('Turks And Caicos Islands', 'TC'),
+    ('Tuvalu', 'TV'),
+    ('Uganda', 'UG'),
+    ('Ukraine', 'UA'),
+    ('United Arab Emirates', 'AE'),
+    ('United Kingdom', 'GB'),
+    ('United States', 'US'),
+    ('United States Minor Outlying Islands', 'UM'),
+    ('Uruguay', 'UY'),
+    ('Uzbekistan', 'UZ'),
+    ('Vanuatu', 'VU'),
+    ('Vatican City State (Holy See)', 'VA'),
+    ('Venezuela', 'VE'),
+    ('Vietnam', 'VN'),
+    ('Virgin Islands (British)', 'VG'),
+    ('Virgin Islands (US)', 'VI'),
+    ('Wallis And Futuna Islands', 'WF'),
+    ('Western Sahara', 'EH'),
+    ('Yemen', 'YE'),
+    ('Zambia', 'ZM'),
+    ('Zimbabwe', 'ZW'),
+    ('Kosovo', 'XK'),
+    ('Curaçao', 'CW'),
+    ('Sint Maarten (Dutch part)', 'SX')
+ON CONFLICT (name) DO UPDATE SET iso2 = EXCLUDED.iso2;
+
+CREATE INDEX IF NOT EXISTS idx_admin_countries_lower_name
+    ON admin_countries (lower(name));
+CREATE INDEX IF NOT EXISTS idx_admin_countries_iso2
+    ON admin_countries (lower(iso2));
+
+-- Spellings the reference list does not carry. Thai first: most of this
+-- userbase types their own country in Thai, and dropping those would
+-- understate the one country we have most of.
+CREATE TABLE IF NOT EXISTS admin_country_aliases (
+    alias text PRIMARY KEY,
+    name  text NOT NULL
+);
+
+INSERT INTO admin_country_aliases (alias, name) VALUES
+    ('ไทย', 'Thailand'),
+    ('ประเทศไทย', 'Thailand'),
+    ('เมืองไทย', 'Thailand'),
+    ('siam', 'Thailand'),
+    ('usa', 'United States'),
+    ('u.s.a.', 'United States'),
+    ('us', 'United States'),
+    ('united states of america', 'United States'),
+    ('uk', 'United Kingdom'),
+    ('u.k.', 'United Kingdom'),
+    ('great britain', 'United Kingdom'),
+    ('england', 'United Kingdom'),
+    ('scotland', 'United Kingdom'),
+    ('wales', 'United Kingdom'),
+    ('uae', 'United Arab Emirates')
+ON CONFLICT (alias) DO UPDATE SET name = EXCLUDED.name;
+
+/**
+ * Canonical country name for a free-text place, or NULL if it isn't one.
+ * Matches a full country name, an ISO2 code, or a known alias.
+ */
+CREATE OR REPLACE FUNCTION admin_resolve_country(p_text text)
+RETURNS text
+LANGUAGE sql STABLE SET search_path = public AS $$
+    WITH needle AS (SELECT lower(btrim(COALESCE(p_text, ''))) AS v)
+    SELECT COALESCE(
+        (SELECT c.name FROM admin_countries c, needle n
+          WHERE lower(c.name) = n.v LIMIT 1),
+        -- Joined back to admin_countries so an alias can only ever resolve to
+        -- a name that really is in the reference list.
+        (SELECT c.name FROM admin_country_aliases a
+           JOIN admin_countries c ON c.name = a.name, needle n
+          WHERE a.alias = n.v LIMIT 1),
+        -- ISO2 last: two letters are a plausible abbreviation, but by this
+        -- point nothing else has matched.
+        (SELECT c.name FROM admin_countries c, needle n
+          WHERE length(n.v) = 2 AND lower(c.iso2) = n.v LIMIT 1)
+    )
+    WHERE (SELECT v FROM needle) <> ''
+$$;
 
 -- birth_charts stores day/month/year as loose integers, so combinations that
 -- are not real dates (31 February, day 0) do occur. make_date() raises on those
@@ -61,7 +387,7 @@ BEGIN
             COALESCE(NULLIF(b.owner_user_id, ''), b.did) AS actor_key,
             b.owner_user_id,
             admin_safe_date(b.year, b.month, b.day) AS birth_date,
-            NULLIF(btrim(b.country), '') AS country
+            admin_resolve_country(b.country) AS country
         FROM birth_charts b
     ),
     charts_per_actor AS (
@@ -78,17 +404,26 @@ BEGIN
             p.id::text        AS actor_key,
             p.birth_date,
             NULLIF(btrim(p.gender), '') AS gender,
-            -- "State, Country" / "Country" -> country
-            NULLIF(btrim(split_part(p.birth_place, ',',
-                array_length(string_to_array(p.birth_place, ','), 1))), '') AS country
+            -- birth_place is a free-text box. Try the last comma-part first
+            -- ("Bangkok, Thailand" -> Thailand), then the whole string, so a
+            -- bare "Thailand" still resolves. Each candidate has to *be* a
+            -- country; "Bangkok" resolves to NULL rather than becoming one.
+            COALESCE(
+                admin_resolve_country(split_part(p.birth_place, ',',
+                    array_length(string_to_array(p.birth_place, ','), 1))),
+                admin_resolve_country(p.birth_place)
+            ) AS country
         FROM profiles p
     ),
-    -- Actors we know anything at all about, profile values preferred.
+    -- Actors we know anything at all about. Profile values win for birth date
+    -- (the person maintains it), but NOT for country: birth_charts.country
+    -- comes from a country picker, while birth_place is a free-text box that
+    -- most often holds a city. The structured value is the better one.
     actors AS (
         SELECT
             COALESCE(pr.actor_key, ch.actor_key)      AS actor_key,
             COALESCE(pr.birth_date, ch.birth_date)    AS birth_date,
-            COALESCE(pr.country, ch.country)          AS country,
+            COALESCE(ch.country, pr.country)          AS country,
             pr.gender                                 AS gender,
             (pr.actor_key IS NOT NULL)                AS is_registered
         FROM from_profiles pr
