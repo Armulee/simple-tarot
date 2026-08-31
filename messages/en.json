@@ -239,7 +239,36 @@
     "heatmapTzNote": "Times shown in Asia/Bangkok (UTC+7).",
     "catSectionLabel": "Categories",
     "catTitle": "Popular fortune categories",
-    "catBlocked": "No category data — readings aren't tagged with a topic category. Add a category column to enable this."
+    "catBlocked": "No category data — readings aren't tagged with a topic category. Add a category column to enable this.",
+    "demoSectionLabel": "Audience",
+    "demoTitle": "Who the users are",
+    "demoEmptyHint": "Nobody has given a birth date, birth place or gender yet.",
+    "demoKnownPeople": "People described",
+    "demoKnownPeopleSub": "Have at least one field",
+    "demoMedianAge": "Median age",
+    "demoCountries": "Countries",
+    "demoAgeTitle": "Age",
+    "demoGenderTitle": "Gender",
+    "demoLocationTitle": "Top countries",
+    "demoCoverage": "Known for {coverage}",
+    "demoGenderCoverage": "Known for {coverage} of signed-in users",
+    "demoAge": {
+      "under18": "Under 18",
+      "18to24": "18–24",
+      "25to34": "25–34",
+      "35to44": "35–44",
+      "45to54": "45–54",
+      "55to64": "55–64",
+      "65plus": "65+"
+    },
+    "demoGender": {
+      "male": "Male",
+      "female": "Female",
+      "non-binary": "Non-binary",
+      "prefer-not-to-say": "Prefer not to say",
+      "other": "Other",
+      "unknown": "Not set"
+    }
   },
   "Sidebar": {
     "services": "Services",

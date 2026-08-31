@@ -27,6 +27,8 @@ import {
     HeatmapSection,
 } from "@/components/admin/analytics/heatmap-section"
 import { useAnalytics } from "@/components/admin/analytics/use-analytics"
+import { DemographicsSection } from "@/components/admin/analytics/demographics-section"
+import { useDemographics } from "@/components/admin/analytics/use-demographics"
 import type { MetricKey } from "@/lib/admin/activity-metrics"
 
 export default function AdminDashboardPage() {
@@ -35,6 +37,7 @@ export default function AdminDashboardPage() {
     const activity = useActivityData()
     const analytics = useAnalytics(activity.fromISO, activity.toISO)
     const totals = useTotals()
+    const demographics = useDemographics()
 
     if (!metrics) return null
 
@@ -205,6 +208,12 @@ export default function AdminDashboardPage() {
                     loading={analytics.loading && !analytics.data}
                     error={analytics.error}
                     errorDetail={analytics.detail}
+                />
+                <DemographicsSection
+                    demographics={demographics.data}
+                    loading={demographics.loading && !demographics.data}
+                    error={demographics.error}
+                    errorDetail={demographics.detail}
                 />
                 <ConversionSection
                     conversion={analytics.data?.conversion}

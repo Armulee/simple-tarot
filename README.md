@@ -97,9 +97,9 @@ A call that a database rejects for not knowing the argument is retried without i
 
 ### 4. If the admin dashboard says "Failed to load metrics."
 
-Every section fed by the analytics RPCs (Data totals, cohort retention, active users, returning users, reading behaviour) reads through `database-admin-analytics.sql`. The charts directly under the Data cards query tables instead, so **a page where those charts render but every analytics section fails means the RPCs are missing from the database, not that the site is broken.**
+Every section fed by the analytics RPCs (Data totals, cohort retention, active users, returning users, reading behaviour) reads through `database-admin-analytics.sql`, and the Audience section through `database-admin-demographics.sql`. The charts directly under the Data cards query tables instead, so **a page where those charts render but every analytics section fails means the RPCs are missing from the database, not that the site is broken.**
 
-The red box prints the reason underneath the generic message — a `PGRST202` there means the function isn't in the schema cache, and the fix is to apply the file:
+The red box prints the reason underneath the generic message — a `PGRST202` there means the function isn't in the schema cache, and the hint names the file to apply:
 
 ```bash
 psql "$DATABASE_URL" -f database-admin-analytics.sql
@@ -113,3 +113,27 @@ select p.oid::regprocedure
  where n.nspname = 'public' and p.proname like 'admin_analytics%'
  order by 1;
 ```
+
+
+### 5. The Audience section (demographics)
+
+Age, location and gender, all **self-reported** — nothing is inferred from behaviour or conversation:
+
+| Field | Source | Covers |
+|---|---|---|
+| Age | `profiles.birth_date`, else the birth date on a `birth_charts` row | signed-in users **and guests** — birth charts don't need an account |
+| Location | `birth_charts.country`, else the last comma-part of `profiles.birth_place` | signed-in users and guests |
+| Gender | `profiles.gender` | signed-in users only — nobody else is asked |
+
+Apply the schema (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database-admin-demographics.sql
+```
+
+Two things the section is careful about, and any change to it should stay careful about:
+
+- **Every breakdown shows the population it was measured against** ("Known for 41 / 2,073 · 2%"), because a bucket chart with no denominator reads as if the whole userbase answered. Gender quotes signed-in users, not everyone.
+- **A person is counted once.** Identity is `COALESCE(owner_user_id, did)`, the same actor model as the rest of the admin analytics, so a signed-in user's birth charts merge into their profile rather than counting twice. Profile values win over birth-chart values.
+
+Admins are excluded here as everywhere else. `birth_charts` stores day/month/year as loose integers, so impossible dates (31 February) exist in real data — `admin_safe_date()` turns those into "unknown" rather than letting one bad row abort the report.

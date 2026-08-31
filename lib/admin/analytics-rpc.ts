@@ -55,9 +55,20 @@ export class AnalyticsRpcError extends Error {
     }
 }
 
-const MIGRATION_HINT =
-    "Apply database-admin-analytics.sql to the Supabase database " +
-    "(psql \"$DATABASE_URL\" -f database-admin-analytics.sql), then reload."
+/** Which SQL file defines a given RPC, so the hint names the right one. */
+function definingFile(fn: string): string {
+    return fn === "admin_analytics_demographics"
+        ? "database-admin-demographics.sql"
+        : "database-admin-analytics.sql"
+}
+
+function migrationHint(fn: string): string {
+    const file = definingFile(fn)
+    return (
+        `Apply ${file} to the Supabase database ` +
+        `(psql "$DATABASE_URL" -f ${file}), then reload.`
+    )
+}
 
 /** Build the 500 body for a failed analytics call. */
 export function analyticsErrorBody(error: unknown): AnalyticsErrorBody {
@@ -67,7 +78,7 @@ export function analyticsErrorBody(error: unknown): AnalyticsErrorBody {
             detail: `${error.fn}: ${error.message}`,
             code: error.code,
             hint: error.isMissingFunction
-                ? MIGRATION_HINT
+                ? migrationHint(error.fn)
                 : (error.pgHint ?? null),
         }
     }
@@ -107,7 +118,7 @@ export async function analyticsRpc<T>(
     if (error?.code === FN_NOT_FOUND && hasExclusion) {
         console.warn(
             `[admin/analytics] ${fn} has no p_exclude_owners argument; ` +
-                `retrying without the admin-account filter. ${MIGRATION_HINT}`,
+                `retrying without the admin-account filter. ${migrationHint(fn)}`,
         )
         ;({ data, error } = await admin.rpc(fn, args))
     }

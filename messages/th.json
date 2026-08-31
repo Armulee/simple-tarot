@@ -239,7 +239,36 @@
     "heatmapTzNote": "เวลาแสดงตามเขต Asia/Bangkok (UTC+7)",
     "catSectionLabel": "หมวดหมู่",
     "catTitle": "หมวดหมู่คำทำนายยอดนิยม",
-    "catBlocked": "ไม่มีข้อมูลหมวดหมู่ — การอ่านไม่ได้ถูกแท็กหมวดหมู่หัวข้อ เพิ่มคอลัมน์หมวดหมู่เพื่อเปิดใช้งานส่วนนี้"
+    "catBlocked": "ไม่มีข้อมูลหมวดหมู่ — การอ่านไม่ได้ถูกแท็กหมวดหมู่หัวข้อ เพิ่มคอลัมน์หมวดหมู่เพื่อเปิดใช้งานส่วนนี้",
+    "demoSectionLabel": "ผู้ใช้งาน",
+    "demoTitle": "ผู้ใช้ของเราเป็นใคร",
+    "demoEmptyHint": "ยังไม่มีใครระบุวันเกิด สถานที่เกิด หรือเพศ",
+    "demoKnownPeople": "ผู้ใช้ที่มีข้อมูล",
+    "demoKnownPeopleSub": "มีข้อมูลอย่างน้อยหนึ่งอย่าง",
+    "demoMedianAge": "อายุมัธยฐาน",
+    "demoCountries": "ประเทศ",
+    "demoAgeTitle": "อายุ",
+    "demoGenderTitle": "เพศ",
+    "demoLocationTitle": "ประเทศยอดนิยม",
+    "demoCoverage": "มีข้อมูล {coverage}",
+    "demoGenderCoverage": "มีข้อมูล {coverage} ของผู้ใช้ที่ลงชื่อเข้าใช้",
+    "demoAge": {
+      "under18": "ต่ำกว่า 18",
+      "18to24": "18–24",
+      "25to34": "25–34",
+      "35to44": "35–44",
+      "45to54": "45–54",
+      "55to64": "55–64",
+      "65plus": "65 ขึ้นไป"
+    },
+    "demoGender": {
+      "male": "ชาย",
+      "female": "หญิง",
+      "non-binary": "นอนไบนารี",
+      "prefer-not-to-say": "ไม่ระบุ",
+      "other": "อื่น ๆ",
+      "unknown": "ยังไม่ได้ตั้งค่า"
+    }
   },
   "TarotArticle": {
     "overviewUpright": "ภาพรวม (ไพ่ขึ้น)",
