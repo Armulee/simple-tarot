@@ -52,8 +52,8 @@ test("empty input is handled", () => {
     }
 })
 
-test("formats as Province, Country — what the readers expect", () => {
-    assert.equal(formatBirthPlace("Thailand", "Nonthaburi"), "Nonthaburi, Thailand")
+test("formats as Country, Province — the order the column holds", () => {
+    assert.equal(formatBirthPlace("Thailand", "Nonthaburi"), "Thailand, Nonthaburi")
     assert.equal(formatBirthPlace("Thailand", ""), "Thailand")
     assert.equal(formatBirthPlace("", "Nonthaburi"), "")
 })

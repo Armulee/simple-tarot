@@ -83,11 +83,8 @@ export function parseBirthPlace(value: string | null | undefined): {
 }
 
 /**
- * Join country + province for storage.
- *
- * "Province, Country" is the order the birth-chart and astrology forms already
- * write, and the order `api/birth-chart/me` and the chat session parser read
- * back, so new writes match the majority of the codebase.
+ * Join country + province for storage as "Country, Province" — the order the
+ * column actually holds, and the one the consent modal already writes.
  */
 export function formatBirthPlace(
     country: string | null | undefined,
@@ -96,5 +93,5 @@ export function formatBirthPlace(
     const c = (country ?? "").trim()
     const s = (state ?? "").trim()
     if (!c) return ""
-    return s ? `${s}, ${c}` : c
+    return s ? `${c}, ${s}` : c
 }

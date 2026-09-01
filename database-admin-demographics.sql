@@ -7,11 +7,14 @@
 --   * Age      : profiles.birth_date for signed-in users, else the birth date on
 --                a birth_charts row — which anonymous visitors have too, so age
 --                coverage reaches well past the profiles table.
---   * Location : birth_charts.country (chosen from a country picker), else
---                profiles.birth_place. That column is written in two different
---                orders by two different screens, so no position is assumed:
---                each comma part is checked against a real country list and the
---                one that IS a country wins. A province is never a country here.
+--   * Location : the COUNTRY only — never a province. profiles.birth_place is
+--                "Country, Province", so the country is the first part; the
+--                consent modal and the birth-chart forms disagree on the order
+--                though, so each part is checked against a real country list
+--                and the one that IS a country wins. birth_charts.country is
+--                used too, but checked the same way: api/birth-chart/me writes
+--                the LAST part of birth_place into it, which for a
+--                "Country, Province" value is the province.
 --   * Gender   : profiles.gender only. Signed-in users are the only ones ever
 --                asked, so this is reported against signed-in users, not actors.
 --
@@ -303,30 +306,193 @@ CREATE INDEX IF NOT EXISTS idx_admin_countries_lower_name
 CREATE INDEX IF NOT EXISTS idx_admin_countries_iso2
     ON admin_countries (lower(iso2));
 
--- Spellings the reference list does not carry. Thai first: most of this
--- userbase types their own country in Thai, and dropping those would
--- understate the one country we have most of.
+-- Alternate spellings, all lowercased to match the resolver.
+--
+-- The dropdowns users pick from are filled by `countrycitystatejson`, whose
+-- names differ from the canonical list above for 34 countries — its "Myanmar
+-- [Burma]" is this list's "Myanmar". Left unmapped those either vanish from the
+-- report or split one country across two rows, so every differing picker name
+-- and every native name it carries is mapped back to the canonical one. That
+-- also buys Thai spellings for free ("ประเทศไทย"). The rest are typed forms
+-- neither package knows (USA, UK, England).
 CREATE TABLE IF NOT EXISTS admin_country_aliases (
     alias text PRIMARY KEY,
     name  text NOT NULL
 );
 
 INSERT INTO admin_country_aliases (alias, name) VALUES
-    ('ไทย', 'Thailand'),
+    ('azərbaycan', 'Azerbaijan'),
+    ('bahamas', 'The Bahamas'),
+    ('belgië', 'Belgium'),
+    ('bonaire', 'Bonaire, Sint Eustatius and Saba'),
+    ('bosna i hercegovina', 'Bosnia and Herzegovina'),
+    ('bouvetøya', 'Bouvet Island'),
+    ('brasil', 'Brazil'),
+    ('british virgin islands', 'Virgin Islands (British)'),
+    ('bénin', 'Benin'),
+    ('cabo verde', 'Cape Verde'),
+    ('cocos [keeling] islands', 'Cocos (Keeling) Islands'),
+    ('curacao', 'Curaçao'),
+    ('côte d''ivoire', 'Cote D''Ivoire (Ivory Coast)'),
+    ('danmark', 'Denmark'),
+    ('deutschland', 'Germany'),
+    ('eesti', 'Estonia'),
+    ('england', 'United Kingdom'),
+    ('españa', 'Spain'),
+    ('fiji', 'Fiji Islands'),
+    ('føroyar', 'Faroe Islands'),
+    ('gambia', 'The Gambia'),
+    ('great britain', 'United Kingdom'),
+    ('guernsey', 'Guernsey and Alderney'),
+    ('guinea ecuatorial', 'Equatorial Guinea'),
+    ('guiné-bissau', 'Guinea-Bissau'),
+    ('guinée', 'Guinea'),
+    ('guyane française', 'French Guiana'),
+    ('haïti', 'Haiti'),
+    ('hong kong', 'Hong Kong S.A.R.'),
+    ('hrvatska', 'Croatia'),
+    ('isle of man', 'Man (Isle of)'),
+    ('italia', 'Italy'),
+    ('ivory coast', 'Cote D''Ivoire (Ivory Coast)'),
+    ('kalaallit nunaat', 'Greenland'),
+    ('komori', 'Comoros'),
+    ('kâmpŭchéa', 'Cambodia'),
+    ('ködörösêse tî bêafrîka', 'Central African Republic'),
+    ('la réunion', 'Reunion'),
+    ('latvija', 'Latvia'),
+    ('lietuva', 'Lithuania'),
+    ('macao', 'Macau S.A.R.'),
+    ('madagasikara', 'Madagascar'),
+    ('magyarország', 'Hungary'),
+    ('maurice', 'Mauritius'),
+    ('moçambique', 'Mozambique'),
+    ('myanma', 'Myanmar'),
+    ('myanmar [burma]', 'Myanmar'),
+    ('méxico', 'Mexico'),
+    ('m̧ajeļ', 'Marshall Islands'),
+    ('nederland', 'Netherlands'),
+    ('negara brunei darussalam', 'Brunei'),
+    ('niuē', 'Niue'),
+    ('norge', 'Norway'),
+    ('nouvelle-calédonie', 'New Caledonia'),
+    ('o‘zbekiston', 'Uzbekistan'),
+    ('palestine', 'Palestinian Territory Occupied'),
+    ('panamá', 'Panama'),
+    ('papua niugini', 'Papua new Guinea'),
+    ('perú', 'Peru'),
+    ('pilipinas', 'Philippines'),
+    ('pitcairn islands', 'Pitcairn Island'),
+    ('polska', 'Poland'),
+    ('polynésie française', 'French Polynesia'),
+    ('republic of the congo', 'Congo'),
+    ('republika e kosovës', 'Kosovo'),
+    ('república dominicana', 'Dominican Republic'),
+    ('românia', 'Romania'),
+    ('république du congo', 'Congo'),
+    ('république démocratique du congo', 'Democratic Republic of the Congo'),
+    ('réunion', 'Reunion'),
+    ('saint barthélemy', 'Saint-Barthelemy'),
+    ('saint martin', 'Saint-Martin (French part)'),
+    ('saint-barthélemy', 'Saint-Barthelemy'),
+    ('saint-martin', 'Saint-Martin (French part)'),
+    ('saint-pierre-et-miquelon', 'Saint Pierre and Miquelon'),
+    ('schweiz', 'Switzerland'),
+    ('scotland', 'United Kingdom'),
+    ('shqipëria', 'Albania'),
+    ('siam', 'Thailand'),
+    ('sint maarten', 'Sint Maarten (Dutch part)'),
+    ('slovenija', 'Slovenia'),
+    ('slovensko', 'Slovakia'),
+    ('soomaaliya', 'Somalia'),
+    ('south georgia and the south sandwich islands', 'South Georgia'),
+    ('suomi', 'Finland'),
+    ('svalbard and jan mayen', 'Svalbard And Jan Mayen Islands'),
+    ('svalbard og jan mayen', 'Svalbard And Jan Mayen Islands'),
+    ('sverige', 'Sweden'),
+    ('são tomé and príncipe', 'Sao Tome and Principe'),
+    ('são tomé e príncipe', 'Sao Tome and Principe'),
+    ('sénégal', 'Senegal'),
+    ('tchad', 'Chad'),
+    ('territoire des terres australes et antarctiques fr', 'French Southern Territories'),
+    ('timor-leste', 'East Timor'),
+    ('türkiye', 'Turkey'),
+    ('türkmenistan', 'Turkmenistan'),
+    ('u.k.', 'United Kingdom'),
+    ('u.s. minor outlying islands', 'United States Minor Outlying Islands'),
+    ('u.s. virgin islands', 'Virgin Islands (US)'),
+    ('u.s.a.', 'United States'),
+    ('uae', 'United Arab Emirates'),
+    ('uk', 'United Kingdom'),
+    ('united states of america', 'United States'),
+    ('united states virgin islands', 'Virgin Islands (US)'),
+    ('us', 'United States'),
+    ('usa', 'United States'),
+    ('vatican city', 'Vatican City State (Holy See)'),
+    ('vaticano', 'Vatican City State (Holy See)'),
+    ('việt nam', 'Vietnam'),
+    ('wales', 'United Kingdom'),
+    ('wallis and futuna', 'Wallis And Futuna Islands'),
+    ('wallis et futuna', 'Wallis And Futuna Islands'),
+    ('åland', 'Aland Islands'),
+    ('éire', 'Ireland'),
+    ('ísland', 'Iceland'),
+    ('österreich', 'Austria'),
+    ('česká republika', 'Czech Republic'),
+    ('śrī laṃkāva', 'Sri Lanka'),
+    ('ʼbrug-yul', 'Bhutan'),
+    ('ελλάδα', 'Greece'),
+    ('κύπρος', 'Cyprus'),
+    ('белару́сь', 'Belarus'),
+    ('българия', 'Bulgaria'),
+    ('кыргызстан', 'Kyrgyzstan'),
+    ('македонија', 'Macedonia'),
+    ('монгол улс', 'Mongolia'),
+    ('россия', 'Russia'),
+    ('србија', 'Serbia'),
+    ('тоҷикистон', 'Tajikistan'),
+    ('україна', 'Ukraine'),
+    ('црна гора', 'Montenegro'),
+    ('қазақстан', 'Kazakhstan'),
+    ('հայաստան', 'Armenia'),
+    ('יִשְׂרָאֵל', 'Israel'),
+    ('افغانستان', 'Afghanistan'),
+    ('الأردن', 'Jordan'),
+    ('الجزائر', 'Algeria'),
+    ('السودان', 'Sudan'),
+    ('الصحراء الغربية', 'Western Sahara'),
+    ('العراق', 'Iraq'),
+    ('العربية السعودية', 'Saudi Arabia'),
+    ('الكويت', 'Kuwait'),
+    ('المغرب', 'Morocco'),
+    ('اليَمَن', 'Yemen'),
+    ('ایران', 'Iran'),
+    ('تونس', 'Tunisia'),
+    ('دولة الإمارات العربية المتحدة', 'United Arab Emirates'),
+    ('سوريا', 'Syria'),
+    ('عمان', 'Oman'),
+    ('فلسطين', 'Palestinian Territory Occupied'),
+    ('قطر', 'Qatar'),
+    ('لبنان', 'Lebanon'),
+    ('مصر‎', 'Egypt'),
+    ('موريتانيا', 'Mauritania'),
+    ('नपल', 'Nepal'),
+    ('भारत', 'India'),
     ('ประเทศไทย', 'Thailand'),
     ('เมืองไทย', 'Thailand'),
-    ('siam', 'Thailand'),
-    ('usa', 'United States'),
-    ('u.s.a.', 'United States'),
-    ('us', 'United States'),
-    ('united states of america', 'United States'),
-    ('uk', 'United Kingdom'),
-    ('u.k.', 'United Kingdom'),
-    ('great britain', 'United Kingdom'),
-    ('england', 'United Kingdom'),
-    ('scotland', 'United Kingdom'),
-    ('wales', 'United Kingdom'),
-    ('uae', 'United Arab Emirates')
+    ('ไทย', 'Thailand'),
+    ('ສປປລາວ', 'Laos'),
+    ('საქართველო', 'Georgia'),
+    ('ኢትዮጵያ', 'Ethiopia'),
+    ('ኤርትራ', 'Eritrea'),
+    ('‏البحرين', 'Bahrain'),
+    ('‏ليبيا', 'Libya'),
+    ('中国', 'China'),
+    ('日本', 'Japan'),
+    ('澳門', 'Macau S.A.R.'),
+    ('臺灣', 'Taiwan'),
+    ('香港', 'Hong Kong S.A.R.'),
+    ('대한민국', 'South Korea'),
+    ('북한', 'North Korea')
 ON CONFLICT (alias) DO UPDATE SET name = EXCLUDED.name;
 
 /**
