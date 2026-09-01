@@ -495,9 +495,16 @@ export default function Home() {
                 </div>
             )}
 
+            {/* Deliberately no backdrop-blur. Now that this bar floats over the
+                page, the blur pulled bright content sitting just above it — the
+                About heading and its underline — down into its rectangle, which
+                read as a hazy lighter box with a hard top edge. The filter is
+                clipped to the border box, so that edge cannot be feathered with
+                a mask. The gradient alone fades out with nothing to see, and is
+                darkened here to keep the input legible without it. */}
             <div
                 ref={fixedBarRef}
-                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-30 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
+                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-30 bg-gradient-to-t from-black/95 via-black/75 to-transparent pt-4 transition-all duration-500'
             >
                 <QuestionInput
                     id='home-question-input'
