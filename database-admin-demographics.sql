@@ -8,9 +8,10 @@
 --                a birth_charts row — which anonymous visitors have too, so age
 --                coverage reaches well past the profiles table.
 --   * Location : birth_charts.country (chosen from a country picker), else
---                profiles.birth_place, which is free text and usually a city —
---                so every candidate is resolved against a real country list and
---                dropped when it isn't one. A province is never a country here.
+--                profiles.birth_place. That column is written in two different
+--                orders by two different screens, so no position is assumed:
+--                each comma part is checked against a real country list and the
+--                one that IS a country wins. A province is never a country here.
 --   * Gender   : profiles.gender only. Signed-in users are the only ones ever
 --                asked, so this is reported against signed-in users, not actors.
 --
@@ -352,6 +353,31 @@ LANGUAGE sql STABLE SET search_path = public AS $$
     WHERE (SELECT v FROM needle) <> ''
 $$;
 
+/**
+ * Country out of a free-text place string, whichever position it sits in.
+ *
+ * birth_place has two writers with opposite conventions: the age-gate consent
+ * modal saves "Country, Province" (star-consent.tsx) while the birth-chart and
+ * astrology forms save "Province, Country". Picking a position would silently
+ * mislabel every row the other one wrote — which is exactly how provinces ended
+ * up in this report. So try each part and keep the one that IS a country.
+ */
+CREATE OR REPLACE FUNCTION admin_place_country(p_place text)
+RETURNS text
+LANGUAGE sql STABLE SET search_path = public AS $$
+    SELECT COALESCE(
+        -- Whole string first: a few country names contain a comma themselves
+        -- ("Bonaire, Sint Eustatius and Saba"), and splitting would lose them.
+        admin_resolve_country(p_place),
+        (SELECT c FROM (
+            SELECT admin_resolve_country(part) AS c
+              FROM unnest(string_to_array(COALESCE(p_place, ''), ',')) AS part
+         ) x
+         WHERE c IS NOT NULL
+         LIMIT 1)
+    )
+$$;
+
 -- birth_charts stores day/month/year as loose integers, so combinations that
 -- are not real dates (31 February, day 0) do occur. make_date() raises on those
 -- and would abort the whole report, and an inline guard is not enough — nothing
@@ -404,15 +430,7 @@ BEGIN
             p.id::text        AS actor_key,
             p.birth_date,
             NULLIF(btrim(p.gender), '') AS gender,
-            -- birth_place is a free-text box. Try the last comma-part first
-            -- ("Bangkok, Thailand" -> Thailand), then the whole string, so a
-            -- bare "Thailand" still resolves. Each candidate has to *be* a
-            -- country; "Bangkok" resolves to NULL rather than becoming one.
-            COALESCE(
-                admin_resolve_country(split_part(p.birth_place, ',',
-                    array_length(string_to_array(p.birth_place, ','), 1))),
-                admin_resolve_country(p.birth_place)
-            ) AS country
+            admin_place_country(p.birth_place) AS country
         FROM profiles p
     ),
     -- Actors we know anything at all about. Profile values win for birth date
@@ -510,4 +528,6 @@ END $$;
 
 -- Callable by the service role (the admin API uses the service key).
 GRANT EXECUTE ON FUNCTION admin_safe_date(int, int, int)             TO service_role;
+GRANT EXECUTE ON FUNCTION admin_resolve_country(text)                TO service_role;
+GRANT EXECUTE ON FUNCTION admin_place_country(text)                  TO service_role;
 GRANT EXECUTE ON FUNCTION admin_analytics_demographics(text[])       TO service_role;
