@@ -4,7 +4,13 @@ import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
-export default function AboutHeader() {
+export default function AboutHeader({
+    showAboutLink = true,
+}: {
+    /** Off when these sections are embedded on the home page — the link would
+        point at a copy of what the reader is already looking at. */
+    showAboutLink?: boolean
+}) {
     const t = useTranslations("About")
     const [isVisible, setIsVisible] = useState(false)
 
@@ -46,16 +52,20 @@ export default function AboutHeader() {
                 className={`transition-all duration-1000 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
             >
                 <div className='flex flex-col sm:flex-row items-center justify-center gap-6 pt-4'>
-                    <Link
-                        href='/about'
-                        className='group relative px-6 py-3 rounded-lg font-semibold text-slate-900 bg-white shadow-lg hover:shadow-xl hover:bg-slate-100 transition-all duration-300 border border-white/60'
-                    >
-                        <span className='relative z-10 flex items-center gap-2'>
-                            {t("learnMore")}
-                        </span>
-                    </Link>
+                    {showAboutLink ? (
+                        <>
+                            <Link
+                                href='/about'
+                                className='group relative px-6 py-3 rounded-lg font-semibold text-slate-900 bg-white shadow-lg hover:shadow-xl hover:bg-slate-100 transition-all duration-300 border border-white/60'
+                            >
+                                <span className='relative z-10 flex items-center gap-2'>
+                                    {t("learnMore")}
+                                </span>
+                            </Link>
 
-                    <div className='hidden sm:block w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent'></div>
+                            <div className='hidden sm:block w-px h-6 bg-gradient-to-b from-transparent via-gray-600 to-transparent'></div>
+                        </>
+                    ) : null}
 
                     <Link
                         href='/demo'

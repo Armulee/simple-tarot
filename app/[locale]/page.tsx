@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 import HomeHero from "@/components/home"
+import AboutContent from "@/components/about/content"
 import ReferralHandler from "@/components/referral-handler"
 
 import { getSocialImageUrls } from "@/lib/seo"
@@ -50,8 +51,16 @@ export default function HomePage() {
             <Suspense fallback={null}>
                 <ReferralHandler />
             </Suspense>
-            <section className='relative z-10 overflow-hidden h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center'>
+            {/* One full screen. `main` already carries pt-16 for the fixed
+                navbar, so a bare 100dvh would push the composer 64px past the
+                fold; dvh (not vh) so mobile browser chrome doesn't do the same. */}
+            <section className='relative z-10 overflow-hidden h-[calc(100dvh-64px)] flex flex-col items-center justify-center text-center'>
                 <HomeHero />
+            </section>
+            {/* Target of the hero's "learn more" — same sections as /about. The
+                page's own footer sits below, so this copy renders without one. */}
+            <section id='learn-more' className='relative z-10 scroll-mt-16'>
+                <AboutContent embedded />
             </section>
         </>
     )

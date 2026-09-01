@@ -449,7 +449,12 @@ export default function Home() {
                                     type='button'
                                     className='mx-auto animate-fade-swap text-xs sm:text-sm uppercase tracking-widest text-white/70 hover:text-white transition-colors'
                                     onClick={() => {
-                                        window.location.href = "/about"
+                                        document
+                                            .getElementById("learn-more")
+                                            ?.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start",
+                                            })
                                     }}
                                 >
                                     <span className='flex items-center gap-4'>
@@ -483,7 +488,7 @@ export default function Home() {
 
             <div
                 ref={fixedBarRef}
-                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
+                className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
                 <QuestionInput
                     id='home-question-input'

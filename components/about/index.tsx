@@ -2,14 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import type { SwiperRef } from "swiper/react"
-import NormalFooter from "@/components/footer/normal-footer"
-import AboutHeader from "./header"
-import ServicesSection from "./services"
-import RoadmapSection from "./roadmap"
-import TechnologySection from "./technology"
-import TestimonialsSection from "./testimonials"
-import StatisticsSection from "./statistics"
-import CallToActionSection from "./call-to-action"
+import AboutContent from "./content"
 
 type AboutSections = {
     mainSwiperRef: React.RefObject<SwiperRef | null>
@@ -186,16 +179,7 @@ export default function AboutSections({ mainSwiperRef }: AboutSections) {
 
     return (
         <div ref={scrollRef} className='w-full h-full overflow-y-auto'>
-            <div className='max-w-6xl mx-auto px-6 py-10 space-y-8'>
-                <AboutHeader />
-                <ServicesSection />
-                <RoadmapSection />
-                <TechnologySection />
-                <TestimonialsSection />
-                <StatisticsSection />
-                <CallToActionSection />
-                <NormalFooter />
-            </div>
+            <AboutContent />
         </div>
     )
 }
