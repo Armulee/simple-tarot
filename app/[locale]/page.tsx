@@ -54,7 +54,10 @@ export default function HomePage() {
             {/* One full screen. `main` already carries pt-16 for the fixed
                 navbar, so a bare 100dvh would push the composer 64px past the
                 fold; dvh (not vh) so mobile browser chrome doesn't do the same. */}
-            <section className='relative z-10 overflow-hidden h-[calc(100dvh-64px)] flex flex-col items-center justify-center text-center'>
+            {/* z-40 (under the z-50 navbar, over the z-10 sections below):
+                `relative z-index` here is a stacking context, so the composer's
+                own z-index cannot lift it past a later sibling on its own. */}
+            <section className='relative z-40 overflow-hidden h-[calc(100dvh-64px)] flex flex-col items-center justify-center text-center'>
                 <HomeHero />
             </section>
             {/* Target of the hero's "learn more" — same sections as /about. The
