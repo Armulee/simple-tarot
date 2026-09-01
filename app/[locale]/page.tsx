@@ -59,7 +59,12 @@ export default function HomePage() {
             </section>
             {/* Target of the hero's "learn more" — same sections as /about. The
                 page's own footer sits below, so this copy renders without one. */}
-            <section id='learn-more' className='relative z-10 scroll-mt-16'>
+            {/* Bottom padding clears the composer, which stays pinned to the
+                viewport while these sections scroll past it. */}
+            <section
+                id='learn-more'
+                className='relative z-10 scroll-mt-16 pb-[var(--home-composer-h,320px)]'
+            >
                 <AboutContent embedded />
             </section>
         </>

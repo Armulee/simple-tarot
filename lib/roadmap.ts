@@ -4,6 +4,7 @@ export type RoadmapPhaseDefinition = {
     phaseKey: string
     statusKey: "status.completed" | "status.inDevelopment" | "status.planned"
     startDate: string
+    /** Empty when the date is not committed yet (TBC): no countdown, no progress. */
     targetDate: string
     color: string
     glowColor: string
@@ -25,8 +26,8 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "birth-chart",
         translationKey: "birthChart",
-        phaseKey: "phases.may_2026",
-        statusKey: "status.planned",
+        phaseKey: "phases.completed",
+        statusKey: "status.completed",
         startDate: "2026-01-01",
         targetDate: "2026-05-31",
         color: "from-indigo-500 to-sky-500",
@@ -36,8 +37,8 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "astrology",
         translationKey: "astrology",
-        phaseKey: "phases.may_2026",
-        statusKey: "status.planned",
+        phaseKey: "phases.completed",
+        statusKey: "status.completed",
         startDate: "2026-01-15",
         targetDate: "2026-05-31",
         color: "from-fuchsia-500 to-rose-500",
@@ -47,10 +48,10 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "namelogy",
         translationKey: "namelogy",
-        phaseKey: "phases.jul_2026",
+        phaseKey: "phases.tbc",
         statusKey: "status.planned",
         startDate: "2026-04-01",
-        targetDate: "2026-07-31",
+        targetDate: "",
         color: "from-amber-500 to-orange-500",
         glowColor: "shadow-amber-500/20",
         featureIconKeys: ["Type", "ShieldCheck", "Sparkles"],
@@ -58,10 +59,10 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "numerology",
         translationKey: "numerology",
-        phaseKey: "phases.aug_2026",
+        phaseKey: "phases.tbc",
         statusKey: "status.planned",
         startDate: "2026-04-15",
-        targetDate: "2026-08-31",
+        targetDate: "",
         color: "from-emerald-500 to-teal-500",
         glowColor: "shadow-emerald-500/20",
         featureIconKeys: ["Hash", "AlertTriangle", "Brain"],
@@ -69,10 +70,10 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "lucky-colors",
         translationKey: "luckyColors",
-        phaseKey: "phases.sep_2026",
+        phaseKey: "phases.tbc",
         statusKey: "status.planned",
         startDate: "2026-05-01",
-        targetDate: "2026-09-30",
+        targetDate: "",
         color: "from-cyan-500 to-blue-500",
         glowColor: "shadow-cyan-500/20",
         featureIconKeys: ["Palette", "Shirt", "Sparkles"],
@@ -80,10 +81,10 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "mobile-app",
         translationKey: "mobileApp",
-        phaseKey: "phases.nov_2026",
+        phaseKey: "phases.q1_2027",
         statusKey: "status.planned",
         startDate: "2026-06-01",
-        targetDate: "2026-11-30",
+        targetDate: "2027-03-31",
         color: "from-purple-500 to-indigo-500",
         glowColor: "shadow-purple-500/20",
         featureIconKeys: ["Smartphone", "Cloud", "LayoutDashboard"],
@@ -91,10 +92,10 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "fated-relations",
         translationKey: "fatedRelations",
-        phaseKey: "phases.oct_2026",
+        phaseKey: "phases.dec_2026",
         statusKey: "status.planned",
         startDate: "2026-05-15",
-        targetDate: "2026-10-31",
+        targetDate: "2026-12-31",
         color: "from-pink-500 to-red-500",
         glowColor: "shadow-pink-500/20",
         featureIconKeys: ["Heart", "Sparkles", "NotebookPen"],
@@ -102,10 +103,10 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     {
         id: "palmistry",
         translationKey: "palmistry",
-        phaseKey: "phases.dec_2026",
+        phaseKey: "phases.q1_2027",
         statusKey: "status.planned",
         startDate: "2026-07-01",
-        targetDate: "2026-12-31",
+        targetDate: "2027-03-31",
         color: "from-slate-500 to-violet-500",
         glowColor: "shadow-violet-500/20",
         featureIconKeys: ["Hand", "LineChart", "Lightbulb"],

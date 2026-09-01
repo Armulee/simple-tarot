@@ -17,13 +17,12 @@ import CallToActionSection from "./call-to-action"
 export default function AboutContent({
     embedded = false,
 }: {
-    /** Set on the home page: drops the footer it already renders, and the
-        link back to /about, which would just be this same content. */
+    /** Set on the home page, which renders a footer of its own. */
     embedded?: boolean
 }) {
     return (
         <div className='max-w-6xl mx-auto px-6 py-10 space-y-8'>
-            <AboutHeader showAboutLink={!embedded} />
+            <AboutHeader />
             <ServicesSection />
             <RoadmapSection />
             <TechnologySection />

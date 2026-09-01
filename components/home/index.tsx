@@ -109,10 +109,19 @@ export default function Home() {
         const ro = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 setFixedBarHeight(entry.contentRect.height)
+                // Border box, not contentRect: the bar has pt-4, and content
+                // below the hero has to clear the padding as well.
+                document.documentElement.style.setProperty(
+                    "--home-composer-h",
+                    `${Math.round(entry.target.getBoundingClientRect().height)}px`,
+                )
             }
         })
         ro.observe(el)
-        return () => ro.disconnect()
+        return () => {
+            ro.disconnect()
+            document.documentElement.style.removeProperty("--home-composer-h")
+        }
     }, [])
 
     useEffect(() => {
@@ -488,7 +497,7 @@ export default function Home() {
 
             <div
                 ref={fixedBarRef}
-                className='absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
+                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-30 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
             >
                 <QuestionInput
                     id='home-question-input'

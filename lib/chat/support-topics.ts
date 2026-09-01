@@ -407,7 +407,7 @@ export const SUPPORT_TOPICS: Record<SupportTopic, SupportTopicMeta> = {
     },
     about: {
         topic: "about",
-        href: "/about",
+        href: "/#learn-more",
         title: "About AskingFate",
         description:
             "Our mission, how we built the product, and what makes our readings different.",

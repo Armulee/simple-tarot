@@ -1,6 +1,6 @@
 "use client"
 
-import { BookOpen, Sparkles } from "lucide-react"
+import { BarChart3, BookOpen, CalendarDays, Orbit, Sparkles } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState, useEffect } from "react"
 
@@ -13,6 +13,7 @@ export default function ServicesSection() {
         setIsVisible(true)
     }, [])
 
+    // Live features only — anything still on the roadmap belongs there, not here.
     const services = [
         {
             id: "tarot",
@@ -22,6 +23,33 @@ export default function ServicesSection() {
             status: t("status.available"),
             color: "from-primary to-secondary",
             glowColor: "shadow-primary/20",
+        },
+        {
+            id: "birthChart",
+            name: t("items.birthChart.name"),
+            description: t("items.birthChart.description"),
+            icon: BarChart3,
+            status: t("status.available"),
+            color: "from-indigo-500 to-sky-500",
+            glowColor: "shadow-indigo-500/20",
+        },
+        {
+            id: "astrology",
+            name: t("items.astrology.name"),
+            description: t("items.astrology.description"),
+            icon: Orbit,
+            status: t("status.available"),
+            color: "from-fuchsia-500 to-rose-500",
+            glowColor: "shadow-fuchsia-500/20",
+        },
+        {
+            id: "cosmicCalendar",
+            name: t("items.cosmicCalendar.name"),
+            description: t("items.cosmicCalendar.description"),
+            icon: CalendarDays,
+            status: t("status.available"),
+            color: "from-amber-500 to-orange-500",
+            glowColor: "shadow-amber-500/20",
         },
     ]
 

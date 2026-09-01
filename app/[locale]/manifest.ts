@@ -97,7 +97,7 @@ export default function manifest(): MetadataRoute.Manifest {
                 name: "About Us",
                 short_name: "About",
                 description: "Learn about our AI tarot technology",
-                url: "/about",
+                url: "/#learn-more",
                 icons: [
                     {
                         src: "/icons/shortcut-about.png",

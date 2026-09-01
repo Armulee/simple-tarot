@@ -28,7 +28,7 @@ export type PrimaryNavItem = {
 
 export const PRIMARY_NAV_ITEMS: PrimaryNavItem[] = [
     { href: "/", icon: Home, labelKey: "home", match: "exact" },
-    { href: "/about", icon: Info, labelKey: "about", match: "exact" },
+    { href: "/#learn-more", icon: Info, labelKey: "about", match: "exact" },
     { href: "/pricing", icon: DollarSign, labelKey: "pricing", match: "exact" },
     { href: "/articles", icon: BookOpen, labelKey: "articles", match: "startsWith" },
     {

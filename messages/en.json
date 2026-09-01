@@ -791,6 +791,10 @@
         "fatedRelations": {
           "name": "Fated Relations",
           "description": "Discover the cosmic connections and compatibility between you and your loved ones"
+        },
+        "cosmicCalendar": {
+          "name": "Cosmic Calendar",
+          "description": "Follow the daily cosmic weather and pick your moments with an astrological calendar"
         }
       }
     },
@@ -812,7 +816,9 @@
         "sep_2026": "September 2026",
         "oct_2026": "October 2026",
         "nov_2026": "November 2026",
-        "dec_2026": "December 2026"
+        "dec_2026": "December 2026",
+        "q1_2027": "Q1 2027",
+        "tbc": "TBC"
       },
       "tarot": {
         "title": "AI Tarot Reading",
@@ -825,7 +831,7 @@
       },
       "birthChart": {
         "title": "Birth Chart",
-        "eta": "May 2026",
+        "eta": "Available Now",
         "features": [
           "Snapshot stats from your personal birth chart",
           "Planet positions and aspect angles mapped to strengths",
@@ -834,7 +840,7 @@
       },
       "astrology": {
         "title": "Astrology",
-        "eta": "May 2026",
+        "eta": "Available Now",
         "features": [
           "Transit forecasts from your birth data and target dates",
           "Personalized transit readings",
@@ -843,7 +849,7 @@
       },
       "namelogy": {
         "title": "Namelogy",
-        "eta": "July 2026",
+        "eta": "TBC",
         "features": [
           "Decode vibrations in names",
           "Reveal spiritual alignment, strengths, and cautions",
@@ -852,7 +858,7 @@
       },
       "numerology": {
         "title": "Numerology",
-        "eta": "August 2026",
+        "eta": "TBC",
         "features": [
           "Decode vibrations in numbers",
           "Highlight supportive and challenging number patterns",
@@ -861,7 +867,7 @@
       },
       "luckyColors": {
         "title": "Lucky Colors",
-        "eta": "September 2026",
+        "eta": "TBC",
         "features": [
           "Daily palette matched to planetary rulers",
           "Wardrobe and workspace recommendations",
@@ -870,7 +876,7 @@
       },
       "mobileApp": {
         "title": "Mobile Application",
-        "eta": "November 2026",
+        "eta": "Q1 2027",
         "features": [
           "Native iOS and Android launch experience",
           "Take your readings anywhere with offline access",
@@ -879,7 +885,7 @@
       },
       "fatedRelations": {
         "title": "Fated Relations",
-        "eta": "October 2026",
+        "eta": "December 2026",
         "features": [
           "Explore compatibility and relationship dynamics",
           "Unpack relationship dynamics and shared potentials",
@@ -888,7 +894,7 @@
       },
       "palmistry": {
         "title": "Palmistry",
-        "eta": "December 2026",
+        "eta": "Q1 2027",
         "features": [
           "Webcam-based palm readings",
           "Interpret lines on luck, life, and destiny",
