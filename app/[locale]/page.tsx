@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 import HomeHero from "@/components/home"
 import AboutContent from "@/components/about/content"
+import { AboutWhenIdle } from "@/components/home/about-when-idle"
 import ReferralHandler from "@/components/referral-handler"
 
 import { getSocialImageUrls } from "@/lib/seo"
@@ -64,12 +65,14 @@ export default function HomePage() {
                 page's own footer sits below, so this copy renders without one. */}
             {/* Bottom padding clears the composer, which stays pinned to the
                 viewport while these sections scroll past it. */}
-            <section
-                id='learn-more'
-                className='relative z-10 scroll-mt-16 pb-[var(--home-composer-h,320px)]'
-            >
-                <AboutContent embedded />
-            </section>
+            <AboutWhenIdle>
+                <section
+                    id='learn-more'
+                    className='relative z-10 scroll-mt-16 pb-[var(--home-composer-h,320px)]'
+                >
+                    <AboutContent embedded />
+                </section>
+            </AboutWhenIdle>
         </>
     )
 }

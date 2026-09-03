@@ -27,6 +27,7 @@ import {
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
 import { useStarConsent } from "@/components/star-consent"
+import { usePendingMessage } from "@/contexts/pending-message-context"
 import {
     detectInputLanguage,
     resolveSessionLocale,
@@ -60,6 +61,7 @@ export default function Home() {
         cardId: string
     } | null>(null)
     const { ageGateState } = useStarConsent()
+    const { setPending } = usePendingMessage()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
@@ -226,6 +228,7 @@ export default function Home() {
         }
         pendingSessionIdRef.current = null
         setIsLinking(false)
+        setPending(null)
         setQuestion(linkingQuestion ?? "")
         setLinkingQuestion(null)
         setError(null)
@@ -252,8 +255,10 @@ export default function Home() {
         pendingSessionIdRef.current = pendingSessionId
         setQuestion("")
         setError(null)
-        setLinkingQuestion(trimmed || attachments?.[0]?.name || "")
+        const pendingText = trimmed || attachments?.[0]?.name || ""
+        setLinkingQuestion(pendingText)
         setIsLinking(true)
+        setPending({ text: pendingText, sessionId: null })
         try {
             // Nothing to sanitize for attachment-only sends (empty prompt).
             const sanitizeResult = trimmed
@@ -322,6 +327,7 @@ export default function Home() {
             }
             linkingAbortControllerRef.current = null
             pendingSessionIdRef.current = null
+            setPending({ text: pendingText, sessionId: payload.id as string })
             const detectedLocale = detectInputLanguage(trimmed)
             const targetLocale = resolveSessionLocale(detectedLocale, locale)
             try {
@@ -336,12 +342,14 @@ export default function Home() {
             }
             if (error instanceof Error && error.name === "AbortError") {
                 setIsLinking(false)
+                setPending(null)
                 setQuestion(trimmed)
                 setLinkingQuestion(null)
                 void cleanupPendingSession(pendingSessionId)
                 return
             }
             setIsLinking(false)
+            setPending(null)
             setLinkingQuestion(null)
             setQuestion(trimmed)
             setError("Sorry, something went wrong. Please try again.")
