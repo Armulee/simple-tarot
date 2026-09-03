@@ -13,9 +13,10 @@ import "swiper/css/free-mode"
 import { Checkout } from "@/components/checkout"
 import { useAuth } from "@/hooks/use-auth"
 import {
-    STAR_PACKS,
     getPackPrice,
     getPackPriceId,
+    PACK_CHECKOUT_MODE,
+    purchasablePacks,
 } from "@/lib/payments/star-products"
 import {
     formatCurrency,
@@ -54,9 +55,7 @@ export default function InsufficientStarsBlock({
     ) =>
         formatCurrency(amount, displayCurrency, locale).replace(/^US(?=\$)/, "")
 
-    const packs = useMemo(() => {
-        return STAR_PACKS.filter((p) => !!p.id)
-    }, [])
+    const packs = useMemo(() => purchasablePacks(currency), [currency])
     const isProSubscriber = subscription?.tier === "pro"
     const isBasicSubscriber = subscription?.tier === "basic"
     const isSubscribed = Boolean(subscription?.tier)
@@ -99,9 +98,8 @@ export default function InsufficientStarsBlock({
                 {user ? (
                     /* Logged-in user: Show quick top-up options */
                     <div className="space-y-4">
-                        {isProSubscriber ? (
-                            <>
-                                <div className="text-xs text-white/60 uppercase tracking-wider font-medium">
+                        <>
+                            <div className="text-xs text-white/60 uppercase tracking-wider font-medium">
                                     {t("quickTopUp")}
                                 </div>
 
@@ -133,7 +131,7 @@ export default function InsufficientStarsBlock({
                                                         className="!w-[180px]"
                                                     >
                                                         <Checkout
-                                                            mode="addon"
+                                                            mode={PACK_CHECKOUT_MODE}
                                                             packId={packPriceId}
                                                             currency={currency}
                                                             customTrigger={
@@ -181,9 +179,8 @@ export default function InsufficientStarsBlock({
                                     <div className="text-sm text-white/60">
                                         {t("packsNotConfigured")}
                                     </div>
-                                )}
-                            </>
-                        ) : (
+                            )}
+                        {!isProSubscriber && (
                             <div className="-mx-2">
                                 <div className="rounded-2xl border border-fuchsia-400/20 bg-gradient-to-r from-fuchsia-500/10 via-violet-500/10 to-indigo-500/10 p-4 text-left">
                                     <div className="flex items-start gap-3">
@@ -528,6 +525,7 @@ export default function InsufficientStarsBlock({
                                 )}
                             </div>
                         )}
+                        </>
 
                         {/* Link to pricing page */}
                         <div className="pt-2">
