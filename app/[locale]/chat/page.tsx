@@ -1,10 +1,10 @@
 import type { Metadata } from "next"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
-import LandingPage from "@/components/landing/landing-page"
+import ChatSession from "@/components/chat-session"
 import ReferralHandler from "@/components/referral-handler"
 
-import { getSocialImageUrls } from "@/lib/seo"
+import { getMetadataBase } from "@/lib/seo"
 
 export async function generateMetadata({
     params,
@@ -14,7 +14,9 @@ export async function generateMetadata({
     const { locale } = await params
     const t = await getTranslations("Meta.Home")
     const s = await getTranslations("Meta.Site")
-    const { ogImage, twitterImage } = getSocialImageUrls(locale)
+    const baseUrl = getMetadataBase().toString().replace(/\/$/, "")
+    const ogImage = `${baseUrl}/${locale}/opengraph-image`
+    const twitterImage = `${baseUrl}/${locale}/twitter-image`
 
     return {
         title: t("title"),
@@ -44,13 +46,15 @@ export async function generateMetadata({
     }
 }
 
-export default function HomePage() {
+export default function ChatPage() {
     return (
         <>
             <Suspense fallback={null}>
                 <ReferralHandler />
             </Suspense>
-            <LandingPage />
+            <section className='relative z-10 overflow-hidden h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center'>
+                <ChatSession mode='home' />
+            </section>
         </>
     )
 }
