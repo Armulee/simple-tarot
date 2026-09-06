@@ -307,7 +307,22 @@ export type TimingReading = {
     searchedDays: number
 }
 
-const TIMING_TRANSITS: SiderealPlanet[] = ["Jupiter", "Saturn"]
+/**
+ * Which transiting bodies count as "when".
+ *
+ * Jupiter and Saturn alone put the median answer 165 days out, because that
+ * is simply how fast they move: someone asking "when can I leave this job"
+ * was told February of next year, every time, whoever they were. Mars and the
+ * Sun move fast enough that a real contact usually exists inside a season, so
+ * the near future stops being empty. The slow pair stay in — they are the ones
+ * that mark a turn rather than a week.
+ */
+const TIMING_TRANSITS: SiderealPlanet[] = [
+    "Sun",
+    "Mars",
+    "Jupiter",
+    "Saturn",
+]
 const TIMING_ORB = 1.5
 
 export async function readTiming(
@@ -359,7 +374,16 @@ export async function readTiming(
                     const key = `${planet}:${aspect.name}`
                     inOrb[key] = inOrb[key] ?? []
                     inOrb[key].push(dayIndex)
-                    if (!best || orb < best.orb) {
+                    // The SOONEST contact, not the tightest. Picking the most
+                    // exact one anywhere in the search window is what pushed
+                    // answers months out even when something real was due next
+                    // week: "when" is a question about the next thing, not the
+                    // most perfect thing.
+                    if (
+                        !best ||
+                        dayIndex < best.dayIndex ||
+                        (dayIndex === best.dayIndex && orb < best.orb)
+                    ) {
                         best = {
                             dayIndex,
                             orb,
@@ -391,6 +415,9 @@ export async function readTiming(
         const inWindow = new Set(days)
         while (inWindow.has(startIndex - 1)) startIndex -= 1
         while (inWindow.has(endIndex + 1)) endIndex += 1
+        // `best` is now the first day of this pass, so the closest approach is
+        // the middle of it rather than its edge.
+        const peakIndex = Math.round((startIndex + endIndex) / 2)
         const at = (index: number) =>
             new Date(from.getTime() + index * DAY_MS).toISOString()
 
@@ -399,7 +426,7 @@ export async function readTiming(
             natalSign: natal.sign,
             window: {
                 startIso: at(startIndex),
-                peakIso: at(best.dayIndex),
+                peakIso: at(peakIndex),
                 endIso: at(endIndex),
                 transitPlanet: best.transitPlanet,
                 aspect: best.aspect,

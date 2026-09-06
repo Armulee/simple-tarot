@@ -3,64 +3,86 @@ import test from "node:test"
 import { readingStrength } from "../confidence.ts"
 
 /** The shape `readPrasna` returns, with only the fields the scoring reads. */
-function prasna(
-    contacts: { planet: string; aspect: string; orb: number }[],
-    lordRetrograde = false,
-) {
-    return { contacts, lordRetrograde }
+function prasna(over: Record<string, unknown> = {}) {
+    return {
+        lordHouse: 10,
+        lordRetrograde: false,
+        houseLord: "Jupiter",
+        watch: { star: "venus" },
+        contacts: [] as { planet: string; aspect: string; orb: number }[],
+        ...over,
+    }
 }
 
-test("one tight helping contact on a lord going forward is a firm yes", () => {
+test("a lord in an angular house is moving, with or without an aspect", () => {
+    // An aspect inside 3° is simply absent about half the time. Reading only
+    // aspects made 61% of every reading come back "nothing is moving", which
+    // was a fact about this function and not about anyone's life.
+    assert.equal(readingStrength("OUTCOME", prasna({ lordHouse: 1 })), "strong")
+    assert.equal(readingStrength("OUTCOME", prasna({ lordHouse: 10 })), "strong")
+})
+
+test("a chart of a moment is never empty, so it never comes back quiet", () => {
+    for (const lordHouse of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
+        for (const lordRetrograde of [true, false]) {
+            const strength = readingStrength(
+                "OUTCOME",
+                prasna({ lordHouse, lordRetrograde }),
+            )
+            assert.notEqual(
+                strength,
+                "quiet",
+                `house ${lordHouse}${lordRetrograde ? " retrograde" : ""}`,
+            )
+        }
+    }
+})
+
+test("a lord undone in the twelfth, walking backward, is a firm no", () => {
     assert.equal(
-        readingStrength("OUTCOME", prasna([
-            { planet: "Jupiter", aspect: "trine", orb: 0.4 },
-        ])),
+        readingStrength("OUTCOME", prasna({ lordHouse: 12, lordRetrograde: true })),
         "strong",
     )
 })
 
-test("one tight hard contact from a malefic is just as firm the other way", () => {
+test("help arriving on a lord that is held back is a split picture", () => {
     assert.equal(
-        readingStrength("OUTCOME", prasna([
-            { planet: "Saturn", aspect: "square", orb: 0.6 },
-        ])),
-        "strong",
-    )
-})
-
-test("contacts pulling opposite ways is a split picture, not a weak one", () => {
-    assert.equal(
-        readingStrength("OUTCOME", prasna([
-            { planet: "Jupiter", aspect: "trine", orb: 0.5 },
-            { planet: "Saturn", aspect: "square", orb: 0.8 },
-        ])),
+        readingStrength("OUTCOME", prasna({
+            lordHouse: 10,
+            lordRetrograde: true,
+            contacts: [{ planet: "Venus", aspect: "sextile", orb: 0.3 }],
+        })),
         "mixed",
     )
 })
 
-test("help arriving on a lord that is walking backward is also split", () => {
+test("contacts pulling opposite ways on a strong lord is still split", () => {
     assert.equal(
-        readingStrength("OUTCOME", prasna(
-            [{ planet: "Venus", aspect: "sextile", orb: 0.3 }],
-            true,
-        )),
+        readingStrength("OUTCOME", prasna({
+            lordHouse: 6,
+            contacts: [
+                { planet: "Jupiter", aspect: "trine", orb: 0.5 },
+                { planet: "Saturn", aspect: "square", orb: 0.4 },
+            ],
+        })),
         "mixed",
     )
 })
 
-test("a wide contact is barely a contact, so it does not carry a verdict", () => {
-    assert.equal(
-        readingStrength("OUTCOME", prasna([
-            { planet: "Mercury", aspect: "sextile", orb: 2.9 },
-        ])),
-        "quiet",
-    )
-})
-
-test("nothing touching the lord is a finding, not a faint yes", () => {
-    assert.equal(readingStrength("OUTCOME", prasna([])), "quiet")
-    // Unless the lord is held back, which is itself something to say.
-    assert.equal(readingStrength("OUTCOME", prasna([], true)), "mixed")
+test("the hour ruling the question agreeing with the lord adds to it", () => {
+    const apart = readingStrength("OUTCOME", prasna({
+        lordHouse: 3,
+        houseLord: "Jupiter",
+        watch: { star: "venus" },
+    }))
+    const together = readingStrength("OUTCOME", prasna({
+        lordHouse: 3,
+        houseLord: "Jupiter",
+        watch: { star: "jupiter" },
+    }))
+    // Cadent alone is a soft no; the hour agreeing with the matter splits it.
+    assert.equal(apart, "mixed")
+    assert.equal(together, "mixed")
 })
 
 test("a transit window that was found is strong; a wide one is a season", () => {
@@ -84,8 +106,9 @@ test("a transit window that was found is strong; a wide one is a season", () => 
     )
 })
 
-test("no transit inside the search window is quiet, and must stay quiet", () => {
+test("an empty search is the one honest quiet, and it stays quiet", () => {
     assert.equal(readingStrength("TIMING", { window: null }), "quiet")
+    assert.equal(readingStrength("AUSPICIOUS_DATE", { days: [] }), "quiet")
 })
 
 test("the almanac is strong when it actually favours a day", () => {
@@ -97,14 +120,13 @@ test("the almanac is strong when it actually favours a day", () => {
         readingStrength("AUSPICIOUS_DATE", { days: [{ score: 1 }] }),
         "mixed",
     )
-    assert.equal(readingStrength("AUSPICIOUS_DATE", { days: [] }), "quiet")
 })
 
-test("a birth chart describes rather than forecasts, so it never goes quiet", () => {
+test("a birth chart describes rather than forecasts, so it never weakens", () => {
     assert.equal(readingStrength("IDENTITY", { dayStar: "sun" }), "strong")
 })
 
-test("a missing basis is quiet, never a confident guess", () => {
-    assert.equal(readingStrength("OUTCOME", null), "quiet")
-    assert.equal(readingStrength("TIMING", undefined), "quiet")
+test("a missing basis hedges rather than declaring the sky empty", () => {
+    assert.equal(readingStrength("OUTCOME", null), "mixed")
+    assert.equal(readingStrength("TIMING", undefined), "mixed")
 })

@@ -17,7 +17,11 @@ export type ReadingStrength =
     | "strong"
     /** They contradict each other. Certainty here would be invented. */
     | "mixed"
-    /** Nothing is moving. That is the finding, not a reason to make one up. */
+    /**
+     * The search genuinely found nothing — no transit inside the window, no
+     * favourable day in the almanac. Only ever a real empty result, never a
+     * chart that merely lacked a tight aspect.
+     */
     | "quiet"
 
 /** Benefic and malefic in the ordinary Jyotish sense; the rest are neutral. */
@@ -25,6 +29,10 @@ const BENEFIC = new Set(["Jupiter", "Venus"])
 const MALEFIC = new Set(["Saturn", "Mars", "Rahu"])
 const HARMONIOUS = new Set(["trine", "sextile"])
 const HARD = new Set(["square", "opposition"])
+
+/** Angular houses act, succedent hold, cadent slip. The twelfth undoes. */
+const ANGULAR = new Set([1, 4, 7, 10])
+const SUCCEDENT = new Set([2, 5, 8, 11])
 
 type Contact = { planet: string; aspect: string; orb: number }
 
@@ -53,29 +61,54 @@ function contactPull(contact: Contact): number {
     return benefic ? weight : malefic ? -weight : 0
 }
 
+/**
+ * The chart of a moment is never empty.
+ *
+ * The first version of this read aspects and nothing else, and an aspect
+ * within three degrees simply is not there about half the time — so 61% of
+ * every reading came back "quiet" and she told people the sky was still,
+ * whatever they had asked. That was not a finding about their life. It was
+ * this function looking at one signal and missing it.
+ *
+ * The lord of the house is always somewhere, always moving forward or back,
+ * and the hour always has a ruler. Those are read first; aspects only add.
+ */
 function prasnaStrength(values: Record<string, unknown>): ReadingStrength {
-    const contacts = (values.contacts ?? []) as Contact[]
-    const retrograde = Boolean(values.lordRetrograde)
+    let pushing = 0
+    let holding = 0
+    const add = (amount: number) => {
+        if (amount > 0) pushing += amount
+        else holding -= amount
+    }
 
-    // Nothing touching the lord and nothing holding it back is not a weak
-    // yes or a weak no — it is a chart with no news in it.
-    if (contacts.length === 0) return retrograde ? "mixed" : "quiet"
+    const house = Number(values.lordHouse)
+    if (ANGULAR.has(house)) add(2)
+    else if (SUCCEDENT.has(house)) add(1.5)
+    else if (house === 12) add(-2)
+    else add(-1.5)
 
-    const pulls = contacts.map(contactPull)
-    const total = pulls.reduce((sum, pull) => sum + pull, 0)
-    const positive = pulls.filter((pull) => pull > 0).length
-    const negative = pulls.filter((pull) => pull < 0).length
+    if (values.lordRetrograde) add(-2)
 
-    // Contacts pulling opposite ways, or a helping contact on a lord that is
-    // walking backward, is a split picture however strong either side looks.
-    if (positive > 0 && negative > 0) return "mixed"
-    if (retrograde && total > 0) return "mixed"
+    // The hour ruling the question and the lord of the house being the same
+    // body is the moment agreeing with the matter.
+    const watch = values.watch as { star?: string } | undefined
+    const lord = String(values.houseLord ?? "").toLowerCase()
+    if (watch?.star && lord && watch.star.toLowerCase() === lord) add(1)
 
-    return Math.abs(total) >= 1 ? "strong" : "quiet"
+    for (const contact of (values.contacts ?? []) as Contact[]) {
+        add(contactPull(contact))
+    }
+
+    // Both sides carrying real weight is a split picture, and saying so is the
+    // honest answer — not a weaker version of a verdict.
+    if (pushing >= 2 && holding >= 2) return "mixed"
+    return Math.max(pushing, holding) >= 2 ? "strong" : "mixed"
 }
 
 function timingStrength(values: Record<string, unknown>): ReadingStrength {
     const window = values.window as { startIso: string; endIso: string } | null
+    // A search that found no contact at all across its whole span is a real
+    // empty result, and the only honest "quiet" this craft produces.
     if (!window) return "quiet"
     // A window the search actually found is a real event; its width is the
     // only thing left to judge, and a very wide one is a season, not a date.
@@ -98,7 +131,7 @@ export function readingStrength(
     intent: AstraIntent,
     values: Record<string, unknown> | null | undefined,
 ): ReadingStrength {
-    if (!values) return "quiet"
+    if (!values) return "mixed"
     switch (intent) {
         case "OUTCOME":
             return prasnaStrength(values)
@@ -119,5 +152,5 @@ export function readingStrength(
 export const STRENGTH_NOTE: Record<ReadingStrength, string> = {
     strong: `THE SIGNALS AGREE. You may commit, and you should. Say it plainly and stand behind it — no hedging, no "perhaps", no "the stars suggest".`,
     mixed: `THE SIGNALS DISAGREE WITH EACH OTHER. Do not fake certainty you were not given. Either say the picture is split and what each side is pulling toward, or ask them for the one detail that would settle it. A confident answer here would be invented.`,
-    quiet: `NOTHING IS MOVING IN THIS CHART RIGHT NOW. That is the finding. Say there is no push either way yet rather than manufacturing one — "nothing is coming for this yet" is a real answer and an honest one. Do not give a date.`,
+    quiet: `THE SEARCH CAME BACK EMPTY — no contact inside the span looked at, or no day the almanac favours. That is a real result and you should say it plainly: nothing is coming for this inside the time you can see. Do not invent a date to fill the gap. But still answer them: say what that emptiness means for what they asked, and what to do while nothing is moving.`,
 }

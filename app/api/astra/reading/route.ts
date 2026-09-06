@@ -240,7 +240,7 @@ A short follow-up ("from who?", "really?", "you think so?") is about the thing y
 
 const INTENT_TASKS: Record<AstraIntent, string> = {
     IDENTITY: `They asked who they are. Read the birth chart you were handed and say what kind of person it makes them — plainly, in a way they would recognise on themselves the moment they read it. This is the one reading where the chart really is theirs, so you may say "your chart" — but still never name where anything sits.`,
-    TIMING: `They asked when. You were handed the next real contact between a slow planet and their significator, and the window it covers. Give the window as plain dates and say what it will feel like when it lands. If nothing is coming inside the search window, say so plainly rather than inventing a date — "not this year" is a real answer.`,
+    TIMING: `They asked when. You were handed the next real contact between a slow planet and their significator, and the window it covers. Give the window as plain dates, copied EXACTLY as computed — do not round them, shift them, or widen them into a different range; the proof sheet shows the real ones next to your answer. Then say what it will feel like when it lands. If nothing is coming inside the search window, say so plainly rather than inventing a date — "not this year" is a real answer.`,
     OUTCOME: `They asked how something turns out. You were handed the chart of the moment they asked — not their birth chart. IN READ, commit to a direction in the first bubble; everything after that is whatever the shape you picked calls for. In PROBE, guess the area it is about and ask for what they left out.`,
     AUSPICIOUS_DATE: `They asked which day to act. You were handed the days the almanac favours for this purpose and the weekday to keep clear of. Best day first with its date, one alternative, and the day to avoid. Say what each is good for in plain words.`,
 }
@@ -249,12 +249,27 @@ function formatDate(iso: string): string {
     return iso.slice(0, 10)
 }
 
-/** The computed block the answer must be built from. Numbers only, no prose. */
+/**
+ * The computed block the answer must be built from. Numbers only, no prose.
+ *
+ * `today` is part of it. Without it she had dates but no anchor, and called a
+ * window five days away "the middle of September NEXT YEAR" — the arithmetic
+ * was right and the sentence was nonsense.
+ */
 function describeValues(
     intent: AstraIntent,
     values: Record<string, unknown>,
+    today: string,
 ): string {
     const v = values as Record<string, never>
+    const anchor = `TODAY is ${today}. Every date below is absolute — work out "tomorrow", "next month", "next year" from this, and never guess.`
+    return `${anchor}\n${describeCraft(intent, v)}`
+}
+
+function describeCraft(
+    intent: AstraIntent,
+    v: Record<string, never>,
+): string {
     switch (intent) {
         case "IDENTITY":
             return [
@@ -547,7 +562,11 @@ export async function POST(req: NextRequest) {
         ]
             .filter(Boolean)
             .join("\n\n"),
-        calculation: describeValues(intent, values as Record<string, unknown>),
+        calculation: describeValues(
+            intent,
+            values as Record<string, unknown>,
+            localDate,
+        ),
         language,
     })
 
