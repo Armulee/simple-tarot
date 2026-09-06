@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { proofRows, type ProofPart } from "@/lib/astra/proof"
 import type { AstraReadingSource } from "@/lib/astra/reading-contract"
+import type { AstraRecordResponse } from "@/app/api/astra/record/route"
 import {
     Sheet,
     SheetContent,
@@ -26,6 +27,31 @@ function planetKey(name: string): string {
     return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
 }
 
+/**
+ * Her track record, fetched when the sheet actually opens.
+ *
+ * This is the half of the proof a person without any astrology can read: what
+ * she said, when, and whether it happened. The degrees below it are for the
+ * few who want them.
+ */
+function useRecord(open: boolean): AstraRecordResponse | null {
+    const [record, setRecord] = useState<AstraRecordResponse | null>(null)
+    useEffect(() => {
+        if (!open || record) return
+        let live = true
+        void fetch("/api/astra/record")
+            .then((response) => (response.ok ? response.json() : null))
+            .then((data) => {
+                if (live && data) setRecord(data as AstraRecordResponse)
+            })
+            .catch(() => {})
+        return () => {
+            live = false
+        }
+    }, [open, record])
+    return record
+}
+
 export function AstraProofSheet({
     source,
     open,
@@ -46,6 +72,7 @@ export function AstraProofSheet({
     const tLabel = useTranslations("Astra.reading.sourceLabel")
 
     const rows = proofRows(source)
+    const record = useRecord(open)
 
     const dateFormat = new Intl.DateTimeFormat(locale, {
         day: "numeric",
@@ -102,21 +129,88 @@ export function AstraProofSheet({
                     </SheetDescription>
                 </SheetHeader>
 
-                <dl className='divide-y divide-white/[0.06] border-y border-white/[0.06]'>
-                    {rows.map((row, index) => (
-                        <div
-                            key={`${row.labelKey}-${index}`}
-                            className='flex items-baseline justify-between gap-4 px-5 py-2.5'
-                        >
-                            <dt className='shrink-0 text-[12px] text-white/45'>
-                                {t(`row.${row.labelKey}`)}
-                            </dt>
-                            <dd className='text-right text-[13px] tabular-nums text-white/85'>
-                                {row.parts.map(renderPart).join(" · ")}
-                            </dd>
+                {/* What she has said before, and whether it happened. The
+                    thing a person with no astrology can actually check. */}
+                {record && record.entries.length > 0 ? (
+                    <section className='border-y border-white/[0.06]'>
+                        <div className='flex items-baseline gap-4 px-5 py-3 text-[12px]'>
+                            <span className='text-white/45'>
+                                {t("record.title")}
+                            </span>
+                            <span className='ml-auto tabular-nums text-white/70'>
+                                {t("record.tally", {
+                                    hits: record.hits,
+                                    misses: record.misses,
+                                    pending: record.pending,
+                                })}
+                            </span>
                         </div>
-                    ))}
-                </dl>
+                        <ol className='divide-y divide-white/[0.04]'>
+                            {record.entries.slice(0, 6).map((entry) => (
+                                <li
+                                    key={entry.id}
+                                    className='flex items-start gap-3 px-5 py-2.5'
+                                >
+                                    <span
+                                        className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
+                                            entry.outcome === "hit"
+                                                ? "bg-emerald-400"
+                                                : entry.outcome === "miss"
+                                                  ? "bg-rose-400"
+                                                  : entry.outcome === "unclear"
+                                                    ? "bg-white/30"
+                                                    : "bg-amber-300/70"
+                                        }`}
+                                        aria-hidden
+                                    />
+                                    <span className='min-w-0 flex-1'>
+                                        <span className='block truncate text-[13px] text-white/85'>
+                                            {entry.question}
+                                        </span>
+                                        <span className='block text-[11px] text-white/40'>
+                                            {dateFormat.format(
+                                                new Date(entry.askedOnIso),
+                                            )}
+                                            {" · "}
+                                            {t(
+                                                `record.outcome.${entry.outcome ?? "pending"}`,
+                                            )}
+                                        </span>
+                                    </span>
+                                </li>
+                            ))}
+                        </ol>
+                    </section>
+                ) : null}
+
+                {/* The craft's own numbers, folded away. Almost nobody wants
+                    them; the few who do want all of them. */}
+                <details className='border-b border-white/[0.06] [&[open]_summary]:text-white/60'>
+                    <summary className='cursor-pointer list-none px-5 py-3 text-[12px] text-white/40 transition-colors hover:text-white/60'>
+                        {t("rawToggle")}
+                    </summary>
+                    <dl className='divide-y divide-white/[0.06] border-t border-white/[0.06]'>
+                        {rows.map((row, index) => (
+                            <div
+                                key={`${row.labelKey}-${index}`}
+                                className='flex items-baseline justify-between gap-4 px-5 py-2.5'
+                            >
+                                <dt className='shrink-0 text-[12px] text-white/45'>
+                                    {t(`row.${row.labelKey}`)}
+                                </dt>
+                                <dd className='text-right text-[13px] tabular-nums text-white/85'>
+                                    {row.parts.map(renderPart).join(" · ")}
+                                </dd>
+                            </div>
+                        ))}
+                        {/* The reading is sidereal; a western site is not, and
+                            the signs will disagree. Said here, where the person
+                            who is about to go and check will read it. */}
+                        <p className='px-5 py-3 text-[11px] leading-relaxed text-white/35'>
+                            {t("system")}
+                        </p>
+                    </dl>
+                </details>
 
                 <div className='space-y-2.5 px-5 py-4'>
                     <p className='text-[12px] leading-relaxed text-white/50'>

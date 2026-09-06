@@ -74,7 +74,7 @@
     "proof": {
       "link": "See where this came from",
       "title": "What this reading was built from",
-      "note": "Every number above was computed from real planetary positions before I said a word. I read them. I do not make them up.",
+      "note": "Nothing here was written first and justified after. The numbers were computed from real planetary positions before I said a word — they are under the line above. I read them. I do not make them up.",
       "noReroll": "Ask me the same thing again today and you get the same answer, word for word. I do not re-roll.",
       "answerId": "Answer id",
       "seed": "Answer key",
@@ -140,6 +140,18 @@
         "earth": "earth",
         "air": "air",
         "water": "water"
+      },
+      "rawToggle": "Show the raw numbers",
+      "system": "Read in the sidereal zodiac (Lahiri), the way Thai astrology reckons it. A western chart uses the tropical zodiac, so its signs will not match — neither is a mistake.",
+      "record": {
+        "title": "What I have told you before",
+        "tally": "{hits} right · {misses} wrong · {pending} waiting",
+        "outcome": {
+          "hit": "it happened",
+          "miss": "it did not",
+          "unclear": "still unclear",
+          "pending": "waiting to see"
+        }
       }
     }
   },

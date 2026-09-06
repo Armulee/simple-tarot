@@ -74,7 +74,7 @@
     "proof": {
       "link": "Lihat dasarnya",
       "title": "Dari mana bacaan ini disusun",
-      "note": "Semua angka di atas dihitung dari posisi planet yang sebenarnya, sebelum saya mengucapkan sepatah kata pun. Saya membacanya, bukan mengarangnya.",
+      "note": "Tidak ada jawaban yang ditulis dulu lalu dicarikan alasannya. Angka-angkanya dihitung dari posisi planet yang sebenarnya sebelum saya bicara — ada di baris atas. Saya membacanya, bukan mengarangnya.",
       "noReroll": "Tanyakan hal yang sama hari ini dan jawabannya sama persis, kata demi kata. Saya tidak mengulang undian.",
       "answerId": "ID jawaban",
       "seed": "Kunci jawaban",
@@ -140,6 +140,18 @@
         "earth": "tanah",
         "air": "udara",
         "water": "air"
+      },
+      "rawToggle": "Lihat angka mentahnya",
+      "system": "Dibaca dengan zodiak sideris (Lahiri), seperti astrologi Thai. Bagan barat memakai zodiak tropis, jadi zodiaknya tidak akan sama — keduanya tidak salah.",
+      "record": {
+        "title": "Yang pernah saya katakan",
+        "tally": "{hits} benar · {misses} meleset · {pending} menunggu",
+        "outcome": {
+          "hit": "terjadi",
+          "miss": "tidak terjadi",
+          "unclear": "masih belum jelas",
+          "pending": "menunggu hasil"
+        }
       }
     }
   },

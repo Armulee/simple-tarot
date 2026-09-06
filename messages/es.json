@@ -74,7 +74,7 @@
     "proof": {
       "link": "Ver de dónde viene",
       "title": "Sobre qué se construyó esta lectura",
-      "note": "Cada número de arriba se calculó a partir de posiciones planetarias reales, antes de que yo dijera una palabra. Yo los leo. No los invento.",
+      "note": "Nada aquí se escribió primero y se justificó después. Los números se calcularon a partir de posiciones planetarias reales antes de que yo dijera una palabra — están en la línea de arriba. Yo los leo. No los invento.",
       "noReroll": "Pregúntame lo mismo hoy y recibirás la misma respuesta, palabra por palabra. No vuelvo a tirar.",
       "answerId": "Id de respuesta",
       "seed": "Clave de respuesta",
@@ -140,6 +140,18 @@
         "earth": "tierra",
         "air": "aire",
         "water": "agua"
+      },
+      "rawToggle": "Ver los números en bruto",
+      "system": "Leído en el zodiaco sideral (Lahiri), como lo cuenta la astrología tailandesa. Una carta occidental usa el zodiaco tropical, así que los signos no coincidirán — ninguno está equivocado.",
+      "record": {
+        "title": "Lo que te he dicho antes",
+        "tally": "{hits} acertadas · {misses} falladas · {pending} pendientes",
+        "outcome": {
+          "hit": "ocurrió",
+          "miss": "no ocurrió",
+          "unclear": "aún no está claro",
+          "pending": "esperando"
+        }
       }
     }
   },
