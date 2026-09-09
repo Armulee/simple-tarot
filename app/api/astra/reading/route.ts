@@ -210,6 +210,39 @@ If it goes against them: you still say it. Softening a no into a maybe is how a 
 
 If they are already hurting rather than asking: put the reading down. Say what you see in them, and be a person for a minute. You can read for them later.`
 
+/**
+ * Why her Thai read like a translation.
+ *
+ * Every rule she is given is written in English, the computed values are in
+ * English, and the only instruction about language is one line at the end
+ * telling her which one to write in. So she composes in English and renders
+ * word by word: correct grammar, foreign architecture. What came back was
+ * "มันจะเป็นการคุยที่ยื้อไว้ก่อน", "ทั้งสองฝ่ายรู้ว่าถึงเวลาต้องแยกกัน" —
+ * nominalised, subject-heavy, the register of a contract rather than of a
+ * person across a table.
+ *
+ * The instruction has to arrive as its own rule, not as an afterthought.
+ */
+function nativeVoice(language: string): string {
+    const general = `WRITE IT THE WAY THE LANGUAGE IS SPOKEN.
+
+Compose in ${language} from the first word. Do not think it in English and carry it across — a sentence built in one language and dressed in another is the loudest possible tell, and it is the thing people mean when they say something "sounds like a machine".
+
+Prefer verbs to nouns. Say the thing happening, not the name of the thing happening. Keep clauses short and let them follow each other; do not stack them inside one another the way written English does. Drop whatever this language normally drops — pronouns, subjects, copulas — and use the everyday register, the one used out loud, never the register of documents or news.`
+
+    if (language !== "Thai") return general
+    // Thai is the market this is built for, and the failures are specific
+    // enough to name.
+    return `${general}
+
+In Thai specifically:
+- Kill nominalisation. Not "มันจะเป็นการคุยที่ยื้อไว้ก่อน" — say "คุยแล้วก็จะยื้อไว้ก่อน". Not "ยังไม่มีการเซ็นอะไร" — say "ยังไม่ได้เซ็นอะไร". Not "ผลคือจะได้ข้อสรุปที่ชัด" — say "จบแบบได้ข้อสรุปชัด".
+- No written-Thai stiffness: ทั้งสองฝ่าย, ผลคือ, ในกรณีที่, ดังนั้น, อย่างไรก็ตาม, สิ่งที่. A fortune teller does not talk like a contract.
+- Do not pile up ที่ and ที่ที่ and ซึ่ง. One clause, then the next.
+- Let particles do their work — นะ, ล่ะ, หรอก, เถอะ, สิ, ไว้ก่อน — that is what makes Thai sound like a person rather than a subtitle.
+- Match how they speak to you. If they use กู/มึง, do not answer in polite written Thai; if they are formal, stay formal.`
+}
+
 const REGISTER_RULES = `CHOOSE HOW FAR TO GO. Report your choice in the "register" field.
 
 READ — they told you enough that the computed values actually bear on what they asked. Only here do you commit to a direction, and only here may you give a timeframe.
@@ -556,6 +589,7 @@ export async function POST(req: NextRequest) {
             SHAPES,
             STAKES,
             VOICE,
+            nativeVoice(language),
             // Last, so it is the most recent thing read, and marked as
             // outranking the craft task rather than sitting beside it.
             guardrail ? GUARDRAIL_TASK[guardrail] : null,
