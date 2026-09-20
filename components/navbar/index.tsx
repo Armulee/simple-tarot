@@ -137,23 +137,12 @@ export function Navbar({ locale }: { locale: string }) {
         >
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='flex justify-between items-center h-16'>
-                    {/* Left: Mobile menu button / Desktop brand */}
+                    {/* Left: brand. Below lg the header carries it; at lg+ the
+                        desktop sidebar does, so it is hidden there. */}
                     <div className='flex items-center min-w-0'>
-                        {/* Mobile: menu button (always bars) */}
-                        <Button
-                            variant='ghost'
-                            size='icon'
-                            className='lg:hidden text-white hover:bg-white/10'
-                            onClick={() => setOpen(true)}
-                            aria-label='Open menu'
-                        >
-                            <Menu className='h-6 w-6' />
-                        </Button>
-
-                        {/* Desktop (md–lg): brand. At lg+ the sidebar carries the logo. */}
                         <Link
                             href='/'
-                            className='hidden md:flex lg:hidden items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5'
+                            className='flex lg:hidden items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5 min-w-0'
                         >
                             <Image
                                 src='/assets/logo.png'
@@ -163,7 +152,7 @@ export function Navbar({ locale }: { locale: string }) {
                                 className='rounded-md object-contain group-hover:scale-110 transition-transform'
                                 priority
                             />
-                            <span className='font-playfair text-xl font-bold text-white group-hover:text-cosmic-purple transition-colors'>
+                            <span className='font-playfair text-xl font-bold text-white group-hover:text-cosmic-purple transition-colors truncate'>
                                 {t("brand")}
                             </span>
                         </Link>
@@ -266,6 +255,18 @@ export function Navbar({ locale }: { locale: string }) {
                                 </Button>
                             </Link>
                         )}
+
+                        {/* Mobile: menu button. Sits with the other controls on
+                            the right, just ahead of the language switcher. */}
+                        <Button
+                            variant='ghost'
+                            size='icon'
+                            className='lg:hidden text-white hover:bg-white/10'
+                            onClick={() => setOpen(true)}
+                            aria-label='Open menu'
+                        >
+                            <Menu className='h-6 w-6' />
+                        </Button>
 
                         {/* Language Dropdown */}
                         <DropdownMenu>
