@@ -3,6 +3,10 @@
         {
             "path": "/api/stars/refill-sweep",
             "schedule": "0 0 * * *"
+        },
+        {
+            "path": "/api/avatar/sweep",
+            "schedule": "0 0 * * *"
         }
     ]
 }

@@ -1,0 +1,42 @@
+# Drives the avatar session sweep every 5 minutes.
+#
+# Vercel Hobby only allows daily crons, so the frequent cadence runs here and
+# the Vercel cron (vercel.json) stays as a once-a-day backstop. Both hit the
+# same idempotent endpoint, so overlapping runs are harmless.
+#
+# The cadence matters more than the star sweep's: a leaked session both locks
+# the user out of starting another one and holds a HeyGen concurrency seat.
+#
+# Setup (repo → Settings):
+#   - Secret  CRON_SECRET: must equal the CRON_SECRET env var on Vercel.
+#   - Variable AVATAR_SWEEP_URL (optional): override the production endpoint.
+#
+# Note: scheduled workflows only run from the default branch, so this
+# activates once merged to main.
+
+name: Avatar session sweep
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call avatar sweep endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          AVATAR_SWEEP_URL: ${{ vars.AVATAR_SWEEP_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET secret is not set" >&2
+            exit 1
+          fi
+          curl -fsS -m 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            "${AVATAR_SWEEP_URL:-https://askingfate.com/api/avatar/sweep}"
