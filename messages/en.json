@@ -3483,5 +3483,52 @@
     "subscribedBody": "We'll email you as soon as the talking avatar arrives.",
     "subscribeError": "Something went wrong. Please try again.",
     "close": "Close"
+  },
+  "Immerse": {
+    "greetingName": "Hi, I'm Astra ✨",
+    "greetingAsk": "Ask me anything about your destiny.",
+    "placeholder": "Ask your question…",
+    "keyboard": "Type your question",
+    "send": "Send",
+    "askByVoice": "Ask by Voice",
+    "stopListening": "Stop listening",
+    "listening": "Listening…",
+    "trySample": "Try a Sample Question",
+    "micDenied": "Microphone access is blocked. Allow it in your browser settings to ask by voice.",
+    "tiles": {
+      "tarot": {
+        "label": "Tarot",
+        "subtitle": "Discover guidance",
+        "question": "Draw me a tarot card"
+      },
+      "birthChart": {
+        "label": "Birth Chart",
+        "subtitle": "Know yourself deeper",
+        "question": "Tell me about my birth chart"
+      },
+      "horoscope": {
+        "label": "Horoscope",
+        "subtitle": "See what's coming",
+        "question": "What is my horoscope for today?"
+      },
+      "oracle": {
+        "label": "Oracle",
+        "subtitle": "Any question, any topic",
+        "question": "I have a question on my mind"
+      }
+    },
+    "tryAskingLabel": "Try asking…",
+    "tryAsking": [
+      "What does 2026 look like for me?",
+      "Should I change my job?",
+      "Is this person right for me?",
+      "Give me a daily guidance"
+    ],
+    "scrollToExplore": "Scroll to explore",
+    "decorRight": "Same questions. A kinder you.",
+    "exploreTitle": "Explore more",
+    "savedReadings": "Saved readings",
+    "switchToLegacy": "Switch to chat mode",
+    "switchToImmerse": "Meet Astra"
   }
 }

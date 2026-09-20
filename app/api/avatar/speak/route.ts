@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 })
     }
 
-    let body: { sessionId?: string; question?: string }
+    let body: { sessionId?: string; question?: string; locale?: string }
     try {
         body = await req.json()
     } catch {
@@ -34,6 +34,10 @@ export async function POST(req: Request) {
 
     const sessionId = typeof body.sessionId === "string" ? body.sessionId : ""
     const question = (typeof body.question === "string" ? body.question : "").trim().slice(0, 500)
+    // The reading is spoken in the visitor's own language; the client sends
+    // the active UI locale and the generator reconciles it with the script
+    // the question was actually written in.
+    const locale = typeof body.locale === "string" ? body.locale : "en"
     if (!sessionId || !question) {
         return NextResponse.json({ error: "MISSING_FIELDS" }, { status: 400 })
     }
@@ -55,6 +59,7 @@ export async function POST(req: Request) {
     try {
         reading = await generateAvatarReading({
             question,
+            locale,
             closing: session.mode === "free",
         })
     } catch (error) {

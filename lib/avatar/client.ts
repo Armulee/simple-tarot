@@ -87,11 +87,12 @@ export async function startAvatarSession(): Promise<SessionInfo> {
 export async function speakReading(
     sessionId: string,
     question: string,
+    locale: string,
 ): Promise<SpokenReading> {
     const res = await fetch("/api/avatar/speak", {
         method: "POST",
         headers: await authHeaders(),
-        body: JSON.stringify({ sessionId, question }),
+        body: JSON.stringify({ sessionId, question, locale }),
     })
     if (!res.ok) await parseError(res)
     return res.json()

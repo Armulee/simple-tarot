@@ -38,9 +38,6 @@ export function Navbar({ locale }: { locale: string }) {
         return /^[A-Za-z0-9_-]{12}$/.test(id) ? id : null
     }, [pathname])
     const isChatSessionPage = !!sessionId
-    // The avatar page shows a full-bleed character behind the navbar, so the
-    // bar is transparent there (no card background / border / blur).
-    const isAvatarPage = pathname === "/avatar" || pathname.startsWith("/avatar/")
 
     const [sessionTopic, setSessionTopic] = useState<string>("")
     const [isEditingTopic, setIsEditingTopic] = useState(false)
@@ -128,13 +125,10 @@ export function Navbar({ locale }: { locale: string }) {
     // const initial = displayName.charAt(0).toUpperCase()
 
     return (
-        <nav
-            className={`fixed top-0 left-[var(--app-sidebar-w)] right-0 z-50 transition-[left] duration-300 ease-in-out ${
-                isAvatarPage
-                    ? "bg-transparent"
-                    : "bg-card/5 backdrop-blur-sm border-b border-border/20"
-            }`}
-        >
+        // `app-navbar` is the hook globals.css uses to strip the bar back to
+        // transparent while the immerse stage is mounted, so the avatar shows
+        // through behind it.
+        <nav className='app-navbar fixed top-0 left-[var(--app-sidebar-w)] right-0 z-50 transition-[left] duration-300 ease-in-out bg-card/5 backdrop-blur-sm border-b border-border/20'>
             <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
                 <div className='flex justify-between items-center h-16'>
                     {/* Left: brand. Below lg the header carries it; at lg+ the
@@ -142,7 +136,7 @@ export function Navbar({ locale }: { locale: string }) {
                     <div className='flex items-center min-w-0'>
                         <Link
                             href='/'
-                            className='flex lg:hidden items-center space-x-2 group px-2 py-1 rounded-md hover:bg-white/5 min-w-0'
+                            className='flex lg:hidden items-center space-x-2 group shrink-0 px-1 py-1 rounded-md hover:bg-white/5 min-w-0'
                         >
                             <Image
                                 src='/assets/logo.png'
@@ -256,18 +250,6 @@ export function Navbar({ locale }: { locale: string }) {
                             </Link>
                         )}
 
-                        {/* Mobile: menu button. Sits with the other controls on
-                            the right, just ahead of the language switcher. */}
-                        <Button
-                            variant='ghost'
-                            size='icon'
-                            className='lg:hidden text-white hover:bg-white/10'
-                            onClick={() => setOpen(true)}
-                            aria-label='Open menu'
-                        >
-                            <Menu className='h-6 w-6' />
-                        </Button>
-
                         {/* Language Dropdown */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -321,15 +303,33 @@ export function Navbar({ locale }: { locale: string }) {
                                     pathname,
                                 )}`}
                             >
+                                {/* Below sm the row is logo + 4 controls, which
+                                    cannot all fit: the label collapses to its
+                                    icon so the wordmark stays readable. */}
                                 <Button
                                     variant='outline'
-                                    className='flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                                    className='flex items-center justify-center gap-2 px-3 sm:px-6 py-2.5 rounded-full bg-white/10 text-white/90 border border-white/10 hover:bg-white/15 transition'
+                                    aria-label={t("signIn")}
                                 >
                                     <LogIn className='w-4 h-4' />
-                                    {t("signIn")}
+                                    <span className='hidden sm:inline'>
+                                        {t("signIn")}
+                                    </span>
                                 </Button>
                             </Link>
                         )}
+
+                        {/* Mobile: menu button, last in the row so it sits at
+                            the very edge — the sheet opens from that same side. */}
+                        <Button
+                            variant='ghost'
+                            size='icon'
+                            className='lg:hidden text-white hover:bg-white/10'
+                            onClick={() => setOpen(true)}
+                            aria-label='Open menu'
+                        >
+                            <Menu className='h-6 w-6' />
+                        </Button>
                     </div>
                 </div>
             </div>

@@ -4,7 +4,7 @@
  * The avatar is LLM-agnostic at the HeyGen layer (Lite / bring-your-own-LLM):
  * we generate the reading text with OUR own model and hand HeyGen only the
  * final text to speak. This module draws a card and produces a short, spoken
- * Thai reading suitable for lip-sync.
+ * reading suitable for lip-sync.
  *
  * It uses the same Vercel AI Gateway model string convention as the rest of
  * the app (see app/api/chat/route.ts and lib/astrology/ai-time-range.ts).
@@ -12,6 +12,7 @@
 
 import { generateText } from "ai"
 import { pickRandomCards, type PickedCard } from "@/lib/tarot/pick-random-cards"
+import { buildLanguageInstruction } from "@/lib/i18n/ai-language"
 
 const MODEL = process.env.AVATAR_READING_MODEL ?? "deepseek/deepseek-v3.2"
 
@@ -22,28 +23,36 @@ export type AvatarReading = {
 }
 
 /**
- * Build the system prompt for a spoken tarot reading. The voice is the
- * AskingFate fortune teller ("แม่หมอ"), warm and in-character, speaking Thai.
+ * Build the system prompt for a spoken tarot reading, in the visitor's own
+ * language — this runs on the landing page now, not a hidden /avatar route,
+ * so an English or Japanese visitor must not be answered in Thai.
  */
-function systemPrompt(opts: { closing: boolean }): string {
+function systemPrompt(opts: {
+    closing: boolean
+    locale: string
+    question: string
+}): string {
     return [
-        "คุณคือ 'แม่หมอ' หมอดูไพ่ทาโรต์ของ AskingFate พูดด้วยน้ำเสียงอบอุ่น สุภาพ และให้กำลังใจ",
-        "พูดเป็นภาษาไทยล้วน เป็นประโยคพูด (ไม่ใช่ข้อเขียน) อ่านออกเสียงได้ลื่นไหล เหมาะกับการพากย์ปาก (lip-sync)",
-        "ห้ามใช้สัญลักษณ์ มาร์กดาวน์ อีโมจิ หรือหัวข้อ ใช้แต่ข้อความพูดธรรมดา",
-        "ความยาวกระชับ ประมาณ 4-6 ประโยค ให้ครบถ้วนในตัวเอง ห้ามค้างหรือตัดจบกลางประโยค",
-        "นี่คือการทำนายเชิงสะท้อนความคิดและให้กำลังใจ ไม่ใช่คำพยากรณ์ที่รับประกันผล และไม่ใช่คำแนะนำทางการแพทย์หรือกฎหมาย",
+        "You are Astra, the AskingFate fortune teller. Speak warmly, politely and encouragingly.",
+        // The question's own script wins over the UI locale when they disagree,
+        // which is what buildLanguageInstruction already resolves.
+        buildLanguageInstruction(opts.locale, opts.question),
+        "Write spoken sentences, not prose for the page: it must read aloud smoothly and suit lip-sync.",
+        "Never use symbols, markdown, emoji or headings — plain spoken text only.",
+        "Keep it to roughly 4-6 sentences, complete in itself. Never stop mid-sentence.",
+        "This is reflective, encouraging guidance — not a guaranteed prediction, and not medical or legal advice.",
         opts.closing
-            ? "ปิดท้ายด้วยประโยคในคาแร็กเตอร์ที่นุ่มนวล เชิญชวนให้ใช้ 'พร' หนึ่งข้อหากยังมีคำถามต่อ โดยไม่พูดเรื่องราคา"
-            : "ปิดท้ายด้วยประโยคให้กำลังใจสั้น ๆ ในคาแร็กเตอร์",
+            ? "End with a gentle in-character line inviting the listener to use one 'wish' if they still have questions. Do not mention prices."
+            : "End with a short encouraging line, in character.",
     ].join("\n")
 }
 
 function userPrompt(question: string, card: PickedCard): string {
-    const orientation = card.isReversed ? "กลับหัว (reversed)" : "ตั้งตรง (upright)"
+    const orientation = card.isReversed ? "reversed" : "upright"
     return [
-        `คำถามของผู้รับคำทำนาย: ${question}`,
-        `ไพ่ที่เปิดได้: ${card.name} (${orientation})`,
-        "ช่วยเปิดไพ่ใบนี้และอ่านคำทำนายให้ฟังเป็นภาษาพูด เชื่อมโยงความหมายของไพ่กับคำถามอย่างเป็นธรรมชาติ",
+        `The querent's question: ${question}`,
+        `The card drawn: ${card.name} (${orientation})`,
+        "Turn this card over and read it aloud for them, tying the card's meaning to their question naturally.",
     ].join("\n")
 }
 
@@ -56,6 +65,7 @@ function userPrompt(question: string, card: PickedCard): string {
  */
 export async function generateAvatarReading(opts: {
     question: string
+    locale: string
     closing?: boolean
 }): Promise<AvatarReading> {
     const [card] = pickRandomCards(1)
@@ -65,7 +75,11 @@ export async function generateAvatarReading(opts: {
 
     const { text } = await generateText({
         model: MODEL,
-        system: systemPrompt({ closing: Boolean(opts.closing) }),
+        system: systemPrompt({
+            closing: Boolean(opts.closing),
+            locale: opts.locale,
+            question: opts.question,
+        }),
         prompt: userPrompt(opts.question, card),
         temperature: 0.8,
         maxOutputTokens: 400,
@@ -73,7 +87,3 @@ export async function generateAvatarReading(opts: {
 
     return { card, text: text.trim() }
 }
-
-/** In-character line spoken when the paid minute is up. */
-export const TIME_UP_LINE =
-    "เวลาของเราหมดลงพอดีแล้วนะคะ ขอให้ดวงดาวคุ้มครองคุณ หากใจยังมีคำถาม ใช้พรอีกข้อแล้วกลับมาหาแม่หมอได้เสมอค่ะ"

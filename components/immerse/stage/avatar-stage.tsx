@@ -1,18 +1,30 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
-import type { AvatarPhase } from "./use-avatar-session"
+import type { AvatarPhase } from "../use-avatar-session"
 import { CountdownTimer } from "./countdown-timer"
 
+/** Still portrait of Astra — the idle state, and the stage's LCP element. */
+const POSTER_SRC = process.env.NEXT_PUBLIC_AVATAR_POSTER ?? "/avatar/astra-idle.webp"
 /**
- * Full-bleed avatar "stage" that fills the page beneath the navbar.
+ * Optional looping idle clip layered over the poster. Unset for now: the first
+ * Astra asset is a still image, and dropping a video in later is an env change
+ * rather than a code change.
+ */
+const INTRO_SRC = process.env.NEXT_PUBLIC_AVATAR_INTRO
+
+/**
+ * Full-bleed avatar "stage" that fills the viewport beneath the navbar.
  *
- * On arrival it plays the short character intro clip IMMEDIATELY (looping as
- * the idle/greeting state) so the page is never blank. When a live session
- * connects, the live WebRTC <video> fades in over the idle clip. Card reveal,
- * captions, and the paid countdown are overlaid on top.
+ * Three layers, each fading in over the one beneath:
+ *   1. the poster — always present, paints immediately;
+ *   2. an idle clip — only when NEXT_PUBLIC_AVATAR_INTRO is configured;
+ *   3. the live WebRTC video — fades in once a HeyGen session connects.
+ *
+ * Card reveal, captions and the paid countdown overlay the stack.
  */
 export function AvatarStage({
     videoRef,
@@ -32,7 +44,10 @@ export function AvatarStage({
     remainingSeconds: number | null
 }) {
     const t = useTranslations("Avatar")
-    const introSrc = process.env.NEXT_PUBLIC_AVATAR_INTRO ?? "/avatar/intro.mp4"
+
+    // A missing poster file should degrade to the gradient, never to a broken
+    // image icon across the whole stage.
+    const [posterFailed, setPosterFailed] = useState(false)
 
     // The intro clip streams progressively (plays partial frames as it
     // downloads). `introBuffering` is true whenever playback is waiting for
@@ -55,37 +70,53 @@ export function AvatarStage({
 
     return (
         <div className="absolute inset-0 overflow-hidden bg-[#05050f]">
-            {/* Idle / greeting clip — streams progressively: it starts playing
-                the moment enough has downloaded, and shows a loading icon while
-                it buffers the rest. Freezes on its last frame as the idle pose. */}
-            <video
-                src={introSrc}
-                autoPlay
-                muted
-                playsInline
-                preload="auto"
-                onLoadStart={() => setIntroBuffering(true)}
-                onWaiting={() => setIntroBuffering(true)}
-                onStalled={() => setIntroBuffering(true)}
-                onPlaying={() => setIntroBuffering(false)}
-                onCanPlay={() => setIntroBuffering(false)}
-                onEnded={() => setIntroBuffering(false)}
-                onProgress={(e) => updateProgress(e.currentTarget)}
-                onTimeUpdate={(e) => updateProgress(e.currentTarget)}
-                onLoadedMetadata={(e) => updateProgress(e.currentTarget)}
-                className={cn(
-                    "absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700",
-                    connected ? "opacity-0" : "opacity-100",
-                )}
-            />
+            {/* 1. Poster. Stays mounted beneath the video layers so there is
+                never a black frame while one of them swaps in. */}
+            {!posterFailed && (
+                <Image
+                    src={POSTER_SRC}
+                    alt={t("posterAlt")}
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-cover object-top"
+                    onError={() => setPosterFailed(true)}
+                />
+            )}
 
-            {/* Mystical download-progress loader while the intro clip streams.
-                Hidden once it's fully loaded and playing. */}
-            {introBuffering && introProgress < 100 && !connected && !shuffling && (
+            {/* 2. Idle clip, when one is configured. Freezes on its last frame
+                as the idle pose. */}
+            {INTRO_SRC && (
+                <video
+                    src={INTRO_SRC}
+                    autoPlay
+                    muted
+                    playsInline
+                    loop
+                    preload="none"
+                    onLoadStart={() => setIntroBuffering(true)}
+                    onWaiting={() => setIntroBuffering(true)}
+                    onStalled={() => setIntroBuffering(true)}
+                    onPlaying={() => setIntroBuffering(false)}
+                    onCanPlay={() => setIntroBuffering(false)}
+                    onEnded={() => setIntroBuffering(false)}
+                    onProgress={(e) => updateProgress(e.currentTarget)}
+                    onTimeUpdate={(e) => updateProgress(e.currentTarget)}
+                    onLoadedMetadata={(e) => updateProgress(e.currentTarget)}
+                    className={cn(
+                        "absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-700",
+                        connected ? "opacity-0" : "opacity-100",
+                    )}
+                />
+            )}
+
+            {/* Download-progress loader while the intro clip streams. Never
+                shown when the stage is a still image. */}
+            {INTRO_SRC && introBuffering && introProgress < 100 && !connected && !shuffling && (
                 <IntroLoader progress={introProgress} label={t("preparing")} />
             )}
 
-            {/* Live WebRTC video — fades in once a session connects. */}
+            {/* 3. Live WebRTC video — fades in once a session connects. */}
             <video
                 ref={videoRef}
                 autoPlay
@@ -96,8 +127,8 @@ export function AvatarStage({
                 )}
             />
 
-            {/* Subtle vignette so overlaid text stays readable. */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+            {/* Vignette so overlaid text stays readable over any artwork. */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/40" />
 
             {/* Shuffling overlay — masks the 1-3s connection latency as suspense. */}
             {shuffling && (
@@ -119,10 +150,10 @@ export function AvatarStage({
                 </div>
             )}
 
-            {/* Caption of what the avatar is speaking. */}
+            {/* What Astra is saying, as a glass bubble rather than bare text. */}
             {caption && (phase === "speaking" || phase === "live" || phase === "ended") && (
-                <div className="absolute inset-x-0 bottom-0 p-4 pt-12">
-                    <p className="mx-auto max-h-40 max-w-2xl overflow-y-auto text-center text-base leading-relaxed text-white/95 drop-shadow-lg">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-4 pt-12">
+                    <p className="mx-auto max-h-40 max-w-2xl overflow-y-auto rounded-2xl border border-white/15 bg-black/45 px-5 py-3.5 text-center text-base leading-relaxed text-white/95 shadow-lg backdrop-blur-md">
                         {caption}
                     </p>
                 </div>

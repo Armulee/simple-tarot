@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 import HomeHero from "@/components/home"
+import { HomeSwitch } from "@/components/home/home-switch"
 import ReferralHandler from "@/components/referral-handler"
 
 import { getSocialImageUrls } from "@/lib/seo"
@@ -50,9 +51,13 @@ export default function HomePage() {
             <Suspense fallback={null}>
                 <ReferralHandler />
             </Suspense>
-            <section className='relative z-10 overflow-hidden h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center'>
-                <HomeHero />
-            </section>
+            <HomeSwitch
+                legacy={
+                    <section className='relative z-10 overflow-hidden h-[calc(100vh-64px)] flex flex-col items-center justify-center text-center'>
+                        <HomeHero />
+                    </section>
+                }
+            />
         </>
     )
 }
