@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import type { AdminAnalyticsResponse } from "@/lib/admin/analytics-shared"
+import { readErrorDetail } from "./error-detail"
 
 /**
  * Fetches the full analytics payload for the shared [from, to] window.
@@ -13,12 +14,14 @@ export function useAnalytics(fromISO: string, toISO: string) {
     const [data, setData] = useState<AdminAnalyticsResponse | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(false)
+    const [detail, setDetail] = useState<string | null>(null)
 
     useEffect(() => {
         if (!fromISO || !toISO) return
         let cancelled = false
         setLoading(true)
         setError(false)
+        setDetail(null)
         ;(async () => {
             try {
                 const {
@@ -37,7 +40,11 @@ export function useAnalytics(fromISO: string, toISO: string) {
                     },
                 )
                 if (!res.ok) {
-                    if (!cancelled) setError(true)
+                    const why = await readErrorDetail(res)
+                    if (!cancelled) {
+                        setError(true)
+                        setDetail(why)
+                    }
                     return
                 }
                 const json = (await res.json()) as AdminAnalyticsResponse
@@ -53,5 +60,5 @@ export function useAnalytics(fromISO: string, toISO: string) {
         }
     }, [fromISO, toISO])
 
-    return { data, loading, error }
+    return { data, loading, error, detail }
 }

@@ -54,7 +54,7 @@ export default function NotFound() {
                         </p>
                         <div className='flex flex-wrap justify-center gap-4 text-sm'>
                             <Link
-                                href='/about'
+                                href='/#learn-more'
                                 className='text-primary hover:text-primary/80 transition-colors'
                             >
                                 About Us

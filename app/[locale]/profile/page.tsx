@@ -19,6 +19,11 @@ import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { useProfile } from "@/contexts/profile-context"
 import { useTranslations } from "next-intl"
+import { LocationSelector } from "@/components/ui/location-selector"
+import {
+    formatBirthPlace,
+    parseBirthPlace,
+} from "@/lib/birth-place"
 import { useRouter } from "next/navigation"
 import { calculateAgeFromBirthDate } from "@/lib/age-gate-storage"
 
@@ -55,6 +60,9 @@ export default function ProfilePage() {
         job: "",
         gender: "",
     })
+    // Birth place is stored as one string but picked as two dropdowns.
+    const [birthCountry, setBirthCountry] = useState("")
+    const [birthState, setBirthState] = useState("")
 
     // Auth guard: redirect to signin if not logged in
     useEffect(() => {
@@ -78,6 +86,12 @@ export default function ProfilePage() {
                 job: profile.job || "",
                 gender: profile.gender || "",
             })
+            // Parse by checking which part is a country, not by position —
+            // older rows were written in either order. Anything unrecognisable
+            // leaves the dropdowns empty and is preserved on save untouched.
+            const place = parseBirthPlace(profile.birth_place)
+            setBirthCountry(place.country)
+            setBirthState(place.state)
         }
     }, [profile, user])
 
@@ -138,7 +152,12 @@ export default function ProfilePage() {
                     bio: profileData.bio,
                     birthDate: profileData.birthDate,
                     birthTime: profileData.birthTime,
-                    birthPlace: profileData.birthPlace,
+                    // A picked location wins; otherwise keep whatever was
+                    // already stored, so an unparseable old value is not wiped
+                    // just because someone saved another field.
+                    birthPlace: birthCountry
+                        ? formatBirthPlace(birthCountry, birthState)
+                        : profileData.birthPlace,
                     job: profileData.job,
                     gender: profileData.gender,
                 }),
@@ -292,23 +311,19 @@ export default function ProfilePage() {
 
                             <div className='space-y-2'>
                                 <Label
-                                    htmlFor='birthPlace'
                                     className='text-white font-semibold flex items-center gap-2'
                                 >
                                     <Calendar className='w-4 h-4' />
                                     {t("birthPlace")}
                                 </Label>
-                                <Input
-                                    id='birthPlace'
-                                    value={profileData.birthPlace}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            "birthPlace",
-                                            e.target.value
-                                        )
-                                    }
-                                    className='bg-background/40 border-border/40 text-white placeholder-gray-400 focus:border-accent/50 focus:ring-accent/20 transition-all duration-300'
-                                    placeholder={t("birthPlacePlaceholder")}
+                                <LocationSelector
+                                    selectedCountry={birthCountry}
+                                    selectedState={birthState}
+                                    onCountryChange={(country) => {
+                                        setBirthCountry(country)
+                                        setBirthState("")
+                                    }}
+                                    onStateChange={setBirthState}
                                 />
                             </div>
 

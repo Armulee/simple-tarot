@@ -116,3 +116,27 @@ export function getPackPriceById(
     if (!pack) return null
     return getPackPrice(pack, currency)
 }
+
+/**
+ * One-time packs check out as `mode="pack"` for everyone, whatever their
+ * subscription.
+ *
+ * They used to go through `mode="addon"`, which adds the price to the buyer's
+ * Stripe subscription as a line item — that needs a *recurring* price and an
+ * active pro subscription, which is why the packs were pro-only. Checkout in
+ * payment mode needs a *one-time* price instead, and a Stripe Price is one or
+ * the other, never both. Selling one pack to everyone therefore means one
+ * one-time price per pack; a per-tier mode would need two prices for each.
+ */
+export const PACK_CHECKOUT_MODE = "pack" as const
+
+/**
+ * Packs that can actually be sold in this currency. A pack whose Stripe price
+ * id is missing is dropped rather than rendered with a button that cannot
+ * check out — THB falls back to the USD price id, matching getPackPriceId().
+ */
+export function purchasablePacks(
+    currency: CurrencyCode,
+): StarPackDefinition[] {
+    return STAR_PACKS.filter((pack) => !!getPackPriceId(pack, currency))
+}

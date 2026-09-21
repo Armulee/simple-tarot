@@ -22,7 +22,7 @@ export default function DemoPage() {
           <p className='text-muted-foreground max-w-2xl mx-auto'>{t("hero.subtitle")}</p>
           <div className='flex items-center justify-center gap-3'>
             <Link
-              href='/about'
+              href='/#learn-more'
               className='text-sm text-primary hover:underline underline-offset-4'
             >
               {t("links.about")}

@@ -27,6 +27,7 @@ import {
     type InterpretationMode,
 } from "@/lib/interpretation-mode-storage"
 import { useStarConsent } from "@/components/star-consent"
+import { usePendingMessage } from "@/contexts/pending-message-context"
 import {
     detectInputLanguage,
     resolveSessionLocale,
@@ -60,6 +61,7 @@ export default function Home() {
         cardId: string
     } | null>(null)
     const { ageGateState } = useStarConsent()
+    const { setPending } = usePendingMessage()
     const [question, setQuestion] = useState("")
     const [isLinking, setIsLinking] = useState(false)
     const [linkingQuestion, setLinkingQuestion] = useState<string | null>(null)
@@ -109,10 +111,19 @@ export default function Home() {
         const ro = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 setFixedBarHeight(entry.contentRect.height)
+                // Border box, not contentRect: the bar has pt-4, and content
+                // below the hero has to clear the padding as well.
+                document.documentElement.style.setProperty(
+                    "--home-composer-h",
+                    `${Math.round(entry.target.getBoundingClientRect().height)}px`,
+                )
             }
         })
         ro.observe(el)
-        return () => ro.disconnect()
+        return () => {
+            ro.disconnect()
+            document.documentElement.style.removeProperty("--home-composer-h")
+        }
     }, [])
 
     useEffect(() => {
@@ -217,6 +228,7 @@ export default function Home() {
         }
         pendingSessionIdRef.current = null
         setIsLinking(false)
+        setPending(null)
         setQuestion(linkingQuestion ?? "")
         setLinkingQuestion(null)
         setError(null)
@@ -243,8 +255,10 @@ export default function Home() {
         pendingSessionIdRef.current = pendingSessionId
         setQuestion("")
         setError(null)
-        setLinkingQuestion(trimmed || attachments?.[0]?.name || "")
+        const pendingText = trimmed || attachments?.[0]?.name || ""
+        setLinkingQuestion(pendingText)
         setIsLinking(true)
+        setPending({ text: pendingText, sessionId: null })
         try {
             // Nothing to sanitize for attachment-only sends (empty prompt).
             const sanitizeResult = trimmed
@@ -313,6 +327,7 @@ export default function Home() {
             }
             linkingAbortControllerRef.current = null
             pendingSessionIdRef.current = null
+            setPending({ text: pendingText, sessionId: payload.id as string })
             const detectedLocale = detectInputLanguage(trimmed)
             const targetLocale = resolveSessionLocale(detectedLocale, locale)
             try {
@@ -327,12 +342,14 @@ export default function Home() {
             }
             if (error instanceof Error && error.name === "AbortError") {
                 setIsLinking(false)
+                setPending(null)
                 setQuestion(trimmed)
                 setLinkingQuestion(null)
                 void cleanupPendingSession(pendingSessionId)
                 return
             }
             setIsLinking(false)
+            setPending(null)
             setLinkingQuestion(null)
             setQuestion(trimmed)
             setError("Sorry, something went wrong. Please try again.")
@@ -449,7 +466,12 @@ export default function Home() {
                                     type='button'
                                     className='mx-auto animate-fade-swap text-xs sm:text-sm uppercase tracking-widest text-white/70 hover:text-white transition-colors'
                                     onClick={() => {
-                                        window.location.href = "/about"
+                                        document
+                                            .getElementById("learn-more")
+                                            ?.scrollIntoView({
+                                                behavior: "smooth",
+                                                block: "start",
+                                            })
                                     }}
                                 >
                                     <span className='flex items-center gap-4'>
@@ -481,9 +503,16 @@ export default function Home() {
                 </div>
             )}
 
+            {/* Deliberately no backdrop-blur. Now that this bar floats over the
+                page, the blur pulled bright content sitting just above it — the
+                About heading and its underline — down into its rectangle, which
+                read as a hazy lighter box with a hard top edge. The filter is
+                clipped to the border box, so that edge cannot be feathered with
+                a mask. The gradient alone fades out with nothing to see, and is
+                darkened here to keep the input legible without it. */}
             <div
                 ref={fixedBarRef}
-                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-xl pt-4 transition-all duration-500'
+                className='fixed bottom-0 left-[var(--app-sidebar-w)] right-0 z-30 bg-gradient-to-t from-black/95 via-black/75 to-transparent pt-4 transition-all duration-500'
             >
                 <QuestionInput
                     id='home-question-input'

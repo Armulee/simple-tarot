@@ -3,21 +3,11 @@
 import { Checkout } from "../checkout"
 import { Star, Zap } from "lucide-react"
 import type { CurrencyCode } from "@/lib/payments/currency-utils"
-import { STAR_PACKS, getPackPriceId } from "@/lib/payments/star-products"
-
-type Pack = {
-    id: string
-    stars: number
-    name: string
-    color: string
-}
-
-const packs: Pack[] = STAR_PACKS.filter((sp) => !!sp.id).map((sp) => ({
-    id: sp.id ?? "",
-    stars: sp.stars,
-    name: sp.name,
-    color: "yellow",
-}))
+import {
+    getPackPriceId,
+    PACK_CHECKOUT_MODE,
+    purchasablePacks,
+} from "@/lib/payments/star-products"
 
 const getColorClasses = (color: string) => {
     const colorMap = {
@@ -74,19 +64,20 @@ type OneTapTopUpProps = {
 }
 
 export default function OneTapTopUp({ currency }: OneTapTopUpProps) {
+    const packs = purchasablePacks(currency)
+
     return (
         <div className='w-full max-w-5xl mx-auto'>
             {/* Star Packs Grid */}
             <div className='mb-8'>
                 <div className='grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-6 xl:grid-cols-6 gap-4'>
-                    {packs.map((p, idx) => {
-                        const colors = getColorClasses(p.color)
-                        const sp = STAR_PACKS[idx]
-                        const packId = sp ? getPackPriceId(sp, currency) : p.id
+                    {packs.map((p) => {
+                        const colors = getColorClasses("yellow")
+                        const packId = getPackPriceId(p, currency)
                         return (
                             <Checkout
-                                key={p.id}
-                                mode='addon'
+                                key={packId}
+                                mode={PACK_CHECKOUT_MODE}
                                 packId={packId}
                                 currency={currency}
                                 customTrigger={

@@ -25,10 +25,12 @@ export function RetentionSection({
     retention,
     loading,
     error,
+    errorDetail,
 }: {
     retention: RetentionAnalytics | undefined
     loading: boolean
     error: boolean
+    errorDetail?: string | null
 }) {
     const t = useTranslations("Admin")
     const locale =
@@ -88,6 +90,7 @@ export function RetentionSection({
             icon={<LineChartIcon className="h-4 w-4" />}
             loading={loading}
             error={error}
+            errorDetail={errorDetail}
             empty={empty}
             emptyHint={t("retNoData")}
         >

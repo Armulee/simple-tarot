@@ -525,6 +525,10 @@
         "fatedRelations": {
           "name": "Jodoh & Hubungan Takdir",
           "description": "Temukan koneksi kosmis dan kecocokan antara dirimu dan orang-orang yang kamu sayangi"
+        },
+        "cosmicCalendar": {
+          "name": "Kalender Kosmik",
+          "description": "Ikuti cuaca kosmik harian dan pilih momen terbaik dengan kalender astrologi"
         }
       }
     },
@@ -546,7 +550,9 @@
         "sep_2026": "September 2026",
         "oct_2026": "Oktober 2026",
         "nov_2026": "November 2026",
-        "dec_2026": "Desember 2026"
+        "dec_2026": "Desember 2026",
+        "q1_2027": "Kuartal 1 2027",
+        "tbc": "Belum ditentukan"
       },
       "tarot": {
         "title": "Bacaan Tarot AI",
@@ -559,7 +565,7 @@
       },
       "birthChart": {
         "title": "Peta Kelahiran",
-        "eta": "Mei 2026",
+        "eta": "Tersedia Sekarang",
         "features": [
           "Ringkasan statistik dari peta kelahiran pribadimu",
           "Posisi planet dan sudut aspek yang dipetakan ke kekuatan",
@@ -568,7 +574,7 @@
       },
       "astrology": {
         "title": "Astrologi",
-        "eta": "Mei 2026",
+        "eta": "Tersedia Sekarang",
         "features": [
           "Prakiraan transit dari data kelahiran dan tanggal tujuanmu",
           "Bacaan transit yang dipersonalisasi",
@@ -577,7 +583,7 @@
       },
       "namelogy": {
         "title": "Namalogi",
-        "eta": "Juli 2026",
+        "eta": "Belum ditentukan",
         "features": [
           "Pecahkan getaran dalam nama",
           "Ungkap keselarasan spiritual, kekuatan, dan hal yang perlu diwaspadai",
@@ -586,7 +592,7 @@
       },
       "numerology": {
         "title": "Numerologi",
-        "eta": "Agustus 2026",
+        "eta": "Belum ditentukan",
         "features": [
           "Pecahkan getaran dalam angka",
           "Soroti pola angka yang mendukung dan menantang",
@@ -595,7 +601,7 @@
       },
       "luckyColors": {
         "title": "Warna Keberuntungan",
-        "eta": "September 2026",
+        "eta": "Belum ditentukan",
         "features": [
           "Palet harian yang dipadukan dengan penguasa planet",
           "Rekomendasi busana dan ruang kerja",
@@ -604,7 +610,7 @@
       },
       "mobileApp": {
         "title": "Aplikasi Seluler",
-        "eta": "November 2026",
+        "eta": "Kuartal 1 2027",
         "features": [
           "Pengalaman peluncuran asli iOS dan Android",
           "Bawa bacaanmu ke mana saja dengan akses luring",
@@ -613,7 +619,7 @@
       },
       "fatedRelations": {
         "title": "Jodoh & Hubungan Takdir",
-        "eta": "Oktober 2026",
+        "eta": "Desember 2026",
         "features": [
           "Jelajahi kecocokan dan dinamika hubungan",
           "Bedah dinamika hubungan dan potensi bersama",
@@ -622,7 +628,7 @@
       },
       "palmistry": {
         "title": "Ramalan Garis Tangan",
-        "eta": "Desember 2026",
+        "eta": "Kuartal 1 2027",
         "features": [
           "Bacaan telapak tangan berbasis webcam",
           "Tafsirkan garis tentang keberuntungan, kehidupan, dan takdir",

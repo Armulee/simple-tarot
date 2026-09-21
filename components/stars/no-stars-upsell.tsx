@@ -13,24 +13,20 @@ import "swiper/css/free-mode"
 import { Checkout } from "@/components/checkout"
 import { useAuth } from "@/hooks/use-auth"
 import {
-    STAR_PACKS,
     getPackPrice,
     getPackPriceId,
+    PACK_CHECKOUT_MODE,
+    purchasablePacks,
 } from "@/lib/payments/star-products"
 import { formatCurrency } from "@/lib/payments/currency-utils"
-import { useStars } from "@/contexts/stars-context"
 
 export default function NoStarsUpsell() {
     const { user } = useAuth()
-    const { subscription } = useStars()
     const pathname = usePathname()
     const locale = useLocale()
     const currency = locale === "th" ? "THB" : "USD"
 
-    const packs = useMemo(() => {
-        return STAR_PACKS.filter((p) => !!p.id)
-    }, [])
-    const isProSubscriber = subscription?.tier === "pro"
+    const packs = useMemo(() => purchasablePacks(currency), [currency])
 
     return (
         <div className='mt-3 space-y-3 text-center'>
@@ -49,7 +45,7 @@ export default function NoStarsUpsell() {
                         Top up (instant):
                     </div>
 
-                    {isProSubscriber && packs.length > 0 ? (
+                    {packs.length > 0 ? (
                         <div className='-mx-1'>
                             <Swiper
                                 modules={[FreeMode, Mousewheel]}
@@ -81,7 +77,7 @@ export default function NoStarsUpsell() {
                                             className='!w-[172px]'
                                         >
                                             <Checkout
-                                                mode='addon'
+                                                mode={PACK_CHECKOUT_MODE}
                                                 packId={stripePackId}
                                                 currency={currency}
                                                 customTrigger={
@@ -120,9 +116,7 @@ export default function NoStarsUpsell() {
                         </div>
                     ) : (
                         <div className='text-xs text-white/70'>
-                            {isProSubscriber
-                                ? "Top ups are not configured yet."
-                                : "Top ups are available for Pro subscribers."}
+                            Top ups are not configured yet.
                         </div>
                     )}
                 </div>
