@@ -4,7 +4,9 @@ import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 
 /**
- * Astra's opening line, as a glass speech bubble anchored near her.
+ * Astra's opening line, as a glass speech bubble above the composer — the
+ * same slot her captions use once a session is live, so the greeting reads as
+ * the first thing she says rather than as a label floating over her face.
  *
  * This carries the page's <h1>: the copy is the same "Ask me anything about
  * your destiny" the legacy hero used, so the crawlable heading survives the
@@ -15,7 +17,7 @@ export function GreetingBubble({ hidden }: { hidden?: boolean }) {
     return (
         <div
             className={cn(
-                "max-w-[17rem] rounded-3xl rounded-bl-lg border border-white/15 bg-white/10 px-5 py-4 shadow-xl backdrop-blur-md transition-opacity duration-500 sm:max-w-xs",
+                "max-w-md rounded-3xl rounded-bl-lg border border-white/15 bg-black/45 px-5 py-4 text-center shadow-xl backdrop-blur-md transition-opacity duration-500 md:max-w-xs md:text-left",
                 hidden ? "pointer-events-none opacity-0" : "opacity-100",
             )}
         >

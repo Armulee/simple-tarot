@@ -165,8 +165,7 @@ export function ImmerseExperience() {
                 />
 
                 <div className="relative z-10 flex min-h-[100dvh] flex-col px-4 pb-6 pt-20">
-                    <div className="flex items-start justify-between gap-3">
-                        <GreetingBubble hidden={greetingHidden} />
+                    <div className="flex justify-end">
                         <p
                             aria-hidden
                             className="mt-2 hidden max-w-[8rem] text-right font-playfair text-sm italic leading-snug text-white/45 sm:block"
@@ -178,6 +177,19 @@ export function ImmerseExperience() {
                     <div className="flex-1" />
 
                     <div className="mx-auto w-full max-w-xl space-y-4">
+                        {/* Where the greeting can sit without covering Astra
+                            depends on the crop. The portrait fills a phone
+                            top-to-bottom, putting her face in the upper third,
+                            so there it rides above the composer — the same slot
+                            her captions use once she is speaking. On a wide
+                            viewport the same image crops to a centred close-up,
+                            so the bubble lifts out of flow to the open top-left
+                            corner instead. One element, so still one <h1>. */}
+                        {phase === "idle" && (
+                            <div className="flex justify-center md:absolute md:left-4 md:top-20 md:block">
+                                <GreetingBubble hidden={greetingHidden} />
+                            </div>
+                        )}
                         {/* Status line: free-reveal badge, closing note, errors. */}
                         {(phase === "ended" || (phase === "error" && errorMessage)) && (
                             <div className="flex justify-center">

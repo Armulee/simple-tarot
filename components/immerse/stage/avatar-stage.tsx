@@ -1,14 +1,31 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
 import type { AvatarPhase } from "../use-avatar-session"
 import { CountdownTimer } from "./countdown-timer"
 
 /** Still portrait of Astra — the idle state, and the stage's LCP element. */
-const POSTER_SRC = process.env.NEXT_PUBLIC_AVATAR_POSTER ?? "/avatar/astra-idle.webp"
+const DEFAULT_POSTER = "/avatar/astra-idle.webp"
+const POSTER_SRC = process.env.NEXT_PUBLIC_AVATAR_POSTER ?? DEFAULT_POSTER
+/**
+ * Resolution switching for the default artwork only. Overriding the poster
+ * without overriding this would serve phones a 640px crop of the *old* image,
+ * so a custom poster opts out of the srcset entirely.
+ */
+const POSTER_SRCSET =
+    POSTER_SRC === DEFAULT_POSTER
+        ? `/avatar/astra-idle-640.webp 640w, ${DEFAULT_POSTER} 941w`
+        : undefined
+/**
+ * Landscape artwork for wide viewports. The portrait is 9:16, so on a desktop
+ * `object-cover object-top` crop only its top third survives — the room, the
+ * candles and the spread are all lost. Unset until that artwork exists: a
+ * <source> pointing at a missing file would break the image outright, so
+ * desktop falls back to the portrait rather than to nothing.
+ */
+const POSTER_WIDE_SRC = process.env.NEXT_PUBLIC_AVATAR_POSTER_WIDE
 /**
  * Optional looping idle clip layered over the poster. Unset for now: the first
  * Astra asset is a still image, and dropping a video in later is an env change
@@ -73,15 +90,28 @@ export function AvatarStage({
             {/* 1. Poster. Stays mounted beneath the video layers so there is
                 never a black frame while one of them swaps in. */}
             {!posterFailed && (
-                <Image
-                    src={POSTER_SRC}
-                    alt={t("posterAlt")}
-                    fill
-                    priority
-                    sizes="100vw"
-                    className="object-cover object-top"
-                    onError={() => setPosterFailed(true)}
-                />
+                // A plain <picture> rather than next/image: art direction needs
+                // media-switched sources, and a second <Image> hidden by a
+                // breakpoint class would still be downloaded. The files are
+                // pre-optimized WebP, so the optimizer has nothing to add.
+                <picture>
+                    {POSTER_WIDE_SRC && (
+                        <source
+                            media="(min-width: 768px)"
+                            srcSet={POSTER_WIDE_SRC}
+                        />
+                    )}
+                    <img
+                        src={POSTER_SRC}
+                        srcSet={POSTER_SRCSET}
+                        sizes="100vw"
+                        alt={t("posterAlt")}
+                        fetchPriority="high"
+                        decoding="async"
+                        onError={() => setPosterFailed(true)}
+                        className="absolute inset-0 h-full w-full object-cover object-top"
+                    />
+                </picture>
             )}
 
             {/* 2. Idle clip, when one is configured. Freezes on its last frame
@@ -127,8 +157,13 @@ export function AvatarStage({
                 )}
             />
 
-            {/* Vignette so overlaid text stays readable over any artwork. */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/40" />
+            {/* Scrim. The controls stack over the lower half of the artwork,
+                which is candlelit and busy, so the bottom needs to be much
+                heavier than a symmetrical vignette — otherwise the tile
+                subtitles and chips wash out against it. The top stays light so
+                Astra's face reads clearly. */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/92 via-black/70 to-transparent" />
 
             {/* Shuffling overlay — masks the 1-3s connection latency as suspense. */}
             {shuffling && (
