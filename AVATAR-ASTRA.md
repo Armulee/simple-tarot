@@ -1,7 +1,13 @@
 # Avatar: Astra
 
 ## Source artwork
-`assets/astra-source.png` — 941 × 1672 (9:16), the canonical likeness.
+Two renders of the same scene, same pixel count, different framing:
+
+- `assets/astra-source.png` — 941 × 1672 (9:16), portrait. The canonical
+  likeness, and the HeyGen talking-photo source: her face fills more of the
+  frame here than in the landscape render.
+- `assets/astra-source-wide.png` — 1672 × 941 (16:9), landscape.
+
 Web derivatives live in `public/avatar/` (see *Web assets* below).
 
 ## Appearance
@@ -57,12 +63,12 @@ Resolve fresh look IDs from the Group ID at runtime if looks change.
 
 | File | Use |
 |---|---|
-| `public/avatar/astra-idle.webp` | 941w portrait — the idle poster, and the stage's LCP element |
+| `public/avatar/astra-idle.webp` | 941w portrait — the idle poster below 768px, and the stage's LCP element there |
 | `public/avatar/astra-idle-640.webp` | 640w variant, picked by `srcset` on small phones |
-| *(none yet)* | Landscape crop for wide viewports — set `NEXT_PUBLIC_AVATAR_POSTER_WIDE` once it exists |
+| `public/avatar/astra-idle-wide.webp` | 1672w landscape, served at `min-width: 768px` |
 
-The portrait is 9:16, so on a desktop `object-cover object-top` crop it becomes
-a centred close-up and the room is lost. `components/immerse/stage/avatar-stage.tsx`
-serves a landscape asset instead at `min-width: 768px` — but only when
-`NEXT_PUBLIC_AVATAR_POSTER_WIDE` is set, since a `<source>` pointing at a
-missing file would break the image outright.
+`components/immerse/stage/avatar-stage.tsx` switches between them with a
+`<picture>`, so the browser downloads exactly one. Squeezing either shape into
+the other loses the scene: cropping the portrait to 16:9 keeps only its top
+third, and cropping the landscape to a phone's 9:16 shows just 26% of its width
+— a close-up with no candles, cat or spread — upscaled about 1.8× at DPR 2.

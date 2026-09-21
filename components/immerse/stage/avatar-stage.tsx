@@ -19,13 +19,14 @@ const POSTER_SRCSET =
         ? `/avatar/astra-idle-640.webp 640w, ${DEFAULT_POSTER} 941w`
         : undefined
 /**
- * Landscape artwork for wide viewports. The portrait is 9:16, so on a desktop
- * `object-cover object-top` crop only its top third survives — the room, the
- * candles and the spread are all lost. Unset until that artwork exists: a
- * <source> pointing at a missing file would break the image outright, so
- * desktop falls back to the portrait rather than to nothing.
+ * Landscape framing of the same scene, for wide viewports. Cropping the 9:16
+ * portrait to 16:9 would keep only a centred close-up — the candles, the cat,
+ * the crystal ball and the spread all fall outside it — so each shape gets its
+ * own render rather than one being squeezed into the other. The browser picks
+ * one and downloads only that.
  */
-const POSTER_WIDE_SRC = process.env.NEXT_PUBLIC_AVATAR_POSTER_WIDE
+const POSTER_WIDE_SRC =
+    process.env.NEXT_PUBLIC_AVATAR_POSTER_WIDE ?? "/avatar/astra-idle-wide.webp"
 /**
  * Optional looping idle clip layered over the poster. Unset for now: the first
  * Astra asset is a still image, and dropping a video in later is an env change

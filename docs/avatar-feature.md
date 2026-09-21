@@ -53,7 +53,7 @@ picks between it and the legacy hero.
 
 ### The stage's three layers
 
-1. **Poster** — always present, paints immediately, and is the LCP element. A `<picture>` rather than `next/image`, because art direction needs media-switched sources and a second `<Image>` hidden by a breakpoint class would still be downloaded. `NEXT_PUBLIC_AVATAR_POSTER` (default `/avatar/astra-idle.webp`, 9:16) with a 640w `srcset` sibling for small phones, plus `NEXT_PUBLIC_AVATAR_POSTER_WIDE` served at `min-width: 768px`. The wide `<source>` is emitted **only when that var is set** — pointing it at a missing file would break the image outright — so until landscape artwork exists, desktop crops the portrait. A missing poster degrades to the gradient rather than a broken image.
+1. **Poster** — always present, paints immediately, and is the LCP element. A `<picture>` rather than `next/image`, because art direction needs media-switched sources and a second `<Image>` hidden by a breakpoint class would still be downloaded. Two renders of the same scene: `NEXT_PUBLIC_AVATAR_POSTER` (9:16, with a 640w `srcset` sibling for small phones) below 768px, `NEXT_PUBLIC_AVATAR_POSTER_WIDE` (16:9) at and above it. The browser downloads exactly one. A missing poster degrades to the gradient rather than a broken image.
 2. **Idle clip** — rendered **only** when `NEXT_PUBLIC_AVATAR_INTRO` is set. Unset today: the first Astra asset is a still image, so swapping in a video later is an env change, not a code change.
 3. **Live WebRTC video** — fades in once a session connects.
 
@@ -116,9 +116,9 @@ CRON_SECRET=             # shared with the sweep workflow
 # optional:
 HEYGEN_BASE_URL=https://api.heygen.com
 AVATAR_READING_MODEL=deepseek/deepseek-v3.2      # the LLM that writes readings
-NEXT_PUBLIC_AVATAR_POSTER=/avatar/astra-idle.webp # idle still, 9:16 (default)
-NEXT_PUBLIC_AVATAR_POSTER_WIDE=                   # landscape still for >=768px; unset = crop the portrait
-NEXT_PUBLIC_AVATAR_INTRO=                         # optional idle clip; unset = still image only
+NEXT_PUBLIC_AVATAR_POSTER=/avatar/astra-idle.webp       # idle still, 9:16, below 768px (default)
+NEXT_PUBLIC_AVATAR_POSTER_WIDE=/avatar/astra-idle-wide.webp # idle still, 16:9, >=768px (default)
+NEXT_PUBLIC_AVATAR_INTRO=                               # optional idle clip; unset = still image only
 ```
 
 ## Voice input
