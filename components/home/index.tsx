@@ -449,7 +449,7 @@ export default function Home() {
                                     type='button'
                                     className='mx-auto animate-fade-swap text-xs sm:text-sm uppercase tracking-widest text-white/70 hover:text-white transition-colors'
                                     onClick={() => {
-                                        window.location.href = "/about"
+                                        window.location.href = "/#about"
                                     }}
                                 >
                                     <span className='flex items-center gap-4'>

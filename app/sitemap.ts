@@ -43,10 +43,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "daily",
             priority: 0.9,
         }),
-        await withAlternates("/about", {
-            changeFrequency: "weekly",
-            priority: 0.8,
-        }),
         await withAlternates("/contact", {
             changeFrequency: "monthly",
             priority: 0.7,

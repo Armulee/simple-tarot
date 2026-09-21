@@ -731,9 +731,9 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
                             ) : null}
                             <li>
                                 <Link
-                                    href={"/about"}
+                                    href={"/#about"}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
-                                        pathname === "/about"
+                                        pathname === "/#about"
                                             ? "bg-accent text-white"
                                             : "text-cosmic-light hover:text-white hover:bg-white/10"
                                     }`}

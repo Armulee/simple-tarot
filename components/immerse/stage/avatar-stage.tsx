@@ -158,13 +158,10 @@ export function AvatarStage({
                 )}
             />
 
-            {/* Scrim. The controls stack over the lower half of the artwork,
-                which is candlelit and busy, so the bottom needs to be much
-                heavier than a symmetrical vignette — otherwise the tile
-                subtitles and chips wash out against it. The top stays light so
-                Astra's face reads clearly. */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-transparent" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black/92 via-black/70 to-transparent" />
+            {/* No scrim over the artwork — it renders at its own brightness.
+                Everything laid over it (the greeting, the composer, the chips)
+                carries its own translucent backing instead, so nothing needs
+                the whole scene dimmed to stay readable. */}
 
             {/* Shuffling overlay — masks the 1-3s connection latency as suspense. */}
             {shuffling && (

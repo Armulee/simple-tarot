@@ -214,9 +214,9 @@ export function Navbar({ locale }: { locale: string }) {
                                 {t("home")}
                             </Link>
                             <Link
-                                href='/about'
+                                href='/#about'
                                 className={`hidden lg:block px-3 py-1.5 rounded-md transition-colors mr-4 ${
-                                    pathname === "/about"
+                                    pathname === "/#about"
                                         ? "bg-accent text-white"
                                         : "text-cosmic-light hover:text-white hover:bg-white/5"
                                 }`}

@@ -22,10 +22,9 @@ import { AvatarStage } from "./stage/avatar-stage"
 import { ImmerseChrome } from "./immerse-chrome"
 import { GreetingBubble } from "./greeting-bubble"
 import { ImmerseComposer } from "./immerse-composer"
-import { QuickActions } from "./quick-actions"
-import { CategoryTiles } from "./category-tiles"
 import { TryAskingChips } from "./try-asking-chips"
 import { ScrollCue } from "./scroll-cue"
+import { CookiesBanner } from "@/components/cookies-banner"
 import { ExploreSection } from "./explore-section"
 
 const EXPLORE_ID = "immerse-explore"
@@ -86,11 +85,18 @@ export function ImmerseExperience() {
         composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
     }, [])
 
-    const trySample = useCallback(() => {
-        const prompts = t.raw("tryAsking") as string[]
-        if (!Array.isArray(prompts) || prompts.length === 0) return
-        prefill(prompts[Math.floor(Math.random() * prompts.length)])
-    }, [t, prefill])
+    // A nav link to /#about lands here before the explore section has
+    // rendered, so the browser's own hash scroll finds nothing. Do it once
+    // mounted instead.
+    useEffect(() => {
+        if (window.location.hash !== "#about") return
+        const id = window.setTimeout(() => {
+            document
+                .getElementById("about")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+        }, 120)
+        return () => window.clearTimeout(id)
+    }, [])
 
     // Arriving from the composer's avatar toggle: /?ask={ref} carries a
     // question already persisted as a chat session. Open it once, after
@@ -165,31 +171,25 @@ export function ImmerseExperience() {
                 />
 
                 <div className="relative z-10 flex min-h-[100dvh] flex-col px-4 pb-6 pt-20">
-                    <div className="flex justify-end">
-                        <p
-                            aria-hidden
-                            className="mt-2 hidden max-w-[8rem] text-right font-playfair text-sm italic leading-snug text-white/45 sm:block"
-                        >
-                            {t("decorRight")}
-                        </p>
-                    </div>
+                    <p
+                        aria-hidden
+                        className="ml-auto mt-2 hidden max-w-[8rem] text-right font-playfair text-sm italic leading-snug text-white/45 sm:block"
+                    >
+                        {t("decorRight")}
+                    </p>
+
+                    {/* The greeting sits out of flow against the left edge,
+                        level with her shoulder, so the controls below can stay
+                        compact and the artwork keeps the middle of the frame. */}
+                    {phase === "idle" && (
+                        <div className="absolute left-4 top-[30%] md:top-24">
+                            <GreetingBubble hidden={greetingHidden} />
+                        </div>
+                    )}
 
                     <div className="flex-1" />
 
-                    <div className="mx-auto w-full max-w-xl space-y-4">
-                        {/* Where the greeting can sit without covering Astra
-                            depends on the crop. The portrait fills a phone
-                            top-to-bottom, putting her face in the upper third,
-                            so there it rides above the composer — the same slot
-                            her captions use once she is speaking. On a wide
-                            viewport the same image crops to a centred close-up,
-                            so the bubble lifts out of flow to the open top-left
-                            corner instead. One element, so still one <h1>. */}
-                        {phase === "idle" && (
-                            <div className="flex justify-center md:absolute md:left-4 md:top-20 md:block">
-                                <GreetingBubble hidden={greetingHidden} />
-                            </div>
-                        )}
+                    <div className="mx-auto w-full max-w-xl space-y-3">
                         {/* Status line: free-reveal badge, closing note, errors. */}
                         {(phase === "ended" || (phase === "error" && errorMessage)) && (
                             <div className="flex justify-center">
@@ -218,6 +218,8 @@ export function ImmerseExperience() {
                             </div>
                         )}
 
+                        <TryAskingChips onPick={prefill} />
+
                         <div ref={composerRef}>
                             <ImmerseComposer
                                 value={question}
@@ -229,15 +231,9 @@ export function ImmerseExperience() {
                             />
                         </div>
 
-                        <QuickActions
-                            showVoice={voice.supported}
-                            onAskByVoice={voice.start}
-                            onTrySample={trySample}
-                        />
-
-                        <CategoryTiles onPick={prefill} />
-
-                        <TryAskingChips onPick={prefill} />
+                        {/* Home renders its own inline copy; the layout-level
+                            banner steps aside on this route. */}
+                        <CookiesBanner inline />
 
                         <ScrollCue targetId={EXPLORE_ID} />
                     </div>

@@ -32,6 +32,13 @@ export function HomeSwitch({ legacy }: { legacy: ReactNode }) {
             saveLandingModeToStorage(fromQuery)
             return
         }
+        // The about story lives below the immerse fold, so a /#about link has
+        // to land there even for someone who picked legacy — otherwise the
+        // anchor points at nothing.
+        if (window.location.hash === "#about") {
+            setMode("immerse")
+            return
+        }
         setMode(loadLandingModeFromStorage())
     }, [])
 

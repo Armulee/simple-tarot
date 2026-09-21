@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { Keyboard, Mic, Send, Square } from "lucide-react"
+import { AudioLines, Send, Square } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { cn } from "@/lib/utils"
@@ -55,20 +55,11 @@ export function ImmerseComposer({
                 className={cn(
                     "relative flex items-end gap-2 rounded-[28px] border px-3 py-2 backdrop-blur-xl transition-all",
                     listening
-                        ? "border-primary/70 bg-black/55 shadow-[0_0_28px_-4px_var(--color-primary)]"
-                        : "border-white/15 bg-black/40 shadow-[0_0_24px_-8px_rgba(129,140,248,0.7)]",
+                        ? "border-violet-300/80 bg-black/45 shadow-[0_0_0_1px_rgba(196,181,253,0.45),0_0_34px_-2px_rgba(139,92,246,0.95),0_0_72px_-10px_rgba(139,92,246,0.7)]"
+                        : "border-violet-400/45 bg-black/35 shadow-[0_0_0_1px_rgba(167,139,250,0.22),0_0_26px_-4px_rgba(139,92,246,0.65),0_0_58px_-12px_rgba(99,102,241,0.55)]",
                 )}
             >
-                <button
-                    type="button"
-                    onClick={() => inputRef.current?.focus()}
-                    aria-label={t("keyboard")}
-                    className="mb-1.5 shrink-0 rounded-full p-2 text-white/55 transition-colors hover:text-white/85"
-                >
-                    <Keyboard className="h-5 w-5" />
-                </button>
-
-                <div className="min-w-0 flex-1 py-1.5">
+                <div className="min-w-0 flex-1 py-1.5 pl-3">
                     <textarea
                         ref={inputRef}
                         rows={1}
@@ -110,7 +101,7 @@ export function ImmerseComposer({
                             {listening ? (
                                 <Square className="h-4 w-4 fill-current" />
                             ) : (
-                                <Mic className="h-5 w-5" />
+                                <AudioLines className="h-5 w-5" />
                             )}
                         </button>
                     )}

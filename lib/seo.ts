@@ -216,7 +216,7 @@ export const pageMetadata = {
             "spiritual guidance AI",
             "mystical traditions",
         ],
-        url: "/about",
+        url: "/#about",
     }),
 
     contact: generatePageMetadata({
