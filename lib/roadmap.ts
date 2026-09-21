@@ -113,6 +113,32 @@ export const roadmapPhases: RoadmapPhaseDefinition[] = [
     },
 ]
 
+function parseDate(value?: string) {
+    if (!value) return null
+    const date = new Date(value)
+    return Number.isNaN(date.valueOf()) ? null : date
+}
+
+/**
+ * The phases in the order the roadmap should read: soonest target date first,
+ * undated (TBC) phases last.
+ *
+ * Sorting by date rather than hand-ordering the array means a phase only ever
+ * needs its own dates edited — shipped work sinks to the top on its own, since
+ * its target date is already in the past. The sort is stable, so phases sharing
+ * a target date keep the order they are declared in above.
+ */
+export const orderedRoadmapPhases: RoadmapPhaseDefinition[] = [
+    ...roadmapPhases,
+].sort((a, b) => {
+    const aTarget = parseDate(a.targetDate)
+    const bTarget = parseDate(b.targetDate)
+    if (!aTarget && !bTarget) return 0
+    if (!aTarget) return 1
+    if (!bTarget) return -1
+    return aTarget.getTime() - bTarget.getTime()
+})
+
 export type AvailabilityCountdown = {
     hours: number
     minutes: number
@@ -124,12 +150,6 @@ export type AvailabilityCountdown = {
 type UpcomingPhase = {
     phase: RoadmapPhaseDefinition
     targetDate: Date
-}
-
-function parseDate(value?: string) {
-    if (!value) return null
-    const date = new Date(value)
-    return Number.isNaN(date.valueOf()) ? null : date
 }
 
 export function getUpcomingRoadmapPhase(
