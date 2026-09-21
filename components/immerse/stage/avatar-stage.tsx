@@ -158,10 +158,11 @@ export function AvatarStage({
                 )}
             />
 
-            {/* No scrim over the artwork — it renders at its own brightness.
-                Everything laid over it (the greeting, the composer, the chips)
-                carries its own translucent backing instead, so nothing needs
-                the whole scene dimmed to stay readable. */}
+            {/* A light full-bleed wash, 25% at the foot fading to nothing at
+                the top. Not a legibility scrim — the greeting, chips and input
+                all carry their own backing — it just takes the edge off a very
+                bright scene without flattening her face. */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
 
             {/* Shuffling overlay — masks the 1-3s connection latency as suspense. */}
             {shuffling && (

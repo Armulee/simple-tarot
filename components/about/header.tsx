@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useTranslations } from "next-intl"
 import { useEffect, useState } from "react"
 
@@ -40,21 +39,6 @@ export default function AboutHeader() {
                 <p className='text-gray-300 max-w-3xl mx-auto text-lg leading-relaxed'>
                     {t("tagline")}
                 </p>
-            </div>
-
-            <div
-                className={`transition-all duration-1000 delay-500 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-            >
-                <div className='flex flex-col sm:flex-row items-center justify-center gap-6 pt-4'>
-                    <Link
-                        href='/demo'
-                        className='group relative px-6 py-3 rounded-lg font-semibold text-white bg-indigo-600 shadow-lg hover:shadow-xl hover:bg-indigo-500 transition-all duration-300 border border-indigo-500/80'
-                    >
-                        <span className='relative z-10 flex items-center gap-2'>
-                            {t("requestDemo")}
-                        </span>
-                    </Link>
-                </div>
             </div>
 
             <div className='absolute top-10 left-10 w-2 h-2 bg-primary/30 rounded-full animate-bounce delay-1000'></div>

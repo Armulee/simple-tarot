@@ -15,6 +15,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from "@/contexts/auth-context"
+import { useStarConsent } from "@/components/star-consent"
 import { useVoiceInput } from "@/hooks/use-voice-input"
 
 import { useAvatarSession } from "./use-avatar-session"
@@ -38,10 +39,10 @@ const EXPLORE_ID = "immerse-explore"
  * is ever created for them, so an anonymous visit costs nothing.
  */
 export function ImmerseExperience() {
-    const t = useTranslations("Immerse")
     const tAvatar = useTranslations("Avatar")
     const locale = useLocale()
     const { user, loading: authLoading } = useAuth()
+    const { cookieBannerVisible } = useStarConsent()
     const session = useAvatarSession()
 
     const [question, setQuestion] = useState("")
@@ -150,8 +151,13 @@ export function ImmerseExperience() {
         }
     }, [session.errorCode, tAvatar])
 
-    // The greeting steps aside once Astra is actually talking.
-    const greetingHidden = phase !== "idle" && phase !== "error"
+    // The greeting steps aside once Astra is actually talking — and while the
+    // cookie banner is up, because that inflates the bottom stack enough to
+    // collide with the bubble on short viewports (measured: -22px of clearance
+    // at 500x757, -104px at 360x640, versus 118-322px once it is dismissed).
+    // Hidden rather than unmounted so the page keeps its <h1>.
+    const greetingHidden =
+        cookieBannerVisible || (phase !== "idle" && phase !== "error")
 
     return (
         // -mt-16 cancels the layout's pt-16 so Astra runs up behind the
@@ -171,18 +177,23 @@ export function ImmerseExperience() {
                 />
 
                 <div className="relative z-10 flex min-h-[100dvh] flex-col px-4 pb-6 pt-20">
-                    <p
-                        aria-hidden
-                        className="ml-auto mt-2 hidden max-w-[8rem] text-right font-playfair text-sm italic leading-snug text-white/45 sm:block"
-                    >
-                        {t("decorRight")}
-                    </p>
+                    {/* The tail has to land on Astra's chin, and where that
+                        falls moves with the viewport: the stage is
+                        `object-cover object-top`, so the artwork is scaled by
+                        max(vw/941, vh/1672) and anchored at the top. Her chin
+                        is y=502 in the 941x1672 source — measured through the
+                        jaw on the side her hand is not resting against, since
+                        the hand hangs lower than her face — so 53.35% of its
+                        width and 30.02% of its height. The same max() in CSS
+                        tracks her at any ratio, where a fixed percentage only
+                        ever matches one. The +10px is the tail itself: a
+                        14px square rotated 45deg pokes ~9.9px past the bubble's
+                        edge, and it is the tip that should meet her chin.
 
-                    {/* The greeting sits out of flow against the left edge,
-                        level with her shoulder, so the controls below can stay
-                        compact and the artwork keeps the middle of the frame. */}
+                        Above md the landscape artwork is in play and the bubble
+                        sits clear in the open top-left corner. */}
                     {phase === "idle" && (
-                        <div className="absolute left-4 top-[30%] md:top-24">
+                        <div className="absolute left-4 top-[calc(max(53.35vw,30.02dvh)+10px)] md:top-24">
                             <GreetingBubble hidden={greetingHidden} />
                         </div>
                     )}
@@ -240,11 +251,7 @@ export function ImmerseExperience() {
                 </div>
             </section>
 
-            <ExploreSection
-                id={EXPLORE_ID}
-                transcript={session.transcript}
-                onPick={prefill}
-            />
+            <ExploreSection id={EXPLORE_ID} transcript={session.transcript} />
 
             <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
                 <DialogContent className="max-w-sm">

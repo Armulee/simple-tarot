@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl"
 
 import AboutSections from "@/components/about"
-import HomeQuickCards from "@/components/home/home-quick-cards"
 import { ResultCard } from "./stage/result-card"
 import type { RevealResult } from "./use-avatar-session"
 
@@ -11,19 +10,16 @@ import type { RevealResult } from "./use-avatar-session"
  * What "scroll to explore" reveals: everything the avatar stage can't hold.
  *
  * Readings Astra has already spoken are re-readable here (a live video can't
- * be scrolled back), then the quick-card strip, then the whole AskingFate
- * story that used to live at `/about`. The layout's <Footer /> lands
- * underneath. The `#about` anchor is what every former `/about` link now
- * points at.
+ * be scrolled back), then the whole AskingFate story that used to live at
+ * `/about`. The layout's <Footer /> lands underneath. The `#about` anchor is
+ * what every former `/about` link now points at.
  */
 export function ExploreSection({
     id,
     transcript,
-    onPick,
 }: {
     id: string
     transcript: RevealResult[]
-    onPick: (question: string) => void
 }) {
     const t = useTranslations("Immerse")
     return (
@@ -40,12 +36,6 @@ export function ExploreSection({
                     </div>
                 )}
 
-                <div className="space-y-3">
-                    <h2 className="text-sm font-semibold text-white/70">
-                        {t("exploreTitle")}
-                    </h2>
-                    <HomeQuickCards onCardClick={(question) => onPick(question)} embedded />
-                </div>
             </div>
 
             <div id="about" className="scroll-mt-20">

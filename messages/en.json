@@ -720,7 +720,6 @@
     "brand": "AskingFate?",
     "tagline": "We’re combining time‑tested symbolism with modern AI to offer calm, useful guidance you can use today.",
     "learnMore": "Learn more on the About page",
-    "requestDemo": "Request a demo",
     "askYourFate": "Ask your fate",
     "Services": {
       "title": "Our Services",
@@ -3525,8 +3524,6 @@
       "Give me a daily guidance"
     ],
     "scrollToExplore": "Scroll to explore",
-    "decorRight": "Same questions. A kinder you.",
-    "exploreTitle": "Explore more",
     "savedReadings": "Saved readings",
     "switchToLegacy": "Switch to chat mode",
     "switchToImmerse": "Meet Astra"
