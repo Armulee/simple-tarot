@@ -23,6 +23,7 @@ import { AvatarStage } from "./stage/avatar-stage"
 import { ImmerseChrome } from "./immerse-chrome"
 import { GreetingBubble } from "./greeting-bubble"
 import { ImmerseComposer } from "./immerse-composer"
+import { ComposerControls } from "./composer-controls"
 import { TryAskingChips } from "./try-asking-chips"
 import { ScrollCue } from "./scroll-cue"
 import { CookiesBanner } from "@/components/cookies-banner"
@@ -231,7 +232,7 @@ export function ImmerseExperience() {
 
                         <TryAskingChips onPick={prefill} />
 
-                        <div ref={composerRef}>
+                        <div ref={composerRef} className="space-y-2">
                             <ImmerseComposer
                                 value={question}
                                 onChange={setQuestion}
@@ -240,6 +241,7 @@ export function ImmerseExperience() {
                                 voice={voice}
                                 interim={interim}
                             />
+                            <ComposerControls />
                         </div>
 
                         {/* Home renders its own inline copy; the layout-level

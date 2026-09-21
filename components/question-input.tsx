@@ -98,6 +98,7 @@ export default function QuestionInput({
     composerTarget,
     onComposerTargetChange,
     onAvatarSubmit,
+    trailingControls,
     composerSettings,
     composerFollowUps,
     actionTrigger,
@@ -139,6 +140,12 @@ export default function QuestionInput({
      * question to the immerse landing page as its initial message.
      */
     onAvatarSubmit?: (value: string) => void | Promise<void>
+    /**
+     * Replaces the avatar/chat toggle at the right of the control row. The
+     * landing page puts its mode switch there instead, since on that page the
+     * two would mean almost the same thing.
+     */
+    trailingControls?: React.ReactNode
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
@@ -584,7 +591,8 @@ export default function QuestionInput({
                         )}
                     </Button>
                 </div>
-                {((composerTarget !== undefined && onComposerTargetChange) ||
+                {(trailingControls ||
+                    (composerTarget !== undefined && onComposerTargetChange) ||
                     (interpretationMode !== undefined &&
                         onInterpretationModeChange)) && (
                     <div className='mt-2 flex items-center justify-between gap-2'>
@@ -606,13 +614,14 @@ export default function QuestionInput({
                             ) : null}
                         </div>
                         <div className='flex items-center gap-2'>
-                            {composerTarget !== undefined &&
-                                onComposerTargetChange && (
+                            {trailingControls ??
+                                (composerTarget !== undefined &&
+                                onComposerTargetChange ? (
                                     <AvatarChatToggle
                                         value={composerTarget}
                                         onChange={handleComposerTargetChange}
                                     />
-                                )}
+                                ) : null)}
                         </div>
                     </div>
                 )}
