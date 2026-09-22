@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { getTranslations } from "next-intl/server"
 import HomeHero from "@/components/home"
 import AboutContent from "@/components/about/content"
+import { HomeSwitch } from "@/components/home/home-switch"
 import { AboutWhenIdle } from "@/components/home/about-when-idle"
 import ReferralHandler from "@/components/referral-handler"
 
@@ -52,19 +53,28 @@ export default function HomePage() {
             <Suspense fallback={null}>
                 <ReferralHandler />
             </Suspense>
-            {/* One full screen. `main` already carries pt-16 for the fixed
-                navbar, so a bare 100dvh would push the composer 64px past the
-                fold; dvh (not vh) so mobile browser chrome doesn't do the same. */}
-            {/* z-40 (under the z-50 navbar, over the z-10 sections below):
-                `relative z-index` here is a stacking context, so the composer's
-                own z-index cannot lift it past a later sibling on its own. */}
-            <section className='relative z-40 overflow-hidden h-[calc(100dvh-64px)] flex flex-col items-center justify-center text-center'>
-                <HomeHero />
-            </section>
-            {/* Target of the hero's "learn more" — same sections as /about. The
-                page's own footer sits below, so this copy renders without one. */}
-            {/* Bottom padding clears the composer, which stays pinned to the
-                viewport while these sections scroll past it. */}
+            <HomeSwitch
+                legacy={
+                    // One full screen. `main` already carries pt-16 for the
+                    // fixed navbar, so a bare 100dvh would push the composer
+                    // 64px past the fold; dvh (not vh) so mobile browser chrome
+                    // doesn't do the same.
+                    // z-40 (under the z-50 navbar, over the z-10 sections
+                    // below): `relative z-index` here is a stacking context, so
+                    // the composer's own z-index cannot lift it past a later
+                    // sibling on its own.
+                    <section className='relative z-40 overflow-hidden h-[calc(100dvh-64px)] flex flex-col items-center justify-center text-center'>
+                        <HomeHero />
+                    </section>
+                }
+            />
+            {/* Target of the hero's "learn more" and of immerse's "scroll to
+                explore" — the same sections /about used to be. It sits outside
+                HomeSwitch so both modes carry it and the anchor resolves either
+                way. The page's own footer sits below, so this renders without
+                one. The bottom padding clears legacy's composer, which stays
+                pinned to the viewport while these sections scroll past it;
+                immerse zeroes that variable, having no fixed composer. */}
             <AboutWhenIdle>
                 <section
                     id='learn-more'

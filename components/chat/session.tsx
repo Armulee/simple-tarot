@@ -8233,7 +8233,6 @@ export default function ChatSession({
                 onComposerTargetChange={
                     isHoroscopeIntakeActive ? undefined : setComposerTarget
                 }
-                avatarComingSoon
                 composerSettings={
                     isHoroscopeIntakeActive
                         ? null

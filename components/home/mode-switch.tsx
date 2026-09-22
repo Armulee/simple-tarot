@@ -1,37 +1,37 @@
 "use client"
 
-import { useTranslations } from "next-intl"
 import { MessageCircle, Sparkles } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useTranslations } from "next-intl"
 
-export type ComposerTarget = "avatar" | "chat"
+import { cn } from "@/lib/utils"
+import type { LandingMode } from "@/lib/landing-mode-storage"
+import { useLandingMode } from "./landing-mode-context"
 
 /**
- * Segmented avatar/chat toggle for the composer's bottom row. Decides whether a
- * submitted question is answered by the talking avatar (handed to the immerse
- * landing page) or the text chat.
+ * Swaps the landing page between Astra and the original chat composer.
+ *
+ * Shaped like the composer's own avatar/chat toggle rather than a floating
+ * circle: the circle sat on top of that toggle in legacy mode and hid half of
+ * it, and two round buttons in the same corner read as two unrelated actions.
+ * Both modes put this at the right end of the row under their input.
  */
-export function AvatarChatToggle({
-    value,
-    onChange,
-}: {
-    value: ComposerTarget
-    onChange: (value: ComposerTarget) => void
-}) {
+export function ModeSwitch() {
+    const { mode, setMode } = useLandingMode()
     const t = useTranslations("QuestionInput")
+
     return (
         <div className="inline-flex items-center rounded-full border border-white/12 bg-white/5 p-0.5">
             <Segment
-                active={value === "avatar"}
-                onClick={() => onChange("avatar")}
+                active={mode === "immerse"}
+                onClick={() => setMode("immerse")}
                 aria={t("avatarModeAria")}
             >
                 <Sparkles className="h-3.5 w-3.5" />
                 {t("avatarMode")}
             </Segment>
             <Segment
-                active={value === "chat"}
-                onClick={() => onChange("chat")}
+                active={mode === "legacy"}
+                onClick={() => setMode("legacy")}
                 aria={t("chatModeAria")}
             >
                 <MessageCircle className="h-3.5 w-3.5" />
@@ -69,3 +69,5 @@ function Segment({
         </button>
     )
 }
+
+export type { LandingMode }

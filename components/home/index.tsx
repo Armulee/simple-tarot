@@ -8,6 +8,7 @@ import { LoopingTypewriterText } from "@/components/home/looping-typewriter-text
 import QuestionInput from "@/components/question-input"
 import Footer from "@/components/footer/footer"
 import HomeQuickCards from "@/components/home/home-quick-cards"
+import { ModeSwitch } from "./mode-switch"
 import {
     Dialog,
     DialogDescription,
@@ -71,11 +72,6 @@ export default function Home() {
     // first client render hydrates; read localStorage in useLayoutEffect below.
     const [interpretationMode, setInterpretationMode] =
         useState<InterpretationMode>("auto")
-    // Avatar/chat toggle. Default "chat" on the home composer; switching to
-    // "avatar" routes the next question to /avatar/{ref} (handled in QuestionInput).
-    const [composerTarget, setComposerTarget] = useState<"avatar" | "chat">(
-        "chat",
-    )
     const inputContainerRef = useRef<HTMLDivElement>(null)
     const fixedBarRef = useRef<HTMLDivElement>(null)
     const [fixedBarHeight, setFixedBarHeight] = useState(0)
@@ -526,9 +522,7 @@ export default function Home() {
                     interpretationMode={interpretationMode}
                     onInterpretationModeChange={setInterpretationMode}
                     enableCharacterMention
-                    composerTarget={composerTarget}
-                    onComposerTargetChange={setComposerTarget}
-                    avatarComingSoon
+                    trailingControls={<ModeSwitch />}
                     composerSettings={{
                         showAutoPick: true,
                         autoPickOn,

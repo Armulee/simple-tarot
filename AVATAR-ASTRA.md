@@ -1,28 +1,74 @@
 # Avatar: Astra
 
+## Source artwork
+Two renders of the same scene, same pixel count, different framing:
+
+- `assets/astra-source.png` — 941 × 1672 (9:16), portrait. The canonical
+  likeness, and the HeyGen talking-photo source: her face fills more of the
+  frame here than in the landscape render.
+- `assets/astra-source-wide.png` — 1672 × 941 (16:9), landscape.
+
+Web derivatives live in `public/avatar/` (see *Web assets* below).
+
 ## Appearance
 - Age: young adult
-- Gender: man
+- Gender: woman
 - Ethnicity: East Asian
-- Hair: black, voluminous, modern middle-part waves
-- Build: average
-- Features: calm direct gaze, subtle friendly expression, defined jawline
-- Style: simple dark crew-neck tee; soft cinematic indoor lighting with warm lamp bokeh
-- Reference: `.cursor/projects/Users-superarmy-Desktop-draft-bussiness-askingfate-website/assets/image-b894a304-5f7a-4e51-8c26-6dcd52d42137.png` (uploaded to HeyGen as photo avatar)
+- Hair: long dark brown, braided crown with loose strands
+- Wardrobe: sheer off-shoulder gown in deep purple with gold star and
+  constellation embroidery; gold star pendant, crescent-moon earrings
+- Setting: a candlelit reading room — arched window over a night skyline,
+  crescent moon, amethyst crystals, an armillary sphere, stacked grimoires,
+  a tarot spread on a midnight-blue cloth, a black cat asleep at her side
+- Expression: warm, welcoming, chin resting on one hand
 
 ## Voice
-- Tone: calm, clear, professional-host
+- Tone: warm, calm, encouraging
 - Accent: Thai
-- Energy: measured, approachable
-- Think: documentary narrator who stays grounded and never hypes
+- Energy: gentle, unhurried
+- Gender: **female** — every prompt in `lib/avatar/reading.ts` and
+  `lib/prompts/prompts-rules.ts` writes her with female Thai particles
+  (`ค่ะ` / `นะคะ`), which a Thai listener will immediately hear against a
+  male voice
 
 ## HeyGen
-- Group ID: 1ed2a1ca46a04304bbec43e503a788da
-- Voice ID: 267604df751e4934b041a9eea2dafd3f
-- Voice Name: Niwat - Natural
+
+> ⚠️ **These IDs are stale and do not match the artwork above.** They were
+> created from an earlier draft — a young East Asian *man* in a dark crew-neck
+> tee, voice "Niwat - Natural". Until they are regenerated, the idle poster and
+> the live avatar are two different people, and the voice contradicts the
+> script. Regenerate before shipping audio:
+>
+> ```bash
+> HEYGEN_API_KEY=xxx ELEVENLABS_API_KEY=xxx \
+> npx tsx scripts/setup-heygen-avatar.ts \
+>   --image ./assets/astra-source.png \
+>   --voice ./assets/astra-voice.mp3 \
+>   --voice-name "Astra"
+> ```
+>
+> Using `assets/astra-source.png` as the talking-photo source is what makes the
+> still → live transition seamless: the poster and the streamed video become
+> the same person in the same room.
+
+- Group ID: 1ed2a1ca46a04304bbec43e503a788da *(stale)*
+- Voice ID: 267604df751e4934b041a9eea2dafd3f — "Niwat - Natural", **male** *(stale)*
 - Voice Designed: false
-- Voice Seed: (n/a)
-- Looks: portrait=e721a16d218a41e4b8444663e8298958
+- Looks: portrait=e721a16d218a41e4b8444663e8298958 *(stale)*
 - Last Synced: 2026-04-19T00:55:00Z
 
-⚠️ Resolve fresh look IDs from Group ID at runtime if looks change.
+Resolve fresh look IDs from the Group ID at runtime if looks change.
+
+## Web assets
+
+| File | Use |
+|---|---|
+| `public/avatar/astra-idle.webp` | 941w portrait — the idle poster below 768px, and the stage's LCP element there |
+| `public/avatar/astra-idle-640.webp` | 640w variant, picked by `srcset` on small phones |
+| `public/avatar/astra-idle-wide.webp` | 1672w landscape, served at `min-width: 768px` |
+
+`components/immerse/stage/avatar-stage.tsx` switches between them with a
+`<picture>`, so the browser downloads exactly one. Squeezing either shape into
+the other loses the scene: cropping the portrait to 16:9 keeps only its top
+third, and cropping the landscape to a phone's 9:16 shows just 26% of its width
+— a close-up with no candles, cat or spread — upscaled about 1.8× at DPR 2.

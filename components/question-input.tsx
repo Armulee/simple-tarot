@@ -25,7 +25,6 @@ import {
     AvatarChatToggle,
     type ComposerTarget,
 } from "@/components/chat/avatar-chat-toggle"
-import { AvatarComingSoonDialog } from "@/components/chat/avatar-coming-soon-dialog"
 import {
     newComposerSessionId,
     persistInitialQuestion,
@@ -99,7 +98,7 @@ export default function QuestionInput({
     composerTarget,
     onComposerTargetChange,
     onAvatarSubmit,
-    avatarComingSoon = false,
+    trailingControls,
     composerSettings,
     composerFollowUps,
     actionTrigger,
@@ -137,13 +136,16 @@ export default function QuestionInput({
     onComposerTargetChange?: (target: ComposerTarget) => void
     /**
      * Override for avatar-mode submit (used on the /avatar page to reveal in
-     * place). When omitted, avatar-mode submit creates a session and navigates
-     * to /avatar/{ref} with the question as the initial message.
+     * place). When omitted, avatar-mode submit creates a session and hands the
+     * question to the immerse landing page as its initial message.
      */
     onAvatarSubmit?: (value: string) => void | Promise<void>
-    /** When true, the avatar segment shows a "COMING SOON" badge and opens the
-     * subscribe dialog instead of routing to /avatar. */
-    avatarComingSoon?: boolean
+    /**
+     * Replaces the avatar/chat toggle at the right of the control row. The
+     * landing page puts its mode switch there instead, since on that page the
+     * two would mean almost the same thing.
+     */
+    trailingControls?: React.ReactNode
     composerSettings?: ComposerSettingsMenuProps | null
     composerFollowUps?: ComposerFollowUpsProps | null
     actionTrigger?: React.ReactNode
@@ -166,7 +168,6 @@ export default function QuestionInput({
     const t = useTranslations("QuestionInput")
     const [internalQuestion, setInternalQuestion] = useState("")
     const [isSmallDevice, setIsSmallDevice] = useState(false)
-    const [comingSoonOpen, setComingSoonOpen] = useState(false)
     const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null)
     const router = useRouter()
     const pathname = usePathname()
@@ -259,15 +260,16 @@ export default function QuestionInput({
             void onAvatarSubmit(value)
             return
         }
-        // Elsewhere: persist the question as a session and hand off to /avatar,
-        // mirroring how the text chat creates a session reference in the URL.
+        // Elsewhere: persist the question as a session and hand off to the
+        // immerse landing page, mirroring how the text chat creates a session
+        // reference in the URL.
         const id = newComposerSessionId()
         const ok = await persistInitialQuestion({
             id,
             question: value,
             userId: user?.id ?? null,
         })
-        const target = ok ? `/${locale}/avatar/${id}` : `/${locale}/avatar`
+        const target = ok ? `/${locale}?ask=${id}` : `/${locale}`
         try {
             router.prefetch(target)
         } catch {}
@@ -589,7 +591,8 @@ export default function QuestionInput({
                         )}
                     </Button>
                 </div>
-                {((composerTarget !== undefined && onComposerTargetChange) ||
+                {(trailingControls ||
+                    (composerTarget !== undefined && onComposerTargetChange) ||
                     (interpretationMode !== undefined &&
                         onInterpretationModeChange)) && (
                     <div className='mt-2 flex items-center justify-between gap-2'>
@@ -611,27 +614,18 @@ export default function QuestionInput({
                             ) : null}
                         </div>
                         <div className='flex items-center gap-2'>
-                            {composerTarget !== undefined &&
-                                onComposerTargetChange && (
+                            {trailingControls ??
+                                (composerTarget !== undefined &&
+                                onComposerTargetChange ? (
                                     <AvatarChatToggle
                                         value={composerTarget}
                                         onChange={handleComposerTargetChange}
-                                        comingSoon={avatarComingSoon}
-                                        onComingSoonClick={() =>
-                                            setComingSoonOpen(true)
-                                        }
                                     />
-                                )}
+                                ) : null)}
                         </div>
                     </div>
                 )}
             </div>
-            {avatarComingSoon && (
-                <AvatarComingSoonDialog
-                    open={comingSoonOpen}
-                    onOpenChange={setComingSoonOpen}
-                />
-            )}
             <AttachmentPreviewDialog
                 media={mediaPreview}
                 onClose={() => setMediaPreview(null)}

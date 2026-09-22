@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import { Sparkles } from "lucide-react"
-import type { RevealResult } from "./use-avatar-session"
+import type { RevealResult } from "../use-avatar-session"
 
 /**
  * Persisted "result card" of a spoken reading — the caption a pure video

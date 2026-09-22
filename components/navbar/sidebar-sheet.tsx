@@ -269,7 +269,7 @@ export function SidebarSheet({ open, onOpenChange }: SidebarSheetProps) {
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
-                side='left'
+                side='right'
                 className='lg:hidden bg-card/95 backdrop-blur-md border-border/30 w-72 max-w-[85vw] flex flex-col h-full p-0 overflow-visible'
             >
                 {/* Fixed Header Section */}

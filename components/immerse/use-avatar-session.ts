@@ -1,6 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useLocale } from "next-intl"
+
+import { useAuth } from "@/contexts/auth-context"
 
 import {
     fetchAvatarStatus,
@@ -51,6 +54,9 @@ type UseAvatarSession = {
 }
 
 export function useAvatarSession(): UseAvatarSession {
+    // The spoken reading is generated in the visitor's language.
+    const locale = useLocale()
+    const { user } = useAuth()
     const [phase, setPhase] = useState<AvatarPhase>("idle")
     const [status, setStatus] = useState<AvatarStatus | null>(null)
     const [mode, setMode] = useState<"free" | "paid" | null>(null)
@@ -67,12 +73,20 @@ export function useAvatarSession(): UseAvatarSession {
     const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
     const refreshStatus = useCallback(async () => {
+        // Entitlements are per-user, so there is nothing to ask for while
+        // signed out — and this runs on the landing page now, where an
+        // unconditional call would mean a guaranteed 401 for every anonymous
+        // visitor.
+        if (!user) {
+            setStatus(null)
+            return
+        }
         try {
             setStatus(await fetchAvatarStatus())
         } catch {
             setStatus(null)
         }
-    }, [])
+    }, [user])
 
     useEffect(() => {
         void refreshStatus()
@@ -147,7 +161,7 @@ export function useAvatarSession(): UseAvatarSession {
             setPhase("revealing")
             let spoken: SpokenReading
             try {
-                spoken = await speakReading(sessionId, q)
+                spoken = await speakReading(sessionId, q, locale)
             } catch (err) {
                 const code = err instanceof AvatarApiError ? err.code : "REQUEST_FAILED"
                 setErrorCode(code)
@@ -159,7 +173,7 @@ export function useAvatarSession(): UseAvatarSession {
             setTranscript((prev) => [...prev, { ...spoken, question: q }])
             setPhase("live")
         },
-        [],
+        [locale],
     )
 
     const submit = useCallback(
@@ -214,7 +228,7 @@ export function useAvatarSession(): UseAvatarSession {
             // 3. Generate the reading with our LLM and speak it live.
             let spoken: SpokenReading
             try {
-                spoken = await speakReading(session.sessionId, q)
+                spoken = await speakReading(session.sessionId, q, locale)
             } catch (err) {
                 const code = err instanceof AvatarApiError ? err.code : "REQUEST_FAILED"
                 setErrorCode(code)
@@ -240,7 +254,7 @@ export function useAvatarSession(): UseAvatarSession {
                 startCountdown(session.durationSeconds)
             }
         },
-        [phase, askOnLiveSession, startCountdown, teardown, refreshStatus],
+        [phase, locale, askOnLiveSession, startCountdown, teardown, refreshStatus],
     )
 
     return {
