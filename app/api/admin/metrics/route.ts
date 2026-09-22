@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
+import {
+    excludeOwners,
+    excludedOwnerIds,
+} from "@/lib/admin/excluded-owners"
 
 export const dynamic = "force-dynamic"
 
@@ -56,9 +60,14 @@ export async function GET(request: NextRequest) {
                     return count ?? 0
                 })(),
                 (async () => {
-                    const { count, error } = await supabaseAdmin
-                        .from("chat_sessions")
-                        .select("*", { count: "exact", head: true })
+                    // Admins' own readings are test data and never counted.
+                    const exclude = await excludedOwnerIds(supabaseAdmin)
+                    const { count, error } = await excludeOwners(
+                        supabaseAdmin
+                            .from("chat_sessions")
+                            .select("*", { count: "exact", head: true }),
+                        exclude,
+                    )
                     if (error) throw error
                     return count ?? 0
                 })(),

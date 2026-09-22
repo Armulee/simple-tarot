@@ -2056,3 +2056,11 @@ html[data-immerse="on"] .app-navbar {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
+
+/* The story section pads its foot by --home-composer-h to clear the legacy
+   composer, which is pinned to the viewport. Only the legacy hero sets that
+   variable, so in immerse — where the composer scrolls with the page — the
+   fallback would leave a screen of dead space under the page. */
+html[data-immerse="on"] {
+    --home-composer-h: 0px;
+}

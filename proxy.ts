@@ -43,8 +43,32 @@ function getPreferredLocaleForRoot(req: NextRequest): string | null {
     return null
 }
 
+/**
+ * /about was folded into the home page's "learn more" section. The URL is
+ * indexed and linked from outside, so it redirects rather than 404s.
+ */
+function aboutRedirect(req: NextRequest): NextResponse | null {
+    const segments = req.nextUrl.pathname.split("/").filter(Boolean)
+    const isAbout =
+        segments.length > 0 && segments[segments.length - 1] === "about"
+    if (!isAbout) return null
+    const prefix = segments.slice(0, -1)
+    const supported = routing.locales as readonly string[]
+    // Only /about and /<locale>/about — never /articles/about or similar.
+    if (prefix.length > 1) return null
+    if (prefix.length === 1 && !supported.includes(prefix[0])) return null
+
+    const url = req.nextUrl.clone()
+    url.pathname = prefix.length === 1 ? `/${prefix[0]}` : "/"
+    url.hash = "learn-more"
+    return NextResponse.redirect(url, 308)
+}
+
 export default function proxy(req: NextRequest) {
     const pathname = req.nextUrl.pathname
+
+    const redirected = aboutRedirect(req)
+    if (redirected) return redirected
 
     // For root path only: detect locale from cookie or Accept-Language
     if (pathname === "/" || pathname === "") {

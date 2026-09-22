@@ -80,3 +80,64 @@ Signed-in users get cross-device unmasking of redacted PII (e.g. `[Person_0]` re
     ```
 
 If `PRIVACY_ENCRYPTION_MASTER_KEY` is missing, `/api/privacy-aliases` returns 500 and the client silently keeps its existing sessionStorage-only behavior — no crash, no plaintext fallback. Rotating the master key invalidates every existing ciphertext, so reserve the `key_version` column on `privacy_aliases` for any future rotation work.
+
+### 3. Admins' own readings stay out of the admin dashboard
+
+Admins are the people testing the product, so their readings are real `chat_sessions` rows that would inflate every admin number. The admin API leaves out every user id in the `admins` table — the same list `requireAdmin()` authorises against — across the interpretations list, the metric cards, the activity chart, and every analytics RPC.
+
+There is nothing to configure: adding a row to `admins` both grants dashboard access and takes that person's readings out of the numbers. Anonymous readings are never filtered, and an empty `admins` table excludes nothing.
+
+Apply the analytics schema so the RPCs accept the exclusion argument (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database-admin-analytics.sql
+```
+
+A call that a database rejects for not knowing the argument is retried without it, so an un-migrated database keeps working (un-filtered, with a warning in the server log) until the file above is applied.
+
+### 4. If the admin dashboard says "Failed to load metrics."
+
+Every section fed by the analytics RPCs (Data totals, cohort retention, active users, returning users, reading behaviour) reads through `database-admin-analytics.sql`, and the Audience section through `database-admin-demographics.sql`. The charts directly under the Data cards query tables instead, so **a page where those charts render but every analytics section fails means the RPCs are missing from the database, not that the site is broken.**
+
+The red box prints the reason underneath the generic message — a `PGRST202` there means the function isn't in the schema cache, and the hint names the file to apply:
+
+```bash
+psql "$DATABASE_URL" -f database-admin-analytics.sql
+```
+
+To see what the database actually has:
+
+```sql
+select p.oid::regprocedure
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+ where n.nspname = 'public' and p.proname like 'admin_analytics%'
+ order by 1;
+```
+
+
+### 5. The Audience section (demographics)
+
+Age, location and gender, all **self-reported** — nothing is inferred from behaviour or conversation:
+
+| Field | Source | Covers |
+|---|---|---|
+| Age | `profiles.birth_date`, else the birth date on a `birth_charts` row | signed-in users **and guests** — birth charts don't need an account |
+| Location | `birth_charts.country` (a country picker), else `profiles.birth_place` | signed-in users and guests |
+| Gender | `profiles.gender` | signed-in users only — nobody else is asked |
+
+Apply the schema (idempotent):
+
+```bash
+psql "$DATABASE_URL" -f database-admin-demographics.sql
+```
+
+Two things the section is careful about, and any change to it should stay careful about:
+
+- **Every breakdown shows the population it was measured against** ("Known for 41 / 2,073 · 2%"), because a bucket chart with no denominator reads as if the whole userbase answered. Gender quotes signed-in users, not everyone.
+- **A person is counted once.** Identity is `COALESCE(owner_user_id, did)`, the same actor model as the rest of the admin analytics, so a signed-in user's birth charts merge into their profile rather than counting twice. The profile wins for birth date; the birth chart wins for country (see below).
+
+`birth_place` holds a *combined* string, and **the two screens that write it disagree on the order**: the age-gate consent modal saves `"Country, Province"` (`star-consent.tsx:244`), while the birth-chart and astrology forms save `"Province, Country"`. Assuming either position mislabels every row the other screen wrote — that is how provinces ended up in this report. `admin_place_country()` therefore checks *each* comma part against `admin_countries` (generated from the `country-state-city` package the app already ships) plus a small alias list, and keeps whichever part is genuinely a country; anything unresolvable counts as unknown rather than being displayed as a country. The structured `birth_charts.country` still wins over the free-text value.
+
+The order disagreement is worth fixing at the source too — `app/api/birth-chart/me/route.ts` and `components/chat/session.tsx` both read `birth_place` assuming the **last** part is the country, so they mis-parse every row the consent modal wrote.
+
+Admins are excluded here as everywhere else. `birth_charts` stores day/month/year as loose integers, so impossible dates (31 February) exist in real data — `admin_safe_date()` turns those into "unknown" rather than letting one bad row abort the report.

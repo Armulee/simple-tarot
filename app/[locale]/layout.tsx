@@ -7,6 +7,7 @@ import { TarotProvider } from "@/contexts/tarot-context"
 import { StarsProvider } from "@/contexts/stars-context"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Navbar } from "@/components/navbar"
+import { PendingMessageProvider } from "@/contexts/pending-message-context"
 import { DesktopSidebarShell } from "@/components/navbar/desktop-sidebar-shell"
 import "../globals.css"
 import Footer from "@/components/footer/footer"
@@ -153,6 +154,7 @@ export default async function RootLayout({
                     <AuthProvider>
                         <StarsProvider>
                             <TarotProvider>
+                                <PendingMessageProvider>
                                 <div className='min-h-screen flex flex-col home-gradient relative'>
                                     <Navbar locale={locale} />
                                     <DesktopSidebarShell>
@@ -169,6 +171,7 @@ export default async function RootLayout({
                                         <Footer />
                                     </DesktopSidebarShell>
                                 </div>
+                                </PendingMessageProvider>
                             </TarotProvider>
                         </StarsProvider>
                     </AuthProvider>

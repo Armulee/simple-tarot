@@ -16,8 +16,8 @@ const nextConfig: NextConfig = {
         ],
     },
     /**
-     * `/about` was a real, indexed page; its content now lives below the fold
-     * on the landing page. Redirecting here rather than from a page component
+     * `/about` was a real, indexed page; its content now renders on the landing
+     * page as the `#learn-more` section. Redirecting here rather than from a page component
      * is deliberate — next-intl's `redirect()` resolves internally and answers
      * 200, which would leave the same content served under two URLs. This
      * emits a real 308, and it runs before the i18n middleware so both the
@@ -26,10 +26,10 @@ const nextConfig: NextConfig = {
     async redirects() {
         const locales = "en|th|lo|my|zh-CN|zh-TW|ja|ko|id|es|pt-BR"
         return [
-            { source: "/about", destination: "/#about", permanent: true },
+            { source: "/about", destination: "/#learn-more", permanent: true },
             {
                 source: `/:locale(${locales})/about`,
-                destination: "/:locale/#about",
+                destination: "/:locale/#learn-more",
                 permanent: true,
             },
         ]

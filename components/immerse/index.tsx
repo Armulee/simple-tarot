@@ -29,8 +29,6 @@ import { ScrollCue } from "./scroll-cue"
 import { CookiesBanner } from "@/components/cookies-banner"
 import { ExploreSection } from "./explore-section"
 
-const EXPLORE_ID = "immerse-explore"
-
 /**
  * The immerse landing experience: Astra fills the viewport, you type or speak
  * to her, and she answers aloud with the spoken words captioned on screen.
@@ -85,19 +83,6 @@ export function ImmerseExperience() {
     const prefill = useCallback((value: string) => {
         setQuestion(value)
         composerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
-    }, [])
-
-    // A nav link to /#about lands here before the explore section has
-    // rendered, so the browser's own hash scroll finds nothing. Do it once
-    // mounted instead.
-    useEffect(() => {
-        if (window.location.hash !== "#about") return
-        const id = window.setTimeout(() => {
-            document
-                .getElementById("about")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" })
-        }, 120)
-        return () => window.clearTimeout(id)
     }, [])
 
     // Arriving from the composer's avatar toggle: /?ask={ref} carries a
@@ -248,12 +233,12 @@ export function ImmerseExperience() {
                             banner steps aside on this route. */}
                         <CookiesBanner inline />
 
-                        <ScrollCue targetId={EXPLORE_ID} />
+                        <ScrollCue targetId="learn-more" />
                     </div>
                 </div>
             </section>
 
-            <ExploreSection id={EXPLORE_ID} transcript={session.transcript} />
+            <ExploreSection transcript={session.transcript} />
 
             <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
                 <DialogContent className="max-w-sm">

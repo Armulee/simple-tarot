@@ -17,10 +17,12 @@ export function ConversionSection({
     conversion,
     loading,
     error,
+    errorDetail,
 }: {
     conversion: ConversionAnalytics | undefined
     loading: boolean
     error: boolean
+    errorDetail?: string | null
 }) {
     const t = useTranslations("Admin")
     const [mounted, setMounted] = useState(false)
@@ -37,6 +39,7 @@ export function ConversionSection({
             icon={<Filter className="h-4 w-4" />}
             loading={loading}
             error={error}
+            errorDetail={errorDetail}
             empty={empty}
         >
             <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 sm:p-6">

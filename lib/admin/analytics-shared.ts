@@ -119,3 +119,41 @@ export type AdminAnalyticsResponse = {
         mrrAvailable: boolean
     }
 }
+
+/**
+ * Demographics — self-reported only, so every group carries the population it
+ * was measured against. `known + unknown` is the denominator to quote, never
+ * the whole userbase.
+ */
+export type DemographicBucket = { key: string; count: number }
+
+export type AgeDemographics = {
+    known: number
+    unknown: number
+    /** Null when nobody has given a birth date. */
+    median: number | null
+    buckets: DemographicBucket[]
+}
+
+export type GenderDemographics = {
+    known: number
+    unknown: number
+    buckets: DemographicBucket[]
+}
+
+export type LocationDemographics = {
+    known: number
+    unknown: number
+    distinct: number
+    top: { country: string; count: number }[]
+}
+
+export type DemographicsAnalytics = {
+    /** People we hold any demographic field for (signed-in and guests). */
+    actors: number
+    /** Of those, the signed-in ones — the only population gender covers. */
+    registered: number
+    age: AgeDemographics
+    gender: GenderDemographics
+    location: LocationDemographics
+}

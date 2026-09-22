@@ -2,44 +2,35 @@
 
 import { useTranslations } from "next-intl"
 
-import AboutSections from "@/components/about"
 import { ResultCard } from "./stage/result-card"
 import type { RevealResult } from "./use-avatar-session"
 
 /**
- * What "scroll to explore" reveals: everything the avatar stage can't hold.
+ * Readings Astra has already spoken, re-readable below the stage — a live
+ * video can't be scrolled back.
  *
- * Readings Astra has already spoken are re-readable here (a live video can't
- * be scrolled back), then the whole AskingFate story that used to live at
- * `/about`. The layout's <Footer /> lands underneath. The `#about` anchor is
- * what every former `/about` link now points at.
+ * The AskingFate story that used to sit here now renders at page level as the
+ * `#learn-more` section, so both landing modes carry it; this only holds what
+ * is specific to a live avatar session. Nothing renders until there is
+ * something to show.
  */
 export function ExploreSection({
-    id,
     transcript,
 }: {
-    id: string
     transcript: RevealResult[]
 }) {
     const t = useTranslations("Immerse")
+    if (transcript.length === 0) return null
+
     return (
-        <section id={id} className="relative z-10 px-4 pb-16 pt-12">
-            <div className="mx-auto w-full max-w-2xl space-y-8">
-                {transcript.length > 0 && (
-                    <div className="space-y-3">
-                        <h2 className="text-sm font-semibold text-white/70">
-                            {t("savedReadings")}
-                        </h2>
-                        {transcript.map((result, i) => (
-                            <ResultCard key={i} result={result} />
-                        ))}
-                    </div>
-                )}
-
-            </div>
-
-            <div id="about" className="scroll-mt-20">
-                <AboutSections />
+        <section className="relative z-10 px-4 pb-8 pt-12">
+            <div className="mx-auto w-full max-w-2xl space-y-3">
+                <h2 className="text-sm font-semibold text-white/70">
+                    {t("savedReadings")}
+                </h2>
+                {transcript.map((result, i) => (
+                    <ResultCard key={i} result={result} />
+                ))}
             </div>
         </section>
     )

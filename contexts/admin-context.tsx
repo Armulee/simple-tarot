@@ -7,9 +7,9 @@ import {
     useState,
     type ReactNode,
 } from "react"
+import { notFound } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { supabase } from "@/lib/supabase"
-import NotFound from "@/app/not-found"
 
 export type AdminMetrics = {
     totalUsers: number
@@ -69,9 +69,13 @@ export function AdminGuard({ children }: { children: ReactNode }) {
         void check()
     }, [loading, user])
 
-    if (state.status === "loading" || state.status === "forbidden") {
-        return <NotFound />
-    }
+    // A non-admin must not be able to tell /admin apart from any other missing
+    // page, so hand off to the real not-found boundary rather than rendering an
+    // admin-specific copy of it: same markup, same metadata, same title.
+    // Only the settled "forbidden" state may throw — throwing while the check is
+    // still in flight would strand a genuine admin in that boundary.
+    if (state.status === "forbidden") notFound()
+    if (state.status === "loading") return null
 
     return (
         <AdminContext.Provider value={state}>

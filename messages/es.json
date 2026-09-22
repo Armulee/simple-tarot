@@ -524,6 +524,10 @@
         "fatedRelations": {
           "name": "Vínculos del destino",
           "description": "Descubre las conexiones cósmicas y la compatibilidad entre tú y tus seres queridos"
+        },
+        "cosmicCalendar": {
+          "name": "Calendario cósmico",
+          "description": "Sigue el clima cósmico diario y elige tus momentos con un calendario astrológico"
         }
       }
     },
@@ -545,7 +549,9 @@
         "sep_2026": "Septiembre de 2026",
         "oct_2026": "Octubre de 2026",
         "nov_2026": "Noviembre de 2026",
-        "dec_2026": "Diciembre de 2026"
+        "dec_2026": "Diciembre de 2026",
+        "q1_2027": "1T 2027",
+        "tbc": "Por confirmar"
       },
       "tarot": {
         "title": "Lectura de Tarot con IA",
@@ -558,7 +564,7 @@
       },
       "birthChart": {
         "title": "Carta natal",
-        "eta": "Mayo de 2026",
+        "eta": "Disponible ahora",
         "features": [
           "Resumen de datos de tu carta natal personal",
           "Posiciones planetarias y ángulos de aspecto vinculados a tus fortalezas",
@@ -567,7 +573,7 @@
       },
       "astrology": {
         "title": "Astrología",
-        "eta": "Mayo de 2026",
+        "eta": "Disponible ahora",
         "features": [
           "Pronósticos de tránsitos a partir de tus datos de nacimiento y las fechas que elijas",
           "Lecturas de tránsitos personalizadas",
@@ -576,7 +582,7 @@
       },
       "namelogy": {
         "title": "Nomología",
-        "eta": "Julio de 2026",
+        "eta": "Por confirmar",
         "features": [
           "Descifra las vibraciones de los nombres",
           "Revela la alineación espiritual, las fortalezas y las advertencias",
@@ -585,7 +591,7 @@
       },
       "numerology": {
         "title": "Numerología",
-        "eta": "Agosto de 2026",
+        "eta": "Por confirmar",
         "features": [
           "Descifra las vibraciones de los números",
           "Destaca los patrones numéricos favorables y desafiantes",
@@ -594,7 +600,7 @@
       },
       "luckyColors": {
         "title": "Colores de la suerte",
-        "eta": "Septiembre de 2026",
+        "eta": "Por confirmar",
         "features": [
           "Paleta diaria acorde a los regentes planetarios",
           "Recomendaciones para tu vestuario y tu espacio de trabajo",
@@ -603,7 +609,7 @@
       },
       "mobileApp": {
         "title": "Aplicación móvil",
-        "eta": "Noviembre de 2026",
+        "eta": "1T 2027",
         "features": [
           "Experiencia de lanzamiento nativa para iOS y Android",
           "Lleva tus lecturas a todas partes con acceso sin conexión",
@@ -612,7 +618,7 @@
       },
       "fatedRelations": {
         "title": "Vínculos del destino",
-        "eta": "Octubre de 2026",
+        "eta": "Diciembre de 2026",
         "features": [
           "Explora la compatibilidad y la dinámica de las relaciones",
           "Desentraña la dinámica de la relación y el potencial compartido",
@@ -621,7 +627,7 @@
       },
       "palmistry": {
         "title": "Quiromancia",
-        "eta": "Diciembre de 2026",
+        "eta": "1T 2027",
         "features": [
           "Lecturas de la palma mediante la cámara web",
           "Interpreta las líneas de la suerte, la vida y el destino",

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { supabase } from "@/lib/supabase"
 import ChatSession from "@/components/chat/session"
+import { ClearPendingMessage } from "@/components/chat/clear-pending-message"
 import type { ChatDecision } from "@/components/chat/session"
 import { getSocialImageUrls } from "@/lib/seo"
 import { getCleanQuestionText } from "@/lib/prompts/question-utils"
@@ -105,18 +106,27 @@ export default async function ChatSessionPage({
         data.did === requesterDid
 
     return (
-        <ChatSession
-            initialSession={{
-                id: data.id,
-                question: data.question,
-                messages: Array.isArray(data.messages) ? data.messages : [],
-                decision: isChatDecision(data.decision) ? data.decision : null,
-                originContext: normalizeOriginContext(data.origin_context),
-                owner_user_id: data.owner_user_id,
-                youAreCreatorDevice,
-                showInsufficientStars: data.show_insufficient_stars,
-                showCardDraw: data.show_card_draw,
-            }}
-        />
+        <>
+            <ClearPendingMessage sessionId={data.id} />
+            <ChatSession
+                initialSession={{
+                    id: data.id,
+                    question: data.question,
+                    messages: Array.isArray(data.messages)
+                        ? data.messages
+                        : [],
+                    decision: isChatDecision(data.decision)
+                        ? data.decision
+                        : null,
+                    originContext: normalizeOriginContext(
+                        data.origin_context,
+                    ),
+                    owner_user_id: data.owner_user_id,
+                    youAreCreatorDevice,
+                    showInsufficientStars: data.show_insufficient_stars,
+                    showCardDraw: data.show_card_draw,
+                }}
+            />
+        </>
     )
 }

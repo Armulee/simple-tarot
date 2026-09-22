@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useState } from "react"
-import { roadmapPhases } from "@/lib/roadmap"
+import { orderedRoadmapPhases } from "@/lib/roadmap"
 
 type FeatureIconComponent = typeof Sparkles
 
@@ -59,7 +59,7 @@ export default function RoadmapSection() {
     const [hoveredItem, setHoveredItem] = useState<number | null>(null)
     const [currentDate] = useState(() => new Date())
 
-    const roadmap = roadmapPhases.map((phase) => ({
+    const roadmap = orderedRoadmapPhases.map((phase) => ({
         ...phase,
         phaseLabel: t(phase.phaseKey),
         title: t(`${phase.translationKey}.title`),

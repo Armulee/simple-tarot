@@ -9,9 +9,10 @@ import {
 import { Checkout } from "@/components/checkout"
 import { useTranslations } from "next-intl"
 import {
-    STAR_PACKS,
     getPackPrice,
     getPackPriceId,
+    PACK_CHECKOUT_MODE,
+    purchasablePacks,
 } from "@/lib/payments/star-products"
 import {
     formatCurrency,
@@ -26,13 +27,14 @@ type StarPacksGridProps = {
 
 export default function StarPacksGrid({ locale, currency }: StarPacksGridProps) {
     const t = useTranslations("Pricing")
+    const packs = purchasablePacks(currency)
 
     const formatAmount = (amount?: number | null) =>
         amount != null ? formatCurrency(amount, currency, locale) : "--"
 
     return (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-            {STAR_PACKS.map((p, index) => {
+            {packs.map((p, index) => {
                 const isPopular = p.labelKey === "popular"
                 const isBestValue = p.labelKey === "bestValue"
 
@@ -129,7 +131,7 @@ export default function StarPacksGrid({ locale, currency }: StarPacksGridProps) 
                                 </ul>
 
                                 <Checkout
-                                    mode='addon'
+                                    mode={PACK_CHECKOUT_MODE}
                                     packId={getPackPriceId(p, currency)}
                                     currency={currency}
                                     className='w-full'

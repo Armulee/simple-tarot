@@ -22,6 +22,7 @@ export function MetricsTrendSection({
     trendFormat = (v) => v.toLocaleString(),
     loading,
     error,
+    errorDetail,
     empty,
     children,
 }: {
@@ -35,6 +36,7 @@ export function MetricsTrendSection({
     trendFormat?: (v: number) => string
     loading: boolean
     error: boolean
+    errorDetail?: string | null
     empty: boolean
     children?: ReactNode
 }) {
@@ -54,6 +56,7 @@ export function MetricsTrendSection({
             icon={icon}
             loading={loading}
             error={error}
+            errorDetail={errorDetail}
             empty={empty}
         >
             <div className="space-y-5">
